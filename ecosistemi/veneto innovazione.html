@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Ecosistema Veneto Innovazione</title>
+    <style>
+        :root {
+            --bg-dark: #070d19;
+            --panel-bg: rgba(11, 23, 42, 0.94);
+            --panel-border: rgba(14, 165, 233, 0.25);
+            --accent-blue: #0284c7;
+            --accent-cyan: #06b6d4;
+            --accent-red: #f43f5e;
+            --accent-gold: #f59e0b;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: #fff;
+            font-weight: 800;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 12px rgba(14, 165, 233, 0.4);
+        }
+
+        h1 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .kpi-container {
+            display: flex;
+            gap: 12px;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--panel-border);
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+
+        .kpi-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .workspace {
+            display: flex;
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 55px);
+            overflow: hidden;
+        }
+
+        #network-container {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            cursor: grab;
+            background: radial-gradient(circle at center, #0f1c30 0%, #070d19 100%);
+        }
+
+        #network-container:active {
+            cursor: grabbing;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 5;
+            width: 330px;
+        }
+
+        .control-group {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .view-switcher {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+
+        .btn-view {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-view:hover {
+            background: rgba(14, 165, 233, 0.15);
+            border-color: var(--accent-cyan);
+        }
+
+        .btn-view.active {
+            background: var(--accent-cyan);
+            color: #000;
+            font-weight: 700;
+            border-color: var(--accent-cyan);
+        }
+
+        .search-box {
+            background: rgba(7, 13, 25, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            font-size: 0.78rem;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-cyan);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .tag-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--panel-border);
+            color: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.68rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-btn.active, .tag-btn:hover {
+            color: #fff;
+            border-color: var(--accent-cyan);
+            background: rgba(14, 165, 233, 0.2);
+        }
+
+        .detail-window {
+            width: 370px;
+            height: 100%;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 8;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.6);
+            flex-shrink: 0;
+        }
+
+        .detail-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .category-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .entity-title {
+            font-size: 1.15rem;
+            margin-bottom: 2px;
+            color: #fff;
+        }
+
+        .entity-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .detail-body {
+            padding: 14px 18px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .info-card h4 {
+            font-size: 0.68rem;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-card p {
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: #cbd5e1;
+        }
+
+        .connected-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .conn-chip {
+            background: rgba(255,255,255,0.08);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .conn-chip:hover {
+            background: rgba(14, 165, 233, 0.25);
+            border-color: var(--accent-cyan);
+            color: #fff;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.68rem;
+            display: flex;
+            gap: 12px;
+            backdrop-filter: blur(8px);
+            z-index: 5;
+            flex-wrap: wrap;
+            max-width: 72%;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace { flex-direction: column; }
+            .detail-window { width: 100%; height: 38%; }
+            .kpi-container { display: none; }
+            .controls-overlay { width: calc(100% - 24px); }
+            .legend { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-group">
+            <span class="logo-badge">VI</span>
+            <h1>Ecosistema Veneto Innovazione</h1>
+        </div>
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-value">In House Regionale</div>
+                <div class="kpi-label">Ricerca & Innovazione</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">Strategia RIS3</div>
+                <div class="kpi-label">Smart Specialisation</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">Reti UE & EEN</div>
+                <div class="kpi-label">Trasferimento Tecnologico</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="controls-overlay">
+            <div class="control-group">
+                <div class="control-label">Modalità Visualizzazione Rete</div>
+                <div class="view-switcher" id="viewSwitcher">
+                    <button class="btn-view active" data-view="hub">💡 Hub Innovazione</button>
+                    <button class="btn-view" data-view="force">🌀 Fisica Repulsiva</button>
+                    <button class="btn-view" data-view="radial">⭕ Concentrica</button>
+                    <button class="btn-view" data-view="grid">📊 Per Categoria</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">Filtra e Cerca Attori VI</div>
+                <input type="text" id="searchInput" class="search-box" placeholder="Cerca RIR, RIS3, Università, EEN, APRE...">
+                <div class="filter-tags" id="filterContainer">
+                    <button class="tag-btn active" data-cat="all">Tutti</button>
+                    <button class="tag-btn" data-cat="hub">Hub Centrale</button>
+                    <button class="tag-btn" data-cat="gov">Regione & RIS3</button>
+                    <button class="tag-btn" data-cat="rir">RIR & Distretti</button>
+                    <button class="tag-btn" data-cat="research">Università & Ricerca</button>
+                    <button class="tag-btn" data-cat="services">Servizi & Reti UE</button>
+                    <button class="tag-btn" data-cat="startup">Startup & Finanza</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="network-container">
+            <canvas id="networkCanvas"></canvas>
+
+            <div class="legend">
+                <div class="legend-item"><span class="legend-color" style="background:#06b6d4;"></span> Hub Centrale</div>
+                <div class="legend-item"><span class="legend-color" style="background:#f43f5e;"></span> Regione & Programmazione RIS3</div>
+                <div class="legend-item"><span class="legend-color" style="background:#3b82f6;"></span> Reti Innovative Regionali (RIR)</div>
+                <div class="legend-item"><span class="legend-color" style="background:#8b5cf6;"></span> Università & Parchi Tecnologici</div>
+                <div class="legend-item"><span class="legend-color" style="background:#f59e0b;"></span> Servizi, APRE & Reti UE (EEN)</div>
+                <div class="legend-item"><span class="legend-color" style="background:#10b981;"></span> Startup, Spin-off & VC</div>
+            </div>
+        </div>
+
+        <aside class="detail-window">
+            <div class="detail-header">
+                <span class="category-pill" id="detCategory">HUB CENTRALE</span>
+                <h2 class="entity-title" id="detTitle">Veneto Innovazione S.p.A.</h2>
+                <p class="entity-subtitle" id="detSubtitle">Società in house della Regione del Veneto per la Ricerca e l'Innovazione</p>
+            </div>
+            <div class="detail-body">
+                <div class="info-card">
+                    <h4>Ruolo nell'Ecosistema</h4>
+                    <p id="detRole">Agenzia regionale per la ricerca, la promozione dell'innovazione e il trasferimento tecnologico, braccio operativo della Regione del Veneto per l'attuazione delle politiche d'innovazione.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Attività & Servizi Chiave</h4>
+                    <p id="detDesc">Supporto alla Strategia di Specializzazione Intelligente (RIS3), coordinamento del sistema RIR, gestione nodo Enterprise Europe Network (EEN), assistenza APRE e incentivi alla ricerca.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Nodi Collegati</h4>
+                    <div class="connected-list" id="detConns"></div>
+                </div>
+                <a id="detLink" href="https://www.venetoinnovazione.it/" target="_blank" class="action-btn" style="display:block; text-align:center; background:var(--accent-cyan); color:#000; font-weight:700; padding:9px; border-radius:6px; text-decoration:none; margin-top:auto; font-size:0.8rem;">Visita Sito Ufficiale Veneto Innovazione</a>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // DATASET DEGLI ATTORI DELL'ECOSISTEMA VENETO INNOVAZIONE
+        const nodes = [
+            // HUB CENTRALE
+            { id: 'vi_hub', label: 'Veneto Innovazione S.p.A.', cat: 'hub', color: '#06b6d4', radius: 24,
+              sub: 'Società in House della Regione del Veneto', 
+              desc: 'Ente regionale operativo preposto a promuovere la ricerca applicata, l\'innovazione tecnologica e la competitività del sistema economico e produttivo veneto.', 
+              role: 'Attuazione delle politiche regionali per l\'innovazione, gestione di reti europee, supporto al trasferimento tecnologico.',
+              url: 'https://www.venetoinnovazione.it/' },
+
+            // REGIONE & RIS3
+            { id: 'regione_veneto', label: 'Regione del Veneto', cat: 'gov', color: '#f43f5e', radius: 22,
+              sub: 'Socio Unico & Indirizzo Politico', desc: 'Amministrazione regionale della Regione del Veneto, referente politico-strategico per lo sviluppo economico, l\'innovazione e la ricerca.', role: 'Definizione degli indirizzi strategici, finanziamento programmi PR FESR e supervisione delle attività in-house.', url: 'https://www.regione.veneto.it/' },
+
+            { id: 'ris3_veneto', label: 'Strategia RIS3 Veneto', cat: 'gov', color: '#f43f5e', radius: 18,
+              sub: 'Research & Innovation Strategy for Smart Specialisation', desc: 'Strategia di specializzazione intelligente che individua gli ambiti tecnologici prioritari (Smart Agrifood, Sustainable Living, Smart Manufacturing, Creative Industries, Health & Wellness).', role: 'Orientamento degli investimenti regionali e comunitari per la ricerca e l\'innovazione.', url: 'https://www.venetoinnovazione.it/' },
+
+            { id: 'pr_fesr', label: 'PR FESR Veneto', cat: 'gov', color: '#f43f5e', radius: 17,
+              sub: 'Programma Regionale Fondo Europeo Sviluppo Regionale', desc: 'Strumento finanziario europeo e regionale per il sostegno alle imprese, alla transizione ecologica e digitale e alla ricerca applicata.', role: 'Erogazione di fondi e contributi per progetti di R&S, startup e aggregazioni industriali.', url: 'https://www.regione.veneto.it/' },
+
+            // RIR & DISTRETTI
+            { id: 'rir_cluster', label: 'Reti Innovative Regionali (RIR)', cat: 'rir', color: '#3b82f6', radius: 20,
+              sub: 'Aggregazioni Imprese - Università - Centri Ricerca', desc: 'Sistemi di imprese e soggetti pubblici/privati riconosciuti dalla Regione del Veneto operanti in ambiti produttivi strategici.', role: 'Generazione di progetti complessi di ricerca industriale, trasferimento di tecnologie ed economie di scala.', url: 'https://www.venetoinnovazione.it/' },
+
+            { id: 'distretti_industriali', label: 'Distretti Industriali del Veneto', cat: 'rir', color: '#3b82f6', radius: 17,
+              sub: 'Sistemi Produttivi Locali', desc: 'Eccellenze manifatturiere e filiere produttive storiche del territorio veneto (meccanica, calzaturiero, occhialeria, concia, arredo, vino).', role: 'Ancoraggio territoriale dell\'innovazione, competitività sui mercati globali e sinergie produttive.', url: 'https://www.venetoinnovazione.it/' },
+
+            // UNIVERSITÀ & RICERCA
+            { id: 'unipd', label: 'Università degli Studi di Padova', cat: 'research', color: '#8b5cf6', radius: 19,
+              sub: 'Ateneo di Ricerca d\'Eccellenza', desc: 'Uno dei più antichi e prestigiosi atenei europei, leader nazionale per qualità della ricerca scientifica e numero di brevetti.', role: 'Generazione di conoscenza scientifica, spin-off accademici, laboratori avanzati e progetti R&S.', url: 'https://www.unipd.it/' },
+
+            { id: 'unive', label: 'Università Ca\' Foscari Venezia', cat: 'research', color: '#8b5cf6', radius: 18,
+              sub: 'Ateneo Internazionale & Humanistic Innovation', desc: 'Ateneo specializzato in economia, lingue, scienze ambientali, beni culturali e scienze della materia.', role: 'Ricerca nei materiali avanzati, economia circolare, scienze dei dati e innovazione culturale.', url: 'https://www.unive.it/' },
+
+            { id: 'univr_iuav', label: 'UniVR & Università IUAV', cat: 'research', color: '#8b5cf6', radius: 17,
+              sub: 'Biotecnologie, Design & Architettura', desc: 'Università di Verona (eccellenza medica e biotecnologica) e Università IUAV di Venezia (design, urbanistica e architettura).', role: 'Supporto tecnologico nei settori life sciences, agrifood, design sostenibile e pianificazione urbana.', url: 'https://www.univr.it/' },
+
+            { id: 'parchi_tecnologici', label: 'Parchi Scientifici & Tecnologici', cat: 'research', color: '#8b5cf6', radius: 17,
+              sub: 'VEGA, Parco Galileo, Star Park', desc: 'Infrastrutture territoriali per l\'incubazione d\'impresa e la vicinanza tra laboratori scientifici e aziende (VEGA Venezia, Galileo Padova).', role: 'Incubazione di startup tecnologiche, laboratori di prova e spazi d\'innovazione aperta.', url: 'https://www.venetoinnovazione.it/' },
+
+            // SERVIZI & RETI UE
+            { id: 'een_network', label: 'Enterprise Europe Network (EEN)', cat: 'services', color: '#f59e0b', radius: 19,
+              sub: 'Rete della Commissione Europea per le PMI', desc: 'La più grande rete mondiale di supporto alle PMI per l\'internazionalizzazione, l\'innovazione e la ricerca partner commerciali/tecnologici.', role: 'Brokerage event, trasferimento tecnologico transfrontaliero, valutazione della capacità d\'innovazione aziendale.', url: 'https://een.ec.europa.eu/' },
+
+            { id: 'apre_veneto', label: 'Sportello APRE Veneto', cat: 'services', color: '#f59e0b', radius: 17,
+              sub: 'Agenzia per la Promozione della Ricerca Europea', desc: 'Punto di contatto regionale per l\'orientamento e il supporto alla partecipazione ai programmi quadro UE (Horizon Europe).', role: 'Informativa sui bandi europei, formazione per la progettazione e assistenza alla presentazione delle proposte.', url: 'https://apre.it/' },
+
+            { id: 'smact_dih', label: 'SMACT Competence Center & DIH', cat: 'services', color: '#f59e0b', radius: 17,
+              sub: 'Centro ad Alta Specializzazione Industria 4.0', desc: 'Competence Center del Triveneto focalizzato su Social, Mobile, Analytics, Cloud e Internet of Things.', role: 'Digitalizzazione delle PMI, dimostratori tecnologici, formazione 4.0/5.0 e progetti pilota.', url: 'https://www.smact.cc/' },
+
+            { id: 'brevetti_tt', label: 'Trasferimento Tecnologico & Brevetti', cat: 'services', color: '#f59e0b', radius: 16,
+              sub: 'Valorizzazione Proprietà Intellettuale', desc: 'Servizi aziendali per la valorizzazione della proprietà industriale, la tutela brevettuale e il matching tecnologia-mercato.', role: 'Valorizzazione di brevetti della ricerca, licenze e audit sulla Proprietà Intellettuale.', url: 'https://www.venetoinnovazione.it/' },
+
+            // STARTUP & FINANZA
+            { id: 'startup_spinoff', label: 'Startup & Spin-off Innovative', cat: 'startup', color: '#10b981', radius: 18,
+              sub: 'Nuove Imprese ad Alto Contenuto Tecnologico', desc: 'Imprese giovanili e spin-off della ricerca nate per industrializzare soluzioni di frontiera e nuovi modelli di business.', role: 'Motore della distruzione creatrice, sviluppo di brevetti disruptive e nuove competenze.', url: 'https://www.venetoinnovazione.it/' },
+
+            { id: 'finanza_innovazione', label: 'Finanza per l\'Innovazione & VC', cat: 'startup', color: '#10b981', radius: 17,
+              sub: 'Venture Capital, Business Angels & Finanziamenti', desc: 'Strumenti finanziari dedicati alla crescita tecnologica: fondi di Venture Capital regionali, equity crowdfunding e garanzie.', role: 'Sostegno finanziario nelle fasi di proof-of-concept, seed, early stage e scale-up industriale.', url: 'https://www.venetoinnovazione.it/' }
+        ];
+
+        // RELAZIONI (LINK) NELL'ECOSISTEMA
+        const links = [
+            // Hub centrale
+            { source: 'vi_hub', target: 'regione_veneto' },
+            { source: 'vi_hub', target: 'ris3_veneto' },
+            { source: 'vi_hub', target: 'pr_fesr' },
+            { source: 'vi_hub', target: 'rir_cluster' },
+            { source: 'vi_hub', target: 'een_network' },
+            { source: 'vi_hub', target: 'apre_veneto' },
+            { source: 'vi_hub', target: 'smact_dih' },
+            { source: 'vi_hub', target: 'brevetti_tt' },
+            { source: 'vi_hub', target: 'unipd' },
+            { source: 'vi_hub', target: 'unive' },
+            { source: 'vi_hub', target: 'parchi_tecnologici' },
+            { source: 'vi_hub', target: 'startup_spinoff' },
+
+            // Governo e Programmazione
+            { source: 'regione_veneto', target: 'ris3_veneto' },
+            { source: 'regione_veneto', target: 'pr_fesr' },
+            { source: 'pr_fesr', target: 'rir_cluster' },
+            { source: 'pr_fesr', target: 'finanza_innovazione' },
+
+            // Reti e Industria
+            { source: 'rir_cluster', target: 'distretti_industriali' },
+            { source: 'rir_cluster', target: 'unipd' },
+            { source: 'rir_cluster', target: 'unive' },
+            { source: 'rir_cluster', target: 'smact_dih' },
+
+            // Università e Trasferimento Tecnologico
+            { source: 'unipd', target: 'parchi_tecnologici' },
+            { source: 'unipd', target: 'brevetti_tt' },
+            { source: 'unive', target: 'parchi_tecnologici' },
+            { source: 'univr_iuav', target: 'rir_cluster' },
+
+            // Servizi e Startup
+            { source: 'een_network', target: 'apre_veneto' },
+            { source: 'een_network', target: 'startup_spinoff' },
+            { source: 'startup_spinoff', target: 'finanza_innovazione' },
+            { source: 'parchi_tecnologici', target: 'startup_spinoff' }
+        ];
+
+        // ENGINE CANVAS & SIMULAZIONE GRAFO
+        const container = document.getElementById('network-container');
+        const canvas = document.getElementById('networkCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = 0;
+        let height = 0;
+        let selectedNode = nodes[0];
+        let hoveredNode = null;
+        let draggedNode = null;
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let currentLayout = 'hub';
+        let initialized = false;
+
+        nodes.forEach(n => {
+            n.x = 0; n.y = 0;
+            n.tx = 0; n.ty = 0;
+            n.vx = 0; n.vy = 0;
+        });
+
+        function computeTargetPositions() {
+            const padX = Math.max(100, Math.min(width * 0.12, 160));
+            const padY = Math.max(90, Math.min(height * 0.14, 130));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'hub') {
+                const hub = nodes.find(n => n.id === 'vi_hub');
+                hub.tx = cx;
+                hub.ty = cy;
+
+                const categories = ['gov', 'rir', 'research', 'services', 'startup'];
+                const numCats = categories.length;
+
+                categories.forEach((catKey, cIdx) => {
+                    const angleCat = (cIdx / numCats) * Math.PI * 2 - Math.PI / 2;
+                    const catRadius = Math.min(width, height) * 0.32;
+                    const catNodes = nodes.filter(n => n.cat === catKey);
+
+                    catNodes.forEach((node, nIdx) => {
+                        const spreadAngle = 0.62;
+                        const angleNode = angleCat + (nIdx - (catNodes.length - 1) / 2) * (spreadAngle / Math.max(1, catNodes.length));
+                        node.tx = cx + Math.cos(angleNode) * catRadius;
+                        node.ty = cy + Math.sin(angleNode) * catRadius;
+
+                        node.tx = Math.max(minX, Math.min(maxX, node.tx));
+                        node.ty = Math.max(minY, Math.min(maxY, node.ty));
+                    });
+                });
+            }
+            else if (currentLayout === 'radial') {
+                const hubNode = nodes.find(n => n.id === 'vi_hub');
+                hubNode.tx = cx;
+                hubNode.ty = cy;
+
+                const innerNodes = nodes.filter(n => ['regione_veneto', 'ris3_veneto', 'rir_cluster', 'een_network', 'unipd'].includes(n.id));
+                const outerNodes = nodes.filter(n => n.id !== 'vi_hub' && !innerNodes.includes(n));
+
+                const rInner = Math.min(maxX - minX, maxY - minY) * 0.22;
+                innerNodes.forEach((n, idx) => {
+                    const angle = (idx / innerNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rInner;
+                    n.ty = cy + Math.sin(angle) * rInner;
+                });
+
+                const rOuter = Math.min(maxX - minX, maxY - minY) * 0.42;
+                outerNodes.forEach((n, idx) => {
+                    const angle = (idx / outerNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rOuter;
+                    n.ty = cy + Math.sin(angle) * rOuter;
+                });
+            }
+            else if (currentLayout === 'grid') {
+                const cats = [
+                    { cat: 'hub', label: 'HUB VI' },
+                    { cat: 'gov', label: 'REGIONE/RIS3' },
+                    { cat: 'rir', label: 'RIR/DISTRETTI' },
+                    { cat: 'research', label: 'RICERCA/UNIV' },
+                    { cat: 'services', label: 'SERVIZI/EEN' },
+                    { cat: 'startup', label: 'STARTUP/VC' }
+                ];
+                const colW = (maxX - minX) / cats.length;
+
+                cats.forEach((cObj, cIdx) => {
+                    const catNodes = nodes.filter(n => n.cat === cObj.cat);
+                    const x = minX + colW * cIdx + colW / 2;
+                    const rowH = (maxY - minY) / (catNodes.length + 1);
+
+                    catNodes.forEach((node, rIdx) => {
+                        node.tx = x;
+                        node.ty = minY + rowH * (rIdx + 1);
+                    });
+                });
+            }
+            else { // Force simulation layout
+                const hub = nodes.find(n => n.id === 'vi_hub');
+                hub.tx = cx;
+                hub.ty = cy;
+
+                const others = nodes.filter(n => n.id !== 'vi_hub');
+                others.forEach((node, i) => {
+                    const angle = (i / others.length) * Math.PI * 2;
+                    const r = Math.min(width, height) * 0.32;
+                    node.tx = cx + Math.cos(angle) * r;
+                    node.ty = cy + Math.sin(angle) * r;
+                });
+            }
+        }
+
+        function resize() {
+            width = container.clientWidth;
+            height = container.clientHeight;
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+
+            if (width > 0 && height > 0) {
+                computeTargetPositions();
+                if (!initialized) {
+                    nodes.forEach(n => {
+                        n.x = n.tx;
+                        n.y = n.ty;
+                    });
+                    selectNode(nodes[0]);
+                    initialized = true;
+                }
+            }
+        }
+
+        const resizeObserver = new ResizeObserver(() => resize());
+        resizeObserver.observe(container);
+
+        function updatePositions() {
+            if (!initialized) return;
+
+            const padX = Math.max(90, Math.min(width * 0.1, 140));
+            const padY = Math.max(80, Math.min(height * 0.12, 120));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'force') {
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        let n1 = nodes[i];
+                        let n2 = nodes[j];
+                        let dx = n2.x - n1.x;
+                        let dy = n2.y - n1.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        let minDist = n1.radius + n2.radius + 38;
+
+                        let force = (minDist * minDist * 4.5) / (dist * dist);
+                        if (dist < minDist) {
+                            force += (minDist - dist) * 0.2;
+                        }
+
+                        let fx = (dx / dist) * force;
+                        let fy = (dy / dist) * force;
+
+                        n1.vx -= fx;
+                        n1.vy -= fy;
+                        n2.vx += fx;
+                        n2.vy += fy;
+                    }
+                }
+
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    let dx = target.x - source.x;
+                    let dy = target.y - source.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    let targetDist = 130;
+                    let springForce = (dist - targetDist) * 0.004;
+
+                    source.vx += dx * springForce;
+                    source.vy += dy * springForce;
+                    target.vx -= dx * springForce;
+                    target.vy -= dy * springForce;
+                });
+
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+
+                    let dx = cx - node.x;
+                    let dy = cy - node.y;
+                    node.vx += dx * 0.0006;
+                    node.vy += dy * 0.0006;
+
+                    node.vx *= 0.82;
+                    node.vy *= 0.82;
+
+                    node.x += node.vx;
+                    node.y += node.vy;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            } else {
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+                    node.x += (node.tx - node.x) * 0.12;
+                    node.y += (node.ty - node.y) * 0.12;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            }
+        }
+
+        function render() {
+            updatePositions();
+            ctx.clearRect(0, 0, width, height);
+
+            if (initialized) {
+                if (currentLayout === 'grid') {
+                    const cats = [
+                        { label: 'HUB VI', color: '#06b6d4', x: width * 0.09 },
+                        { label: 'REGIONE/RIS3', color: '#f43f5e', x: width * 0.25 },
+                        { label: 'RIR/DISTRETTI', color: '#3b82f6', x: width * 0.41 },
+                        { label: 'RICERCA/UNIV', color: '#8b5cf6', x: width * 0.57 },
+                        { label: 'SERVIZI/EEN', color: '#f59e0b', x: width * 0.73 },
+                        { label: 'STARTUP/VC', color: '#10b981', x: width * 0.89 }
+                    ];
+
+                    cats.forEach(c => {
+                        ctx.fillStyle = c.color;
+                        ctx.font = 'bold 10px Segoe UI, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(c.label, c.x, 32);
+
+                        ctx.beginPath();
+                        ctx.moveTo(c.x - 30, 40);
+                        ctx.lineTo(c.x + 30, 40);
+                        ctx.strokeStyle = c.color + '55';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    });
+                }
+
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    const isVisible = checkVisibility(source) && checkVisibility(target);
+                    const isHighlighted = selectedNode && (source.id === selectedNode.id || target.id === selectedNode.id);
+
+                    ctx.beginPath();
+                    ctx.moveTo(source.x, source.y);
+                    ctx.lineTo(target.x, target.y);
+                    ctx.strokeStyle = isHighlighted ? '#06b6d4' : (isVisible ? 'rgba(255, 255, 255, 0.14)' : 'rgba(255, 255, 255, 0.02)');
+                    ctx.lineWidth = isHighlighted ? 2.5 : 1;
+                    ctx.stroke();
+                });
+
+                nodes.forEach(node => {
+                    const isVisible = checkVisibility(node);
+                    const isSelected = selectedNode && selectedNode.id === node.id;
+                    const isHovered = hoveredNode && hoveredNode.id === node.id;
+
+                    ctx.save();
+                    ctx.translate(node.x, node.y);
+
+                    if (isSelected || isHovered) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, node.radius + 7, 0, Math.PI * 2);
+                        ctx.fillStyle = isSelected ? 'rgba(6, 182, 212, 0.3)' : 'rgba(255, 255, 255, 0.12)';
+                        ctx.fill();
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = isVisible ? node.color : '#334155';
+                    ctx.globalAlpha = isVisible ? 1.0 : 0.2;
+                    ctx.fill();
+
+                    ctx.lineWidth = isSelected ? 3 : 1.2;
+                    ctx.strokeStyle = isSelected ? '#ffffff' : 'rgba(0,0,0,0.5)';
+                    ctx.stroke();
+
+                    ctx.fillStyle = isVisible ? '#f8fafc' : '#64748b';
+                    ctx.font = (node.cat === 'hub' ? 'bold 11px' : '10px') + ' Segoe UI, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(node.label, 0, node.radius + 13);
+
+                    ctx.restore();
+                });
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        function checkVisibility(node) {
+            const matchesCat = currentFilter === 'all' || node.cat === currentFilter;
+            const matchesSearch = searchQuery === '' || 
+                node.label.toLowerCase().includes(searchQuery) || 
+                node.sub.toLowerCase().includes(searchQuery);
+            return matchesCat && matchesSearch;
+        }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function findNodeAt(pos) {
+            return nodes.find(node => {
+                let dx = node.x - pos.x;
+                let dy = node.y - pos.y;
+                return Math.sqrt(dx * dx + dy * dy) <= node.radius + 6;
+            });
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getPos(e);
+            if (draggedNode) {
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            } else {
+                hoveredNode = findNodeAt(pos);
+                canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
+            }
+        });
+
+        window.addEventListener('mouseup', () => { draggedNode = null; });
+
+        canvas.addEventListener('touchstart', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            if (draggedNode) {
+                const pos = getPos(e);
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            }
+        });
+        canvas.addEventListener('touchend', () => { draggedNode = null; });
+
+        function selectNode(node) {
+            selectedNode = node;
+
+            document.getElementById('detTitle').innerText = node.label;
+            document.getElementById('detSubtitle').innerText = node.sub;
+            document.getElementById('detDesc').innerText = node.desc;
+            document.getElementById('detRole').innerText = node.role;
+
+            const linkBtn = document.getElementById('detLink');
+            if (node.url && node.url !== '#') {
+                linkBtn.href = node.url;
+                linkBtn.style.display = 'block';
+            } else {
+                linkBtn.style.display = 'none';
+            }
+
+            const catNames = {
+                'hub': 'Hub Centrale Veneto Innovazione',
+                'gov': 'Regione del Veneto & Programmazione RIS3',
+                'rir': 'Reti Innovative Regionali & Distretti',
+                'research': 'Università & Parchi Scientifici',
+                'services': 'Servizi, APRE & Reti Europee (EEN)',
+                'startup': 'Startup, Spin-off & Venture Capital'
+            };
+            const catBadge = document.getElementById('detCategory');
+            catBadge.innerText = catNames[node.cat] || node.cat;
+            catBadge.style.color = node.color;
+            catBadge.style.background = node.color + '22';
+
+            const connsContainer = document.getElementById('detConns');
+            connsContainer.innerHTML = '';
+
+            const connectedLinks = links.filter(l => l.source === node.id || l.target === node.id);
+            connectedLinks.forEach(l => {
+                const otherId = l.source === node.id ? l.target : l.source;
+                const targetNode = nodes.find(n => n.id === otherId);
+                if (targetNode) {
+                    const chip = document.createElement('span');
+                    chip.className = 'conn-chip';
+                    chip.innerText = targetNode.label;
+                    chip.onclick = () => selectNode(targetNode);
+                    connsContainer.appendChild(chip);
+                }
+            });
+        }
+
+        document.getElementById('viewSwitcher').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-view');
+            if (btn) {
+                document.querySelectorAll('.btn-view').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLayout = btn.dataset.view;
+                computeTargetPositions();
+            }
+        });
+
+        document.getElementById('filterContainer').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.cat;
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+        });
+
+        render();
+    </script>
+</body>
+</html>

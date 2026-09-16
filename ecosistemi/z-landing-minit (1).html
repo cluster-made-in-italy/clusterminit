@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cluster Tecnologico | MinIT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0b192c;
+            --accent: #c5a059;
+            --bg-light: #f8fafc;
+            --bg-card: #ffffff;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 20px 35px -5px rgba(0, 0, 0, 0.1);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4 { font-family: 'Montserrat', sans-serif; }
+        body { background-color: var(--bg-light); color: var(--text-dark); line-height: 1.6; }
+        
+        header { background: var(--primary); padding: 16px 24px; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .nav-container { max-width: 1250px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: #fff; cursor: pointer; }
+        .logo-badge { background: var(--accent); color: var(--primary); font-weight: 800; font-size: 1.1rem; padding: 5px 12px; border-radius: 6px; }
+        .logo-title { font-weight: 700; font-size: 0.95rem; }
+
+        .btn { display: inline-block; padding: 12px 26px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none; transition: 0.25s; border: none; cursor: pointer; }
+        .btn-accent { background: var(--accent); color: var(--primary); }
+        .btn-accent:hover { filter: brightness(0.95); transform: translateY(-2px); }
+        
+        /* MULTI-PAGE VIEW CONTROLLER */
+        .page-view { display: none; }
+        .page-view.active { display: block; }
+
+        /* INTERACTION HINTS */
+        .clickable-title { cursor: pointer; transition: color 0.2s; }
+        .clickable-title:hover { color: var(--accent) !important; text-decoration: underline; }
+        .clickable-card { cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+        .clickable-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); border-color: var(--accent); }
+        .card-link-hint { font-size: 0.72rem; color: var(--accent); font-weight: 700; display: block; margin-top: 8px; }
+        .card-footer-action { font-size: 0.8rem; font-weight: 600; color: var(--accent); margin-top: 14px; }
+
+        /* HERO & MAIN SECTIONS */
+        .hero { background: linear-gradient(135deg, var(--primary) 0%, #050b14 100%); color: #fff; padding: 90px 24px 110px; text-align: center; }
+        .hero-container { max-width: 900px; margin: 0 auto; }
+        .mur-badge { display: inline-block; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--accent); color: var(--accent); padding: 8px 18px; border-radius: 30px; font-size: 0.78rem; font-weight: 600; margin-bottom: 24px; text-transform: uppercase; }
+        .hero h1 { font-size: 3rem; font-weight: 800; margin-bottom: 20px; line-height: 1.25; }
+        .hero h1 span { color: var(--accent); }
+        .hero p { font-size: 1.15rem; color: #94a3b8; margin-bottom: 36px; max-width: 760px; margin-left: auto; margin-right: auto; }
+
+        .stats-section { margin-top: -50px; position: relative; z-index: 10; padding: 0 24px; margin-bottom: 40px; }
+        .stats-grid { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; background: var(--bg-card); border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
+        .stat-card { text-align: center; border-right: 1px solid var(--border-color); padding: 10px; border-radius: 8px; }
+        .stat-card:last-child { border-right: none; }
+        .stat-number { font-size: 2.2rem; font-weight: 800; color: var(--primary); margin-bottom: 4px; }
+        .stat-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+
+        .section { padding: 70px 24px; max-width: 1250px; margin: 0 auto; }
+        .section-header { text-align: center; max-width: 700px; margin: 0 auto 50px; }
+        .section-subtitle { color: var(--accent); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; display: block; }
+        .section-title { font-size: 2.2rem; color: var(--primary); font-weight: 700; }
+
+        .pillars-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 28px; }
+        .pillar-card { background: var(--bg-card); border-radius: var(--radius); padding: 36px 28px; border: 1px solid var(--border-color); box-shadow: var(--shadow); position: relative; overflow: hidden; }
+        .pillar-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, var(--primary), var(--accent)); }
+        .pillar-icon { width: 54px; height: 54px; background: rgba(11, 25, 44, 0.04); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 24px; }
+        .pillar-card h3 { font-size: 1.25rem; color: var(--primary); margin-bottom: 14px; font-weight: 700; }
+        .pillar-card ul { list-style: none; }
+        .pillar-card ul li { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 10px; position: relative; padding-left: 18px; }
+        .pillar-card ul li::before { content: '•'; color: var(--accent); font-size: 1.2rem; position: absolute; left: 0; top: -2px; }
+
+        .projects-wrapper { background: var(--primary); color: #fff; border-radius: 20px; padding: 60px 40px; }
+        .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 30px; }
+        .project-item { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: var(--radius); padding: 28px; }
+        .project-tag { background: rgba(197, 160, 89, 0.2); color: var(--accent); font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 4px; text-transform: uppercase; display: inline-block; margin-bottom: 14px; }
+        .project-item h4 { font-size: 1.15rem; margin-bottom: 10px; color: #fff; }
+        .project-item p { font-size: 0.88rem; color: #94a3b8; line-height: 1.6; }
+
+        .benefits-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .benefit-box { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius); padding: 32px; box-shadow: var(--shadow); }
+        .benefit-box h3 { font-size: 1.2rem; color: var(--primary); margin-bottom: 16px; }
+        .benefit-box p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; }
+
+        .cta-banner { background: linear-gradient(135deg, var(--primary), #050b14); color: #fff; border-radius: 20px; padding: 70px 40px; text-align: center; }
+        .cta-banner h2 { font-size: 2.2rem; margin-bottom: 16px; font-weight: 700; }
+        .cta-banner p { font-size: 1.05rem; color: #cbd5e1; max-width: 650px; margin: 0 auto 32px; }
+
+        /* SUBPAGE / DETAIL PAGES STYLES */
+        .detail-hero { background: var(--primary); color: #fff; padding: 60px 24px; text-align: center; position: relative; }
+        .detail-hero h1 { font-size: 2.2rem; margin-top: 10px; }
+        .detail-hero p { color: var(--accent); font-size: 0.9rem; font-weight: 600; margin-top: 6px; }
+        .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); text-decoration: none; font-weight: 600; font-size: 0.85rem; cursor: pointer; margin-bottom: 14px; }
+        .back-link:hover { text-decoration: underline; }
+        
+        .detail-container { max-width: 900px; margin: -30px auto 60px; padding: 0 24px; position: relative; z-index: 10; }
+        .detail-card { background: #fff; border-radius: var(--radius); border: 1px solid var(--border-color); box-shadow: var(--shadow); padding: 40px; }
+        .detail-list { list-style: none; }
+        .detail-list li { font-size: 1rem; color: #475569; margin-bottom: 12px; position: relative; padding-left: 24px; }
+        .detail-list li::before { content: '✓'; color: var(--accent); font-weight: 800; position: absolute; left: 0; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+        
+        footer { background: var(--primary); color: #94a3b8; padding: 40px 24px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.85rem; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="nav-container">
+            <div onclick="navigateTo('home-view')" class="logo">
+                <div class="logo-badge">MinIT</div>
+                <div class="logo-title">Cluster Tecnologico</div>
+            </div>
+            <a href="mailto:info@clusterminit.it" class="btn btn-accent">Contatti</a>
+        </div>
+    </header>
+
+    <!-- MAIN LANDING PAGE VIEW -->
+    <div id="home-view" class="page-view active">
+        
+                    <section class="hero">
+                        <div class="hero-container">
+                            <div class="mur-badge">🏛️ RICONOSCIUTO DAL MUR — MINISTERO DELL'UNIVERSITÀ E DELLA RICERCA</div>
+                            <h1 onclick="navigateTo('page-sec_1')" class="clickable-title" title="Clicca per aprire la pagina approfondimento">L'Innovazione che Guida il Futuro del <span>Made in Italy</span></h1>
+                            <p>Uniamo la ricerca scientifica di eccellenza e le imprese manifatturiere tradizionali per accelerare la transizione ecologica, i materiali avanzati e la digitalizzazione di filiera.</p>
+                            <div class="hero-cta">
+                                <a onclick="navigateTo('page-sec_1')" class="btn btn-accent">Scopri di più sulla Missione →</a>
+                            </div>
+                        </div>
+                    </section>
+                    <div class="stats-section">
+                        <div class="stats-grid">
+                        <div class="stat-card clickable-card" onclick="navigateTo('page-sec_2-item-0')" title="Clicca per la scheda metrica">
+                            <div class="stat-number">60+</div>
+                            <div class="stat-label">Soci (Atenei, CNR, ENEA, Imprese Leader)</div>
+                            <span class="card-link-hint">Dettagli KPI →</span>
+                        </div>
+                        <div class="stat-card clickable-card" onclick="navigateTo('page-sec_2-item-1')" title="Clicca per la scheda metrica">
+                            <div class="stat-number">6</div>
+                            <div class="stat-label">Filiere Manifatturiere Rappresentate</div>
+                            <span class="card-link-hint">Dettagli KPI →</span>
+                        </div>
+                        <div class="stat-card clickable-card" onclick="navigateTo('page-sec_2-item-2')" title="Clicca per la scheda metrica">
+                            <div class="stat-number">100%</div>
+                            <div class="stat-label">Focus su Economia Circolare & DPP</div>
+                            <span class="card-link-hint">Dettagli KPI →</span>
+                        </div>
+                        <div class="stat-card clickable-card" onclick="navigateTo('page-sec_2-item-3')" title="Clicca per la scheda metrica">
+                            <div class="stat-number">EU & S3</div>
+                            <div class="stat-label">Presidio Tavoli Tecnici e Strategie</div>
+                            <span class="card-link-hint">Dettagli KPI →</span>
+                        </div></div>
+                    </div>
+                    <section class="section">
+                        <div class="section-header">
+                            <span class="section-subtitle">Direttrici Tecnologiche</span>
+                            <h2 class="section-title clickable-title" onclick="navigateTo('page-sec_3')" title="Clicca per la pagina di sezione">I Quattro Pilastri della Trasformazione</h2>
+                        </div>
+                        <div class="pillars-grid">
+                        <div class="pillar-card clickable-card" onclick="navigateTo('page-sec_3-item-0')" title="Clicca per aprire la scheda di questo pilastro">
+                            <div class="pillar-icon">🌱</div>
+                            <h3>Sostenibilità & Ecodesign</h3>
+                            <ul><li>Life Cycle Assessment (LCA) integrato nei processi.</li><li>Sviluppo di bio-materiali e valorizzazione materie prime.</li><li>Riduzione impronta idrica e carbonica.</li></ul>
+                            <div class="card-footer-action">Scheda Pilastro →</div>
+                        </div>
+                        <div class="pillar-card clickable-card" onclick="navigateTo('page-sec_3-item-1')" title="Clicca per aprire la scheda di questo pilastro">
+                            <div class="pillar-icon">🔬</div>
+                            <h3>Materiali Avanzati</h3>
+                            <ul><li>Funzionalizzazione tessuti e pellami (grafene, sol-gel).</li><li>Trattamenti idro/oleo repellenti e termoregolazione.</li><li>Prototipazione avanzata per l'abbigliamento.</li></ul>
+                            <div class="card-footer-action">Scheda Pilastro →</div>
+                        </div>
+                        <div class="pillar-card clickable-card" onclick="navigateTo('page-sec_3-item-2')" title="Clicca per aprire la scheda di questo pilastro">
+                            <div class="pillar-icon">🔗</div>
+                            <h3>Digitalizzazione & DPP</h3>
+                            <ul><li>Standard operativi Passaporto Digitale di Prodotto.</li><li>Supply Chain 4.0: Tracciabilità Blockchain e IoT.</li><li>Protezione e certificazione del Made in Italy.</li></ul>
+                            <div class="card-footer-action">Scheda Pilastro →</div>
+                        </div>
+                        <div class="pillar-card clickable-card" onclick="navigateTo('page-sec_3-item-3')" title="Clicca per aprire la scheda di questo pilastro">
+                            <div class="pillar-icon">🚀</div>
+                            <h3>Formazione & Fondi EU</h3>
+                            <ul><li>Sinergia continua con Academy, ITS e Università.</li><li>Project building e partecipazione bandi europei.</li><li>Trasferimento tecnologico orientato alle PMI.</li></ul>
+                            <div class="card-footer-action">Scheda Pilastro →</div>
+                        </div></div>
+                    </section>
+                    <section class="section" style="padding-top:0;">
+                        <div class="projects-wrapper">
+                            <div class="section-header" style="margin-bottom: 20px;">
+                                <span class="section-subtitle">Eccellenza in Azione</span>
+                                <h2 class="section-title clickable-title" style="color: #fff;" onclick="navigateTo('page-sec_4')">Iniziative & Progetti Strategici</h2>
+                            </div>
+                            <div class="projects-grid">
+                        <div class="project-item clickable-card" onclick="navigateTo('page-sec_4-item-0')" title="Clicca per la scheda progetto">
+                            <span class="project-tag">Progetto Flagship R&D</span>
+                            <h4>FUNK ITALY</h4>
+                            <p>Iniziativa incentrata sul trattamento e la funzionalizzazione di substrati tessili e pelli mediante grafene e processi sol-gel.</p>
+                            <div class="card-footer-action" style="color:var(--accent); font-weight:600; font-size:0.8rem; margin-top:14px;">Vedi Scheda Progetto →</div>
+                        </div>
+                        <div class="project-item clickable-card" onclick="navigateTo('page-sec_4-item-1')" title="Clicca per la scheda progetto">
+                            <span class="project-tag">Regulatory & Tech</span>
+                            <h4>Tavoli Passaporto Digitale (DPP)</h4>
+                            <p>Gruppi di lavoro tecnici dedicati alle linee guida europee sull'Ecodesign e la tracciabilità della filiera.</p>
+                            <div class="card-footer-action" style="color:var(--accent); font-weight:600; font-size:0.8rem; margin-top:14px;">Vedi Scheda Progetto →</div>
+                        </div>
+                        <div class="project-item clickable-card" onclick="navigateTo('page-sec_4-item-2')" title="Clicca per la scheda progetto">
+                            <span class="project-tag">Transfer Platform</span>
+                            <h4>Open Innovation Hub</h4>
+                            <p>Piattaforma e archivio di match-making per connettere i fabbisogni delle PMI con i brevetti della ricerca.</p>
+                            <div class="card-footer-action" style="color:var(--accent); font-weight:600; font-size:0.8rem; margin-top:14px;">Vedi Scheda Progetto →</div>
+                        </div></div>
+                        </div>
+                    </section>
+                    <section class="section">
+                        <div class="section-header">
+                            <span class="section-subtitle">Valore Condiviso</span>
+                            <h2 class="section-title clickable-title" onclick="navigateTo('page-sec_5')">Perché Aderire al Cluster</h2>
+                        </div>
+                        <div class="benefits-grid">
+                        <div class="benefit-box clickable-card" onclick="navigateTo('page-sec_5-item-0')" title="Clicca per i dettagli su questo vantaggio">
+                            <h3>🏭 Per le Imprese</h3>
+                            <p>Accesso prioritario a progetti finanziati di R&S, acquisizione di brevetti d'avanguardia e networking con le filiere industriali.</p>
+                            <div class="card-footer-action" style="color:var(--primary); font-weight:600; font-size:0.8rem; margin-top:14px;">Approfondisci Vantaggio →</div>
+                        </div>
+                        <div class="benefit-box clickable-card" onclick="navigateTo('page-sec_5-item-1')" title="Clicca per i dettagli su questo vantaggio">
+                            <h3>🎓 Per Università e Centri R&D</h3>
+                            <p>Canale privileged per la valorizzazione industriale e commerciale dei risultati della ricerca scientifica.</p>
+                            <div class="card-footer-action" style="color:var(--primary); font-weight:600; font-size:0.8rem; margin-top:14px;">Approfondisci Vantaggio →</div>
+                        </div>
+                        <div class="benefit-box clickable-card" onclick="navigateTo('page-sec_5-item-2')" title="Clicca per i dettagli su questo vantaggio">
+                            <h3>🌐 Per Distretti & Reti</h3>
+                            <p>Interlocutore strategico unico a livello nazionale ed europeo per la promozione delle specializzazioni intelligenti (S3).</p>
+                            <div class="card-footer-action" style="color:var(--primary); font-weight:600; font-size:0.8rem; margin-top:14px;">Approfondisci Vantaggio →</div>
+                        </div></div>
+                    </section>
+                    <section class="section">
+                        <div class="cta-banner">
+                            <h2 onclick="navigateTo('page-sec_6')" class="clickable-title">Partecipa alla Trasformazione Manifatturiera Italiana</h2>
+                            <p>Entra nell'ecosistema di innovazione che protegge e proietta nel futuro il valore e la sostenibilità del Made in Italy.</p>
+                            <a href="mailto:info@clusterminit.it" class="btn btn-accent" style="padding: 16px 36px;">Richiedi Informazioni</a>
+                        </div>
+                    </section>
+    </div>
+
+    <!-- DYNAMICALLY GENERATED SUBPAGES FOR SECTIONS & ITEMS -->
+    
+                    <div id="page-sec_1" class="page-view">
+                        <div class="detail-hero">
+                            <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                            <h1>Chi Siamo & Missione Strategica</h1>
+                            <p>🏛️ RICONOSCIUTO DAL MUR — MINISTERO DELL'UNIVERSITÀ E DELLA RICERCA</p>
+                        </div>
+                        <div class="detail-container">
+                            <div class="detail-card">
+                                <h2>L'Innovazione che Guida il Futuro del Made in Italy</h2>
+                                <p style="font-size: 1.1rem; line-height: 1.8; color: #475569; margin-top: 15px;">Uniamo la ricerca scientifica di eccellenza e le imprese manifatturiere tradizionali per accelerare la transizione ecologica, i materiali avanzati e la digitalizzazione di filiera.</p>
+                                <hr style="margin: 30px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                                <h3>Obiettivi Nazionali & Quadro MUR</h3>
+                                <p style="color: #64748b; margin-top: 10px;">Il Cluster agisce come catalizzatore tra il mondo accademico e il tessuto industriale manifatturiero. Attraverso tavoli di lavoro dedicati, sosteniamo il trasferimento tecnologico e la crescita delle filiere italiane sui mercati internazionali.</p>
+                                <a href="mailto:info@clusterminit.it" class="btn btn-accent" style="margin-top: 25px;">Richiedi Incontro Istituzionale</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="page-sec_2" class="page-view">
+                        <div class="detail-hero">
+                            <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                            <h1>Quadro Statistico & Impatto dell'Ecosistema</h1>
+                        </div>
+                        <div class="detail-container">
+                            <div class="detail-card">
+                                <h2>Indicatori Chiave di Prestazione (KPI)</h2>
+                                <div class="grid-2" style="margin-top: 25px;">
+                                    
+                                        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                            <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">60+</div>
+                                            <div style="font-size: 0.9rem; color: #64748b; margin-top: 4px;">Soci (Atenei, CNR, ENEA, Imprese Leader)</div>
+                                        </div>
+                                    
+                                        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                            <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">6</div>
+                                            <div style="font-size: 0.9rem; color: #64748b; margin-top: 4px;">Filiere Manifatturiere Rappresentate</div>
+                                        </div>
+                                    
+                                        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                            <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">100%</div>
+                                            <div style="font-size: 0.9rem; color: #64748b; margin-top: 4px;">Focus su Economia Circolare & DPP</div>
+                                        </div>
+                                    
+                                        <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                            <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">EU & S3</div>
+                                            <div style="font-size: 0.9rem; color: #64748b; margin-top: 4px;">Presidio Tavoli Tecnici e Strategie</div>
+                                        </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                        <div id="page-sec_2-item-0" class="page-view">
+                            <div class="detail-hero">
+                                <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                                <h1>Dettaglio Metrica KPI</h1>
+                            </div>
+                            <div class="detail-container">
+                                <div class="detail-card" style="text-align: center;">
+                                    <div style="font-size: 4rem; font-weight: 800; color: var(--accent);">60+</div>
+                                    <h2 style="margin-top: 10px;">Soci (Atenei, CNR, ENEA, Imprese Leader)</h2>
+                                    <p style="color: #64748b; margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">Questo valore rappresenta una delle metriche fondamentali misurate annualmente dal Cluster per monitorare l'evoluzione tecnologica ed industriale delle filiere aderenti.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="page-sec_2-item-1" class="page-view">
+                            <div class="detail-hero">
+                                <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                                <h1>Dettaglio Metrica KPI</h1>
+                            </div>
+                            <div class="detail-container">
+                                <div class="detail-card" style="text-align: center;">
+                                    <div style="font-size: 4rem; font-weight: 800; color: var(--accent);">6</div>
+                                    <h2 style="margin-top: 10px;">Filiere Manifatturiere Rappresentate</h2>
+                                    <p style="color: #64748b; margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">Questo valore rappresenta una delle metriche fondamentali misurate annualmente dal Cluster per monitorare l'evoluzione tecnologica ed industriale delle filiere aderenti.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="page-sec_2-item-2" class="page-view">
+                            <div class="detail-hero">
+                                <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                                <h1>Dettaglio Metrica KPI</h1>
+                            </div>
+                            <div class="detail-container">
+                                <div class="detail-card" style="text-align: center;">
+                                    <div style="font-size: 4rem; font-weight: 800; color: var(--accent);">100%</div>
+                                    <h2 style="margin-top: 10px;">Focus su Economia Circolare & DPP</h2>
+                                    <p style="color: #64748b; margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">Questo valore rappresenta una delle metriche fondamentali misurate annualmente dal Cluster per monitorare l'evoluzione tecnologica ed industriale delle filiere aderenti.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="page-sec_2-item-3" class="page-view">
+                            <div class="detail-hero">
+                                <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                                <h1>Dettaglio Metrica KPI</h1>
+                            </div>
+                            <div class="detail-container">
+                                <div class="detail-card" style="text-align: center;">
+                                    <div style="font-size: 4rem; font-weight: 800; color: var(--accent);">EU & S3</div>
+                                    <h2 style="margin-top: 10px;">Presidio Tavoli Tecnici e Strategie</h2>
+                                    <p style="color: #64748b; margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">Questo valore rappresenta una delle metriche fondamentali misurate annualmente dal Cluster per monitorare l'evoluzione tecnologica ed industriale delle filiere aderenti.</p>
+                                </div>
+                            </div>
+                        </div>
+                    <div id="page-sec_3" class="page-view">
+                        <div class="detail-hero">
+                            <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                            <h1>I Quattro Pilastri della Trasformazione</h1>
+                            <p>Direttrici Tecnologiche</p>
+                        </div>
+                        <div class="detail-container">
+                            <div class="detail-card">
+                                <h2>Panoramica delle Direttrici Tecnologiche</h2>
+                                <p style="color: #64748b; margin-top: 10px;">Le attività strategiche del Cluster si sviluppano su direttrici d'avanguardia progettate per guidare la transizione digitale ed ecologica del Made in Italy.</p>
+                            </div>
+                        </div>
+                    </div>
+                        <div id="page-sec_3-item-0" class="page-view">
+                            <div class="detail-hero">
+                                <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                                <h1>🌱 Sostenibilità & Ecodesign</h1>
+                                <p>Scheda Approfondimento Pilastro R&D</p>
+                            </div>
+                            <div class="detail-container">
+                                <div class="detail-card">
+                                    <h2>Ambiti di Ricerca & Applicazioni Industriali</h2>
+                                    <ul class="detail-list" style="margin-top: 20px;"><li>Life Cycle Assessment (LCA) integrato nei processi.</li><li>Sviluppo di bio-materiali e valorizzazione materie prime.</li><li>Riduzione impronta idrica e carbonica.</li></ul>
+                                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                                    <h3>Come Partecipare a questa Linea di Ricerca</h3>
+                                    <p style="color: #64748b; margin-top: 10px;">Le organizzazioni associate possono aderire ai gruppi di lavoro dedicati a questo pilastro o proporre nuovi progetti pilota di trasferimento tecnologico.</p>
+                                    <a href="mailto:info@clusterminit.it" class="btn btn-accent" style="margin-top: 25px;">Unisciti al Gruppo di Lavoro</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="page-sec_3-item-1" class="page-view">
+                            <div class="detail-hero">
+                                <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                                <h1>🔬 Materiali Avanzati</h1>
+                                <p>Scheda Approfondimento Pilastro R&D</p>
+                            </div>
+                            <div class="detail-container">
+                                <div class="detail-card">
+                                    <h2>Ambiti di Ricerca & Applicazioni Industriali</h2>
+                                    <ul class="detail-list" style="margin-top: 20px;"><li>Funzionalizzazione tessuti e pellami (grafene, sol-gel).</li><li>Trattamenti idro/oleo repellenti e termoregolazione.</li><li>Prototipazione avanzata per l'abbigliamento.</li></ul>
+                                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                                    <h3>Come Partecipare a questa Linea di Ricerca</h3>
+                                    <p style="color: #64748b; margin-top: 10px;">Le organizzazioni associate possono aderire ai gruppi di lavoro dedicati a questo pilastro o proporre nuovi progetti pilota di trasferimento tecnologico.</p>
+                                    <a href="mailto:info@clusterminit.it" class="btn btn-accent" style="margin-top: 25px;">Unisciti al Gruppo di Lavoro</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="page-sec_3-item-2" class="page-view">
+                            <div class="detail-hero">
+                                <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                                <h1>🔗 Digitalizzazione & DPP</h1>
+                                <p>Scheda Approfondimento Pilastro R&D</p>
+                            </div>
+                            <div class="detail-container">
+                                <div class="detail-card">
+                                    <h2>Ambiti di Ricerca & Applicazioni Industriali</h2>
+                                    <ul class="detail-list" style="margin-top: 20px;"><li>Standard operativi Passaporto Digitale di Prodotto.</li><li>Supply Chain 4.0: Tracciabilità Blockchain e IoT.</li><li>Protezione e certificazione del Made in Italy.</li></ul>
+                                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                                    <h3>Come Partecipare a questa Linea di Ricerca</h3>
+                                    <p style="color: #64748b; margin-top: 10px;">Le organizzazioni associate possono aderire ai gruppi di lavoro dedicati a questo pilastro o proporre nuovi progetti pilota di trasferimento tecnologico.</p>
+                                    <a href="mailto:info@clusterminit.it" class="btn btn-accent" style="margin-top: 25px;">Unisciti al Gruppo di Lavoro</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="page-sec_3-item-3" class="page-view">
+                            <div class="detail-hero">
+                                <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                                <h1>🚀 Formazione & Fondi EU</h1>
+                                <p>Scheda Approfondimento Pilastro R&D</p>
+                            </div>
+                            <div class="detail-container">
+                                <div class="detail-card">
+                                    <h2>Ambiti di Ricerca & Applicazioni Industriali</h2>
+                                    <ul class="detail-list" style="margin-top: 20px;"><li>Sinergia continua con Academy, ITS e Università.</li><li>Project building e partecipazione bandi europei.</li><li>Trasferimento tecnologico orientato alle PMI.</li></ul>
+                                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                                    <h3>Come Partecipare a questa Linea di Ricerca</h3>
+                                    <p style="color: #64748b; margin-top: 10px;">Le organizzazioni associate possono aderire ai gruppi di lavoro dedicati a questo pilastro o proporre nuovi progetti pilota di trasferimento tecnologico.</p>
+                                    <a href="mailto:info@clusterminit.it" class="btn btn-accent" style="margin-top: 25px;">Unisciti al Gruppo di Lavoro</a>
+                                </div>
+                            </div>
+                        </div>
+                    <div id="page-sec_4" class="page-view">
+                        <div class="detail-hero">
+                            <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                            <h1>Iniziative & Progetti Strategici</h1>
+                            <p>Eccellenza in Azione</p>
+                        </div>
+                        <div class="detail-container">
+                            <div class="detail-card">
+                                <h2>Portfolio Iniziative e Progetti R&D</h2>
+                                <p style="color: #64748b; margin-top: 10px;">Consulta la lista completa dei progetti nazionali ed europei attivi all'interno dell'ecosistema.</p>
+                            </div>
+                        </div>
+                    </div>
+                        <div id="page-sec_4-item-0" class="page-view">
+                            <div class="detail-hero">
+                                <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                                <span class="project-tag" style="background: var(--accent); color: var(--primary); font-weight:700; padding:4px 12px; border-radius:4px;">Progetto Flagship R&D</span>
+                                <h1 style="margin-top:15px;">FUNK ITALY</h1>
+                            </div>
+                            <div class="detail-container">
+                                <div class="detail-card">
+                                    <h2>Descrizione del Progetto Strategico</h2>
+                                    <p style="font-size: 1.05rem; line-height: 1.8; color: #475569; margin-top: 15px;">Iniziativa incentrata sul trattamento e la funzionalizzazione di substrati tessili e pelli mediante grafene e processi sol-gel.</p>
+                                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                                    <h3>Stato di Avanzamento & Deliverables</h3>
+                                    <p style="color: #64748b; margin-top: 10px;">Il progetto prevede deliverable periodici ed attività dimostrative su scala industriale presso le strutture dei soci sostenitori.</p>
+                                    <a href="mailto:info@clusterminit.it" class="btn btn-accent" style="margin-top: 25px;">Richiedi Report Tecnico Progetto</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="page-sec_4-item-1" class="page-view">
+                            <div class="detail-hero">
+                                <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                                <span class="project-tag" style="background: var(--accent); color: var(--primary); font-weight:700; padding:4px 12px; border-radius:4px;">Regulatory & Tech</span>
+                                <h1 style="margin-top:15px;">Tavoli Passaporto Digitale (DPP)</h1>
+                            </div>
+                            <div class="detail-container">
+                                <div class="detail-card">
+                                    <h2>Descrizione del Progetto Strategico</h2>
+                                    <p style="font-size: 1.05rem; line-height: 1.8; color: #475569; margin-top: 15px;">Gruppi di lavoro tecnici dedicati alle linee guida europee sull'Ecodesign e la tracciabilità della filiera.</p>
+                                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                                    <h3>Stato di Avanzamento & Deliverables</h3>
+                                    <p style="color: #64748b; margin-top: 10px;">Il progetto prevede deliverable periodici ed attività dimostrative su scala industriale presso le strutture dei soci sostenitori.</p>
+                                    <a href="mailto:info@clusterminit.it" class="btn btn-accent" style="margin-top: 25px;">Richiedi Report Tecnico Progetto</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="page-sec_4-item-2" class="page-view">
+                            <div class="detail-hero">
+                                <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                                <span class="project-tag" style="background: var(--accent); color: var(--primary); font-weight:700; padding:4px 12px; border-radius:4px;">Transfer Platform</span>
+                                <h1 style="margin-top:15px;">Open Innovation Hub</h1>
+                            </div>
+                            <div class="detail-container">
+                                <div class="detail-card">
+                                    <h2>Descrizione del Progetto Strategico</h2>
+                                    <p style="font-size: 1.05rem; line-height: 1.8; color: #475569; margin-top: 15px;">Piattaforma e archivio di match-making per connettere i fabbisogni delle PMI con i brevetti della ricerca.</p>
+                                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                                    <h3>Stato di Avanzamento & Deliverables</h3>
+                                    <p style="color: #64748b; margin-top: 10px;">Il progetto prevede deliverable periodici ed attività dimostrative su scala industriale presso le strutture dei soci sostenitori.</p>
+                                    <a href="mailto:info@clusterminit.it" class="btn btn-accent" style="margin-top: 25px;">Richiedi Report Tecnico Progetto</a>
+                                </div>
+                            </div>
+                        </div>
+                    <div id="page-sec_5" class="page-view">
+                        <div class="detail-hero">
+                            <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                            <h1>Perché Aderire al Cluster</h1>
+                            <p>Valore Condiviso</p>
+                        </div>
+                        <div class="detail-container">
+                            <div class="detail-card">
+                                <h2>Modalità di Adesione al Cluster</h2>
+                                <p style="color: #64748b; margin-top: 10px;">Aderire significa far parte della rete nazionale di riferimento per l'innovazione manifatturiera.</p>
+                            </div>
+                        </div>
+                    </div>
+                        <div id="page-sec_5-item-0" class="page-view">
+                            <div class="detail-hero">
+                                <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                                <h1>🏭 Per le Imprese</h1>
+                                <p>Scheda Vantaggio Socio</p>
+                            </div>
+                            <div class="detail-container">
+                                <div class="detail-card">
+                                    <h2>Valore Aggiunto Riservato</h2>
+                                    <p style="font-size: 1.05rem; line-height: 1.8; color: #475569; margin-top: 15px;">Accesso prioritario a progetti finanziati di R&S, acquisizione di brevetti d'avanguardia e networking con le filiere industriali.</p>
+                                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                                    <a href="mailto:info@clusterminit.it" class="btn btn-accent" style="margin-top: 10px;">Invia Richiesta di Adesione</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="page-sec_5-item-1" class="page-view">
+                            <div class="detail-hero">
+                                <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                                <h1>🎓 Per Università e Centri R&D</h1>
+                                <p>Scheda Vantaggio Socio</p>
+                            </div>
+                            <div class="detail-container">
+                                <div class="detail-card">
+                                    <h2>Valore Aggiunto Riservato</h2>
+                                    <p style="font-size: 1.05rem; line-height: 1.8; color: #475569; margin-top: 15px;">Canale privileged per la valorizzazione industriale e commerciale dei risultati della ricerca scientifica.</p>
+                                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                                    <a href="mailto:info@clusterminit.it" class="btn btn-accent" style="margin-top: 10px;">Invia Richiesta di Adesione</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="page-sec_5-item-2" class="page-view">
+                            <div class="detail-hero">
+                                <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                                <h1>🌐 Per Distretti & Reti</h1>
+                                <p>Scheda Vantaggio Socio</p>
+                            </div>
+                            <div class="detail-container">
+                                <div class="detail-card">
+                                    <h2>Valore Aggiunto Riservato</h2>
+                                    <p style="font-size: 1.05rem; line-height: 1.8; color: #475569; margin-top: 15px;">Interlocutore strategico unico a livello nazionale ed europeo per la promozione delle specializzazioni intelligenti (S3).</p>
+                                    <hr style="margin: 30px 0; border: 0; border-top: 1px solid #e2e8f0;">
+                                    <a href="mailto:info@clusterminit.it" class="btn btn-accent" style="margin-top: 10px;">Invia Richiesta di Adesione</a>
+                                </div>
+                            </div>
+                        </div>
+                    <div id="page-sec_6" class="page-view">
+                        <div class="detail-hero">
+                            <a onclick="navigateTo('home-view')" class="back-link">← Torna alla Landing Page</a>
+                            <h1>Contatti & Supporto Adesioni</h1>
+                        </div>
+                        <div class="detail-container">
+                            <div class="detail-card">
+                                <h2>Modulo Informativo e Contatti Diretti</h2>
+                                <p style="color: #64748b; margin-top: 10px;">Invia una mail a <strong>info@clusterminit.it</strong> per richiedere la documentazione ufficiale ed il regolamento associativo.</p>
+                            </div>
+                        </div>
+                    </div>
+
+    <footer>
+        <p>&copy; 2026 Cluster Tecnologico MinIT. Tutti i diritti riservati.</p>
+    </footer>
+
+    <script>
+        function navigateTo(pageId) {
+            const pages = document.querySelectorAll('.page-view');
+            pages.forEach(p => p.classList.remove('active'));
+            
+            const target = document.getElementById(pageId) || document.getElementById('home-view');
+            target.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

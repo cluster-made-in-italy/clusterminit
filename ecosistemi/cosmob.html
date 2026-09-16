@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Ecosistema COSMOB Technology Center & ITS Made in Italy</title>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --panel-bg: rgba(15, 23, 42, 0.94);
+            --panel-border: rgba(255, 255, 255, 0.12);
+            --accent-amber: #f59e0b;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --accent-pink: #ec4899;
+            --accent-emerald: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, var(--accent-amber), #d97706);
+            color: #000;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            letter-spacing: 0.5px;
+        }
+
+        h1 {
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        .kpi-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--panel-border);
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--accent-amber);
+        }
+
+        .kpi-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .workspace {
+            display: flex;
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 55px);
+            overflow: hidden;
+        }
+
+        #network-container {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            cursor: grab;
+            background: radial-gradient(circle at center, #111827 0%, #090d16 100%);
+        }
+
+        #network-container:active {
+            cursor: grabbing;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Controlli Overlay */
+        .controls-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 5;
+            width: 330px;
+        }
+
+        .control-group {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .view-switcher {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+
+        .btn-view {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-view:hover {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: var(--accent-amber);
+        }
+
+        .btn-view.active {
+            background: var(--accent-amber);
+            color: #000;
+            font-weight: 700;
+            border-color: var(--accent-amber);
+        }
+
+        .search-box {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            font-size: 0.78rem;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-amber);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .tag-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--panel-border);
+            color: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.68rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-btn.active, .tag-btn:hover {
+            color: #fff;
+            border-color: var(--accent-amber);
+            background: rgba(245, 158, 11, 0.2);
+        }
+
+        /* Finestra Laterale di Visualizzazione & Dettaglio Soggetto */
+        .detail-window {
+            width: 370px;
+            height: 100%;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 8;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+            flex-shrink: 0;
+        }
+
+        .detail-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .category-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .entity-title {
+            font-size: 1.15rem;
+            margin-bottom: 2px;
+            color: #fff;
+        }
+
+        .entity-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .detail-body {
+            padding: 14px 18px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .info-card h4 {
+            font-size: 0.68rem;
+            color: var(--accent-amber);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-card p {
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: #cbd5e1;
+        }
+
+        .connected-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .conn-chip {
+            background: rgba(255,255,255,0.08);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .conn-chip:hover {
+            background: rgba(245, 158, 11, 0.25);
+            border-color: var(--accent-amber);
+            color: #fff;
+        }
+
+        /* Drawer Registro Imprese & Laboratori */
+        .enterprise-modal {
+            position: absolute;
+            bottom: 12px;
+            right: 382px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            max-width: 420px;
+            max-height: 210px;
+            overflow-y: auto;
+            backdrop-filter: blur(12px);
+            z-index: 6;
+            font-size: 0.75rem;
+        }
+
+        .enterprise-modal h3 {
+            font-size: 0.8rem;
+            color: var(--accent-amber);
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Legenda */
+        .legend {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.68rem;
+            display: flex;
+            gap: 12px;
+            backdrop-filter: blur(8px);
+            z-index: 5;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace { flex-direction: column; }
+            .detail-window { width: 100%; height: 38%; }
+            .enterprise-modal { display: none; }
+            .kpi-container { display: none; }
+            .controls-overlay { width: calc(100% - 24px); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-group">
+            <span class="logo-badge">COSMOB & ITS</span>
+            <h1>Ecosistema Centro Tecnologico COSMOB & ITS Made in Italy</h1>
+        </div>
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-value">Montelabbate (PU)</div>
+                <div class="kpi-label">HQ & Lab Prove</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">> 150</div>
+                <div class="kpi-label">PMI Filiera Arredo</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">ITS Made in Italy</div>
+                <div class="kpi-label">Formazione Terziaria</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="controls-overlay">
+            <div class="control-group">
+                <div class="control-label">Layout Grafico Network</div>
+                <div class="view-switcher" id="viewSwitcher">
+                    <button class="btn-view active" data-view="sedi">🏛️ Hub COSMOB/ITS</button>
+                    <button class="btn-view" data-view="force">🌀 Fisica Bilanciata</button>
+                    <button class="btn-view" data-view="radial">⭕ Circolare Concentrica</button>
+                    <button class="btn-view" data-view="grid">📊 Categorie Filiera</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">Filtra e Cerca Attori Rete</div>
+                <input type="text" id="searchInput" class="search-box" placeholder="Cerca brand, ente o università...">
+                <div class="filter-tags" id="filterContainer">
+                    <button class="tag-btn active" data-cat="all">Tutti</button>
+                    <button class="tag-btn" data-cat="hub">Hub COSMOB & ITS</button>
+                    <button class="tag-btn" data-cat="brand">Brand & Industria</button>
+                    <button class="tag-btn" data-cat="cluster">Cluster 150+ PMI</button>
+                    <button class="tag-btn" data-cat="enti">Soci & Enti Locali</button>
+                    <button class="tag-btn" data-cat="edu">Università & Scuola</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="network-container">
+            <canvas id="networkCanvas"></canvas>
+            
+            <div class="enterprise-modal">
+                <h3><span>📁 Distretto Legno-Arredo Marche & Lab</span> <span style="font-size: 0.65rem; color: var(--accent-amber);">Pesaro & Marche</span></h3>
+                <p style="margin-bottom: 6px; color: var(--text-muted);">
+                    Oltre ai grandi brand industriali, l'ecosistema COSMOB comprende più di 150 PMI del mobile, laboratori di prova materiali e la rete di prototipazione rapida:
+                </p>
+                <div id="enterpriseList" style="max-height: 100px; overflow-y: auto; color: #cbd5e1; line-height: 1.4;">
+                    • <b>Lab Test Certificati</b>: Emissioni VOC, resistenza meccanica pelli/superfici e sostenibilità ambientale.<br>
+                    • <b>Distretto Pesaro-Vallefoglia</b>: 70+ terzisti per la lavorazione del pannello, bordatura e verniciatura.<br>
+                    • <b>Sub-fornitura Accessori & Componenti</b>: 45 produttori di cerniere, guide, ferramenta e componenti 4.0.<br>
+                    • <b>Cosmob Crea Impresa</b>: Incubatore e FabLab per giovani designer e startup dell'ITS.
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item"><span class="legend-color" style="background:#f59e0b;"></span> Hub COSMOB & ITS</div>
+                <div class="legend-item"><span class="legend-color" style="background:#ec4899;"></span> Brand & Industriali</div>
+                <div class="legend-item"><span class="legend-color" style="background:#10b981;"></span> Cluster 150+ PMI</div>
+                <div class="legend-item"><span class="legend-color" style="background:#06b6d4;"></span> Università & Scuola</div>
+                <div class="legend-item"><span class="legend-color" style="background:#8b5cf6;"></span> Soci, Enti & Associazioni</div>
+            </div>
+        </div>
+
+        <!-- Visualizzatore dei vari soggetti legati a COSMOB e all'ITS -->
+        <aside class="detail-window">
+            <div class="detail-header">
+                <span class="category-pill" id="detCategory">HUB CENTRALE</span>
+                <h2 class="entity-title" id="detTitle">COSMOB Technology Center</h2>
+                <p class="entity-subtitle" id="detSubtitle">Montelabbate - Pesaro e Urbino (Marche)</p>
+            </div>
+            <div class="detail-body">
+                <div class="info-card">
+                    <h4>Ruolo nell'Ecosistema</h4>
+                    <p id="detRole">Centro Tecnologico per la filiera Legno-Arredo, Design, Economia Circolare, Certificazione Materiali e Trasferimento Tecnologico 4.0.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Attività & Connessione ITS</h4>
+                    <p id="detDesc">COSMOB ospita la COSMOB Academy e collabora con la Fondazione ITS Tecnologia e Made in Italy per erogare percorsi di istruzione terziaria in Product & Eco Design, Fabbricazione Digitale e Digital Manufacturing.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Soggetti Direttamente Connessi</h4>
+                    <div class="connected-list" id="detConns"></div>
+                </div>
+                <a href="https://www.cosmob.it/it/" target="_blank" class="action-btn" style="display:block; text-align:center; background:var(--accent-amber); color:#000; font-weight:700; padding:9px; border-radius:6px; text-decoration:none; margin-top:auto; font-size:0.8rem;">Visita Portale Ufficiale COSMOB</a>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // DATASET DEGLI ATTORI DELL'ECOSISTEMA COSMOB & ITS COLLEGATO
+        const nodes = [
+            // HUB COSMOB & ITS
+            { id: 'cosmob_hq', label: 'COSMOB Tech Center', cat: 'hub', color: '#f59e0b', radius: 24,
+              sub: 'Sede Legale ed Operativa - Montelabbate (PU)', 
+              desc: 'Centro Tecnologico accreditato per prove di laboratorio, ecodesign, certificazioni di qualità del prodotto e sostenibilità.', 
+              role: 'Hub principale di innovazione tecnologica per il distretto del mobile e per la formazione avanzata.' },
+
+            { id: 'its_madeinitaly', label: 'ITS Made in Italy (Cosmob)', cat: 'hub', color: '#f59e0b', radius: 22,
+              sub: 'Fondazione ITS Recanati / Pesaro', 
+              desc: 'Percorsi terziari professionalizzanti post-diploma dedicati a Product Design 4.0, Green Fashion/Furniture ed Eco-Design.', 
+              role: 'Coordinamento didattico dei corsi ITS di Arredo e Design erogati presso i laboratori Cosmob Academy.' },
+
+            { id: 'cosmob_crea_impresa', label: 'Cosmob Crea Impresa & FabLab', cat: 'hub', color: '#f59e0b', radius: 19,
+              sub: 'Infrastruttura Incubation & FabLab', 
+              desc: 'Rete di incubazione e prototipazione per startup e progetti innovativi nati dai giovani talenti degli ITS.', 
+              role: 'Supporto allo spin-off d\'impresa, prototipazione rapida 3D e fabbricazione digitale.' },
+
+            // BRAND E INDUSTRIE LEADER DEL DISTRETTO LEGNO-ARREDO
+            { id: 'scavolini', label: 'Scavolini S.p.A.', cat: 'brand', color: '#ec4899', radius: 18,
+              sub: 'Montelabbate (PU)', desc: 'Marchio leader globale nel settore cucine, living e arredo bagno.', role: 'Socio sostenitore, accoglienza tirocini ITS e progetti di co-design.' },
+
+            { id: 'biesse', label: 'Biesse Group', cat: 'brand', color: '#ec4899', radius: 18,
+              sub: 'Pesaro (PU)', desc: 'Multinazionale leader nella tecnologia e macchine per la lavorazione del legno e materiali avanzati.', role: 'Fornitura tecnologie 4.0, formazione tecnica e collaborazione R&D.' },
+
+            { id: 'lube', label: 'Cucine Lube', cat: 'brand', color: '#ec4899', radius: 17,
+              sub: 'Treia (MC)', desc: 'Gruppo industriale primario per la produzione di cucine componibili e arredo.', role: 'Partner industriale per tirocini e inserimento lavorativo diplomati.' },
+
+            { id: 'ernestomeda', label: 'Ernestomeda', cat: 'brand', color: '#ec4899', radius: 16,
+              sub: 'Montelabbate (PU)', desc: 'Azienda di fascia alta specializzata in cucine di design su misura.', role: 'Collaborazione su percorsi di finitura ad alte prestazioni ed ecodesign.' },
+
+            { id: 'febal_colombini', label: 'Colombini / Febal Casa', cat: 'brand', color: '#ec4899', radius: 16,
+              sub: 'San Marino / Marche', desc: 'Gruppo leader nell\'arredo casa e soluzioni abitative componibili.', role: 'Partner didattico per competenze di progettazione modulare.' },
+
+            { id: 'avenanti', label: 'Mobili Avenanti', cat: 'brand', color: '#ec4899', radius: 15,
+              sub: 'Mobilifici Pesaro', desc: 'Eccellenza nell\'arredo classico e contemporaneo di alta gamma.', role: 'Partecipazione negli organi sociali e comitati tecnici.' },
+
+            // CLUSTER IMPRESE DEL DISTRETTO (>150 PMI)
+            { id: 'cluster_pesaro', label: 'Cluster Terzisti Pesaro (70+ PMI)', cat: 'cluster', color: '#10b981', radius: 18,
+              sub: 'Distretto Vallefoglia & Pesaro', desc: 'Rete di oltre 70 PMI di lavorazione pannelli, verniciatura ed ebanisteria.', role: 'Assorbimento tirocinanti ITS e test di laboratorio sui semilavorati.' },
+
+            { id: 'cluster_componenti', label: 'Cluster Accessori & Ferramenta (45 PMI)', cat: 'cluster', color: '#10b981', radius: 17,
+              sub: 'Filiera marchigiana dell\'Arredo', desc: 'Produttori di sistemi di scorrimento, cerniere, illuminazione LED e componentistica.', role: 'Collaborazione su test di resistenza meccanica presso i lab Cosmob.' },
+
+            { id: 'cluster_macerata', label: 'Cluster Mobilifici Maceratesi (35 PMI)', cat: 'cluster', color: '#10b981', radius: 16,
+              sub: 'Distretto Macerata & Ancona', desc: 'Aziende specializzate nel mobile imbottito e arredamento zona notte.', role: 'Partecipazione a percorsi di riqualificazione tecnica aziendale.' },
+
+            // SOCI, ENTI LOCALI E ISTITUZIONI
+            { id: 'cciaa_marche', label: 'CCIAA delle Marche', cat: 'enti', color: '#8b5cf6', radius: 17,
+              sub: 'Camera di Commercio Regionale', desc: 'Ente camerale di promozione economica del territorio marchigiano.', role: 'Socio fondatore e sostenitore dei programmi di sviluppo del distretto.' },
+
+            { id: 'regione_marche', label: 'Regione Marche', cat: 'enti', color: '#8b5cf6', radius: 17,
+              sub: 'Ente Finanziatore PR FSE+', desc: 'Autorità regionale di programmazione fondi europei e politiche del lavoro.', role: 'Cofinanziamento e accreditamento dei percorsi ITS terziari.' },
+
+            { id: 'provincia_pu', label: 'Provincia Pesaro Urbino', cat: 'enti', color: '#8b5cf6', radius: 15,
+              sub: 'Ente Territoriale', desc: 'Amministrazione provinciale del bacino industriale di Pesaro.', role: 'Socio dell\'infrastruttura tecnologica e promozione formativa.' },
+
+            { id: 'svem', label: 'SVEM Srl', cat: 'enti', color: '#8b5cf6', radius: 15,
+              sub: 'Sviluppo Europa Marche', desc: 'Società di sviluppo regionale delle Marche.', role: 'Supporto alle reti d\'impresa e attrazione investimenti.' },
+
+            { id: 'comune_vallefoglia', label: 'Comune di Vallefoglia', cat: 'enti', color: '#8b5cf6', radius: 14,
+              sub: 'Ente Locale Montelabbate/Vallefoglia', desc: 'Comune ospitante il centro tecnologico e le strutture di laboratorio.', role: 'Integrazione urbanistica e supporto alle infrastrutture di rete.' },
+
+            // UNIVERSITÀ, SCUOLE E CENTRI DI RICERCA
+            { id: 'uniurb', label: 'Università di Urbino "Carlo Bo"', cat: 'edu', color: '#06b6d4', radius: 17,
+              sub: 'Ateneo di Urbino (UNIURB)', desc: 'Università partner per la ricerca su economia, circular design e materiali.', role: 'Comitato scientifico, docenze universitarie e visite didattiche.' },
+
+            { id: 'univpm', label: 'UNIVPM Ancona', cat: 'edu', color: '#06b6d4', radius: 16,
+              sub: 'Universita Politecnica delle Marche', desc: 'Ateneo scientifico-tecnologico per ingegneria meccanica e gestionale.', role: 'Ricerca applicata su materiali avanzati e automazione 4.0.' },
+
+            { id: 'mengaroni', label: 'Liceo Artistico Mengaroni', cat: 'edu', color: '#06b6d4', radius: 15,
+              sub: 'Istituto Secondario Pesaro', desc: 'Liceo ad indirizzo Design e Arti Figurative di Pesaro.', role: 'Scuola partner per l\'orientamento agli studi terziari ITS.' },
+
+            // ASSOCIAZIONI DI CATEGORIA
+            { id: 'federlegno', label: 'FederlegnoArredo', cat: 'assoc', color: '#8b5cf6', radius: 16,
+              sub: 'Federazione Nazionale', desc: 'Organizzazione nazionale di categoria per le industrie del legno-arredo.', role: 'Partecipazione al Cda e raccordo con il Salone del Mobile.' },
+
+            { id: 'confindustria_pu', label: 'Confindustria Pesaro Urbino', cat: 'assoc', color: '#8b5cf6', radius: 15,
+              sub: 'Associazione Industriali', desc: 'Rappresentanza del tessuto industriale manifatturiero.', role: 'Analisi fabbisogni formativi industriali per i corsi ITS.' },
+
+            { id: 'cna_marche', label: 'CNA Pesaro e Urbino', cat: 'assoc', color: '#8b5cf6', radius: 15,
+              sub: 'Confederazione Artigianato', desc: 'Rappresentanza dell\'artigianato e delle piccole imprese.', role: 'Coinvolgimento terzisti nei progetti di ecodesign.' },
+
+            { id: 'confartigianato', label: 'Confartigianato Ancona-Pesaro', cat: 'assoc', color: '#8b5cf6', radius: 15,
+              sub: 'Associazione Datoriale', desc: 'Tutela e sviluppo delle PMI manifatturiere.', role: 'Presenza negli organi direttivi Cosmob.' }
+        ];
+
+        // RELAZIONI DI RETE (LINK)
+        const links = [
+            // COSMOB Tech Center e ITS Made in Italy
+            { source: 'cosmob_hq', target: 'its_madeinitaly' },
+            { source: 'cosmob_hq', target: 'cosmob_crea_impresa' },
+            { source: 'its_madeinitaly', target: 'cosmob_crea_impresa' },
+
+            // Collegamenti con Grandi Brand Arredo
+            { source: 'cosmob_hq', target: 'scavolini' },
+            { source: 'cosmob_hq', target: 'biesse' },
+            { source: 'cosmob_hq', target: 'ernestomeda' },
+            { source: 'its_madeinitaly', target: 'scavolini' },
+            { source: 'its_madeinitaly', target: 'biesse' },
+            { source: 'its_madeinitaly', target: 'lube' },
+            { source: 'its_madeinitaly', target: 'febal_colombini' },
+            { source: 'cosmob_hq', target: 'avenanti' },
+
+            // Collegamenti con Cluster PMI
+            { source: 'cosmob_hq', target: 'cluster_pesaro' },
+            { source: 'cosmob_hq', target: 'cluster_componenti' },
+            { source: 'its_madeinitaly', target: 'cluster_pesaro' },
+            { source: 'its_madeinitaly', target: 'cluster_macerata' },
+
+            // Collegamenti con Soci, Enti Locali e Regione
+            { source: 'cciaa_marche', target: 'cosmob_hq' },
+            { source: 'regione_marche', target: 'its_madeinitaly' },
+            { source: 'provincia_pu', target: 'cosmob_hq' },
+            { source: 'svem', target: 'cosmob_hq' },
+            { source: 'comune_vallefoglia', target: 'cosmob_hq' },
+
+            // Collegamenti con Università e Scuole
+            { source: 'uniurb', target: 'cosmob_hq' },
+            { source: 'uniurb', target: 'its_madeinitaly' },
+            { source: 'univpm', target: 'cosmob_hq' },
+            { source: 'mengaroni', target: 'its_madeinitaly' },
+
+            // Collegamenti con Associazioni
+            { source: 'federlegno', target: 'cosmob_hq' },
+            { source: 'confindustria_pu', target: 'cosmob_hq' },
+            { source: 'cna_marche', target: 'cluster_pesaro' },
+            { source: 'confartigianato', target: 'cosmob_hq' }
+        ];
+
+        // ENGINE CANVAS E GESTIONE CANVAS
+        const container = document.getElementById('network-container');
+        const canvas = document.getElementById('networkCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = 0;
+        let height = 0;
+        let selectedNode = nodes[0];
+        let hoveredNode = null;
+        let draggedNode = null;
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let currentLayout = 'sedi';
+        let initialized = false;
+
+        nodes.forEach(n => {
+            n.x = 0; n.y = 0;
+            n.tx = 0; n.ty = 0;
+            n.vx = 0; n.vy = 0;
+        });
+
+        // CALCOLO COORDINATE RIGOROSO PER EVITARE CHE I NODI TOUCHINO I BORDI/VERTICI
+        function computeTargetPositions() {
+            const padX = Math.max(100, Math.min(width * 0.12, 160));
+            const padY = Math.max(90, Math.min(height * 0.14, 130));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'sedi') {
+                // VISTA 1: A TRE HUB CENTRALI (COSMOB HQ, ITS, CREA IMPRESA)
+                const cHQ = nodes.find(n => n.id === 'cosmob_hq');
+                const cITS = nodes.find(n => n.id === 'its_madeinitaly');
+                const cCrea = nodes.find(n => n.id === 'cosmob_crea_impresa');
+
+                cHQ.tx = cx;
+                cHQ.ty = minY + (maxY - minY) * 0.28;
+
+                cITS.tx = minX + (maxX - minX) * 0.3;
+                cITS.ty = minY + (maxY - minY) * 0.72;
+
+                cCrea.tx = minX + (maxX - minX) * 0.7;
+                cCrea.ty = minY + (maxY - minY) * 0.72;
+
+                const others = nodes.filter(n => !n.id.startsWith('cosmob_') && n.id !== 'its_madeinitaly');
+                others.forEach((node) => {
+                    let parent = cHQ;
+                    if (node.cat === 'edu' || node.id === 'lube' || node.id === 'febal_colombini') {
+                        parent = cITS;
+                    } else if (node.cat === 'cluster' || node.id === 'biesse') {
+                        parent = cCrea;
+                    }
+
+                    const subNodes = others.filter(n => {
+                        if (parent === cITS) return n.cat === 'edu' || n.id === 'lube' || n.id === 'febal_colombini';
+                        if (parent === cCrea) return n.cat === 'cluster' || n.id === 'biesse';
+                        return !(n.cat === 'edu' || n.id === 'lube' || n.id === 'febal_colombini' || n.cat === 'cluster' || n.id === 'biesse');
+                    });
+
+                    const idxInSub = subNodes.indexOf(node);
+                    const angle = (idxInSub / Math.max(1, subNodes.length)) * Math.PI * 2;
+                    const dist = Math.min(width, height) * 0.18;
+
+                    node.tx = parent.tx + Math.cos(angle) * dist;
+                    node.ty = parent.ty + Math.sin(angle) * dist;
+
+                    node.tx = Math.max(minX, Math.min(maxX, node.tx));
+                    node.ty = Math.max(minY, Math.min(maxY, node.ty));
+                });
+            }
+            else if (currentLayout === 'radial') {
+                // VISTA 2: RADIALE CONCENTRICA
+                const hubs = nodes.filter(n => n.cat === 'hub');
+                const nonHubs = nodes.filter(n => n.cat !== 'hub');
+
+                hubs.forEach((s, idx) => {
+                    const angle = (idx / hubs.length) * Math.PI * 2 - Math.PI / 2;
+                    const r = 60;
+                    s.tx = cx + Math.cos(angle) * r;
+                    s.ty = cy + Math.sin(angle) * r;
+                });
+
+                const rOuter = Math.min(maxX - minX, maxY - minY) * 0.42;
+                nonHubs.forEach((n, idx) => {
+                    const angle = (idx / nonHubs.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rOuter;
+                    n.ty = cy + Math.sin(angle) * rOuter;
+                });
+            }
+            else if (currentLayout === 'grid') {
+                // VISTA 3: COLONNE PER CATEGORIA
+                const cats = [
+                    { cat: 'hub', label: 'HUB COSMOB & ITS' },
+                    { cat: 'brand', label: 'BRAND & INDUSTRIA' },
+                    { cat: 'cluster', label: 'CLUSTER 150+ PMI' },
+                    { cat: 'enti', label: 'SOCI & ENTI' },
+                    { cat: 'edu', label: 'UNIVERSITÀ & SCUOLA' }
+                ];
+                const colW = (maxX - minX) / cats.length;
+
+                cats.forEach((cObj, cIdx) => {
+                    const catNodes = nodes.filter(n => n.cat === cObj.cat || (cObj.cat === 'enti' && n.cat === 'assoc'));
+                    const x = minX + colW * cIdx + colW / 2;
+                    const rowH = (maxY - minY) / (catNodes.length + 1);
+
+                    catNodes.forEach((node, rIdx) => {
+                        node.tx = x;
+                        node.ty = minY + rowH * (rIdx + 1);
+                    });
+                });
+            }
+            else {
+                // VISTA 4: FISICA BILANCIATA
+                const otherNodes = nodes.filter(n => n.cat !== 'hub');
+                nodes.filter(n => n.cat === 'hub').forEach((s, i) => {
+                    s.tx = cx + (i - 1) * 110;
+                    s.ty = cy;
+                });
+                otherNodes.forEach((node, i) => {
+                    const angle = (i / otherNodes.length) * Math.PI * 2;
+                    const r = Math.min(width, height) * 0.32;
+                    node.tx = cx + Math.cos(angle) * r;
+                    node.ty = cy + Math.sin(angle) * r;
+                });
+            }
+        }
+
+        function resize() {
+            width = container.clientWidth;
+            height = container.clientHeight;
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+
+            if (width > 0 && height > 0) {
+                computeTargetPositions();
+                if (!initialized) {
+                    nodes.forEach(n => {
+                        n.x = n.tx;
+                        n.y = n.ty;
+                    });
+                    selectNode(nodes[0]);
+                    initialized = true;
+                }
+            }
+        }
+
+        const resizeObserver = new ResizeObserver(() => resize());
+        resizeObserver.observe(container);
+
+        // FISICA E SIMULAZIONE
+        function updatePositions() {
+            if (!initialized) return;
+
+            const padX = Math.max(90, Math.min(width * 0.1, 140));
+            const padY = Math.max(80, Math.min(height * 0.12, 120));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'force') {
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        let dx = nodes[j].x - nodes[i].x;
+                        let dy = nodes[j].y - nodes[i].y;
+                        let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        let minDist = nodes[i].radius + nodes[j].radius + 45;
+
+                        if (dist < minDist) {
+                            let force = (minDist - dist) / dist * 0.06;
+                            nodes[i].vx -= dx * force;
+                            nodes[i].vy -= dy * force;
+                            nodes[j].vx += dx * force;
+                            nodes[j].vy += dy * force;
+                        }
+                    }
+                }
+
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    let dx = target.x - source.x;
+                    let dy = target.y - source.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    let targetDist = 125;
+                    let force = (dist - targetDist) * 0.002;
+
+                    source.vx += dx * force;
+                    source.vy += dy * force;
+                    target.vx -= dx * force;
+                    target.vy -= dy * force;
+                });
+
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+
+                    let dx = cx - node.x;
+                    let dy = cy - node.y;
+                    node.vx += dx * 0.0005;
+                    node.vy += dy * 0.0005;
+
+                    node.vx *= 0.82;
+                    node.vy *= 0.82;
+
+                    node.x += node.vx;
+                    node.y += node.vy;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            } else {
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+                    node.x += (node.tx - node.x) * 0.12;
+                    node.y += (node.ty - node.y) * 0.12;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            }
+        }
+
+        // RENDERING CANVAS
+        function render() {
+            updatePositions();
+            ctx.clearRect(0, 0, width, height);
+
+            if (initialized) {
+                if (currentLayout === 'grid') {
+                    const cats = [
+                        { label: 'HUB COSMOB & ITS', color: '#f59e0b', x: width * 0.1 },
+                        { label: 'BRAND & INDUSTRIA', color: '#ec4899', x: width * 0.3 },
+                        { label: 'CLUSTER 150+ PMI', color: '#10b981', x: width * 0.5 },
+                        { label: 'SOCI & ENTI', color: '#8b5cf6', x: width * 0.7 },
+                        { label: 'UNIVERSITÀ & SCUOLA', color: '#06b6d4', x: width * 0.9 }
+                    ];
+
+                    cats.forEach(c => {
+                        ctx.fillStyle = c.color;
+                        ctx.font = 'bold 10px Segoe UI, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(c.label, c.x, 32);
+
+                        ctx.beginPath();
+                        ctx.moveTo(c.x - 35, 40);
+                        ctx.lineTo(c.x + 35, 40);
+                        ctx.strokeStyle = c.color + '55';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    });
+                }
+
+                // ARCHI E COLLEGAMENTI
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    const isVisible = checkVisibility(source) && checkVisibility(target);
+                    const isHighlighted = selectedNode && (source.id === selectedNode.id || target.id === selectedNode.id);
+
+                    ctx.beginPath();
+                    ctx.moveTo(source.x, source.y);
+                    ctx.lineTo(target.x, target.y);
+                    ctx.strokeStyle = isHighlighted ? '#f59e0b' : (isVisible ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.02)');
+                    ctx.lineWidth = isHighlighted ? 2.5 : 1;
+                    ctx.stroke();
+                });
+
+                // NODI DELLA RETE
+                nodes.forEach(node => {
+                    const isVisible = checkVisibility(node);
+                    const isSelected = selectedNode && selectedNode.id === node.id;
+                    const isHovered = hoveredNode && hoveredNode.id === node.id;
+
+                    ctx.save();
+                    ctx.translate(node.x, node.y);
+
+                    if (isSelected || isHovered) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, node.radius + 7, 0, Math.PI * 2);
+                        ctx.fillStyle = isSelected ? 'rgba(245, 158, 11, 0.28)' : 'rgba(255, 255, 255, 0.12)';
+                        ctx.fill();
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = isVisible ? node.color : '#334155';
+                    ctx.globalAlpha = isVisible ? 1.0 : 0.2;
+                    ctx.fill();
+
+                    ctx.lineWidth = isSelected ? 3 : 1.2;
+                    ctx.strokeStyle = isSelected ? '#ffffff' : 'rgba(0,0,0,0.5)';
+                    ctx.stroke();
+
+                    if (node.cat === 'cluster') {
+                        ctx.fillStyle = '#000';
+                        ctx.font = 'bold 9px Segoe UI, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('150+', 0, 3);
+                    }
+
+                    ctx.fillStyle = isVisible ? '#f8fafc' : '#64748b';
+                    ctx.font = (node.cat === 'hub' ? 'bold 11px' : '10px') + ' Segoe UI, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(node.label, 0, node.radius + 13);
+
+                    ctx.restore();
+                });
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        function checkVisibility(node) {
+            const matchesCat = currentFilter === 'all' || node.cat === currentFilter || (currentFilter === 'enti' && node.cat === 'assoc');
+            const matchesSearch = searchQuery === '' || 
+                node.label.toLowerCase().includes(searchQuery) || 
+                node.sub.toLowerCase().includes(searchQuery);
+            return matchesCat && matchesSearch;
+        }
+
+        // EVENTI MOUSE / TOUCH
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function findNodeAt(pos) {
+            return nodes.find(node => {
+                let dx = node.x - pos.x;
+                let dy = node.y - pos.y;
+                return Math.sqrt(dx * dx + dy * dy) <= node.radius + 6;
+            });
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getPos(e);
+            if (draggedNode) {
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            } else {
+                hoveredNode = findNodeAt(pos);
+                canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
+            }
+        });
+
+        window.addEventListener('mouseup', () => { draggedNode = null; });
+
+        canvas.addEventListener('touchstart', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            if (draggedNode) {
+                const pos = getPos(e);
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            }
+        });
+        canvas.addEventListener('touchend', () => { draggedNode = null; });
+
+        // POPOLAMENTO DELLA FINESTRA LATERALE DI VISUALIZZAZIONE SOGGETTI
+        function selectNode(node) {
+            selectedNode = node;
+
+            document.getElementById('detTitle').innerText = node.label;
+            document.getElementById('detSubtitle').innerText = node.sub;
+            document.getElementById('detDesc').innerText = node.desc;
+            document.getElementById('detRole').innerText = node.role;
+
+            const catNames = {
+                'hub': 'Hub Centro Tecnologico & ITS',
+                'brand': 'Maison & Industria Arredo',
+                'cluster': 'Cluster Manifatturiero (150+ PMI)',
+                'enti': 'Ente Socio / Istituzione Locale',
+                'edu': 'Università / Scuola / Ricerca',
+                'assoc': 'Associazione Datoriale / Categoria'
+            };
+            const catBadge = document.getElementById('detCategory');
+            catBadge.innerText = catNames[node.cat] || node.cat;
+            catBadge.style.color = node.color;
+            catBadge.style.background = node.color + '22';
+
+            const connsContainer = document.getElementById('detConns');
+            connsContainer.innerHTML = '';
+
+            const connectedLinks = links.filter(l => l.source === node.id || l.target === node.id);
+            connectedLinks.forEach(l => {
+                const otherId = l.source === node.id ? l.target : l.source;
+                const targetNode = nodes.find(n => n.id === otherId);
+                if (targetNode) {
+                    const chip = document.createElement('span');
+                    chip.className = 'conn-chip';
+                    chip.innerText = targetNode.label;
+                    chip.onclick = () => selectNode(targetNode);
+                    connsContainer.appendChild(chip);
+                }
+            });
+        }
+
+        // INTERRUTTORI LAYOUT E FILTRI
+        document.getElementById('viewSwitcher').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-view');
+            if (btn) {
+                document.querySelectorAll('.btn-view').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLayout = btn.dataset.view;
+                computeTargetPositions();
+            }
+        });
+
+        document.getElementById('filterContainer').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.cat;
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+        });
+
+        render();
+    </script>
+</body>
+</html>

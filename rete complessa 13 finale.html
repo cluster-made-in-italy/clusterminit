@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulatore Ecosistema Integrato Multi-Regionale</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #0f172a; color: #f8fafc; overflow: hidden; height: 100vh; display: flex; }
+    #sidebar { width: 380px; background: #1e293b; border-right: 1px solid #334155; display: flex; flex-direction: column; z-index: 10; padding: 20px; box-shadow: 4px 0 15px rgba(0,0,0,0.3); overflow-y: auto; }
+    #canvas-container { flex: 1; position: relative; height: 100%; }
+    svg { width: 100%; height: 100%; }
+    h1 { font-size: 1.25rem; font-weight: 700; color: #38bdf8; margin-bottom: 5px; }
+    p.subtitle { font-size: 0.8rem; color: #94a3b8; margin-bottom: 15px; }
+    
+    .dashboard-title { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 8px; font-weight: 600; }
+    .dashboard-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+    .metric-card { background: #0f172a; border: 1px solid #334155; border-radius: 6px; padding: 10px; text-align: center; }
+    .metric-value { font-size: 1.2rem; font-weight: bold; color: #38bdf8; }
+    .metric-label { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; }
+
+    .btn-group { display: flex; gap: 8px; margin-bottom: 15px; }
+    .btn { flex: 1; padding: 8px 12px; background: #0284c7; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: background 0.2s; display: flex; align-items: center; justify-content: center; gap: 5px; }
+    .btn:hover { background: #0369a1; }
+    .btn-secondary { background: #334155; color: #f8fafc; }
+    .btn-secondary:hover { background: #475569; }
+
+    .control-group { margin-bottom: 15px; }
+    label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 6px; }
+    select, input[type="text"] { width: 100%; padding: 10px; background: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 0.9rem; outline: none; }
+    select:focus, input[type="text"]:focus { border-color: #38bdf8; }
+    
+    .details-card { margin-top: auto; background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 15px; max-height: 35%; overflow-y: auto; }
+    .details-card h3 { font-size: 1rem; color: #f59e0b; margin-bottom: 6px; }
+    .details-card .tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-bottom: 10px; background: #334155; color: #38bdf8; }
+    .details-card p { font-size: 0.825rem; color: #cbd5e1; line-height: 1.4; margin-bottom: 8px; }
+    .details-card a { color: #38bdf8; text-decoration: none; font-size: 0.8rem; word-break: break-all; }
+    .details-card a:hover { text-underline-offset: 2px; text-decoration: underline; }
+    
+    .node-label { font-size: 10px; fill: #e2e8f0; pointer-events: none; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+    .link { stroke-opacity: 0.4; stroke-width: 1.5px; }
+    .link.cross { stroke: #f43f5e; stroke-width: 2.2px; stroke-dasharray: 4,4; stroke-opacity: 0.8; }
+    .legend { display: flex; flex-direction: column; gap: 6px; margin-bottom: 15px; font-size: 0.75rem; }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-color { width: 12px; height: 12px; border-radius: 50%; }
+  </style>
+</head>
+<body>
+
+  <div id="sidebar">
+    <h1>Ecosistema Network</h1>
+    <p class="subtitle">Simulatore Unificato Multi-Ecosistema</p>
+
+    <div class="dashboard-title">Dashboard Analitica</div>
+    <div class="dashboard-grid">
+      <div class="metric-card">
+        <div class="metric-value" id="metric-nodes">0</div>
+        <div class="metric-label">Nodi Totali</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="metric-links">0</div>
+        <div class="metric-label">Collegamenti</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="metric-cross" style="color: #f43f5e;">0</div>
+        <div class="metric-label">Link Cross</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value" id="metric-ecosystems" style="color: #10b981;">0</div>
+        <div class="metric-label">Ecosistemi</div>
+      </div>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn" id="btn-export">💾 Salva JSON</button>
+      <button class="btn btn-secondary" id="btn-import">📂 Carica JSON</button>
+      <input type="file" id="file-input" accept=".json" style="display: none;">
+    </div>
+
+    <div class="control-group">
+      <label for="filter-eco">Filtra per Ecosistema</label>
+      <select id="filter-eco">
+        <option value="all">Tutti gli Ecosistemi (Unificato)</option>
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label for="search-node">Cerca Nodo</label>
+      <input type="text" id="search-node" placeholder="Es. MITA, SSIP, OCM, Federlegno, UNIBO...">
+    </div>
+
+    <div class="legend">
+      <label>Legenda Collegamenti</label>
+      <div class="legend-item"><div class="legend-color" style="background:#94a3b8"></div> Collegamento Intra-Ecosistema</div>
+      <div class="legend-item"><div class="legend-color" style="background:#f43f5e"></div> Collegamento Semantico Cross-Ecosistema</div>
+    </div>
+
+    <div class="details-card" id="details-card">
+      <div class="tag">Info Nodo</div>
+      <h3>Seleziona un Nodo</h3>
+      <p>Clicca su un nodo nella mappa per esplorarne descrizioni, ruoli strategici e relazioni.</p>
+    </div>
+  </div>
+
+  <div id="canvas-container">
+    <svg id="network-svg"></svg>
+  </div>
+
+  <script>
+    let graphData = {
+      "nodes": [
+        // --- 1. EMILIA-ROMAGNA (ART-ER) ---
+        {"id": "arter", "label": "ART-ER Hub", "cat": "hub", "color": "#f59e0b", "radius": 24, "sub": "Società Consortile Regionale (Bologna)", "desc": "Consorzio per l'innovazione, l'attrattività territoriale e la ricerca industriale dell'Emilia-Romagna.", "role": "Coordinamento generale dell'Ecosistema Regionale dell'Innovazione, attuazione S3 e fondi FESR.", "url": "https://www.art-er.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "rer", "label": "Regione Emilia-Romagna", "cat": "gov", "color": "#ef4444", "radius": 18, "sub": "Socio di Maggioranza & Governance", "desc": "Ente di governo regionale guidante le politiche industriali e la strategia di specializzazione intelligente S3.", "role": "Programmazione strategica, accreditamento Tecnopoli e bandi europei.", "url": "https://www.regione.emilia-romagna.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "unioncamere", "label": "Unioncamere E-R", "cat": "gov", "color": "#ef4444", "radius": 15, "sub": "Sistema Camerale Regionale", "desc": "Rappresentanza delle Camere di Commercio del territorio emiliano-romagnolo.", "role": "Digitale, certificazioni e supporto alla crescita aziendale locale.", "url": "https://www.pie.camcom.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "associazioni", "label": "Associazioni Categoria E-R", "cat": "gov", "color": "#ef4444", "radius": 15, "sub": "Confindustria, CNA, Confartigianato, Legacoop", "desc": "Rappresentanza del tessuto industriale, PMI e cooperativo socio di ART-ER.", "role": "Fabbisogni d'innovazione d'impresa e raccordo con il mercato.", "url": "#", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "unibo", "label": "UNIBO", "cat": "uni", "color": "#3b82f6", "radius": 17, "sub": "Alma Mater Studiorum Bologna", "desc": "Primo ateneo d'Europa, polo di eccellenza per ricerca scientifica, brevetti e spin-off.", "role": "Ricerca fondamentale/applicata, laboratori di rete e alta formazione.", "url": "https://www.unibo.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "unimore", "label": "UNIMORE", "cat": "uni", "color": "#3b82f6", "radius": 16, "sub": "Università Modena e Reggio E.", "desc": "Ateneo di riferimento per la Motor Valley, meccatronica, AI e scienze dei materiali.", "role": "Automotive Academy, ricerca meccatronica e laboratori industriali.", "url": "https://www.unimore.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "unife", "label": "UNIFE", "cat": "uni", "color": "#3b82f6", "radius": 15, "sub": "Università degli Studi di Ferrara", "desc": "Centro d'eccellenza per chimica verde, scienze della salute e tecnologie di restauro.", "role": "Laboratori avanzati per la sostenibilità e la medicina traslazionale.", "url": "https://www.unife.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "unipr", "label": "UNIPR", "cat": "uni", "color": "#3b82f6", "radius": 15, "sub": "Università degli Studi di Parma", "desc": "Ateneo leader per l'agrifood, il packaging sostenibile e la farmacologia.", "role": "Ricerca applicata Food Tech e sicurezza alimentare.", "url": "https://www.unipr.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "cnr_er", "label": "CNR E-R", "cat": "uni", "color": "#3b82f6", "radius": 16, "sub": "Consiglio Nazionale Ricerche (Area BO/PR)", "desc": "Area della Ricerca di Bologna e Parma focalizzata su materiali avanzati e nanotech.", "role": "Ricerca industriale fondamentale e laboratori accreditati.", "url": "https://www.bo.cnr.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "enea", "label": "ENEA", "cat": "uni", "color": "#3b82f6", "radius": 15, "sub": "Centri Ricerca Bologna & Brasimone", "desc": "Agenzia nazionale per le nuove tecnologie, l'energia e lo sviluppo economico sostenibile.", "role": "Decarbonizzazione, economia circolare ed efficienza energetica.", "url": "https://www.enea.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "infn", "label": "INFN & CNAF", "cat": "uni", "color": "#3b82f6", "radius": 15, "sub": "Istituto Nazionale Fisica Nucleare", "desc": "Centro nazionale per le tecnologie informatiche e il calcolo ad altas prestazioni.", "role": "Infrastruttura Big Data, cloud e ricerca sulla fisica fondamentale.", "url": "https://www.cnaf.infn.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "tecnopoli_network", "label": "Rete Tecnopoli (10+)", "cat": "tec", "color": "#06b6d4", "radius": 18, "sub": "Infrastruttura Diffusa Regionale", "desc": "Parchi scientifici e tecnologici collocati nelle 9 province con laboratori d'avanguardia.", "role": "Accesso alle imprese locali ai servizi di ricerca industriale.", "url": "https://www.tecnopoli.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "bologna_bigdata", "label": "Tecnopolo Bologna HPC", "cat": "tec", "color": "#06b6d4", "radius": 19, "sub": "Supercomputer LEONARDO & ECMWF", "desc": "Hub mondiale del supercalcolo. Ospita il supercomputer EuroHPC LEONARDO (CINECA) e il Centro Meteo Europeo.", "role": "Potenza di calcolo exascale per AI, meteo, salute e industria.", "url": "https://www.tecnopolobologna.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "rat", "label": "Rete Alta Tecnologia (RAT)", "cat": "tec", "color": "#06b6d4", "radius": 16, "sub": "80+ Laboratori Industriali", "desc": "Insieme dei laboratori di ricerca industriale e centri d'innovazione accreditati dalla Regione.", "role": "Erogazione di progetti di ricerca su commessa per le PMI.", "url": "https://www.retealtatecnologia.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "cluster_mech", "label": "Clust-ER MECH", "cat": "clust", "color": "#10b981", "radius": 15, "sub": "Meccatronica & Motor Valley", "desc": "Associazione della filiera automotive, macchine automatiche e robotica.", "role": "Progetti collaborativi per la fabbrica intelligente 4.0/5.0.", "url": "https://mech.clust-er.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "cluster_health", "label": "Clust-ER HEALTH", "cat": "clust", "color": "#10b981", "radius": 15, "sub": "Industrie della Salute & Medtech", "desc": "Cluster di biofarmaceutica, dispositivi medici e biotecnologie.", "role": "Innovazione in medicina personalizzata e sanità digitale.", "url": "https://health.clust-er.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "cluster_agrifood", "label": "Clust-ER AGRIFOOD", "cat": "clust", "color": "#10b981", "radius": 15, "sub": "Agroalimentare Sostenibile", "desc": "Filiere agroalimentari, tracciabilità e precision farming.", "role": "Economia circolare del cibo e sicurezza alimentare.", "url": "https://agrifood.clust-er.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "cluster_greentech", "label": "Clust-ER GREENTECH", "cat": "clust", "color": "#10b981", "radius": 15, "sub": "Energia & Sostenibilità", "desc": "Filiera della transizione ecologica, idrogeno e gestione risorse.", "role": "Soluzioni per la decarbonizzazione dei distretti produttivi.", "url": "https://greentech.clust-er.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "cluster_innovate", "label": "Clust-ER INNOVATE", "cat": "clust", "color": "#10b981", "radius": 14, "sub": "Servizi & Economia Digitale", "desc": "Network di software house, cybersecurity e platform economy.", "role": "Trasformazione digitale dei servizi tradizionali.", "url": "https://innovate.clust-er.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "cluster_build", "label": "Clust-ER BUILD", "cat": "clust", "color": "#10b981", "radius": 14, "sub": "Edilizia & Costruzioni", "desc": "Edilizia sostenibile, materiali innovativi e prevenzione sismica.", "role": "BIM, rigenerazione urbana e costruzioni green.", "url": "https://build.clust-er.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "cluster_create", "label": "Clust-ER CREATE", "cat": "clust", "color": "#10b981", "radius": 14, "sub": "Industrie Culturali e Creative", "desc": "Design, fashion, multimedia, patrimonio culturale ed editoria.", "role": "Incrocio tra creatività, tecnologia e artigianato digitale.", "url": "https://create.clust-er.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "emiliaromagnastartup", "label": "EmiliaRomagnaStartUp", "cat": "startup", "color": "#8b5cf6", "radius": 16, "sub": "Rete Incubation Regionale", "desc": "Network gestito da ART-ER con oltre 40 incubatori e acceleratori accreditati.", "role": "Orientamento, Start Cup E-R e matching con investitori.", "url": "https://www.emiliaromagnastartup.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "serre_arter", "label": "Le Serre di ART-ER", "cat": "startup", "color": "#8b5cf6", "radius": 14, "sub": "Incubatore Giardini Margherita", "desc": "Spazio fisico di accelerazione e sperimentazione per startup ad alto impatto.", "role": "Mentorship diretta, eventi e spazio di co-working.", "url": "#", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "ecosister", "label": "ECOSISTER PNRR", "cat": "startup", "color": "#8b5cf6", "radius": 16, "sub": "Ecosistema Innovazione PNRR", "desc": "Iniziativa finanziata dal PNRR per la transizione ecologica del territorio emiliano-romagnolo.", "role": "Bandi a cascata Proof-of-Concept e ricerca industriale orientata.", "url": "https://ecosister.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "invest_er", "label": "Invest in Emilia-Romagna", "cat": "int", "color": "#ec4899", "radius": 15, "sub": "Desk Attrattività Investimenti", "desc": "Servizio regionale per l'insediamento e la crescita di imprese estere sul territorio.", "role": "Soft-landing, ricerca location e supporto burocratico a investitori esteri.", "url": "https://www.investinemiliaromagna.it/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+        {"id": "een", "label": "Enterprise Europe Network", "cat": "int", "color": "#ec4899", "radius": 15, "sub": "Nodo EEN SIMPLER / ART-ER", "desc": "Sportello di accesso alla rete della Commissione Europea per la crescita e l'internazionalizzazione PMI.", "role": "Matchmaking internazionale e supporto ai progetti Horizon Europe.", "url": "https://een.ec.europa.eu/", "ecosystem": "Emilia-Romagna (ART-ER)"},
+
+        // --- 2. BASILICATA CREATIVA ---
+        {"id": "bc_hub", "label": "Basilicata Creativa", "cat": "hub", "color": "#a855f7", "radius": 26, "sub": "Cluster Lucano Industrie Culturali", "desc": "Ente coordinatore dell'ecosistema di innovazione culturale della Regione Basilicata.", "role": "Integrazione tra ricerca, imprese creative e istituzioni pubbliche.", "url": "https://www.basilicatacreativa.it/", "ecosystem": "Basilicata Creativa"},
+        {"id": "unibas_cnr", "label": "UNIBAS & CNR ISPC", "cat": "research", "color": "#06b6d4", "radius": 22, "sub": "Ateneo & Ricerca Scientifica", "desc": "Università degli Studi della Basilicata e CNR per il patrimonio culturale.", "role": "Trasferimento tecnologico, brevetti, analisi scientifica dei materiali e archeologia digitale.", "url": "https://www.basilicatacreativa.it/", "ecosystem": "Basilicata Creativa"},
+        {"id": "matera2019", "label": "Fondazione Matera 2019", "cat": "heritage", "color": "#ec4899", "radius": 20, "sub": "Legacy Capitale della Cultura", "desc": "Istituzione garante dell'eredità culturale di Matera 2019.", "role": "Co-progettazione culturale, relazioni internazionali e modelli di partecipazione sociale.", "url": "https://www.basilicatacreativa.it/", "ecosystem": "Basilicata Creativa"},
+        {"id": "digital_heritage", "label": "Lab Digital Heritage", "cat": "heritage", "color": "#ec4899", "radius": 21, "sub": "Living Lab 3D & Metaverso", "desc": "Polo per la digitalizzazione ad alta risoluzione dei Beni Culturali lucani.", "role": "Sviluppo di archivi 3D, esperienze VR/AR e gemelli digitali dei monumenti.", "url": "https://www.basilicatacreativa.it/", "ecosystem": "Basilicata Creativa"},
+        {"id": "open_design", "label": "Open Design & Craft", "cat": "craft", "color": "#f59e0b", "radius": 20, "sub": "Design & Fabbricazione Digitale", "desc": "Network di designer, makers e botteghe artigiane storiche della Basilicata.", "role": "Rinnovamento del prodotto artigianale tipico tramite stampa 3D e prototipazione rapida.", "url": "https://www.basilicatacreativa.it/", "ecosystem": "Basilicata Creativa"},
+        {"id": "lucana_film", "label": "Lucana Film Commission", "cat": "cinema", "color": "#6366f1", "radius": 20, "sub": "Audiovisivo & Cinema", "desc": "Ente per la promozione del territorio lucano come set cinematografico internazionale.", "role": "Attrazione produzioni, Virtual Production, formazione maestranze locali.", "url": "https://www.basilicatacreativa.it/", "ecosystem": "Basilicata Creativa"},
+        {"id": "performing_arts", "label": "Performing Arts Network", "cat": "performing", "color": "#10b981", "radius": 19, "sub": "Teatro, Musica & Festival", "desc": "Aggregazione di compagnie teatrali, festival musicali ed eventi dal vivo.", "role": "Audience development, spettacoli immersivi e sostenibilità degli eventi.", "url": "https://www.basilicatacreativa.it/", "ecosystem": "Basilicata Creativa"},
+        {"id": "pmi_creative", "label": "Rete PMI Creative Lucane", "cat": "hub", "color": "#a855f7", "radius": 21, "sub": "Oltre 100 Imprese Associate", "desc": "Tessuto imprenditoriale lucano nei settori comunicazione, gaming, architettura e moda.", "role": "Esecuzione industriale, sviluppo prodotti commerciali e occupazione giovanile.", "url": "https://www.basilicatacreativa.it/", "ecosystem": "Basilicata Creativa"},
+
+        // --- 3. CAMPANIA (CASELLI-PALIZZI) ---
+        {"id": "caselli_palizzi_hub", "label": "ISIS Caselli - Palizzi", "cat": "hub", "color": "#f59e0b", "radius": 24, "sub": "Istituto Statale d'Istruzione Superiore (Napoli)", "desc": "Ente scolastico e produttivo unico che unisce l'Istituto ad Indirizzo Raro 'Caselli' e il Liceo Artistico 'Palizzi'.", "role": "Coordinamento didattico, gestione botteghe scuola, conservazione dell'Indirizzo Raro ed esposizioni museali.", "url": "https://www.iscasellipalizzi.edu.it/", "ecosystem": "Campania (Caselli-Palizzi)"},
+        {"id": "caselli_capodimonte", "label": "Istituto Caselli (Real Fabbrica)", "cat": "schools", "color": "#ef4444", "radius": 20, "sub": "Indirizzo Raro della Porcellana di Capodimonte", "desc": "Sede storica fondata nel 1743 da Carlo di Borbone nel Real Bosco di Capodimonte per la produzione e l'insegnamento della porcellana.", "role": "Produzione artigianale di pregio, formazione maestri ceramisti, lavorazione dell'oro e del bianco di Capodimonte.", "url": "https://www.iscasellipalizzi.edu.it/", "ecosystem": "Campania (Caselli-Palizzi)"},
+        {"id": "palizzi_liceo", "label": "Liceo Artistico Boccioni - Palizzi", "cat": "schools", "color": "#ef4444", "radius": 19, "sub": "Sede Storica Piazzetta Salazar", "desc": "Prestigioso liceo artistico partenopeo nato dall'Istituto d'Arte Palizzi, punto di riferimento per il design e le arti figurative.", "role": "Percorsi liceali in Arti Figurative, Design dell'Arredo, Architettura, Scenografia e Grafica.", "url": "https://www.iscasellipalizzi.edu.it/", "ecosystem": "Campania (Caselli-Palizzi)"},
+        {"id": "lab_porcellana", "label": "Laboratori Ceramica & Porcellana", "cat": "labs", "color": "#a855f7", "radius": 17, "sub": "Bottega Scuola Capodimonte", "desc": "Laboratori manifatturieri dotati di forni ad alta temperatura, torni e reparti di foggiatura e pittura su porcellana.", "role": "Fornitura materiali, impasti speciali, cottura e decorazione manuale a pennello secondo la tradizione borbonica.", "url": "https://www.iscasellipalizzi.edu.it/", "ecosystem": "Campania (Caselli-Palizzi)"},
+        {"id": "lab_3d_design", "label": "Digital Craft & 3D Design Lab", "cat": "labs", "color": "#a855f7", "radius": 17, "sub": "Innovazione & Prototipazione Artistica", "desc": "Laboratorio tecnologico con scanner 3D, stampanti per argilla/ceramica e software CAD per il design industriale.", "role": "Integrazione tra artigianato storico e manifattura digitale 4.0.", "url": "https://www.iscasellipalizzi.edu.it/", "ecosystem": "Campania (Caselli-Palizzi)"},
+        {"id": "lab_restauro", "label": "Laboratorio Restauro & Conservazione", "cat": "labs", "color": "#a855f7", "radius": 16, "sub": "Conservazione del Patrimonio Artistico", "desc": "Reparto tecnico dedicato allo studio, alla diagnosi e al recupero dei manufatti ceramici e lignei storici.", "role": "Interventi conservativi sui reperti del museo interno e collezioni partner.", "url": "https://www.iscasellipalizzi.edu.it/", "ecosystem": "Campania (Caselli-Palizzi)"},
+        {"id": "museo_palizzi", "label": "Museo Artistico Industriale (MAI)", "cat": "museums", "color": "#dc2626", "radius": 18, "sub": "Collezione Storica Palizzi", "desc": "Galleria e museo integrato presso la sede Palizzi con oltre 6.000 opere tra ceramiche orientali, vetri e maioliche.", "role": "Archivio storico delle arti applicate, fruizione didattica e ricerca espositiva.", "url": "https://www.iscasellipalizzi.edu.it/", "ecosystem": "Campania (Caselli-Palizzi)"},
+        {"id": "real_bosco_capodimonte", "label": "Museo e Real Bosco di Capodimonte", "cat": "museums", "color": "#dc2626", "radius": 18, "sub": "Polo Museale e Parco Storico", "desc": "Complesso museale confinate con l'Istituto Caselli, custode della Reggia di Capodimonte.", "role": "Partnership strategica per percorsi espositivi e ricerca sulla porcellana borbonica.", "url": "https://capodimonte.cultura.gov.it/", "ecosystem": "Campania (Caselli-Palizzi)"},
+        {"id": "accademia_napoli", "label": "Accademia di Belle Arti di Napoli", "cat": "higher", "color": "#3b82f6", "radius": 17, "sub": "Istruzione Superiore Artistica (AFAM)", "desc": "Storica istituzione di alta formazione artistica con cui l'Istituto condivide percorsi di continuità e master.", "role": "Prosecuzione degli studi in Scultura, Decorazione, Restauro e Nuove Tecnologie dell'Arte.", "url": "http://www.abana.it/", "ecosystem": "Campania (Caselli-Palizzi)"},
+        {"id": "unina_vanvitelli", "label": "Università Federico II & Vanvitelli", "cat": "higher", "color": "#3b82f6", "radius": 17, "sub": "Dipartimenti di Architettura e Chimica", "desc": "Atenei campani collaboratori per l'analisi scientifica dei materiali ceramici e progetti di architettura/design.", "role": "Analisi chimico-fisica degli impasti, caratterizzazione dei pigmenti e tesi di laurea congiunte.", "url": "https://www.unina.it/", "ecosystem": "Campania (Caselli-Palizzi)"},
+        {"id": "its_bact", "label": "ITS BACT & Fondazioni ITS", "cat": "higher", "color": "#3b82f6", "radius": 16, "sub": "Istituti Tecnologici Superiori", "desc": "Fondazioni per la formazione terziaria professionalizzante nei settori dei beni culturali, turismo e manifattura avanzata.", "role": "Corsi post-diploma per Master Ceramista, Manager del Patrimonio e Tecnico del Design.", "url": "https://www.fondazioneitsbact.it/", "ecosystem": "Campania (Caselli-Palizzi)"},
+        {"id": "mim_mic", "label": "MIM & Ministero della Cultura (MiC)", "cat": "gov", "color": "#10b981", "radius": 18, "sub": "Ministero dell'Istruzione e della Cultura", "desc": "Istituzioni governative che tutelano gli Indirizzi Rari nazionali e finanziano i progetti di conservazione.", "role": "Riconoscimento della Scuola ad Indirizzo Raro, finanziamenti PNRR e tutela delle arti tradizionali.", "url": "https://www.mim.gov.it/", "ecosystem": "Campania (Caselli-Palizzi)"},
+        {"id": "regione_campania", "label": "Regione Campania & Comune di Napoli", "cat": "gov", "color": "#10b981", "radius": 16, "sub": "Governance Territoriale e Promozione", "desc": "Enti territoriali di governo impegnati nel sostegno all'artigianato tipico e nelle politiche giovanili.", "role": "Sostegno alle botteghe scuola, bandi territoriali per il Made in Campania e fiere d'arte.", "url": "https://www.regione.campania.it/", "ecosystem": "Campania (Caselli-Palizzi)"},
+        {"id": "adi_design", "label": "ADI - Associazione Disegno Industriale", "cat": "industry", "color": "#06b6d4", "radius": 16, "sub": "Delegazione Campania", "desc": "Associazione nazionale del design per il coordinamento tra scuola, progettisti e compasso d'oro.", "role": "Promozione del design ceramico contemporaneo, mostre e connessione con i brand del design.", "url": "https://www.adi-design.org/", "ecosystem": "Campania (Caselli-Palizzi)"},
+        {"id": "distretto_ceramica", "label": "Distretto Ceramica Capodimonte", "cat": "industry", "color": "#06b6d4", "radius": 17, "sub": "Rete degli Artigiani e Produttori", "desc": "Cluster delle botteghe artigiane, fornaci e aziende campane produttrici di porcellana e maiolica.", "role": "Tirocini formativi, assunzione di giovani maestri d'arte e produzione su commissione.", "url": "https://www.iscasellipalizzi.edu.it/", "ecosystem": "Campania (Caselli-Palizzi)"},
+
+        // --- 4. PIEMONTE (CITTA' STUDI BIELLA) ---
+        {"id": "cs_hub", "label": "Città Studi Biella", "cat": "hub", "color": "#10b981", "radius": 24, "sub": "Polo Universitario, Formativo e Tecnologico", "desc": "Società che gestisce il campus di Biella, favorendo lo sviluppo del capitale umano e del distretto tessile.", "role": "Coordinamento delle attività universitarie, laboratoriali e di trasferimento tecnologico.", "url": "https://www.cittastudi.org/", "ecosystem": "Piemonte (Città Studi Biella)"},
+        {"id": "unito", "label": "Università degli Studi di Torino", "cat": "uni", "color": "#3b82f6", "radius": 20, "sub": "Campus Universitario di Biella", "desc": "Sede decentrata di UniTO a Città Studi per corsi di laurea in Economia, Servizio Sociale e Infermieristica.", "role": "Offerta formativa accademica e ricerca scientifica in ambito economico, sociale e sanitario.", "url": "https://www.cittastudi.org/universita", "ecosystem": "Piemonte (Città Studi Biella)"},
+        {"id": "polito", "label": "Politecnico di Torino", "cat": "uni", "color": "#3b82f6", "radius": 19, "sub": "Ingegneria & Innovazione Industriale", "desc": "Collaborazione per iniziative formative, progetti di ricerca ingegneristica e scienze dei materiali.", "role": "Formazione ingegneristica avanzata e sviluppo tecnologico per il settore tessile sostenibile.", "url": "https://www.cittastudi.org/", "ecosystem": "Piemonte (Città Studi Biella)"},
+        {"id": "its_tam", "label": "ITS TAM Biella", "cat": "uni", "color": "#3b82f6", "radius": 18, "sub": "ITS Tessile Abbigliamento Moda", "desc": "Accademia ad alta specializzazione tecnologica che forma i super-tecnici del settore moda e tessile.", "role": "Formazione terziaria professionalizzante e tirocini aziendali.", "url": "https://www.itstam.it/", "ecosystem": "Piemonte (Città Studi Biella)"},
+        {"id": "cs_formazione", "label": "Città Studi Formazione", "cat": "uni", "color": "#3b82f6", "radius": 17, "sub": "Agenzia Formativa Accreditata", "desc": "Ente per la formazione continua, reskilling e academy aziendali del territorio.", "role": "Sviluppo di competenze professionali per occupati e disoccupati.", "url": "https://www.cittastudi.org/formazione", "ecosystem": "Piemonte (Città Studi Biella)"},
+        {"id": "lab_tessile", "label": "Laboratorio Tessile & Prove", "cat": "research", "color": "#8b5cf6", "radius": 19, "sub": "Centro Prove accredited & Certificazioni", "desc": "Laboratorio tecnologico accreditato per analisi fisico-meccaniche e chimiche su filati e tessuti.", "role": "Certificazione di qualità, controllo conformità sostenibile (ZDHC) e R&S tessile.", "url": "https://www.cittastudi.org/laboratorio", "ecosystem": "Piemonte (Città Studi Biella)"},
+        {"id": "cnr_stiima", "label": "CNR-STIIMA Biella", "cat": "research", "color": "#8b5cf6", "radius": 18, "sub": "Sistemi e Tecnologie Industriali", "desc": "Istituto CNR presso Città Studi focalizzato su sostenibilità e processi industriali intelligenti.", "role": "Ricerca scientifica applicata al riuso delle fibre, processi circolari e robotica.", "url": "https://www.stiima.cnr.it/", "ecosystem": "Piemonte (Città Studi Biella)"},
+        {"id": "pointex", "label": "Polo d'Innovazione Pointex", "cat": "pointex", "color": "#06b6d4", "radius": 21, "sub": "Polo Tessile e Materiali Sostenibili", "desc": "Polo che coordina oltre 100 soggetti tra imprese, centri di ricerca e università.", "role": "Gestione di progetti di ricerca industriale e trasferimento tecnologico.", "url": "https://pointex.cittastudi.org/", "ecosystem": "Piemonte (Città Studi Biella)"},
+        {"id": "cluster_imprese", "label": "Rete Imprese Distretto Tessile", "cat": "pointex", "color": "#06b6d4", "radius": 17, "sub": "Filiera Manifatturiera Biellese", "desc": "Imprese del distretto laniero e meccanotessile partner nei progetti di economia circolare.", "role": "Adozione di nuove tecnologie e manifattura avanzata.", "url": "https://www.cittastudi.org/", "ecosystem": "Piemonte (Città Studi Biella)"},
+        {"id": "centro_congressi", "label": "Centro Congressi Città Studi", "cat": "services", "color": "#f59e0b", "radius": 18, "sub": "Auditorium & Spazi Eventi", "desc": "Infrastruttura congressuale con auditorium e sale meeting per eventi aziendali e culturali.", "role": "Hosting di convegni scientifici ed eventi di networking.", "url": "https://www.cittastudi.org/congressi", "ecosystem": "Piemonte (Città Studi Biella)"},
+        {"id": "biblioteca_pella", "label": "Biblioteca Specialistica G. Pella", "cat": "services", "color": "#f59e0b", "radius": 17, "sub": "Documentazione Tessile ed Economica", "desc": "Biblioteca tessile tra le più importanti d'Europa con patrimonio storico e campionari.", "role": "Conservazione della memoria industriale e consultazione stilistica.", "url": "https://www.cittastudi.org/biblioteca", "ecosystem": "Piemonte (Città Studi Biella)"},
+        {"id": "residenza_campus", "label": "Campus Residenziale", "cat": "services", "color": "#f59e0b", "radius": 16, "sub": "Ospitalità Studenti & Visiting", "desc": "Struttura residenziale integrata nel campus che offre alloggi per universitari e ricercatori.", "role": "Attrattività del territorio per studenti e ricercatori fuori sede.", "url": "https://www.cittastudi.org/", "ecosystem": "Piemonte (Città Studi Biella)"},
+        {"id": "fondazione_crb", "label": "Fondazione Cassa Risparmio Biella", "cat": "stakeholder", "color": "#ef4444", "radius": 20, "sub": "Sostenitore Strategico", "desc": "Ente fondazionale che sostiene gli investimenti strutturali e i progetti di Città Studi.", "role": "Finanziamento di borse di studio e ampliamento infrastrutturale.", "url": "https://www.fondazionecrb.it/", "ecosystem": "Piemonte (Città Studi Biella)"},
+        {"id": "uib_biella", "label": "Unione Industriale Biellese", "cat": "stakeholder", "color": "#ef4444", "radius": 18, "sub": "Associazione di Categoria", "desc": "Rappresenta il tessuto imprenditoriale biellese e promuove il raccordo con Città Studi.", "role": "Indirizzo sulle esigenze formative dell'industria locale.", "url": "https://www.ui.biella.it/", "ecosystem": "Piemonte (Città Studi Biella)"},
+        {"id": "regione_piemonte", "label": "Regione Piemonte & Enti Locali", "cat": "stakeholder", "color": "#ef4444", "radius": 18, "sub": "Istituzioni & Programmazione PR FESR", "desc": "Regione e enti locali che supportano le politiche di sviluppo e i finanziamenti dei Poli.", "role": "Programmazione delle risorse europee e regionali per la ricerca.", "url": "https://www.regione.piemonte.it/", "ecosystem": "Piemonte (Città Studi Biella)"},
+
+        // --- 5. MARCHE (CLUSTER MARCHE) ---
+        {"id": "cm_hub", "label": "Cluster Marche", "cat": "hub", "color": "#0ea5e9", "radius": 25, "sub": "Associazione Cluster Marche - Hub Innovazione", "desc": "Punto di raccordo unico promosso dalla Regione Marche per connettere la ricerca universitaria con le esigenze di innovazione delle imprese.", "role": "Coordinamento dei cluster tecnologici regionali, facilitazione del trasferimento tecnologico, networking e supporto ai bandi di R&S.", "url": "https://cluster-marche.it/", "ecosystem": "Marche (Cluster Marche)"},
+        {"id": "cluster_eliving", "label": "Cluster e-Living", "cat": "clusters", "color": "#10b981", "radius": 21, "sub": "Smart Living, Domotica & AAL", "desc": "Polo di innovazione dedicato alle tecnologie per la casa intelligente, l'Ambient Assisted Living (AAL), l'invecchiamento attivo e la salute digitale.", "role": "Sviluppo di dispositivi domotici, sistemi IoT per l'assistenza e soluzioni per il benessere domestico e urbano.", "url": "https://cluster-marche.it/e-living/", "ecosystem": "Marche (Cluster Marche)"},
+        {"id": "cluster_mfg", "label": "Marche Manufacturing", "cat": "clusters", "color": "#10b981", "radius": 21, "sub": "Fabbrica Intelligente & Meccatronica", "desc": "Cluster incentrato sull'Advanced Manufacturing, robotica industriale, stampa 3D, nuovi materiali ed efficienza dei processi produttivi.", "role": "Trasformazione digitale dell'industria manifatturiera marchigiana verso il modello Industria 4.0 / 5.0.", "url": "https://cluster-marche.it/marche-manufacturing/", "ecosystem": "Marche (Cluster Marche)"},
+        {"id": "cluster_agrifood_marche", "label": "Cluster Agrifood Marche", "cat": "clusters", "color": "#10b981", "radius": 20, "sub": "Agroalimentare & Sostenibilità", "desc": "Cluster per l'innovazione della filiera agroalimentare, qualità, tracciabilità e sostenibilità delle produzioni.", "role": "Sviluppo di processi agroalimentari sostenibili, tracciabilità digitale e valorizzazione dei prodotti tipici.", "url": "https://cluster-marche.it/", "ecosystem": "Marche (Cluster Marche)"},
+        {"id": "cluster_verdi", "label": "Infrastrutture Verdi", "cat": "clusters", "color": "#10b981", "radius": 20, "sub": "Edilizia Sostenibile & Bioeconomia", "desc": "Cluster incentrato su edilizia sostenibile, materiali ecocompatibili e soluzioni per la transizione ecologica.", "role": "Innovazione nei materiali da costruzione, efficienza energetica ed economia circolare.", "url": "https://cluster-marche.it/", "ecosystem": "Marche (Cluster Marche)"},
+        {"id": "univpm", "label": "UNIVPM - Università Politecnica delle Marche", "cat": "academia", "color": "#8b5cf6", "radius": 20, "sub": "Ingegneria, Medicina & Agraria", "desc": "Ateneo di riferimento per la ricerca scientifica e tecnologica nelle Marche.", "role": "Ricerca applicata, brevetti e trasferimento tecnologico nei settori meccatronico, IT e sanitario.", "url": "https://www.univpm.it/", "ecosystem": "Marche (Cluster Marche)"},
+        {"id": "unicam", "label": "UNICAM - Università di Camerino", "cat": "academia", "color": "#8b5cf6", "radius": 18, "sub": "Scienze, Farmacia & Bioscienze", "desc": "Ateneo eccellente nelle scienze chimiche, farmaceutiche e materiali avanzati.", "role": "Ricerca su nuovi materiali, bioscienze e supporto alle imprese agroalimentari.", "url": "https://www.unicam.it/", "ecosystem": "Marche (Cluster Marche)"},
+        {"id": "inrca", "label": "IRCCS INRCA", "cat": "academia", "color": "#8b5cf6", "radius": 18, "sub": "Istituto Nazionale Riposo e Cura Anziani", "desc": "Istituto di ricovero e cura a carattere scientifico specializzato nel settore geriatrico e longevità.", "role": "Ricerca clinica e tecnologica su Ambient Assisted Living, silver economy e salute digitale.", "url": "https://www.inrca.it/", "ecosystem": "Marche (Cluster Marche)"},
+        {"id": "regione_marche", "label": "Regione Marche", "cat": "governance", "color": "#ef4444", "radius": 20, "sub": "Programmazione S3 & Finanziamenti", "desc": "Ente di governo territoriale e programmatore dei fondi europei PR FESR.", "role": "Definizione delle strategie di specializzazione intelligente e finanziamento della R&S.", "url": "https://www.regione.marche.it/", "ecosystem": "Marche (Cluster Marche)"},
+        {"id": "dih_marche", "label": "Digital Innovation Hub Marche", "cat": "governance", "color": "#ef4444", "radius": 17, "sub": "Digitalizzazione & Industria 4.0", "desc": "Sportello territoriale per la transizione digitale e l'orientamento delle PMI.", "role": "Assessment digitale delle imprese e raccordo con i centri di competenza.", "url": "https://cluster-marche.it/", "ecosystem": "Marche (Cluster Marche)"},
+        {"id": "rete_imprese_marche", "label": "Rete PMI & Distretti Industriali", "cat": "industry", "color": "#f59e0b", "radius": 19, "sub": "Sistema Produttivo Marchigiano", "desc": "Insieme delle piccole e medie imprese manifatturiere operanti nei settori chiave della regione.", "role": "Sviluppo di prototipi, adozione delle tecnologie innovative e partecipazione ai bandi collaborativi.", "url": "https://cluster-marche.it/", "ecosystem": "Marche (Cluster Marche)"},
+
+        // --- 6. NAZIONALE (CONFINDUSTRIA NAUTICA) ---
+        {"id": "cn_hub", "label": "Confindustria Nautica", "cat": "hub", "color": "#06b6d4", "radius": 24, "sub": "Associazione Nazionale dell'Industria Nautica", "desc": "Ente di rappresentanza istituzionale delle industrie della nautica da diporto, della produzione, dei servizi e della rete marinaia in Italia.", "role": "Rappresentanza politica ed economica, tutela del settore, rapporti istituzionali e internazionalizzazione.", "url": "https://confindustrianautica.net/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+        {"id": "salone_genova", "label": "Salone Nautico di Genova", "cat": "fairs", "color": "#ef4444", "radius": 22, "sub": "Salone Nautico Internazionale", "desc": "La più grande fiera del Mediterraneo dedicata alla nautica da diporto e punto di riferimento globale per l'eccellenza navale.", "role": "Piattaforma di business per cantieri, motoristi e accessoristi con esposizione a terra e in acqua.", "url": "https://salonenautico.org/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+        {"id": "i_saloni_nautici", "label": "I Saloni Nautici S.r.l.", "cat": "fairs", "color": "#ef4444", "radius": 17, "sub": "Società Operativa Eventi", "desc": "Società in house di Confindustria Nautica preposta all'organizzazione operativa ed espositiva dei Saloni e degli eventi internazionali.", "role": "Gestione logistica, commerciale, tecnica e di marketing del Salone Nautico Internazionale di Genova.", "url": "https://salonenautico.org/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+        {"id": "cantieristica_superyacht", "label": "Cantieri & Superyacht", "cat": "sectors", "color": "#3b82f6", "radius": 19, "sub": "Costruzione Navale & Yachting", "desc": "Produttori di yacht, superyacht, imbarcazioni a motore e a vela, battelli pneumatici e multi-scafi.", "role": "Leadership globale nell'export e nella produzione di superyacht (>24m) Made in Italy.", "url": "https://confindustrianautica.net/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+        {"id": "componenti_motori", "label": "Accessori, Componenti & Motori", "cat": "sectors", "color": "#3b82f6", "radius": 17, "sub": "Forniture & Propulsione Navale", "desc": "Aziende produttrici di componentistica di bordo, elettronica di navigazione, arredo nautico e sistemi di propulsione.", "role": "Fornitura tecnologica avanzata, motorizzazioni marine e strumentazione di sicurezza.", "url": "https://confindustrianautica.net/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+        {"id": "servizi_marine", "label": "Portualità & Servizi Nautici", "cat": "sectors", "color": "#3b82f6", "radius": 17, "sub": "Marina Turistiche, Refit & Charter", "desc": "Gestori di porti turistici, approdi, cantieri di refit & repair, società di noleggio, charter e servizi finanziari/leasing.", "role": "Sviluppo dell'accoglienza turistica costiera, manutenzione della flotta e promozione del turismo nautico.", "url": "https://confindustrianautica.net/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+        {"id": "nautica_cifre", "label": "La Nautica in Cifre", "cat": "services", "color": "#a855f7", "radius": 18, "sub": "Ufficio Studi & Statistiche", "desc": "Rapporto di analisi di mercato annuale realizzato dall'Ufficio Studi di Confindustria Nautica in collaborazione con la Fondazione Edison.", "role": "Elaborazione di dati economici sul fatturato industriale, export, occupazione e trend del mercato globale.", "url": "https://confindustrianautica.net/la-nautica-in-cifre/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+        {"id": "formazione_its", "label": "ITS & Formazione Nautica", "cat": "services", "color": "#a855f7", "radius": 16, "sub": "Capitale Umano & Accademia Navale", "desc": "Collaborazioni con gli ITS della Nautica, Università e centri di formazione specialistica per maestranze marittime.", "role": "Formazione di maestranze specializzate, progettisti navali e tecnici di bordo qualificati.", "url": "https://confindustrianautica.net/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+        {"id": "sostenibilita_transizione", "label": "Transizione Ecologica Nautica", "cat": "sustainability", "color": "#eab308", "radius": 18, "sub": "Propulsioni Green & Circolarità", "desc": "Progetti di decarbonizzazione del settore: idrogeno verde, e-fuel, propulsione elettrica e recupero della vetroresina fine vita.", "role": "Supporto alla sostenibilità ambientale della filiera navale e adeguamento ai target EU Fit-for-55.", "url": "https://confindustrianautica.net/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+        {"id": "codice_nautica_rina", "label": "Codice Nautica & Registro RINA", "cat": "sustainability", "color": "#eab308", "radius": 17, "sub": "Normativa Tecnica & Navigabilità", "desc": "Iniziative legislative sul Codice della Nautica da Diporto, semplificazione burocratica e certificazioni di sicurezza navale.", "role": "Standardizzazione delle norme di sicurezza, immatricolazione digitale e certificazione di stabilità.", "url": "https://confindustrianautica.net/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+        {"id": "confindustria", "label": "Confindustria", "cat": "gov", "color": "#22c55e", "radius": 18, "sub": "Confederazione Generale Industria", "desc": "La principale associazione rappresentativa delle imprese manifatturiere e di servizi in Italia a cui aderiscono le grandi federazioni.", "role": "Definizione delle politiche industriali nazionali, tavoli di governo e contrattazione di settore.", "url": "https://www.confindustria.it/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+        {"id": "ebi_brussels", "label": "European Boating Industry (EBI)", "cat": "gov", "color": "#22c55e", "radius": 18, "sub": "Rappresentanza Nautica in UE", "desc": "Associazione europea a Bruxelles che unisce le federazioni nautiche nazionali dei Paesi membri dell'Unione Europea.", "role": "Lobbying comunitario su direttive IVA, direttiva imbarcazioni da diporto e sostenibilità marittima.", "url": "https://www.europeanboatingindustry.eu/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+        {"id": "icomia_global", "label": "ICOMIA", "cat": "gov", "color": "#22c55e", "radius": 17, "sub": "International Council of Marine Industry", "desc": "Consiglio internazionale delle associazioni dell'industria nautica mondiale con sede a Londra.", "role": "Coordinamento globale sulle normative ambientali, sicurezza marittima e trend di mercato extra-UE.", "url": "https://www.icomia.org/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+        {"id": "mit_guardiacostiera", "label": "MIT & Guardia Costiera", "cat": "gov", "color": "#22c55e", "radius": 16, "sub": "Ministero Trasporti & Autorità Marittime", "desc": "Ministero delle Infrastrutture e dei Trasporti e Corpo delle Capitanerie di Porto - Guardia Costiera.", "role": "Regolamentazione del demanio marittimo, patenti nautiche, sicurezza della navigazione e soccorso.", "url": "https://www.mit.gov.it/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+        {"id": "ice_mimit", "label": "ICE Agenzia & MIMIT", "cat": "gov", "color": "#22c55e", "radius": 16, "sub": "Ministero Made in Italy & Export", "desc": "Organismi statali incaricati della promozione del Made in Italy nel mondo e dello sviluppo delle imprese.", "role": "Finanziamento dell'incoming di buyer esteri e supporto alla presenza nei saloni internazionali.", "url": "https://www.ice.it/", "ecosystem": "Nazionale (Confindustria Nautica)"},
+
+        // --- 7. LOMBARDIA (COSMETICA LOMBARDA) ---
+        {"id": "cosm_1", "label": "Lombardia - Capitale Globale Make-Up", "cat": "HUB_MILANO_CREMA", "color": "#ec4899", "radius": 22, "sub": "Epicentro Industriale Mondiale", "desc": "L'ecosistema lombardo realizza oltre il 55% del trucco distribuito a livello globale e più del 65% del consumato europeo.", "role": "Sviluppo strategico e coordinamento della filiera cosmetica lombarda.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_2", "label": "Polo della Cosmesi (Crema)", "cat": "HUB_MILANO_CREMA", "color": "#ec4899", "radius": 22, "sub": "Distretto Crema-Bergamo-Lodi", "desc": "Associazione di filiera che raggruppa le aziende terziste di formulazione e confezionamento dell'area cremasca.", "role": "Rappresentanza del distretto manifatturiero e terzismo avanzato.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_3", "label": "Milano Beauty Hub", "cat": "HUB_MILANO_CREMA", "color": "#ec4899", "radius": 22, "sub": "Capitale Moda & Beauty", "desc": "Milano è la vetrina internazionale dei grandi marchi, delle agenzie di trend forecasting e del marketing cosmetico.", "role": "Hub commerciale, marketing e trend-setting internazionale.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_4", "label": "Monza & Brianza Beauty Valley", "cat": "HUB_MILANO_CREMA", "color": "#ec4899", "radius": 18, "sub": "Distretto Monza-Agrate", "desc": "Polo ad alta intensità tecnologica per l'ingegneria dei processi di riempimento ed automazione cosmetica.", "role": "Innovazione tecnologica di processo e impianti ad alta automazione.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_5", "label": "Intercos Group", "cat": "MAKEUP_CONTRACT", "color": "#f59e0b", "radius": 22, "sub": "Gigante Mondiale Terzista", "desc": "Multinazionale con sede ad Agrate Brianza, leader mondiale nella creazione e formulazione di trucco, skincare e haircare.", "role": "Ricerca formulativa, R&D globale e produzione conto terzi.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_6", "label": "Chromavis Fareva", "cat": "MAKEUP_CONTRACT", "color": "#f59e0b", "radius": 22, "sub": "Eccellentissimo Terzista", "desc": "Azienda leader con sede a Vaiano Cremasco, rinomata per l'innovazione in rossetti, colature ed emulsionati.", "role": "Produzione conto terzi e innovazione in emulsionati e colature.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_7", "label": "Ancorotti Cosmetics", "cat": "MAKEUP_CONTRACT", "color": "#f59e0b", "radius": 22, "sub": "Leader Mondiale del Mascara", "desc": "Fondata da Renato Ancorotti a Crema, punto di riferimento mondiale nella produzione di mascara e fondotinta.", "role": "Specializzazione e leadership nella formulazione mascara.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_8", "label": "Cosmint (Olgiate Comasco)", "cat": "MAKEUP_CONTRACT", "color": "#f59e0b", "radius": 18, "sub": "Specialista Skincare & Bodycare", "desc": "Polo produttivo comasco specializzato nella fabbricazione su grande scala di emulsioni e solari.", "role": "Produzione su larga scala di cosmetica bianca e solari.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_9", "label": "Omnicos Group", "cat": "MAKEUP_CONTRACT", "color": "#f59e0b", "radius": 18, "sub": "Innovazione Make-up & Lab", "desc": "Azienda cremasca ad alta automazione con laboratori all'avanguardia per la produzione di matite e compatti.", "role": "Sviluppo di formule ad alta performance e packaging integrato.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_10", "label": "Regi Laboratories", "cat": "MAKEUP_CONTRACT", "color": "#f59e0b", "radius": 18, "sub": "Formulazione Colore & Polveri", "desc": "Realtà bergamasca specializzata in polveri cotte, ombretti ad altissima pigmentazione e texture sensoriali.", "role": "Produzione polveri e texture innovative per il trucco.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_11", "label": "Lumson Packaging", "cat": "PACKAGING_DISPENSING", "color": "#06b6d4", "radius": 22, "sub": "Innovazione Airless & Glass", "desc": "Gruppo cremasco pioniero mondiale nei sistemi di erogazione airless e componenti di lusso per skincare.", "role": "Progettazione e produzione sistemi airless e packaging primario.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_12", "label": "Baralan International", "cat": "PACKAGING_DISPENSING", "color": "#06b6d4", "radius": 22, "sub": "Packaging primario di Lusso", "desc": "Storica azienda con HQ a Milano specializzata nella creazione e distribuzione di contenitori in vetro e plastica.", "role": "Fornitura globale di flaconi, vasi e accessori packaging.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_13", "label": "Brivaplast Group", "cat": "PACKAGING_DISPENSING", "color": "#06b6d4", "radius": 18, "sub": "Applicatori Mascara & Gloss", "desc": "Specialista lombardo nell'ingegneria degli scovolini in fibra e silicone e contenitori per make-up occhi.", "role": "Engineering e iniezione plastica di applicatori ad alta precisione.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_14", "label": "Eurovetrocap", "cat": "PACKAGING_DISPENSING", "color": "#06b6d4", "radius": 18, "sub": "Flaconeria & Green Packaging", "desc": "Azienda milanese specializzata nel confezionamento primario con forte orientamento alla plastica riciclata (PCR).", "role": "Sviluppo di imballaggi ecocompatibili in PCR e vetro riciclato.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_15", "label": "Geka Italia", "cat": "PACKAGING_DISPENSING", "color": "#06b6d4", "radius": 15, "sub": "Iniezione Micro-Spazzole", "desc": "Sito specializzato nella micro-iniezione di scovolini per mascara e gloss ad alta precisione.", "role": "Produzione componenti micro-iniettati per applicatori cosmetici.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_16", "label": "KIKO Milano", "cat": "BRANDS_MAISON", "color": "#a855f7", "radius": 22, "sub": "Retailer Mondiale Make-up", "desc": "Brand democratico di cosmetica decorativa con una rete globale di oltre 1.000 store monomarca.", "role": "Distribuzione retail monomarca e trend-setting internazionale.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_17", "label": "L'Erbolario (Lodi)", "cat": "BRANDS_MAISON", "color": "#a855f7", "radius": 22, "sub": "Pioniere Cosmesi Naturale", "desc": "Storica marca di fitocosmesi vegetale con proprio parco botanico e laboratori estrattivi a Lodi.", "role": "Produzione ed estrazione vegetale per la cosmetica naturale.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_18", "label": "Collistar Milano", "cat": "BRANDS_MAISON", "color": "#a855f7", "radius": 22, "sub": "Eccellenza Skincare Italiano", "desc": "Brand icona della profumeria italiana, leader nei trattamenti corpo, solari e specialties cosmetiche.", "role": "Sviluppo prodotti per la profumeria selettiva e lo skincare.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_19", "label": "Diego Dalla Palma Milano", "cat": "BRANDS_MAISON", "color": "#a855f7", "radius": 18, "sub": "Make-up Artist & Professional", "desc": "Maison milanese di trucco professionale, cura dei capelli e trattamenti estetici d'alta gamma.", "role": "Cosmesi professionale e posizionamento luxury.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_20", "label": "Pupa Milano (Micys)", "cat": "BRANDS_MAISON", "color": "#a855f7", "radius": 18, "sub": "Cofanetti & Make-up Creativo", "desc": "Brand celebre per le trousse regalo, il colore e le collezioni stagionali di make-up.", "role": "Innovazione di prodotto, trousse e color cosmetica.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_21", "label": "Deborah Milano", "cat": "BRANDS_MAISON", "color": "#a855f7", "radius": 18, "sub": "Storico Brand del Colore", "desc": "Maison milanese che ha democratizzato il make-up in Italia rendendo il design accessibile.", "role": "Distribuzione di massa e cosmetica decorativa accessibile.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_22", "label": "Alfaparf Milano", "cat": "BRANDS_MAISON", "color": "#a855f7", "radius": 18, "sub": "Haircare Professionale Globale", "desc": "Colosso bergamasco della cura professionale del capello e colorazione con presenza globale.", "role": "Formulazione e vendita prodotti professionali per acconciatori.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_23", "label": "Cosmetica Italia", "cat": "RESEARCH_ACADEMIA", "color": "#3b82f6", "radius": 22, "sub": "Associazione Nazionale (HQ Milano)", "desc": "La voce dell'industria cosmetica nazionale. Raccoglie oltre 600 imprese e dati economici.", "role": "Rappresentanza di categoria, centro studi e promozione cosmetica.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_24", "label": "UniMi (Statale Milano)", "cat": "RESEARCH_ACADEMIA", "color": "#3b82f6", "radius": 22, "sub": "Master Cosmetologia & Farmacia", "desc": "Centro accademico di primo piano per la ricerca chimico-farmaceutica e la formazione di formulatori.", "role": "Formazione universitaria ed R&S chimica e cosmetologica.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_25", "label": "Università di Pavia (UNIPV)", "cat": "RESEARCH_ACADEMIA", "color": "#3b82f6", "radius": 22, "sub": "Scuola Cosmetologia COSMAST", "desc": "Storico ateneo con corsi di perfezionamento e laboratori di efficacia, sicurezza e valutazione sensoriale.", "role": "Test di sicurezza, efficacia e master COSMAST.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_26", "label": "PoliMi (Design Beauty)", "cat": "RESEARCH_ACADEMIA", "color": "#3b82f6", "radius": 18, "sub": "Packaging & Sustainable Design", "desc": "Dipartimento di Design concentrato sullo studio dei materiali sostenibili ed ergonomia del packaging.", "role": "Design del packaging cosmetico, sostenibilità ed eco-design.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_27", "label": "Milano Beauty Week", "cat": "EVENTS_CULTURE", "color": "#ef4444", "radius": 22, "sub": "Settimana della Cultura Cosmetica", "desc": "Iniziativa promossa da Cosmetica Italia con il Comune di Milano per celebrare l'eccellenza beauty.", "role": "Divulgazione, promozione culturale ed eventi di filiera.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_28", "label": "Palazzo Giureconsulti", "cat": "EVENTS_CULTURE", "color": "#ef4444", "radius": 18, "sub": "Hub Milano Beauty Week", "desc": "Sede storica di mostre, talk e laboratori olfattivi durante la settimana del beauty.", "role": "Sede espositiva e congressuale per la cultura cosmetica.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_29", "label": "Accademia del Profumo", "cat": "EVENTS_CULTURE", "color": "#ef4444", "radius": 18, "sub": "Cultura Olfattiva", "desc": "Istituzione nata a Milano per promuovere il valore storico, artistico e sensoriale delle fragranze.", "role": "Premiazioni e promozione della cultura profumiera d'autore.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_30", "label": "Lombardy Green Chemistry", "cat": "GREEN_BIOTECH", "color": "#10b981", "radius": 22, "sub": "Chimica Sostenibile Regionale", "desc": "Cluster tecnologico per lo sviluppo di bio-raffinerie, bio-ingredienti e chimica circolare.", "role": "Coordinamento progetti di chimica verde e bio-ingredienti.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_31", "label": "Upcycling Agroalimentare", "cat": "GREEN_BIOTECH", "color": "#10b981", "radius": 22, "sub": "Valorizzazione Scarti Cibo", "desc": "Estrazione di attivi antiossidanti e pigmenti naturali dai sottoprodotti agricoli della Lombardia.", "role": "R&S nell'estrazione di molecole bioattive da sottoprodotti.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+        {"id": "cosm_32", "label": "Lodi Bio-Valley", "cat": "GREEN_BIOTECH", "color": "#10b981", "radius": 18, "sub": "Agri-Biotech & Fitocosmesi", "desc": "Territorio specializzato nell'estrazione sostenibile di fitocomplessi da coltivazioni biologiche.", "role": "Polo agricolo e biotecnologico per attivi naturali.", "url": "#", "ecosystem": "Lombardia (Cosmetica Lombarda)"},
+
+        // --- 8. MARCHE (COSMOB TECH CENTER) ---
+        {"id": "cosmob_hq", "label": "COSMOB Tech Center", "cat": "hub", "color": "#f59e0b", "radius": 24, "sub": "Montelabbate (PU)", "desc": "Centro Tecnologico accreditato per prove di laboratorio, ecodesign, certificazioni di qualità e sostenibilità.", "role": "Hub principale di innovazione tecnologica per il distretto del mobile e arredo.", "url": "https://www.cosmob.it/", "ecosystem": "Marche (COSMOB)"},
+        {"id": "its_madeinitaly", "label": "ITS Made in Italy (Cosmob)", "cat": "hub", "color": "#f59e0b", "radius": 22, "sub": "Fondazione ITS Pesaro/Recanati", "desc": "Percorsi terziari post-diploma dedicati a Product Design 4.0, Green Furniture ed Eco-Design.", "role": "Coordinamento didattico dei corsi ITS Arredo e Design presso Cosmob Academy.", "url": "https://www.cosmob.it/", "ecosystem": "Marche (COSMOB)"},
+        {"id": "cosmob_crea_impresa", "label": "Cosmob Crea Impresa & FabLab", "cat": "hub", "color": "#f59e0b", "radius": 18, "sub": "Incubatore & Prototipazione 3D", "desc": "Laboratorio fabbricazione digitale, incubazione per startup del design e prototipazione rapida.", "role": "Acceleratore di idee imprenditoriali per la filiera legno-arredo.", "url": "https://www.cosmob.it/", "ecosystem": "Marche (COSMOB)"},
+        {"id": "distretto_pesaro", "label": "Distretto Pesaro-Vallefoglia", "cat": "cluster", "color": "#10b981", "radius": 20, "sub": "Rete 150+ PMI Legno-Arredo", "desc": "Aggregato di aziende terziste e produttori locali specializzati in lavorazione del pannello e verniciatura.", "role": "Bacino produttivo servito dai servizi di prova e certificazione COSMOB.", "url": "https://www.cosmob.it/", "ecosystem": "Marche (COSMOB)"},
+        {"id": "lab_certificati", "label": "Lab Prova & Certificazione", "cat": "cluster", "color": "#10b981", "radius": 18, "sub": "Emissioni VOC & Meccanica", "desc": "Strutture laboratoriali all'avanguardia per test su emissioni indoor, resistenza meccanica e durabilità.", "role": "Rilascio di certificazioni di conformità per mercati nazionali ed esteri.", "url": "https://www.cosmob.it/", "ecosystem": "Marche (COSMOB)"},
+        {"id": "brand_industriali", "label": "Brand Industriali Arredo", "cat": "brand", "color": "#ec4899", "radius": 19, "sub": "Industrie Design Made in Italy", "desc": "Grandi gruppi industriali e marchi leader della produzione di cucine, arredo casa e contract.", "role": "Committenti principali di R&D applicata e partner di inserimento diplomati ITS.", "url": "https://www.cosmob.it/", "ecosystem": "Marche (COSMOB)"},
+        {"id": "universita_marche", "label": "Università Marche & Urbino", "cat": "edu", "color": "#06b6d4", "radius": 17, "sub": "UNIVPM & UNIURB", "desc": "Istituzioni universitarie partner per progetti di ricerca sui materiali e sostenibilità chimica.", "role": "Collaborazione scientifica e trasferimento tecnologico.", "url": "https://www.cosmob.it/", "ecosystem": "Marche (COSMOB)"},
+        {"id": "enti_soci", "label": "Regione Marche & Enti Locali", "cat": "enti", "color": "#8b5cf6", "radius": 17, "sub": "Istituzioni & Camere di Commercio", "desc": "Organismi soci e sostenitori istituzionali per lo sviluppo economico regionale.", "role": "Sostegno istituzionale e finanziamento progetti di filiera.", "url": "https://www.cosmob.it/", "ecosystem": "Marche (COSMOB)"},
+
+        // --- 9. NAZIONALE (FEDERLEGNOARREDO) ---
+        {"id": "fla_hub", "label": "FederlegnoArredo Hub", "cat": "hub", "color": "#22c55e", "radius": 24, "sub": "Federazione Italiana Industrie Legno & Arredo", "desc": "Cuore istituzionale e operativo della rappresentanza industriale del Made in Italy per il settore legno-arredo.", "role": "Rappresentanza sindacale e industriale, relazioni istituzionali, indirizzo strategico e internazionalizzazione.", "url": "https://www.federlegnoarredo.it/", "ecosystem": "Nazionale (FederlegnoArredo)"},
+        {"id": "salone_mobile", "label": "Salone del Mobile.Milano", "cat": "fairs", "color": "#ef4444", "radius": 21, "sub": "FLA Eventi SpA / Cosmit", "desc": "La fiera di riferimento mondiale per il settore dell'arredamento, del design, dell'illuminazione e della cultura dell'abitare.", "role": "Piattaforma di business internazionale, showcase di innovazione e tendenze del design.", "url": "https://www.salonemilano.it/", "ecosystem": "Nazionale (FederlegnoArredo)"},
+        {"id": "euroluce_s_project", "label": "Euroluce & SaloneSatellite", "cat": "fairs", "color": "#ef4444", "radius": 17, "sub": "Mostre Specializzate & Young Designers", "desc": "Biennale internazionale dell'illuminazione e fiera dedicata ai giovani talenti emergenti del design.", "role": "Valorizzazione del lighting design, scouting di nuovi creativi ed esperienze espositive phygital.", "url": "https://www.salonemilano.it/", "ecosystem": "Nazionale (FederlegnoArredo)"},
+        {"id": "assaarredo", "label": "Assaarredo", "cat": "associations", "color": "#3b82f6", "radius": 18, "sub": "Associazione Nazionale Produttori Mobili", "desc": "Associazione che riunisce i produttori di arredo domestico, imbottiti, cucine e componenti per la casa.", "role": "Sviluppo di mercato, standard qualitativi, relazioni con la distribuzione e tutela del design.", "url": "https://www.federlegnoarredo.it/it/associazioni/assaarredo", "ecosystem": "Nazionale (FederlegnoArredo)"},
+        {"id": "assoluce", "label": "Assoluce", "cat": "associations", "color": "#3b82f6", "radius": 17, "sub": "Associazione Produttori Illuminazione", "desc": "Rappresenta le aziende italiane produttrici di apparecchi di illuminazione d'arredo e architetturali.", "role": "Normative tecniche di sicurezza elettrica, efficienza energetica e lighting design.", "url": "https://www.federlegnoarredo.it/it/associazioni/assoluce", "ecosystem": "Nazionale (FederlegnoArredo)"},
+        {"id": "assobagno", "label": "Assobagno", "cat": "associations", "color": "#3b82f6", "radius": 17, "sub": "Associazione Arredobagno & Wellness", "desc": "Raggruppa le aziende produttrici di mobili da bagno, rubinetteria, cabine doccia e sanitari.", "role": "Promozione della stanza da bagno come ambiente di benessere sostenibile e risparmio idrico.", "url": "https://www.federlegnoarredo.it/it/associazioni/assobagno", "ecosystem": "Nazionale (FederlegnoArredo)"},
+        {"id": "assolegno", "label": "Assolegno", "cat": "associations", "color": "#3b82f6", "radius": 18, "sub": "Prima Lavorazione & Costruzioni in Legno", "desc": "Associazione delle industrie di prima lavorazione, segherie e costruttori di case ed edifici in legno.", "role": "Normative tecniche strutturali, edilizia sostenibile in legno e certificazione di filiera boschiva.", "url": "https://www.federlegnoarredo.it/it/associazioni/assolegno", "ecosystem": "Nazionale (FederlegnoArredo)"},
+        {"id": "assopanello", "label": "Assopanello", "cat": "associations", "color": "#3b82f6", "radius": 17, "sub": "Produttori Pannelli e Semilavorati", "desc": "Rappresenta i produttori di pannelli truciolari, MDF, compensati e sfogliati in legno.", "role": "Economia circolare, uso di legno riciclato, basse emissioni di formaldeide e ricerca materiali.", "url": "https://www.federlegnoarredo.it/it/associazioni/assopanello", "ecosystem": "Nazionale (FederlegnoArredo)"},
+        {"id": "assoimballaggi", "label": "Assoimballaggi", "cat": "associations", "color": "#3b82f6", "radius": 16, "sub": "Imballaggi Industriali & Pallet", "desc": "Associazione dei produttori di pallet, imballaggi ortofrutticoli e contenitori industriali in legno.", "role": "Standard fitosanitari ISPM-15, recupero e riutilizzo degli imballaggi in legno.", "url": "https://www.federlegnoarredo.it/it/associazioni/assoimballaggi", "ecosystem": "Nazionale (FederlegnoArredo)"},
+        {"id": "edillegnoarredo", "label": "EdillegnoArredo", "cat": "associations", "color": "#3b82f6", "radius": 17, "sub": "Serramenti, Pavimenti & Finiture", "desc": "Raggruppa i produttori di serramenti esterni, porte interne, pavimenti in legno e arredo urbano.", "role": "Efficienza energetica degli infissi, bonus edilizi e marcatura CE per le costruzioni.", "url": "https://www.federlegnoarredo.it/it/associazioni/edillegnoarredo", "ecosystem": "Nazionale (FederlegnoArredo)"},
+        {"id": "centro_studi", "label": "Centro Studi FederlegnoArredo", "cat": "services", "color": "#a855f7", "radius": 18, "sub": "Market Intelligence & Data Analytics", "desc": "Unità di ricerca economica della Federazione focalizzata sui consuntivi della filiera, monitoraggio export e previsioni di settore.", "role": "Pubblicazione del Rapporto di Filiera, analisi dei mercati esteri e monitoraggio congiunturale.", "url": "https://www.federlegnoarredo.it/it/servizi/centro-studi", "ecosystem": "Nazionale (FederlegnoArredo)"},
+        {"id": "polo_formativo", "label": "Polo Formativo Legno Arredo", "cat": "services", "color": "#a855f7", "radius": 17, "sub": "ITS & Formazione Professionale (Lentate)", "desc": "Centro di formazione d'eccellenza per la preparazione delle maestranze e dei tecnici del futuro della Brianza e d'Italia.", "role": "Percorsi ITS e corsi abilitanti per operatore del legno, prototipatore 3D e designer tecnico.", "url": "https://www.poloformativolegnoarredo.it/", "ecosystem": "Nazionale (FederlegnoArredo)"},
+        {"id": "fla_sustainability", "label": "Piattaforma Sostenibilità FLA", "cat": "sustainability", "color": "#eab308", "radius": 18, "sub": "Transizione Ecologica & Decarbonizzazione", "desc": "Iniziativa strategica per guidare le imprese associate verso la misurazione della Carbon Footprint, ESG e certificazioni EPD.", "role": "Elaborazione del Decalogo della Sostenibilità, passaporto digitale di prodotto e strumenti LCA.", "url": "https://www.federlegnoarredo.it/it/sostenibilita", "ecosystem": "Nazionale (FederlegnoArredo)"},
+        {"id": "rilegno", "label": "Consorzio Rilegno", "cat": "sustainability", "color": "#eab308", "radius": 17, "sub": "Recupero e Riciclo del Legno in Italia", "desc": "Consorzio nazionale per la gestione, la raccolta e il riciclo degli imballaggi in legno in Italia.", "role": "Riciclo del 100% degli imballaggi in legno per la produzione di nuovi pannelli truciolari.", "url": "https://www.rilegno.org/", "ecosystem": "Nazionale (FederlegnoArredo)"},
+        {"id": "efici_ceibois", "label": "EFIC & CEI-Bois", "cat": "gov", "color": "#06b6d4", "radius": 16, "sub": "European Furniture & Wood Confederations", "desc": "Confederazioni europee di rappresentanza dell'industria del mobile e delle costruzioni in legno a Bruxelles.", "role": "Lobbying europeo sulle direttive eco-design, deforestazione (EUDR) e regolamenti imballaggi.", "url": "https://www.efic.eu/", "ecosystem": "Nazionale (FederlegnoArredo)"},
+
+        // --- 10. CALABRIA (DESTINAZIONE JASSA) ---
+        {"id": "jassa_hub", "label": "Destinazione Jassa", "cat": "hub", "color": "#10b981", "radius": 25, "sub": "Hub Turistico Presila Catanzarese", "desc": "Iniziativa di promozione del patrimonio naturale e paesaggistico legato al Fiume Jassa e alla Presila.", "role": "Coordinamento dell'offerta turistica sostenibile, itinerari outdoor e accoglienza rurale.", "url": "https://destinazionejassa.it/", "ecosystem": "Calabria (Destinazione Jassa)"},
+        {"id": "fiumara_jassa", "label": "Fiumara Jassa", "cat": "nature", "color": "#84cc16", "radius": 23, "sub": "Corso d'acqua & Gole Fluviali", "desc": "Fiume caratteristico della Presila che scava suggestive gole, forre e cascate naturali a Sersale.", "role": "Attrazione naturalistica principale per escursioni fluviali e biodiversità.", "url": "https://destinazionejassa.it/", "ecosystem": "Calabria (Destinazione Jassa)"},
+        {"id": "valli_cupe", "label": "Riserva Valli Cupe", "cat": "nature", "color": "#84cc16", "radius": 22, "sub": "Riserva Naturale Regionale", "desc": "Area protetta celebre per i canyons monumentali, le cascate incontaminate e gli alberi secolari.", "role": "Preservazione della biodiversità, turismo naturalistico e ricerca ecologica.", "url": "https://destinazionejassa.it/", "ecosystem": "Calabria (Destinazione Jassa)"},
+        {"id": "cascata_campanaro", "label": "Cascata Campanaro & Gole", "cat": "nature", "color": "#84cc16", "radius": 18, "sub": "Monumento Naturale Fluviale", "desc": "Spettacolare cascata immersa in una rigogliosa vegetazione rara e felci secolari.", "role": "Punto d'interesse per il turismo fotografico ed escursionistico.", "url": "https://destinazionejassa.it/", "ecosystem": "Calabria (Destinazione Jassa)"},
+        {"id": "pino_laricio", "label": "Giganti di Sersale & Patriarchi", "cat": "nature", "color": "#84cc16", "radius": 17, "sub": "Patrimonio Arboreo Monumentale", "desc": "Alberi plurisecolari e pini larici monumentali situati nei boschi della Presila.", "role": "Tutela della memoria botanica e didattica ambientale.", "url": "https://destinazionejassa.it/", "ecosystem": "Calabria (Destinazione Jassa)"},
+        {"id": "orme_nel_parco", "label": "Orme nel Parco", "cat": "outdoor", "color": "#0ea5e9", "radius": 20, "sub": "Parco Avventura & Eco-Esperienze", "desc": "Primo parco eco-esperienziale della Calabria immerso nei boschi silani.", "role": "Attività per famiglie, percorsi acrobatici in altezza e benessere nella natura.", "url": "https://destinazionejassa.it/", "ecosystem": "Calabria (Destinazione Jassa)"},
+        {"id": "canyoning_jassa", "label": "Canyoning & Trekking Fluviale", "cat": "outdoor", "color": "#0ea5e9", "radius": 18, "sub": "Sport Acquatici & Torrentismo", "desc": "Percorsi guidati d'avventura tra le gole e le pozze d'acqua cristallina della fiumara.", "role": "Sviluppo del turismo sportivo attivo ed esperienziale in sicurezza.", "url": "https://destinazionejassa.it/", "ecosystem": "Calabria (Destinazione Jassa)"},
+        {"id": "comune_sersale", "label": "Città di Sersale", "cat": "culture", "color": "#f59e0b", "radius": 20, "sub": "Borgo Porta delle Valli Cupe", "desc": "Comune capofila del territorio della Presila Catanzarese custode delle tradizioni locali.", "role": "Governance istituzionale e accoglienza della comunità ospitante.", "url": "https://destinazionejassa.it/", "ecosystem": "Calabria (Destinazione Jassa)"},
+        {"id": "presila_catanzarese", "label": "Unione Comuni della Presila", "cat": "culture", "color": "#f59e0b", "radius": 18, "sub": "Territorio & Cultura Rurale", "desc": "Rete di borghi storici compresi tra la Sila Piccola e il Mar Ionio.", "role": "Promozione integrata dell'identità culturale e architettonica locale.", "url": "https://destinazionejassa.it/", "ecosystem": "Calabria (Destinazione Jassa)"},
+        {"id": "gusto_presila", "label": "Enogastronomia Presilana", "cat": "food", "color": "#f43f5e", "radius": 17, "sub": "Prodotti Tipici & Tradizione", "desc": "Eccellenze agroalimentari come olio EVO, formaggi silani, insaccati e miele di castagno.", "role": "Promozione dell'offerta turistica gastronomica e filiera corta.", "url": "https://destinazionejassa.it/", "ecosystem": "Calabria (Destinazione Jassa)"},
+        {"id": "guide_valli_cupe", "label": "Guide Ambientali & Escursionistiche", "cat": "hospitality", "color": "#8b5cf6", "radius": 18, "sub": "Accompagnamento & Educazione", "desc": "Professionisti certificati per la conduzione in sicurezza di visitatori ed escursionisti.", "role": "Interpreti del patrimonio naturale e narratori del territorio.", "url": "https://destinazionejassa.it/", "ecosystem": "Calabria (Destinazione Jassa)"},
+        {"id": "ospitalita_rurale", "label": "Ospitalità & Agriturismi Presila", "cat": "hospitality", "color": "#8b5cf6", "radius": 18, "sub": "B&B, Rifugi & Strutture Tipiche", "desc": "Rete di accoglienza diffusa nei borghi e nella campagna presilana.", "role": "Pernottamento sostenibile ed esperienza di turismo lento.", "url": "https://destinazionejassa.it/", "ecosystem": "Calabria (Destinazione Jassa)"},
+
+        // --- 11. TOSCANA (ITS MITA ACADEMY) ---
+        {"id": "mita_hub", "label": "ITS MITA Academy", "cat": "hub", "color": "#ec4899", "radius": 25, "sub": "Made in Italy Tuscany Academy (Scandicci)", "desc": "Istituto Tecnologico Superiore d'eccellenza dedicato alla formazione nel settore moda, pelletteria, calzature e accessori di lusso.", "role": "Alta formazione terziaria, sviluppo di competenze digitali e sostenibili per i brand dell'alta moda.", "url": "https://mitacademy.it/", "ecosystem": "Toscana (ITS MITA Academy)"},
+        {"id": "mita_scandicci", "label": "Scandicci Luxury District", "cat": "district", "color": "#f59e0b", "radius": 22, "sub": "Distretto Pelletteria di Lusso", "desc": "Polo mondiale per la produzione e prototipazione di pelletteria per le principali maison internazionali.", "role": "Manifattura d'eccellenza, sviluppo collezioni di alta gamma e distretto industriale.", "url": "https://mitacademy.it/", "ecosystem": "Toscana (ITS MITA Academy)"},
+        {"id": "mita_polimoda", "label": "Polimoda & Accademie Firenze", "cat": "edu", "color": "#3b82f6", "radius": 19, "sub": "Alta Formazione Moda & Design", "desc": "Centro di formazione accademica e creativa di livello mondiale per il fashion design e il brand management.", "role": "Integrazione didattica, ricerca stilistica e trend forecasting.", "url": "https://www.polimoda.com/", "ecosystem": "Toscana (ITS MITA Academy)"},
+        {"id": "mita_lab_3d", "label": "MITA Prototipazione & CAD 3D", "cat": "labs", "color": "#a855f7", "radius": 18, "sub": "Digital Fashion Lab", "desc": "Laboratorio per la modellazione tridimensionale, prototipazione virtuale e stampa 3D di minuti metallici e calzature.", "role": "Digitalizzazione del processo creativo e riduzione dei tempi di campionatura.", "url": "https://mitacademy.it/", "ecosystem": "Toscana (ITS MITA Academy)"},
+        {"id": "mita_region", "label": "Regione Toscana & Giovanisì", "cat": "gov", "color": "#ef4444", "radius": 18, "sub": "Politiche Giovanili e Formazione", "desc": "Ente regionale di supporto ai percorsi formativi ITS, occupazione giovanile e innovazione del Made in Italy.", "role": "Finanziamento dei percorsi formativi, borse di studio e supporto alla filiera moda.", "url": "https://www.regione.toscana.it/", "ecosystem": "Toscana (ITS MITA Academy)"},
+
+        // --- 12. NAZIONALE / CAMPANIA (SSIP STAZIONE SPERIMENTALE PELLI) ---
+        {"id": "ssip_hub", "label": "SSIP - Stazione Sperimentale Pelli", "cat": "hub", "color": "#8b5cf6", "radius": 25, "sub": "Centro Nazionale Ricerca Conciaria (Pozzuoli)", "desc": "Organismo di ricerca nazionale di riferimento per l'industria conciaria e l'intero ciclo di lavorazione della pelle.", "role": "Ricerca e sviluppo sui materiali, certificazioni ambientali, sviluppo di brevetti conciari e prove analitiche.", "url": "https://ssip.it/", "ecosystem": "Nazionale / Campania (SSIP Stazione Sperimentale Pelli)"},
+        {"id": "ssip_solofra", "label": "Distretto Conciario di Solofra", "cat": "district", "color": "#10b981", "radius": 20, "sub": "Polo Conciario Campano (AV)", "desc": "Eccellenza conciaria storica specializzata nella concia e rifinizione di pelli ovicaprine per abbigliamento e calzature.", "role": "Produzione conciaria di pregio, lavorazione pelli sottili ed export.", "url": "https://ssip.it/", "ecosystem": "Nazionale / Campania (SSIP Stazione Sperimentale Pelli)"},
+        {"id": "ssip_santacroce", "label": "Distretto Santa Croce sull'Arno", "cat": "district", "color": "#10b981", "radius": 20, "sub": "Polo Conciario Toscano (PI)", "desc": "Distretto conciario leader nella concia al vegetale, cuoio da suola e pelli per alta pelletteria.", "role": "Fornitura di materiali conciati sostenibili per la pelletteria di lusso.", "url": "https://ssip.it/", "ecosystem": "Nazionale / Campania (SSIP Stazione Sperimentale Pelli)"},
+        {"id": "ssip_arzignano", "label": "Distretto Conciario di Arzignano", "cat": "district", "color": "#10b981", "radius": 20, "sub": "Polo Conciario Veneto (VI)", "desc": "Principale distretto conciario italiano per quantitativi, specializzato in pelli per automotive, arredo e calzatura.", "role": "Innovazione di processo su larga scala ed efficienza dei depuratori di distretto.", "url": "https://ssip.it/", "ecosystem": "Nazionale / Campania (SSIP Stazione Sperimentale Pelli)"},
+        {"id": "ssip_green_leather", "label": "SSIP Green Leather Lab", "cat": "labs", "color": "#06b6d4", "radius": 19, "sub": "Economia Circolare & Concia Green", "desc": "Laboratorio scientifico focalizzato sulla concia metal-free, recupero degli scarti di pelle e bio-materiali.", "role": "R&S per la riduzione dell'impronta carbonica e riuso dei sottoprodotti conciari.", "url": "https://ssip.it/", "ecosystem": "Nazionale / Campania (SSIP Stazione Sperimentale Pelli)"},
+
+        // --- 13. PUGLIA / ITALIA (OCM - OFFICINA CREATIVA MODA & CULTURA) ---
+        {"id": "ocm_hub", "label": "OCM - Officina Creativa Moda", "cat": "hub", "color": "#06b6d4", "radius": 24, "sub": "Hub Innovazione Moda & Sartoria", "desc": "Piattaforma e acceleratore creativo dedicato al Made in Italy, alla moda sostenibile e all'innovazione sartoriale.", "role": "Networking tra creativi emergenti, supporto alla digitalizzazione della manifattura e sostenibilità.", "url": "#", "ecosystem": "Puglia / Italia (OCM - Officina Creativa Moda)"},
+        {"id": "ocm_salento", "label": "Distretto Tessile-Abbigliamento Salento", "cat": "district", "color": "#f59e0b", "radius": 20, "sub": "Polo Manifatturiero Pugliese", "desc": "Aggregazione di imprese manifatturiere specializzate in intimo, corsetteria, alta sartoria e confezione.", "role": "Esecuzione sartoriale, terzismo di qualità e manifattura avanzata.", "url": "#", "ecosystem": "Puglia / Italia (OCM - Officina Creativa Moda)"},
+        {"id": "ocm_digital_craft", "label": "OCM Digital Atelier", "cat": "labs", "color": "#a855f7", "radius": 18, "sub": "Sartoria Digitalizzata & Virtual Fitting", "desc": "Laboratorio avanzato per la scansione corporea 3D, prova abiti virtuale e personalizzazione su misura digitalizzata.", "role": "Adozione di tecnologie 3D nel processo sartoriale tradizionale.", "url": "#", "ecosystem": "Puglia / Italia (OCM - Officina Creativa Moda)"},
+        {"id": "ocm_punti_sviluppo", "label": "Puglia Sviluppo & Arti Puglia", "cat": "gov", "color": "#ef4444", "radius": 17, "sub": "Politiche Regionali Innovazione", "desc": "Agenzia regionale per la tecnologia, l'attrazione degli investimenti e lo sviluppo di startup creative.", "role": "Bandi per la digitalizzazione delle imprese artigiane e giovanili.", "url": "https://www.arti.puglia.it/", "ecosystem": "Puglia / Italia (OCM - Officina Creativa Moda)"}
+      ],
+      "links": [
+        // INTRA EMILIA-ROMAGNA
+        {"source": "arter", "target": "rer"}, {"source": "arter", "target": "unioncamere"}, {"source": "arter", "target": "associazioni"},
+        {"source": "arter", "target": "unibo"}, {"source": "arter", "target": "unimore"}, {"source": "arter", "target": "unife"},
+        {"source": "arter", "target": "unipr"}, {"source": "arter", "target": "cnr_er"}, {"source": "arter", "target": "enea"},
+        {"source": "arter", "target": "infn"}, {"source": "arter", "target": "tecnopoli_network"}, {"source": "arter", "target": "bologna_bigdata"},
+        {"source": "arter", "target": "rat"}, {"source": "tecnopoli_network", "target": "rat"}, {"source": "bologna_bigdata", "target": "infn"},
+        {"source": "bologna_bigdata", "target": "unibo"}, {"source": "arter", "target": "cluster_mech"}, {"source": "arter", "target": "cluster_health"},
+        {"source": "arter", "target": "cluster_agrifood"}, {"source": "arter", "target": "cluster_greentech"}, {"source": "arter", "target": "cluster_innovate"},
+        {"source": "arter", "target": "cluster_build"}, {"source": "arter", "target": "cluster_create"}, {"source": "cluster_mech", "target": "unimore"},
+        {"source": "cluster_agrifood", "target": "unipr"}, {"source": "cluster_health", "target": "unibo"}, {"source": "cluster_greentech", "target": "enea"},
+        {"source": "arter", "target": "emiliaromagnastartup"}, {"source": "arter", "target": "serre_arter"}, {"source": "arter", "target": "ecosister"},
+        {"source": "emiliaromagnastartup", "target": "serre_arter"}, {"source": "ecosister", "target": "unibo"}, {"source": "arter", "target": "invest_er"},
+        {"source": "arter", "target": "een"}, {"source": "invest_er", "target": "rer"},
+
+        // INTRA BASILICATA
+        {"source": "bc_hub", "target": "unibas_cnr"}, {"source": "bc_hub", "target": "matera2019"}, {"source": "bc_hub", "target": "digital_heritage"},
+        {"source": "bc_hub", "target": "open_design"}, {"source": "bc_hub", "target": "lucana_film"}, {"source": "bc_hub", "target": "performing_arts"},
+        {"source": "bc_hub", "target": "pmi_creative"}, {"source": "unibas_cnr", "target": "digital_heritage"}, {"source": "open_design", "target": "pmi_creative"},
+        {"source": "digital_heritage", "target": "matera2019"}, {"source": "lucana_film", "target": "performing_arts"},
+
+        // INTRA CAMPANIA
+        {"source": "caselli_palizzi_hub", "target": "caselli_capodimonte"}, {"source": "caselli_palizzi_hub", "target": "palizzi_liceo"},
+        {"source": "caselli_palizzi_hub", "target": "mim_mic"}, {"source": "caselli_palizzi_hub", "target": "regione_campania"},
+        {"source": "caselli_capodimonte", "target": "lab_porcellana"}, {"source": "caselli_capodimonte", "target": "lab_3d_design"},
+        {"source": "caselli_capodimonte", "target": "real_bosco_capodimonte"}, {"source": "caselli_capodimonte", "target": "distretto_ceramica"},
+        {"source": "palizzi_liceo", "target": "museo_palizzi"}, {"source": "palizzi_liceo", "target": "lab_restauro"},
+        {"source": "palizzi_liceo", "target": "accademia_napoli"}, {"source": "palizzi_liceo", "target": "adi_design"},
+        {"source": "lab_porcellana", "target": "distretto_ceramica"}, {"source": "lab_3d_design", "target": "unina_vanvitelli"},
+        {"source": "lab_restauro", "target": "real_bosco_capodimonte"}, {"source": "lab_restauro", "target": "unina_vanvitelli"},
+        {"source": "its_bact", "target": "caselli_palizzi_hub"}, {"source": "accademia_napoli", "target": "museo_palizzi"},
+        {"source": "unina_vanvitelli", "target": "adi_design"}, {"source": "mim_mic", "target": "caselli_capodimonte"},
+        {"source": "regione_campania", "target": "its_bact"}, {"source": "regione_campania", "target": "distretto_ceramica"},
+
+        // INTRA PIEMONTE
+        {"source": "cs_hub", "target": "unito"}, {"source": "cs_hub", "target": "polito"}, {"source": "cs_hub", "target": "its_tam"},
+        {"source": "cs_hub", "target": "cs_formazione"}, {"source": "cs_hub", "target": "lab_tessile"}, {"source": "cs_hub", "target": "cnr_stiima"},
+        {"source": "cs_hub", "target": "pointex"}, {"source": "cs_hub", "target": "centro_congressi"}, {"source": "cs_hub", "target": "biblioteca_pella"},
+        {"source": "cs_hub", "target": "residenza_campus"}, {"source": "cs_hub", "target": "fondazione_crb"}, {"source": "cs_hub", "target": "uib_biella"},
+        {"source": "cs_hub", "target": "regione_piemonte"}, {"source": "unito", "target": "residenza_campus"}, {"source": "unito", "target": "biblioteca_pella"},
+        {"source": "polito", "target": "cnr_stiima"}, {"source": "its_tam", "target": "cluster_imprese"}, {"source": "cs_formazione", "target": "uib_biella"},
+        {"source": "pointex", "target": "lab_tessile"}, {"source": "pointex", "target": "cnr_stiima"}, {"source": "pointex", "target": "cluster_imprese"},
+        {"source": "pointex", "target": "regione_piemonte"}, {"source": "lab_tessile", "target": "cluster_imprese"}, {"source": "fondazione_crb", "target": "pointex"},
+        {"source": "uib_biella", "target": "cluster_imprese"}, {"source": "regione_piemonte", "target": "cs_formazione"},
+
+        // INTRA MARCHE CLUSTER
+        {"source": "cm_hub", "target": "cluster_eliving"}, {"source": "cm_hub", "target": "cluster_mfg"},
+        {"source": "cm_hub", "target": "cluster_agrifood_marche"}, {"source": "cm_hub", "target": "cluster_verdi"},
+        {"source": "cm_hub", "target": "univpm"}, {"source": "cm_hub", "target": "unicam"},
+        {"source": "cm_hub", "target": "regione_marche"}, {"source": "cluster_eliving", "target": "inrca"},
+        {"source": "cluster_eliving", "target": "univpm"}, {"source": "cluster_mfg", "target": "univpm"},
+        {"source": "cluster_mfg", "target": "rete_imprese_marche"}, {"source": "cluster_agrifood_marche", "target": "unicam"},
+        {"source": "cluster_agrifood_marche", "target": "rete_imprese_marche"}, {"source": "regione_marche", "target": "cm_hub"},
+        {"source": "dih_marche", "target": "rete_imprese_marche"}, {"source": "dih_marche", "target": "cm_hub"},
+
+        // INTRA CONFINDUSTRIA NAUTICA
+        {"source": "cn_hub", "target": "salone_genova"}, {"source": "cn_hub", "target": "i_saloni_nautici"},
+        {"source": "cn_hub", "target": "cantieristica_superyacht"}, {"source": "cn_hub", "target": "componenti_motori"},
+        {"source": "cn_hub", "target": "servizi_marine"}, {"source": "cn_hub", "target": "nautica_cifre"},
+        {"source": "cn_hub", "target": "formazione_its"}, {"source": "cn_hub", "target": "sostenibilita_transizione"},
+        {"source": "cn_hub", "target": "codice_nautica_rina"}, {"source": "cn_hub", "target": "confindustria"},
+        {"source": "cn_hub", "target": "ebi_brussels"}, {"source": "cn_hub", "target": "icomia_global"},
+        {"source": "cn_hub", "target": "mit_guardiacostiera"}, {"source": "cn_hub", "target": "ice_mimit"},
+        {"source": "salone_genova", "target": "i_saloni_nautici"}, {"source": "salone_genova", "target": "cantieristica_superyacht"},
+        {"source": "salone_genova", "target": "componenti_motori"}, {"source": "salone_genova", "target": "ice_mimit"},
+        {"source": "cantieristica_superyacht", "target": "sostenibilita_transizione"}, {"source": "cantieristica_superyacht", "target": "nautica_cifre"},
+        {"source": "componenti_motori", "target": "sostenibilita_transizione"}, {"source": "servizi_marine", "target": "codice_nautica_rina"},
+        {"source": "servizi_marine", "target": "mit_guardiacostiera"}, {"source": "ebi_brussels", "target": "icomia_global"},
+        {"source": "confindustria", "target": "ebi_brussels"},
+
+        // INTRA COSMETICA LOMBARDA
+        {"source": "cosm_1", "target": "cosm_2"}, {"source": "cosm_1", "target": "cosm_3"}, {"source": "cosm_1", "target": "cosm_23"},
+        {"source": "cosm_1", "target": "cosm_5"}, {"source": "cosm_1", "target": "cosm_6"}, {"source": "cosm_1", "target": "cosm_11"},
+        {"source": "cosm_1", "target": "cosm_24"}, {"source": "cosm_2", "target": "cosm_7"}, {"source": "cosm_2", "target": "cosm_6"},
+        {"source": "cosm_2", "target": "cosm_11"}, {"source": "cosm_2", "target": "cosm_9"}, {"source": "cosm_3", "target": "cosm_27"},
+        {"source": "cosm_3", "target": "cosm_16"}, {"source": "cosm_3", "target": "cosm_23"}, {"source": "cosm_3", "target": "cosm_26"},
+        {"source": "cosm_4", "target": "cosm_5"}, {"source": "cosm_4", "target": "cosm_20"}, {"source": "cosm_16", "target": "cosm_6"},
+        {"source": "cosm_16", "target": "cosm_7"}, {"source": "cosm_17", "target": "cosm_32"}, {"source": "cosm_27", "target": "cosm_28"},
+        {"source": "cosm_23", "target": "cosm_29"}, {"source": "cosm_30", "target": "cosm_31"}, {"source": "cosm_31", "target": "cosm_32"},
+
+        // INTRA COSMOB
+        {"source": "cosmob_hq", "target": "its_madeinitaly"}, {"source": "cosmob_hq", "target": "cosmob_crea_impresa"},
+        {"source": "cosmob_hq", "target": "distretto_pesaro"}, {"source": "cosmob_hq", "target": "lab_certificati"},
+        {"source": "cosmob_hq", "target": "brand_industriali"}, {"source": "cosmob_hq", "target": "universita_marche"},
+        {"source": "cosmob_hq", "target": "enti_soci"}, {"source": "its_madeinitaly", "target": "cosmob_crea_impresa"},
+        {"source": "its_madeinitaly", "target": "brand_industriali"}, {"source": "its_madeinitaly", "target": "universita_marche"},
+        {"source": "distretto_pesaro", "target": "lab_certificati"}, {"source": "distretto_pesaro", "target": "brand_industriali"},
+
+        // INTRA FEDERLEGNOARREDO
+        {"source": "fla_hub", "target": "salone_mobile"}, {"source": "fla_hub", "target": "assaarredo"},
+        {"source": "fla_hub", "target": "assoluce"}, {"source": "fla_hub", "target": "assobagno"},
+        {"source": "fla_hub", "target": "assolegno"}, {"source": "fla_hub", "target": "assopanello"},
+        {"source": "fla_hub", "target": "assoimballaggi"}, {"source": "fla_hub", "target": "edillegnoarredo"},
+        {"source": "fla_hub", "target": "centro_studi"}, {"source": "fla_hub", "target": "polo_formativo"},
+        {"source": "fla_hub", "target": "fla_sustainability"}, {"source": "fla_hub", "target": "confindustria"},
+        {"source": "salone_mobile", "target": "euroluce_s_project"}, {"source": "salone_mobile", "target": "assaarredo"},
+        {"source": "salone_mobile", "target": "assoluce"}, {"source": "salone_mobile", "target": "assobagno"},
+        {"source": "salone_mobile", "target": "ice_mimit"}, {"source": "assopanello", "target": "rilegno"},
+        {"source": "assoimballaggi", "target": "rilegno"}, {"source": "assolegno", "target": "fla_sustainability"},
+        {"source": "assopanello", "target": "fla_sustainability"}, {"source": "centro_studi", "target": "ice_mimit"},
+        {"source": "centro_studi", "target": "assaarredo"}, {"source": "polo_formativo", "target": "assaarredo"},
+        {"source": "polo_formativo", "target": "assolegno"}, {"source": "confindustria", "target": "efici_ceibois"},
+        {"source": "fla_hub", "target": "efici_ceibois"}, {"source": "fla_hub", "target": "ice_mimit"},
+
+        // INTRA DESTINAZIONE JASSA
+        {"source": "jassa_hub", "target": "fiumara_jassa"}, {"source": "jassa_hub", "target": "valli_cupe"},
+        {"source": "jassa_hub", "target": "orme_nel_parco"}, {"source": "jassa_hub", "target": "comune_sersale"},
+        {"source": "jassa_hub", "target": "guide_valli_cupe"}, {"source": "jassa_hub", "target": "ospitalita_rurale"},
+        {"source": "fiumara_jassa", "target": "cascata_campanaro"}, {"source": "fiumara_jassa", "target": "canyoning_jassa"},
+        {"source": "fiumara_jassa", "target": "valli_cupe"}, {"source": "valli_cupe", "target": "pino_laricio"},
+        {"source": "valli_cupe", "target": "guide_valli_cupe"}, {"source": "orme_nel_parco", "target": "canyoning_jassa"},
+        {"source": "comune_sersale", "target": "presila_catanzarese"}, {"source": "comune_sersale", "target": "gusto_presila"},
+        {"source": "ospitalita_rurale", "target": "gusto_presila"},
+
+        // INTRA TOSCANA (ITS MITA ACADEMY)
+        {"source": "mita_hub", "target": "mita_scandicci"}, {"source": "mita_hub", "target": "mita_polimoda"},
+        {"source": "mita_hub", "target": "mita_lab_3d"}, {"source": "mita_hub", "target": "mita_region"},
+        {"source": "mita_scandicci", "target": "mita_lab_3d"},
+
+        // INTRA SSIP (STAZIONE SPERIMENTALE PELLI)
+        {"source": "ssip_hub", "target": "ssip_solofra"}, {"source": "ssip_hub", "target": "ssip_santacroce"},
+        {"source": "ssip_hub", "target": "ssip_arzignano"}, {"source": "ssip_hub", "target": "ssip_green_leather"},
+        {"source": "ssip_santacroce", "target": "ssip_green_leather"},
+
+        // INTRA OCM (OFFICINA CREATIVA MODA)
+        {"source": "ocm_hub", "target": "ocm_salento"}, {"source": "ocm_hub", "target": "ocm_digital_craft"},
+        {"source": "ocm_hub", "target": "ocm_punti_sviluppo"}, {"source": "ocm_salento", "target": "ocm_digital_craft"},
+
+        // --- CROSS-ECOSYSTEM LINKS (INTER-ECOSISTEMI) ---
+        {"source": "cnr_er", "target": "unibas_cnr", "isCross": true},
+        {"source": "cnr_er", "target": "cnr_stiima", "isCross": true},
+        {"source": "unibas_cnr", "target": "cnr_stiima", "isCross": true},
+        {"source": "cluster_create", "target": "bc_hub", "isCross": true},
+        {"source": "cluster_create", "target": "adi_design", "isCross": true},
+        {"source": "open_design", "target": "lab_3d_design", "isCross": true},
+        {"source": "its_tam", "target": "cluster_create", "isCross": true},
+        {"source": "digital_heritage", "target": "lab_3d_design", "isCross": true},
+        {"source": "bologna_bigdata", "target": "digital_heritage", "isCross": true},
+        {"source": "bologna_bigdata", "target": "polito", "isCross": true},
+        {"source": "pointex", "target": "rat", "isCross": true},
+        {"source": "mim_mic", "target": "matera2019", "isCross": true},
+        {"source": "een", "target": "pmi_creative", "isCross": true},
+        {"source": "unibo", "target": "unina_vanvitelli", "isCross": true},
+        {"source": "cm_hub", "target": "cosmob_hq", "isCross": true},
+        {"source": "univpm", "target": "universita_marche", "isCross": true},
+        {"source": "regione_marche", "target": "enti_soci", "isCross": true},
+        {"source": "cluster_mfg", "target": "cluster_mech", "isCross": true},
+        {"source": "cluster_agrifood_marche", "target": "cluster_agrifood", "isCross": true},
+        {"source": "inrca", "target": "cluster_health", "isCross": true},
+        {"source": "unicam", "target": "unife", "isCross": true},
+        {"source": "confindustria", "target": "associazioni", "isCross": true},
+        {"source": "sostenibilita_transizione", "target": "cluster_greentech", "isCross": true},
+        {"source": "formazione_its", "target": "its_tam", "isCross": true},
+        {"source": "componenti_motori", "target": "cluster_mech", "isCross": true},
+        {"source": "cn_hub", "target": "invest_er", "isCross": true},
+        {"source": "cosm_30", "target": "cluster_greentech", "isCross": true},
+        {"source": "cosm_31", "target": "cluster_agrifood", "isCross": true},
+        {"source": "cosm_26", "target": "adi_design", "isCross": true},
+        {"source": "cosm_23", "target": "een", "isCross": true},
+        {"source": "cosm_11", "target": "unipr", "isCross": true},
+        {"source": "cosmob_hq", "target": "cluster_build", "isCross": true},
+        {"source": "its_madeinitaly", "target": "its_bact", "isCross": true},
+        {"source": "cosmob_crea_impresa", "target": "open_design", "isCross": true},
+        {"source": "brand_industriali", "target": "cluster_create", "isCross": true},
+        {"source": "fla_hub", "target": "cosmob_hq", "isCross": true},
+        {"source": "fla_hub", "target": "salone_genova", "isCross": true},
+        {"source": "salone_mobile", "target": "cosm_3", "isCross": true},
+        {"source": "polo_formativo", "target": "its_madeinitaly", "isCross": true},
+        {"source": "rilegno", "target": "cluster_greentech", "isCross": true},
+        {"source": "jassa_hub", "target": "bc_hub", "isCross": true},
+        {"source": "gusto_presila", "target": "cluster_agrifood", "isCross": true},
+        {"source": "valli_cupe", "target": "real_bosco_capodimonte", "isCross": true},
+
+        // NUOVI LINK CROSS SEMANTICI (MITA, SSIP, OCM)
+        {"source": "mita_hub", "target": "its_tam", "isCross": true},
+        {"source": "mita_hub", "target": "ssip_hub", "isCross": true},
+        {"source": "mita_scandicci", "target": "ssip_santacroce", "isCross": true},
+        {"source": "ssip_hub", "target": "lab_tessile", "isCross": true},
+        {"source": "ssip_green_leather", "target": "cluster_greentech", "isCross": true},
+        {"source": "ocm_hub", "target": "mita_hub", "isCross": true},
+        {"source": "ocm_hub", "target": "bc_hub", "isCross": true},
+        {"source": "ocm_digital_craft", "target": "digital_heritage", "isCross": true}
+      ]
+    };
+
+    const container = document.getElementById('canvas-container');
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    const svg = d3.select('#network-svg')
+      .attr('viewBox', [0, 0, width, height]);
+
+    const g = svg.append('g');
+    const linksGroup = g.append('g').attr('class', 'links-group');
+    const nodesGroup = g.append('g').attr('class', 'nodes-group');
+
+    svg.call(d3.zoom()
+      .scaleExtent([0.15, 5])
+      .on('zoom', (event) => g.attr('transform', event.transform)));
+
+    let simulation = d3.forceSimulation()
+      .force('link', d3.forceLink().id(d => d.id).distance(d => d.isCross ? 150 : 75))
+      .force('charge', d3.forceManyBody().strength(-240))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('collision', d3.forceCollide().radius(d => (d.radius || 15) + 8));
+
+    let nodeSelection, linkSelection;
+
+    function renderGraph(data) {
+      const nodesData = data.nodes.map(d => ({ ...d }));
+      const linksData = data.links.map(d => ({ ...d }));
+
+      linkSelection = linksGroup
+        .selectAll('line')
+        .data(linksData)
+        .join('line')
+        .attr('class', d => d.isCross ? 'link cross' : 'link')
+        .attr('stroke', d => d.isCross ? '#f43f5e' : '#475569');
+
+      nodeSelection = nodesGroup
+        .selectAll('g')
+        .data(nodesData, d => d.id)
+        .join(
+          enter => {
+            const gNode = enter.append('g')
+              .call(d3.drag()
+                .on('start', dragstarted)
+                .on('drag', dragged)
+                .on('end', dragended));
+            gNode.append('circle');
+            gNode.append('text').attr('class', 'node-label');
+            return gNode;
+          }
+        );
+
+      nodeSelection.select('circle')
+        .attr('r', d => d.radius || 15)
+        .attr('fill', d => d.color || '#3b82f6')
+        .attr('stroke', '#0f172a')
+        .attr('stroke-width', 2);
+
+      nodeSelection.select('text')
+        .attr('x', d => (d.radius || 15) + 5)
+        .attr('y', 4)
+        .text(d => d.label);
+
+      nodeSelection.on('click', (event, d) => showDetails(d));
+
+      simulation.nodes(nodesData);
+      simulation.force('link').links(linksData);
+      simulation.alpha(1).restart();
+
+      simulation.on('tick', () => {
+        linkSelection
+          .attr('x1', d => d.source.x)
+          .attr('y1', d => d.source.y)
+          .attr('x2', d => d.target.x)
+          .attr('y2', d => d.target.y);
+
+        nodeSelection.attr('transform', d => `translate(${d.x},${d.y})`);
+      });
+
+      updateDashboard(nodesData, linksData);
+      populateEcosystemFilter(graphData.nodes);
+    }
+
+    function updateDashboard(nodes, links) {
+      const crossCount = links.filter(l => l.isCross).length;
+      const ecosystems = new Set(nodes.map(n => n.ecosystem).filter(Boolean));
+
+      document.getElementById('metric-nodes').innerText = nodes.length;
+      document.getElementById('metric-links').innerText = links.length;
+      document.getElementById('metric-cross').innerText = crossCount;
+      document.getElementById('metric-ecosystems').innerText = ecosystems.size;
+    }
+
+    function populateEcosystemFilter(allNodes) {
+      const filterSelect = document.getElementById('filter-eco');
+      const currentValue = filterSelect.value;
+      const ecosystems = Array.from(new Set(allNodes.map(n => n.ecosystem).filter(Boolean))).sort();
+
+      filterSelect.innerHTML = '<option value="all">Tutti gli Ecosistemi (Unificato)</option>';
+      ecosystems.forEach(eco => {
+        const opt = document.createElement('option');
+        opt.value = eco;
+        opt.textContent = eco;
+        filterSelect.appendChild(opt);
+      });
+
+      if (ecosystems.includes(currentValue)) {
+        filterSelect.value = currentValue;
+      }
+    }
+
+    function dragstarted(event, d) {
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    }
+
+    function dragended(event, d) {
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+
+    function showDetails(d) {
+      const card = document.getElementById('details-card');
+      card.innerHTML = `
+        <div class="tag">${d.ecosystem || 'Ecosistema'}</div>
+        <h3>${d.label}</h3>
+        <p><strong>Sottotitolo:</strong> ${d.sub || 'N/A'}</p>
+        <p><strong>Descrizione:</strong> ${d.desc || 'Nessuna descrizione disponibile.'}</p>
+        <p><strong>Ruolo Strategico:</strong> ${d.role || 'N/A'}</p>
+        ${d.url && d.url !== '#' ? `<a href="${d.url}" target="_blank">🔗 Visita Sito Web / Fonte</a>` : ''}
+      `;
+    }
+
+    document.getElementById('filter-eco').addEventListener('change', applyFilters);
+    document.getElementById('search-node').addEventListener('input', applyFilters);
+
+    function applyFilters() {
+      const ecoValue = document.getElementById('filter-eco').value;
+      const searchVal = document.getElementById('search-node').value.toLowerCase().trim();
+
+      let filteredNodes = graphData.nodes;
+      if (ecoValue !== 'all') {
+        filteredNodes = filteredNodes.filter(n => n.ecosystem === ecoValue);
+      }
+
+      const visibleNodeIds = new Set(filteredNodes.map(n => n.id));
+
+      let filteredLinks = graphData.links.filter(l => {
+        const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+        const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+        return visibleNodeIds.has(sourceId) && visibleNodeIds.has(targetId);
+      });
+
+      renderGraph({ nodes: filteredNodes, links: filteredLinks });
+
+      if (searchVal !== '') {
+        nodeSelection.style('opacity', d => {
+          const match = d.label.toLowerCase().includes(searchVal) ||
+                        (d.sub && d.sub.toLowerCase().includes(searchVal)) ||
+                        (d.desc && d.desc.toLowerCase().includes(searchVal));
+          return match ? 1 : 0.15;
+        });
+      }
+    }
+
+    document.getElementById('btn-export').addEventListener('click', () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(graphData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "ecosistema_network_completo.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    });
+
+    document.getElementById('btn-import').addEventListener('click', () => {
+      document.getElementById('file-input').click();
+    });
+
+    document.getElementById('file-input').addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            graphData = JSON.parse(e.target.result);
+            renderGraph(graphData);
+          } catch (err) {
+            alert('Errore nel caricamento del file JSON.');
+          }
+        };
+        reader.readAsText(file);
+      }
+    });
+
+    renderGraph(graphData);
+  </script>
+</body>
+</html>

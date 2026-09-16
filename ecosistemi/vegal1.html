@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Ecosistema, Comuni & Imprese VeGAL - Veneto Orientale</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Vis.js Network library per Grafo Interattivo -->
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        .modal-bg { background-color: rgba(15, 23, 42, 0.75); }
+        .vegal-gradient { background: linear-gradient(135deg, #0f4c3a 0%, #1e3a8a 100%); }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Header / Navbar -->
+    <header class="vegal-gradient text-white sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-emerald-500/20 rounded-lg border border-emerald-400/30">
+                    <i class="fa-solid fa-diagram-project text-xl text-emerald-300"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight">VeGAL Hub: Rete Comuni & Imprese</h1>
+                    <p class="text-xs text-emerald-200">Ecosistema Integrato del Veneto Orientale</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <label for="json-upload" class="cursor-pointer bg-slate-800/80 hover:bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 border border-slate-600">
+                    <i class="fa-solid fa-file-import text-emerald-400"></i>
+                    <span class="hidden sm:inline">Carica JSON</span>
+                </label>
+                <input type="file" id="json-upload" accept=".json, application/json" multiple class="hidden">
+
+                <button onclick="exportJson()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 shadow">
+                    <i class="fa-solid fa-download"></i>
+                    <span class="hidden sm:inline">Esporta JSON</span>
+                </button>
+
+                <button onclick="openEditModal(null)" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 shadow">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Nuovo Nodo</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="bg-white border-b border-slate-200 shadow-sm sticky top-16 z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-6 text-sm font-semibold overflow-x-auto">
+            <button id="tab-directory" onclick="switchTab('directory')" class="py-3 border-b-2 border-emerald-600 text-emerald-700 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-sitemap"></i> Schede Ecosistema
+            </button>
+            <button id="tab-network" onclick="switchTab('network')" class="py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-circle-nodes"></i> Grafo Rete Comuni & Imprese
+            </button>
+            <button id="tab-simulator" onclick="switchTab('simulator')" class="py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-sliders"></i> Simulatore Opportunità PSL
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+        <!-- TAB 1: DIRECTORY & MAPPA ECOSISTEMA -->
+        <div id="section-directory" class="space-y-6">
+            
+            <!-- KPI Statistics Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+                    <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg"><i class="fa-solid fa-diagram-project text-xl"></i></div>
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-semibold">Nodi Totali</p>
+                        <p id="stat-total" class="text-xl font-bold text-slate-900">0</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+                    <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><i class="fa-solid fa-building-columns text-xl"></i></div>
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-semibold">Comuni Coinvolti</p>
+                        <p id="stat-comuni" class="text-xl font-bold text-slate-900">0</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+                    <div class="p-3 bg-pink-50 text-pink-600 rounded-lg"><i class="fa-solid fa-store text-xl"></i></div>
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-semibold">Imprese & Consorzi</p>
+                        <p id="stat-imprese" class="text-xl font-bold text-slate-900">0</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+                    <div class="p-3 bg-blue-50 text-blue-600 rounded-lg"><i class="fa-solid fa-route text-xl"></i></div>
+                    <div>
+                        <p class="text-xs text-slate-500 uppercase font-semibold">Connessioni Attive</p>
+                        <p id="stat-connections" class="text-xl font-bold text-slate-900">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Toolbar Filtri & Ricerca -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+                <div class="relative flex-grow w-full md:w-auto">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="search-input" placeholder="Cerca comune, impresa, consorzio, bando, ciclabile..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                    <select id="category-filter" class="w-full sm:w-auto bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg p-2 focus:ring-emerald-500">
+                        <option value="ALL">Tutte le Categorie</option>
+                    </select>
+
+                    <select id="area-filter" class="w-full sm:w-auto bg-slate-50 border border-slate-300 text-slate-700 text-sm rounded-lg p-2 focus:ring-emerald-500">
+                        <option value="ALL">Tutte le Macro-Aree</option>
+                    </select>
+
+                    <div class="flex border border-slate-200 rounded-lg overflow-hidden bg-slate-100 p-0.5">
+                        <button id="view-grid" class="px-3 py-1.5 text-xs font-semibold rounded bg-white shadow text-slate-800"><i class="fa-solid fa-grip"></i> Schede</button>
+                        <button id="view-table" class="px-3 py-1.5 text-xs font-semibold rounded text-slate-600 hover:text-slate-900"><i class="fa-solid fa-list"></i> Tabella</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Dynamic Display -->
+            <div id="grid-view" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            
+            <div id="table-view" class="hidden bg-white border border-slate-200 rounded-xl shadow-sm overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-600">
+                    <thead class="bg-slate-100 text-slate-700 uppercase text-xs font-bold border-b border-slate-200">
+                        <tr>
+                            <th class="px-6 py-3">Nodo / Soggetto</th>
+                            <th class="px-6 py-3">Tipologia</th>
+                            <th class="px-6 py-3">Macro-Area</th>
+                            <th class="px-6 py-3">Connessioni</th>
+                            <th class="px-6 py-3">Sito / Link</th>
+                            <th class="px-6 py-3 text-right">Azioni</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body" class="divide-y divide-slate-200"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 2: GRAFO DELLE CONNESSIONI RETE -->
+        <div id="section-network" class="hidden space-y-6">
+            <div class="bg-slate-900 rounded-2xl p-6 border border-slate-800 text-white shadow-xl">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-4 mb-4">
+                    <div>
+                        <h2 class="text-xl font-bold flex items-center gap-2 text-emerald-400">
+                            <i class="fa-solid fa-circle-nodes"></i> Grafo Interattivo: Comuni, Imprese & VeGAL
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-1">Trascina i nodi, usa la rotella per lo zoom o clicca su un comune/impresa per analizzare la rete di relazioni.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="resetGraphView()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs text-emerald-300 font-semibold rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrows-rotate"></i> Re-centra Mappa
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Legenda Categorie -->
+                <div class="flex flex-wrap gap-3 text-xs mb-4 p-3 bg-slate-800/60 rounded-xl border border-slate-700/50">
+                    <span class="text-slate-400 font-bold flex items-center gap-1">Legenda Nodi:</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500"></span> VeGAL Hub & LEADER</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-indigo-500"></span> Comuni & Enti Locali</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-pink-500"></span> Imprese, Cooperative & Consorzi</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-sky-500"></span> Pesca & FLAG Costiero</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-500"></span> Turismo & Mobilità Dolce</span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-purple-500"></span> Cultura & Paesaggio</span>
+                </div>
+
+                <!-- Vis.js Graph Canvas Container -->
+                <div id="network-container" class="w-full h-[620px] bg-slate-950 rounded-xl border border-slate-800 relative"></div>
+            </div>
+        </div>
+
+        <!-- TAB 3: SIMULATORE OPPORTUNITÀ E BANDI -->
+        <div id="section-simulator" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-4xl mx-auto">
+                <div class="border-b border-slate-100 pb-4 mb-6">
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-emerald-600"></i> Simulatore Accesso Fondi per Comuni & Imprese
+                    </h2>
+                    <p class="text-sm text-slate-500 mt-1">Seleziona il profilo di Comune o Impresa per verificare i contributi, i progetti attivi e i partner di rete del Veneto Orientale.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Tipologia Soggetto / Beneficiario</label>
+                        <select id="sim-beneficiario" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 bg-slate-50">
+                            <option value="ente">Comune / Ente Locale Partner VeGAL</option>
+                            <option value="impresa_pmi">Micro / Piccola Impresa Artigiana o Commerciale</option>
+                            <option value="impresa_agricola">Azienda Agricola / Agriturismo / Cantina</option>
+                            <option value="coop_pesca">Cooperativa Pesca / Acquacoltura / Valle da Pesca</option>
+                            <option value="consorzio_turismo">Consorzio Turistico / Rete d'Impresa</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Ambito dell'Intervento</label>
+                        <select id="sim-ambito" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 bg-slate-50">
+                            <option value="turismo">Turismo Sostenibile, Mobilità Ciclabile & Porti Fluviali</option>
+                            <option value="pesca">Valorizzazione Prodotti Ittici, Valli & Pescaturismo</option>
+                            <option value="agrifood">Filiera Corta, Enogastronomia & Vini DOCG</option>
+                            <option value="innovazione">Modernizzazione, Digitalizzazione & Efficientamento PMI</option>
+                            <option value="patrimonio">Riqualificazione Centri Storici & Musei Comunali</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Stima Investimento Totale (€)</label>
+                        <input type="number" id="sim-budget" value="80000" min="5000" step="5000" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Area Geografica dell'Intervento</label>
+                        <select id="sim-location" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 bg-slate-50">
+                            <option value="litorale">Comuni del Litorale (Caorle, Jesolo, Bibione, Cavallino)</option>
+                            <option value="entroterra">Comuni dell'Entroterra (Portogruaro, San Donà, San Stino, Concordia, etc.)</option>
+                            <option value="fluviale">Aste Fluviali (Tagliamento, Livenza, Lemene, Piave)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="text-center mb-6">
+                    <button onclick="runSimulation()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl transition shadow-lg flex items-center justify-center gap-2 mx-auto">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Calcola Stima Incentivo & Mappa Partner
+                    </button>
+                </div>
+
+                <!-- Simulation Output Card -->
+                <div id="sim-result" class="hidden bg-emerald-50/60 border border-emerald-200 rounded-2xl p-6 space-y-4">
+                    <div class="flex items-center justify-between border-b border-emerald-200/80 pb-3">
+                        <span class="text-xs font-bold uppercase tracking-wider text-emerald-800">Risultato Simulazione Opportunità</span>
+                        <span id="res-misura" class="bg-emerald-600 text-white text-xs px-3 py-1 rounded-full font-bold">Misura PSL LEADER / FEAMPA</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                        <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm">
+                            <p class="text-xs text-slate-500 font-medium">Tasso Contributo Fondo Perduto</p>
+                            <p id="res-rate" class="text-2xl font-black text-emerald-600">50%</p>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm">
+                            <p class="text-xs text-slate-500 font-medium">Contributo Concedibile</p>
+                            <p id="res-grant" class="text-2xl font-black text-blue-600">€ 40.000</p>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-emerald-100 shadow-sm">
+                            <p class="text-xs text-slate-500 font-medium">Cofinanziamento Privato/Pubblico</p>
+                            <p id="res-own" class="text-2xl font-black text-slate-700">€ 40.000</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase">Descrizione Iniziativa & Strategia VeGAL</h4>
+                        <p id="res-desc" class="text-sm text-slate-700 leading-relaxed"></p>
+                    </div>
+
+                    <div class="pt-2">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase mb-2">Comuni & Imprese Partner Correlati per questo Progetto</h4>
+                        <div id="res-nodes" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Dettaglio Nodo -->
+    <div id="detail-modal" class="fixed inset-0 modal-bg z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="vegal-gradient text-white p-6 flex justify-between items-start">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span id="modal-category" class="bg-emerald-500/30 text-emerald-200 text-xs px-2.5 py-0.5 rounded-full font-semibold border border-emerald-400/30">Categoria</span>
+                        <span id="modal-area" class="bg-blue-500/30 text-blue-200 text-xs px-2.5 py-0.5 rounded-full font-semibold border border-blue-400/30">Macro-Area</span>
+                    </div>
+                    <h2 id="modal-title" class="text-2xl font-bold mt-1">Nome Nodo</h2>
+                </div>
+                <button onclick="closeModal()" class="text-slate-300 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="p-6 space-y-5 overflow-y-auto flex-grow">
+                <div>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Inquadramento & Descrizione</h3>
+                    <p id="modal-summary" class="text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm"></p>
+                </div>
+
+                <div id="modal-servizi-container">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Attività, Progetti & Servizi Operativi</h3>
+                    <p id="modal-servizi" class="text-slate-700 leading-relaxed bg-emerald-50/40 p-4 rounded-xl border border-emerald-100 text-sm"></p>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Connessioni Direttele con Comuni, Imprese & VeGAL</h3>
+                    <div id="modal-connected-nodes" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Parole Chiave & Tag</h3>
+                    <div id="modal-tags" class="flex flex-wrap gap-2"></div>
+                </div>
+
+                <div>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Sito Web & Link Ufficiali</h3>
+                    <div id="modal-links" class="space-y-2"></div>
+                </div>
+
+                <div id="modal-notes-container" class="pt-4 border-t border-slate-200">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Note Tecniche & Documenti Allegati</h3>
+                    <div id="modal-notes-list" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-4 border-t border-slate-200 flex justify-between items-center">
+                <button id="modal-edit-btn" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square"></i> Modifica Scheda & Relazioni
+                </button>
+                <button onclick="closeModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg text-sm font-semibold transition">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Modifica Nodo -->
+    <div id="edit-modal" class="fixed inset-0 modal-bg z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-900 text-white p-5 flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square text-emerald-400 text-xl"></i>
+                    <h2 class="text-xl font-bold">Gestione Soggetto / Comune / Impresa</h2>
+                </div>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="edit-form" onsubmit="saveMemberEdits(event)" class="p-6 space-y-6 overflow-y-auto flex-grow">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Nome Soggetto / Comune / Impresa *</label>
+                        <input type="text" id="edit-nome" required class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Categoria / Tipologia</label>
+                        <select id="edit-categoria" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 bg-white">
+                            <option value="Comuni & Enti Locali">Comuni & Enti Locali</option>
+                            <option value="Imprese, Cooperative & Consorzi">Imprese, Cooperative & Consorzi</option>
+                            <option value="Sviluppo Rurale & LEADER">Sviluppo Rurale & LEADER</option>
+                            <option value="Pesca & FLAG Costiero">Pesca & FLAG Costiero</option>
+                            <option value="Turismo & Mobilità Dolce">Turismo & Mobilità Dolce</option>
+                            <option value="Cultura & Paesaggio">Cultura & Paesaggio</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Macro-Area Geografica</label>
+                        <select id="edit-area" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 bg-white">
+                            <option value="Area Litoranea">Area Litoranea</option>
+                            <option value="Entroterra & Città d'Arte">Entroterra & Città d'Arte</option>
+                            <option value="Aree Fluviali e di Confine">Aree Fluviali e di Confine</option>
+                            <option value="Tutto il Veneto Orientale">Tutto il Veneto Orientale</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Sito Web / Link Ufficiale</label>
+                        <input type="url" id="edit-sito" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500" placeholder="https://...">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Descrizione & Ruolo nella Rete</label>
+                        <textarea id="edit-sintesi" rows="3" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500"></textarea>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Attività, Progetti & Servizi</label>
+                        <textarea id="edit-servizi" rows="2" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500"></textarea>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Connessioni Attive (Seleziona i soggetti collegati nella rete)</label>
+                        <div id="edit-connections-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 p-3 bg-slate-50 border border-slate-200 rounded-xl max-h-48 overflow-y-auto"></div>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Tag / Parole Chiave (separati da virgola)</label>
+                        <input type="text" id="edit-tratti" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500" placeholder="es. Comune, Cicloturismo, FEAMPA, Lison DOCG">
+                    </div>
+                </div>
+
+                <!-- Sezione Note / Allegati dinamici -->
+                <div class="border-t border-slate-200 pt-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800">Note, Documenti & Schede Progetto</h3>
+                            <p class="text-xs text-slate-500">Aggiungi informazioni operative o documenti allegati.</p>
+                        </div>
+                        <button type="button" onclick="addNoteField()" class="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Aggiungi Nota
+                        </button>
+                    </div>
+
+                    <div id="edit-notes-list" class="space-y-4"></div>
+                </div>
+
+                <div class="bg-slate-50 -mx-6 -mb-6 p-4 border-t border-slate-200 flex justify-end gap-3 sticky bottom-0">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg text-sm font-semibold transition">Annulla</button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk"></i> Salva Modifiche
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic & Interactive Graph Engine -->
+    <script>
+        // DATASET COMPLETO: VeGAL Hub, Comuni del Veneto Orientale & Principali Imprese/Consorzi
+        let sampleData = [
+          {
+            "id": 1,
+            "nome": "VeGAL - GAL Veneto Orientale",
+            "categoria": "Sviluppo Rurale & LEADER",
+            "area": "Tutto il Veneto Orientale",
+            "sito": "https://www.vegal.net/",
+            "sintesi": "Agenzia di sviluppo locale del Veneto Orientale. Coordina i Piani di Sviluppo Locale (PSL LEADER) ed il FLAG FEAMPA, gestendo i bandi regionali ed europei per comuni e imprese.",
+            "servizi": "Erogazione contributi a fondo perduto, animazione territoriale, promozione del cicloturismo e sviluppo delle filiere enogastronomiche.",
+            "tratti": ["GAL VeGAL", "PSL LEADER", "Fondi UE", "Sviluppo Locale"],
+            "connessioni": [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+            "note": [
+              {
+                "id": 101,
+                "titolo": "Piano di Sviluppo Locale (PSL)",
+                "testo": "Programmazione strategica per contributi a comuni e imprese turistiche/agricole/ittiche.",
+                "url": "https://www.vegal.net/psl",
+                "figura": "",
+                "allegato": "",
+                "allegatoNome": ""
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "nome": "FLAG Veneziano / VeGAL Coste",
+            "categoria": "Pesca & FLAG Costiero",
+            "area": "Area Litoranea",
+            "sito": "https://www.vegal.net/flag",
+            "sintesi": "Gruppo di Azione Costiera gestito da VeGAL per lo sviluppo sostenibile della pesca, dell'acquacoltura e delle valli da pesca.",
+            "servizi": "Bandi FEAMPA per pescatori, cooperativa della pesca, pesca-turismo e riqualificazione borghi marinari.",
+            "tratti": ["FEAMPA", "Pesca Sostenibile", "Ittiturismo", "Valli da Pesca"],
+            "connessioni": [1, 6, 8, 11, 16],
+            "note": []
+          },
+          {
+            "id": 3,
+            "nome": "Rete Ciclabile & GiraMonticano / GiraLivenza / GiroTagliamento",
+            "categoria": "Turismo & Mobilità Dolce",
+            "area": "Aree Fluviali e di Confine",
+            "sito": "https://www.vegal.net/",
+            "sintesi": "Masterplan dell'infrastruttura cicloturistica e fluviale del Veneto Orientale coordinato da VeGAL insieme ai Comuni partner.",
+            "servizi": "Intermodalità bici-barca, segnaletica integrata, connessione costa-entroterra e ciclovie fluviali.",
+            "tratti": ["Cicloturismo", "GiroTagliamento", "GiraLivenza", "Barca+Bici"],
+            "connessioni": [1, 5, 6, 7, 8, 9, 10, 13, 14],
+            "note": []
+          },
+          {
+            "id": 4,
+            "nome": "Strada dei Vini Lison-Pramaggiore",
+            "categoria": "Sviluppo Rurale & LEADER",
+            "area": "Entroterra & Città d'Arte",
+            "sito": "https://www.stradadeivini.it/",
+            "sintesi": "Associazione di valorizzazione enogastronomica che unisce cantine, agriturismi e comuni della zona DOCG Lison e DOC Venezia.",
+            "servizi": "Enoturismo, percorsi della degustazione, promozione di oltre 40 aziende vitivinicole associate.",
+            "tratti": ["Lison DOCG", "Enoturismo", "Filiera Corta", "Cantine"],
+            "connessioni": [1, 5, 10, 12, 14],
+            "note": []
+          },
+          // COMUNI COINVOLTI
+          {
+            "id": 5,
+            "nome": "Comune di Portogruaro",
+            "categoria": "Comuni & Enti Locali",
+            "area": "Entroterra & Città d'Arte",
+            "sito": "https://www.comune.portogruaro.ve.it/",
+            "sintesi": "Comune capofila dell'entroterra portogruarese. Nodo centrale per percorsi culturali, museali e di mobilità fluviale sul Lemene.",
+            "servizi": "Partner VeGAL per interventi su centri storici, percorsi ciclabili e distretti del commercio.",
+            "tratti": ["Comune Socio", "Fiume Lemene", "Città d'Arte", "Entroterra"],
+            "connessioni": [1, 3, 4, 10, 12, 15, 17],
+            "note": []
+          },
+          {
+            "id": 6,
+            "nome": "Comune di Caorle",
+            "categoria": "Comuni & Enti Locali",
+            "area": "Area Litoranea",
+            "sito": "https://www.caorle.eu/",
+            "sintesi": "Comune litoraneo simbolo della pesca e del turismo costiero. Sede del porto peschereccio e del borgo storico.",
+            "servizi": "Progetti FLAG Veneziano, valorizzazione della laguna, dei Casoni e mobilità turistica sostenibile.",
+            "tratti": ["Comune Socio", "Borgo Marinaro", "Laguna Casoni", "Pesca"],
+            "connessioni": [1, 2, 3, 11, 13, 16],
+            "note": []
+          },
+          {
+            "id": 7,
+            "nome": "Comune di San Donà di Piave",
+            "categoria": "Comuni & Enti Locali",
+            "area": "Entroterra & Città d'Arte",
+            "sito": "https://www.sandonadipiave.net/",
+            "sintesi": "Principale polo urbano del Basso Piave. Snodo commerciale, di servizi ed hub infrastrutturale verso Venezia.",
+            "servizi": "Rigenerazione urbana, distretti del commercio, integrazione itinerari ciclo-fluviali lungo il fiume Piave.",
+            "tratti": ["Comune Socio", "Basso Piave", "Hub Servizi", "PMI"],
+            "connessioni": [1, 3, 8, 13, 15],
+            "note": []
+          },
+          {
+            "id": 8,
+            "nome": "Comune di Jesolo",
+            "categoria": "Comuni & Enti Locali",
+            "area": "Area Litoranea",
+            "sito": "https://www.comune.jesolo.ve.it/",
+            "sintesi": "Comune turistico litoraneo di primaria importanza internazionale, impegnato nella sostenibilità della fascia costiera e lagunare.",
+            "servizi": "Partner VeGAL e FLAG Veneziano per piste ciclabili lagunari, pesca sostenibile e riqualificazione portuale.",
+            "tratti": ["Comune Socio", "Litorale", "Laguna Nord", "Turismo Costiero"],
+            "connessioni": [1, 2, 3, 7, 11, 13],
+            "note": []
+          },
+          {
+            "id": 9,
+            "nome": "Comune di San Michele al Tagliamento (Bibione)",
+            "categoria": "Comuni & Enti Locali",
+            "area": "Aree Fluviali e di Confine",
+            "sito": "https://www.comune.sanmichele.ve.it/",
+            "sintesi": "Comune di confine con il Friuli V.G., comprende la destinazione turistica di Bibione e la foce del Tagliamento.",
+            "servizi": "Progetti VeGAL 'GiroTagliamento', valorizzazione del Faro, turismo naturalistico e retroterra agricolo.",
+            "tratti": ["Comune Socio", "Bibione", "Fiume Tagliamento", "Pista Faro"],
+            "connessioni": [1, 3, 13, 14],
+            "note": []
+          },
+          {
+            "id": 10,
+            "nome": "Comune di San Stino di Livenza",
+            "categoria": "Comuni & Enti Locali",
+            "area": "Aree Fluviali e di Confine",
+            "sito": "https://www.sanstino.it/",
+            "sintesi": "Comune adagiato sul fiume Livenza e centro nevralgico della produzione vitivinicola del Lison-Pramaggiore.",
+            "servizi": "Interporti ciclabili, turismo fluviale sul Livenza, sostegno alle PMI agricole e agroalimentari.",
+            "tratti": ["Comune Socio", "Fiume Livenza", "Bosco Bandiziol", "Vini DOC"],
+            "connessioni": [1, 3, 4, 5, 12, 14],
+            "note": []
+          },
+          {
+            "id": 17,
+            "nome": "Comune di Concordia Sagittaria",
+            "categoria": "Comuni & Enti Locali",
+            "area": "Entroterra & Città d'Arte",
+            "sito": "https://www.comune.concordiasagittaria.ve.it/",
+            "sintesi": "Storica colonia romana (Iulia Concordia) integrata nelle reti archeologiche e fluviali dell'entroterra.",
+            "servizi": "Percorsi ciclo-pedonali archeologici lungo il Lemene, valorizzazione patrimonio storico e culturale.",
+            "tratti": ["Comune Socio", "Archeologia", "Iulia Concordia", "Lemene"],
+            "connessioni": [1, 3, 5],
+            "note": []
+          },
+          // IMPRESE, COOPERATIVE & CONSORZI CHIAVE
+          {
+            "id": 11,
+            "nome": "OP Pescatori di Caorle & Chioggia (Cooperativa Pesca)",
+            "categoria": "Imprese, Cooperative & Consorzi",
+            "area": "Area Litoranea",
+            "sito": "https://www.oppescatori.it/",
+            "sintesi": "Organizzazione di Produttori che raggruppa le imbarcazioni e i pescatori della costa veneziana.",
+            "servizi": "Gestione del mercato ittico, tracciabilità del pesce fresco locale, vendita diretta e progetti FEAMPA con VeGAL.",
+            "tratti": ["Cooperativa Pesca", "OP Pescatori", "Filiera Ittica", "Mercato Caorle"],
+            "connessioni": [1, 2, 6, 8, 16],
+            "note": []
+          },
+          {
+            "id": 12,
+            "nome": "Consorzio Tutela Vini DOC Lison-Pramaggiore & Venezia",
+            "categoria": "Imprese, Cooperative & Consorzi",
+            "area": "Entroterra & Città d'Arte",
+            "sito": "https://www.consorzioviniseneuese.it/",
+            "sintesi": "Consorzio che rappresenta oltre 60 aziende agricole e cantine della zona vitivinicola tra Livenza e Tagliamento.",
+            "servizi": "Tutela denominazioni DOCG Lison, promozione mercati esteri, progetti di sostenibilità agricola e multifunzionalità.",
+            "tratti": ["Consorzio Vini", "Lison DOCG", "Aziende Agricole", "Export"],
+            "connessioni": [1, 4, 5, 10, 14],
+            "note": []
+          },
+          {
+            "id": 13,
+            "nome": "Consorzio Imprese Turistiche del Veneto Orientale (Caorle/Bibione/Jesolo)",
+            "categoria": "Imprese, Cooperative & Consorzi",
+            "area": "Area Litoranea",
+            "sito": "https://www.veneto.to/",
+            "sintesi": "Rete d'imprese alberghiere, campeggi e strutture ricettive del litorale per la promozione integrata mare-entroterra.",
+            "servizi": "Sviluppo pacchetti turistici bike&boat, digitalizzazione offerta turistica e cooperazione con VeGAL.",
+            "tratti": ["Imprese Turistiche", "Hotel & Camping", "Bike Hotel", "Promozione"],
+            "connessioni": [1, 3, 6, 7, 8, 9],
+            "note": []
+          },
+          {
+            "id": 14,
+            "nome": "Rete Agriturismi & Aziende Agricole della Filiera Corta",
+            "categoria": "Imprese, Cooperative & Consorzi",
+            "area": "Tutto il Veneto Orientale",
+            "sito": "https://www.vegal.net/",
+            "sintesi": "Coordinamento delle aziende agricole ed agrituristiche beneficiarie dei bandi PSL LEADER per la diversificazione ed accoglienza.",
+            "servizi": "Vendita diretta prodotti a km0, punti ristoro per cicloturisti, fattorie didattiche ed adozione energie rinnovabili.",
+            "tratti": ["Agriturismo", "Prodotti km0", "Diversificazione", "PSL Impresa"],
+            "connessioni": [1, 3, 4, 9, 10, 12],
+            "note": []
+          },
+          {
+            "id": 15,
+            "nome": "Network PMI Artigiane & Commerciali Entroterra",
+            "categoria": "Imprese, Cooperative & Consorzi",
+            "area": "Entroterra & Città d'Arte",
+            "sito": "https://www.vegal.net/",
+            "sintesi": "Gruppo di micro e piccole imprese artigianali e commerciali finanziate dalle Misure VeGAL per l'innovazione.",
+            "servizi": "E-commerce locale, botteghe storiche, lavorazione artigianale del legno/metallo e riqualificazione botteghe di paese.",
+            "tratti": ["PMI Artigiane", "Commercio Locale", "Bandi PSL", "Innovazione"],
+            "connessioni": [1, 5, 7],
+            "note": []
+          },
+          {
+            "id": 16,
+            "nome": "Azienda Valle da Pesca & Acquacoltura Pilota",
+            "categoria": "Imprese, Cooperative & Consorzi",
+            "area": "Area Litoranea",
+            "sito": "https://www.vegal.net/",
+            "sintesi": "Azienda acquagricola privata operante nella laguna tra Caorle e Bibione per la produzione ecosostenibile di orate e spigole.",
+            "servizi": "Progetti sperimentali di tutela biodiversità lagunare, percorsi didattici e pescaturismo supportati da FLAG VeGAL.",
+            "tratti": ["Valle da Pesca", "Acquacoltura", "Biodiversità", "Ittiturismo"],
+            "connessioni": [1, 2, 6, 11],
+            "note": []
+          }
+        ];
+
+        let membersData = [...sampleData];
+        let activeView = 'grid';
+        let currentEditingIndex = null;
+        let tempNotes = [];
+        let visNetwork = null;
+
+        // Visual Colors mapping by category
+        const categoryColors = {
+            "Sviluppo Rurale & LEADER": { bg: '#10b981', border: '#059669' },
+            "Comuni & Enti Locali": { bg: '#6366f1', border: '#4338ca' },
+            "Imprese, Cooperative & Consorzi": { bg: '#ec4899', border: '#db2777' },
+            "Pesca & FLAG Costiero": { bg: '#0284c7', border: '#0369a1' },
+            "Turismo & Mobilità Dolce": { bg: '#f59e0b', border: '#d97706' },
+            "Cultura & Paesaggio": { bg: '#8b5cf6', border: '#7c3aed' }
+        };
+
+        // DOM Elements
+        const gridViewEl = document.getElementById('grid-view');
+        const tableViewEl = document.getElementById('table-view');
+        const tableBodyEl = document.getElementById('table-body');
+        const searchInput = document.getElementById('search-input');
+        const categoryFilter = document.getElementById('category-filter');
+        const areaFilter = document.getElementById('area-filter');
+        const jsonFileInput = document.getElementById('json-upload');
+        
+        // Modal Visualizzazione
+        const modal = document.getElementById('detail-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalCategory = document.getElementById('modal-category');
+        const modalArea = document.getElementById('modal-area');
+        const modalSummary = document.getElementById('modal-summary');
+        const modalServizi = document.getElementById('modal-servizi');
+        const modalServiziContainer = document.getElementById('modal-servizi-container');
+        const modalConnectedNodes = document.getElementById('modal-connected-nodes');
+        const modalTags = document.getElementById('modal-tags');
+        const modalLinks = document.getElementById('modal-links');
+        const modalNotesList = document.getElementById('modal-notes-list');
+        const modalNotesContainer = document.getElementById('modal-notes-container');
+        const modalEditBtn = document.getElementById('modal-edit-btn');
+
+        // Modal Modifica
+        const editModal = document.getElementById('edit-modal');
+        const editNotesList = document.getElementById('edit-notes-list');
+
+        // Init App
+        document.addEventListener('DOMContentLoaded', () => {
+            initFilterOptions();
+            render();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            searchInput.addEventListener('input', render);
+            categoryFilter.addEventListener('change', render);
+            areaFilter.addEventListener('change', render);
+
+            document.getElementById('view-grid').addEventListener('click', (e) => {
+                activeView = 'grid';
+                gridViewEl.classList.remove('hidden');
+                tableViewEl.classList.add('hidden');
+                updateViewToggleButtons(e.currentTarget, document.getElementById('view-table'));
+            });
+
+            document.getElementById('view-table').addEventListener('click', (e) => {
+                activeView = 'table';
+                tableViewEl.classList.remove('hidden');
+                gridViewEl.classList.add('hidden');
+                updateViewToggleButtons(e.currentTarget, document.getElementById('view-grid'));
+            });
+
+            jsonFileInput.addEventListener('change', handleJsonUpload);
+            modal.addEventListener('click', (e) => { if(e.target === modal) closeModal(); });
+            editModal.addEventListener('click', (e) => { if(e.target === editModal) closeEditModal(); });
+        }
+
+        function switchTab(tab) {
+            const secDir = document.getElementById('section-directory');
+            const secNet = document.getElementById('section-network');
+            const secSim = document.getElementById('section-simulator');
+
+            const tabDir = document.getElementById('tab-directory');
+            const tabNet = document.getElementById('tab-network');
+            const tabSim = document.getElementById('tab-simulator');
+
+            secDir.classList.add('hidden');
+            secNet.classList.add('hidden');
+            secSim.classList.add('hidden');
+
+            tabDir.className = "py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap font-semibold";
+            tabNet.className = "py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap font-semibold";
+            tabSim.className = "py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 whitespace-nowrap font-semibold";
+
+            if(tab === 'directory') {
+                secDir.classList.remove('hidden');
+                tabDir.className = "py-3 border-b-2 border-emerald-600 text-emerald-700 flex items-center gap-2 whitespace-nowrap font-semibold";
+            } else if(tab === 'network') {
+                secNet.classList.remove('hidden');
+                tabNet.className = "py-3 border-b-2 border-emerald-600 text-emerald-700 flex items-center gap-2 whitespace-nowrap font-semibold";
+                setTimeout(renderInteractiveGraph, 50); // Render when div becomes visible
+            } else {
+                secSim.classList.remove('hidden');
+                tabSim.className = "py-3 border-b-2 border-emerald-600 text-emerald-700 flex items-center gap-2 whitespace-nowrap font-semibold";
+            }
+        }
+
+        function updateViewToggleButtons(activeBtn, inactiveBtn) {
+            activeBtn.className = "px-3 py-1.5 text-xs font-semibold rounded bg-white shadow text-slate-800";
+            inactiveBtn.className = "px-3 py-1.5 text-xs font-semibold rounded text-slate-600 hover:text-slate-900";
+        }
+
+        function initFilterOptions() {
+            const categories = [...new Set(membersData.map(m => m.categoria))].filter(Boolean);
+            const areas = [...new Set(membersData.map(m => m.area))].filter(Boolean);
+
+            categoryFilter.innerHTML = '<option value="ALL">Tutte le Categorie</option>';
+            categories.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                categoryFilter.appendChild(opt);
+            });
+
+            areaFilter.innerHTML = '<option value="ALL">Tutte le Macro-Aree</option>';
+            areas.forEach(a => {
+                const opt = document.createElement('option');
+                opt.value = a;
+                opt.textContent = a;
+                areaFilter.appendChild(opt);
+            });
+        }
+
+        function updateMetrics(filtered) {
+            document.getElementById('stat-total').textContent = filtered.length;
+            
+            // Count Comuni & Imprese
+            const comuniCount = filtered.filter(m => m.categoria === "Comuni & Enti Locali").length;
+            const impreseCount = filtered.filter(m => m.categoria === "Imprese, Cooperative & Consorzi").length;
+            
+            document.getElementById('stat-comuni').textContent = comuniCount;
+            document.getElementById('stat-imprese').textContent = impreseCount;
+
+            // Calc total unique connections
+            let connSet = new Set();
+            filtered.forEach(m => {
+                if(m.connessioni) {
+                    m.connessioni.forEach(targetId => {
+                        let pair = [m.id, targetId].sort().join('-');
+                        connSet.add(pair);
+                    });
+                }
+            });
+            document.getElementById('stat-connections').textContent = connSet.size;
+        }
+
+        function getFilteredData() {
+            const query = searchInput.value.toLowerCase().trim();
+            const selCat = categoryFilter.value;
+            const selArea = areaFilter.value;
+
+            return membersData.filter(item => {
+                const matchCat = selCat === 'ALL' || item.categoria === selCat;
+                const matchArea = selArea === 'ALL' || item.area === selArea;
+                
+                const hasMatchingNote = item.note && item.note.some(n => 
+                    (n.titolo && n.titolo.toLowerCase().includes(query)) ||
+                    (n.testo && n.testo.toLowerCase().includes(query))
+                );
+
+                const matchQuery = !query || 
+                    (item.nome && item.nome.toLowerCase().includes(query)) ||
+                    (item.sintesi && item.sintesi.toLowerCase().includes(query)) ||
+                    (item.servizi && item.servizi.toLowerCase().includes(query)) ||
+                    (item.categoria && item.categoria.toLowerCase().includes(query)) ||
+                    (item.area && item.area.toLowerCase().includes(query)) ||
+                    (item.tratti && item.tratti.some(t => t.toLowerCase().includes(query))) ||
+                    hasMatchingNote;
+                    
+                return matchCat && matchArea && matchQuery;
+            });
+        }
+
+        function render() {
+            const data = getFilteredData();
+            updateMetrics(data);
+
+            if(activeView === 'grid') {
+                renderCards(data);
+            } else {
+                renderTable(data);
+            }
+        }
+
+        function renderCards(data) {
+            gridViewEl.innerHTML = '';
+            if(data.length === 0) {
+                gridViewEl.innerHTML = `<div class="col-span-full py-12 text-center text-slate-400">Nessun comune, impresa o soggetto trovato con i filtri inseriti.</div>`;
+                return;
+            }
+
+            data.forEach((item) => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition p-5 flex flex-col justify-between";
+                
+                const tagsHtml = (item.tratti || []).slice(0, 3).map(t => `<span class="bg-slate-100 text-slate-600 text-xs px-2 py-0.5 rounded font-medium">${t}</span>`).join('');
+                const originalIndex = membersData.indexOf(item);
+                const connCount = item.connessioni ? item.connessioni.length : 0;
+
+                let catBadgeColor = "bg-emerald-50 text-emerald-700 border-emerald-100";
+                if(item.categoria === "Comuni & Enti Locali") catBadgeColor = "bg-indigo-50 text-indigo-700 border-indigo-100";
+                if(item.categoria === "Imprese, Cooperative & Consorzi") catBadgeColor = "bg-pink-50 text-pink-700 border-pink-100";
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <span class="text-[11px] font-bold px-2.5 py-1 rounded-full border ${catBadgeColor}">${item.categoria}</span>
+                            <div class="flex items-center gap-2">
+                                ${item.sito ? `<a href="${item.sito}" target="_blank" class="text-slate-400 hover:text-emerald-600 text-sm"><i class="fa-solid fa-up-right-from-square"></i></a>` : ''}
+                            </div>
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-base mb-1 line-clamp-1">${item.nome}</h3>
+                        <div class="flex items-center justify-between text-xs mb-3">
+                            <span class="text-blue-600 font-medium flex items-center gap-1"><i class="fa-solid fa-location-dot"></i> ${item.area}</span>
+                            <span class="text-slate-500 font-semibold flex items-center gap-1"><i class="fa-solid fa-link text-emerald-600"></i> ${connCount} collegamenti</span>
+                        </div>
+                        <p class="text-slate-600 text-xs line-clamp-3 mb-4 leading-relaxed">${item.sintesi}</p>
+                    </div>
+
+                    <div>
+                        <div class="flex flex-wrap gap-1 mb-4">
+                            ${tagsHtml}
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="openModal(${originalIndex})" class="w-full py-2 bg-slate-900 hover:bg-emerald-600 text-white rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-circle-info"></i> Dettagli
+                            </button>
+                            <button onclick="openEditModal(${originalIndex})" class="w-full py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-pen-to-square"></i> Modifica
+                            </button>
+                        </div>
+                    </div>
+                `;
+                gridViewEl.appendChild(card);
+            });
+        }
+
+        function renderTable(data) {
+            tableBodyEl.innerHTML = '';
+            if(data.length === 0) {
+                tableBodyEl.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-slate-400">Nessun dato disponibile.</td></tr>`;
+                return;
+            }
+
+            data.forEach((item) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition";
+                const originalIndex = membersData.indexOf(item);
+                const connCount = item.connessioni ? item.connessioni.length : 0;
+                
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-bold text-slate-900 text-xs">${item.nome}</td>
+                    <td class="px-6 py-4"><span class="text-xs font-semibold px-2 py-1 rounded bg-slate-100 text-slate-700">${item.categoria}</span></td>
+                    <td class="px-6 py-4 text-xs text-blue-600 font-medium">${item.area}</td>
+                    <td class="px-6 py-4 text-xs font-semibold text-slate-700"><i class="fa-solid fa-link text-emerald-600"></i> ${connCount} nodi</td>
+                    <td class="px-6 py-4 text-xs">
+                        ${item.sito ? `<a href="${item.sito}" target="_blank" class="text-emerald-600 hover:underline flex items-center gap-1"><i class="fa-solid fa-globe"></i> Link</a>` : '-'}
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-1">
+                        <button onclick="openModal(${originalIndex})" class="px-3 py-1 bg-slate-800 text-white rounded text-xs hover:bg-emerald-600 transition">Dettagli</button>
+                        <button onclick="openEditModal(${originalIndex})" class="px-3 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded text-xs transition">Modifica</button>
+                    </td>
+                `;
+                tableBodyEl.appendChild(tr);
+            });
+        }
+
+        // VIS.JS INTERACTIVE GRAPH RENDERING
+        function renderInteractiveGraph() {
+            const container = document.getElementById('network-container');
+            const data = getFilteredData();
+
+            const nodesArray = data.map(m => {
+                const style = categoryColors[m.categoria] || { bg: '#10b981', border: '#059669' };
+                let size = 22;
+                if(m.id === 1) size = 38; // VeGAL Central Hub
+                else if(m.categoria === "Comuni & Enti Locali") size = 26;
+                else if(m.categoria === "Imprese, Cooperative & Consorzi") size = 24;
+
+                return {
+                    id: m.id,
+                    label: m.nome.length > 25 ? m.nome.substring(0, 22) + '...' : m.nome,
+                    title: `<b>${m.nome}</b><br><i>${m.categoria}</i><br>${m.area}`,
+                    color: {
+                        background: style.bg,
+                        border: style.border,
+                        highlight: { background: '#ffffff', border: style.bg }
+                    },
+                    size: size
+                };
+            });
+
+            // Build edges dataset avoiding duplicates
+            let edgeSet = new Set();
+            let edgesArray = [];
+
+            data.forEach(sourceNode => {
+                if(sourceNode.connessioni) {
+                    sourceNode.connessioni.forEach(targetId => {
+                        if(membersData.some(m => m.id === targetId)) {
+                            let key = [sourceNode.id, targetId].sort().join('-');
+                            if(!edgeSet.has(key)) {
+                                edgeSet.add(key);
+                                edgesArray.push({
+                                    from: sourceNode.id,
+                                    to: targetId,
+                                    color: { color: '#334155', highlight: '#10b981' },
+                                    width: 1.5,
+                                    smooth: { type: 'continuous' }
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+
+            const graphData = {
+                nodes: new vis.DataSet(nodesArray),
+                edges: new vis.DataSet(edgesArray)
+            };
+
+            const options = {
+                nodes: {
+                    shape: 'dot',
+                    font: { color: '#f8fafc', size: 12, face: 'sans-serif' },
+                    borderWidth: 2,
+                    shadow: true
+                },
+                physics: {
+                    barnesHut: {
+                        gravitationalConstant: -3500,
+                        centralGravity: 0.3,
+                        springLength: 130,
+                        springConstant: 0.04
+                    },
+                    maxVelocity: 50,
+                    minVelocity: 0.1
+                },
+                interaction: {
+                    hover: true,
+                    zoomView: true,
+                    dragView: true
+                }
+            };
+
+            if (visNetwork) {
+                visNetwork.destroy();
+            }
+
+            visNetwork = new vis.Network(container, graphData, options);
+
+            // Click node to open modal
+            visNetwork.on("click", function (params) {
+                if (params.nodes.length > 0) {
+                    const selectedId = params.nodes[0];
+                    const idx = membersData.findIndex(m => m.id === selectedId);
+                    if (idx !== -1) {
+                        openModal(idx);
+                    }
+                }
+            });
+        }
+
+        function resetGraphView() {
+            if(visNetwork) {
+                visNetwork.fit({ animation: { duration: 800, easingFunction: 'easeInOutQuad' } });
+            }
+        }
+
+        // Modal Visualizzazione
+        window.openModal = function(index) {
+            const item = membersData[index];
+            if(!item) return;
+
+            modalTitle.textContent = item.nome;
+            modalCategory.textContent = item.categoria || 'Generale';
+            modalArea.textContent = item.area ? `📍 ${item.area}` : '';
+
+            modalSummary.textContent = item.sintesi || "Nessuna descrizione.";
+
+            if (item.servizi) {
+                modalServizi.textContent = item.servizi;
+                modalServiziContainer.style.display = 'block';
+            } else {
+                modalServiziContainer.style.display = 'none';
+            }
+
+            // Connessioni
+            modalConnectedNodes.innerHTML = '';
+            if(item.connessioni && item.connessioni.length > 0) {
+                item.connessioni.forEach(connId => {
+                    const target = membersData.find(m => m.id === connId);
+                    if(target) {
+                        const badge = document.createElement('span');
+                        let badgeStyle = "bg-white text-slate-800 border-slate-200 hover:border-emerald-500";
+                        if(target.categoria === "Comuni & Enti Locali") badgeStyle = "bg-indigo-50 text-indigo-800 border-indigo-200 hover:border-indigo-500";
+                        if(target.categoria === "Imprese, Cooperative & Consorzi") badgeStyle = "bg-pink-50 text-pink-800 border-pink-200 hover:border-pink-500";
+
+                        badge.className = `text-xs px-3 py-1.5 rounded-lg border font-semibold cursor-pointer shadow-sm flex items-center gap-1.5 transition ${badgeStyle}`;
+                        badge.innerHTML = `<i class="fa-solid fa-link text-emerald-600"></i> ${target.nome}`;
+                        badge.onclick = () => {
+                            const tIdx = membersData.indexOf(target);
+                            openModal(tIdx);
+                        };
+                        modalConnectedNodes.appendChild(badge);
+                    }
+                });
+            } else {
+                modalConnectedNodes.innerHTML = `<span class="text-xs text-slate-400">Nessuna connessione specificata.</span>`;
+            }
+
+            modalTags.innerHTML = '';
+            if(item.tratti && item.tratti.length > 0) {
+                item.tratti.forEach(t => {
+                    const tag = document.createElement('span');
+                    tag.className = "bg-emerald-50 text-emerald-700 text-xs px-3 py-1 rounded-full font-medium border border-emerald-100";
+                    tag.textContent = t;
+                    modalTags.appendChild(tag);
+                });
+            } else {
+                modalTags.innerHTML = `<span class="text-xs text-slate-400">Nessun tag specificato</span>`;
+            }
+
+            modalLinks.innerHTML = '';
+            if(item.sito) {
+                modalLinks.innerHTML += `
+                    <a href="${item.sito}" target="_blank" class="flex items-center justify-between p-3 rounded-xl border border-slate-200 hover:border-emerald-500 bg-white hover:bg-emerald-50/30 transition text-xs font-semibold text-emerald-700">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-globe text-base"></i> Sito Ufficiale / Portale</span>
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                `;
+            } else {
+                modalLinks.innerHTML = `<p class="text-xs text-slate-400">Nessun link salvato.</p>`;
+            }
+
+            modalNotesList.innerHTML = '';
+            if(item.note && item.note.length > 0) {
+                modalNotesContainer.style.display = 'block';
+                item.note.forEach(n => {
+                    const noteCard = document.createElement('div');
+                    noteCard.className = "bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3";
+                    
+                    let urlHtml = n.url ? `<div class="mt-1"><a href="${n.url}" target="_blank" class="inline-flex items-center gap-1.5 text-xs text-emerald-600 hover:underline"><i class="fa-solid fa-link"></i> ${n.url}</a></div>` : '';
+
+                    noteCard.innerHTML = `
+                        <h4 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-sticky-note text-amber-500"></i> ${n.titolo || 'Nota'}
+                        </h4>
+                        ${n.testo ? `<p class="text-xs text-slate-600 leading-relaxed whitespace-pre-line">${n.testo}</p>` : ''}
+                        ${urlHtml}
+                    `;
+                    modalNotesList.appendChild(noteCard);
+                });
+            } else {
+                modalNotesContainer.style.display = 'none';
+            }
+
+            modalEditBtn.onclick = () => {
+                closeModal();
+                openEditModal(index);
+            };
+
+            modal.classList.remove('hidden');
+        };
+
+        function closeModal() {
+            modal.classList.add('hidden');
+        }
+
+        // Modal Modifica
+        window.openEditModal = function(index) {
+            currentEditingIndex = index;
+            const connContainer = document.getElementById('edit-connections-checkboxes');
+            connContainer.innerHTML = '';
+
+            let currentConnIds = [];
+
+            if (index !== null && membersData[index]) {
+                const item = membersData[index];
+                document.getElementById('edit-nome').value = item.nome || '';
+                document.getElementById('edit-categoria').value = item.categoria || 'Comuni & Enti Locali';
+                document.getElementById('edit-area').value = item.area || 'Tutto il Veneto Orientale';
+                document.getElementById('edit-sito').value = item.sito || '';
+                document.getElementById('edit-sintesi').value = item.sintesi || '';
+                document.getElementById('edit-servizi').value = item.servizi || '';
+                document.getElementById('edit-tratti').value = (item.tratti || []).join(', ');
+                tempNotes = JSON.parse(JSON.stringify(item.note || []));
+                currentConnIds = item.connessioni || [];
+            } else {
+                document.getElementById('edit-nome').value = '';
+                document.getElementById('edit-categoria').value = 'Comuni & Enti Locali';
+                document.getElementById('edit-area').value = 'Tutto il Veneto Orientale';
+                document.getElementById('edit-sito').value = '';
+                document.getElementById('edit-sintesi').value = '';
+                document.getElementById('edit-servizi').value = '';
+                document.getElementById('edit-tratti').value = '';
+                tempNotes = [];
+            }
+
+            // Populate checkboxes
+            membersData.forEach((otherNode) => {
+                if(index === null || otherNode.id !== membersData[index].id) {
+                    const isChecked = currentConnIds.includes(otherNode.id);
+                    const label = document.createElement('label');
+                    label.className = "flex items-center gap-2 text-xs text-slate-700 font-medium cursor-pointer p-1.5 hover:bg-white rounded border border-transparent hover:border-slate-200 transition";
+                    label.innerHTML = `
+                        <input type="checkbox" value="${otherNode.id}" ${isChecked ? 'checked' : ''} class="conn-checkbox text-emerald-600 rounded focus:ring-emerald-500">
+                        <span class="truncate">${otherNode.nome}</span>
+                    `;
+                    connContainer.appendChild(label);
+                }
+            });
+
+            renderEditNotesList();
+            editModal.classList.remove('hidden');
+        };
+
+        function closeEditModal() {
+            editModal.classList.add('hidden');
+            currentEditingIndex = null;
+            tempNotes = [];
+        }
+
+        function renderEditNotesList() {
+            editNotesList.innerHTML = '';
+            if(tempNotes.length === 0) {
+                editNotesList.innerHTML = `<p class="text-xs text-slate-400 italic">Nessuna nota tecnica presente.</p>`;
+                return;
+            }
+
+            tempNotes.forEach((note, idx) => {
+                const noteBox = document.createElement('div');
+                noteBox.className = "p-4 bg-slate-50 border border-slate-200 rounded-xl relative space-y-3";
+
+                noteBox.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-500 uppercase">Nota / Scheda Progetto #${idx + 1}</span>
+                        <button type="button" onclick="removeNoteField(${idx})" class="text-red-500 hover:text-red-700 text-xs font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-trash"></i> Rimuovi
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="md:col-span-2">
+                            <input type="text" placeholder="Titolo nota..." value="${note.titolo || ''}" onchange="tempNotes[${idx}].titolo = this.value" class="w-full p-2 text-xs border border-slate-300 rounded font-bold">
+                        </div>
+                        <div class="md:col-span-2">
+                            <textarea placeholder="Descrizione..." rows="2" onchange="tempNotes[${idx}].testo = this.value" class="w-full p-2 text-xs border border-slate-300 rounded">${note.testo || ''}</textarea>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Link Correlato (URL)</label>
+                            <input type="url" placeholder="https://..." value="${note.url || ''}" onchange="tempNotes[${idx}].url = this.value" class="w-full p-2 text-xs border border-slate-300 rounded">
+                        </div>
+                    </div>
+                `;
+                editNotesList.appendChild(noteBox);
+            });
+        }
+
+        function addNoteField() {
+            tempNotes.push({ id: Date.now(), titolo: '', testo: '', url: '' });
+            renderEditNotesList();
+        }
+
+        function removeNoteField(idx) {
+            tempNotes.splice(idx, 1);
+            renderEditNotesList();
+        }
+
+        function saveMemberEdits(e) {
+            e.preventDefault();
+            const trattiStr = document.getElementById('edit-tratti').value;
+            const trattiArr = trattiStr ? trattiStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+
+            const connBoxes = document.querySelectorAll('.conn-checkbox:checked');
+            const selectedConnIds = Array.from(connBoxes).map(cb => parseInt(cb.value));
+
+            const currentId = currentEditingIndex !== null ? membersData[currentEditingIndex].id : Date.now();
+
+            const newNodeData = {
+                id: currentId,
+                nome: document.getElementById('edit-nome').value.trim(),
+                categoria: document.getElementById('edit-categoria').value,
+                area: document.getElementById('edit-area').value,
+                sito: document.getElementById('edit-sito').value.trim(),
+                sintesi: document.getElementById('edit-sintesi').value.trim(),
+                servizi: document.getElementById('edit-servizi').value.trim(),
+                tratti: trattiArr,
+                connessioni: selectedConnIds,
+                note: [...tempNotes]
+            };
+
+            if (currentEditingIndex !== null) {
+                membersData[currentEditingIndex] = newNodeData;
+            } else {
+                membersData.push(newNodeData);
+            }
+
+            // Sync reciprocal connections
+            selectedConnIds.forEach(targetId => {
+                const targetNode = membersData.find(m => m.id === targetId);
+                if(targetNode) {
+                    if(!targetNode.connessioni) targetNode.connessioni = [];
+                    if(!targetNode.connessioni.includes(currentId)) {
+                        targetNode.connessioni.push(currentId);
+                    }
+                }
+            });
+
+            initFilterOptions();
+            render();
+            closeEditModal();
+        }
+
+        // SIMULATORE BANDI E OPPORTUNITÀ PSL
+        function runSimulation() {
+            const ben = document.getElementById('sim-beneficiario').value;
+            const amb = document.getElementById('sim-ambito').value;
+            const budget = parseFloat(document.getElementById('sim-budget').value) || 0;
+
+            let rate = 0.50; 
+            let misuraName = "PSL LEADER - Veneto Orientale";
+            let desc = "";
+
+            if (ben === 'ente') {
+                rate = 0.80;
+                misuraName = "PSL LEADER - Riqualificazione Pubblica & Infrastrutture Comuni";
+                desc = "Sostegno fino all'80% per i Comuni soci del Veneto Orientale per realizzare piste ciclabili, approdi fluviali, musei locali e rigenerazione dei centri storici.";
+            } else if (ben === 'coop_pesca') {
+                rate = 0.60;
+                misuraName = "Strategia FEAMPA / FLAG Costiero Veneziano";
+                desc = "Incentivi per le cooperative della pesca ed aziende acquagricole per ammodernamento imbarcazioni, vendita diretta, ittiturismo e tracciabilità.";
+            } else if (ben === 'impresa_agricola') {
+                rate = 0.50;
+                misuraName = "PSL LEADER - Agriturismo, Filiera Corta & Vini DOCG";
+                desc = "Finanziamenti per la diversificazione agricola, allestimento punti vendita aziendali a km0, enoturismo e accoglienza cicloturistica.";
+            } else if (ben === 'consorzio_turismo') {
+                rate = 0.70;
+                misuraName = "PSL LEADER - Reti di Imprese Turistiche Mare-Entroterra";
+                desc = "Supporto a Consorzi e Reti di Imprese per la digitalizzazione dell'offerta turistica, pacchetti integrati bike&boat e promozione delle città d'arte.";
+            } else {
+                rate = 0.50;
+                misuraName = "PSL LEADER - Modernizzazione & Digitalizzazione PMI";
+                desc = "Contributi in conto capitale per micro e piccole imprese artigiane, commerciali e dei servizi dell'entroterra per acquisto macchinari, e-commerce ed efficientamento energetico.";
+            }
+
+            const grant = budget * rate;
+            const own = budget - grant;
+
+            document.getElementById('res-misura').textContent = misuraName;
+            document.getElementById('res-rate').textContent = Math.round(rate * 100) + "%";
+            document.getElementById('res-grant').textContent = "€ " + grant.toLocaleString('it-IT', {maximumFractionDigits: 0});
+            document.getElementById('res-own').textContent = "€ " + own.toLocaleString('it-IT', {maximumFractionDigits: 0});
+            document.getElementById('res-desc').textContent = desc;
+
+            // Raccomanda Comuni e Imprese Correlate
+            const resNodesContainer = document.getElementById('res-nodes');
+            resNodesContainer.innerHTML = '';
+            
+            const related = membersData.filter(m => 
+                (ben === 'ente' && m.categoria === "Comuni & Enti Locali") ||
+                (ben === 'coop_pesca' && m.categoria.includes("Pesca")) ||
+                (ben === 'impresa_agricola' && (m.nome.includes("Vini") || m.nome.includes("Agriturismi"))) ||
+                (ben === 'consorzio_turismo' && m.categoria.includes("Turismo")) ||
+                (ben === 'impresa_pmi' && m.categoria.includes("Imprese")) ||
+                (m.nome.includes("VeGAL"))
+            ).slice(0, 4);
+
+            related.forEach(r => {
+                const badge = document.createElement('span');
+                badge.className = "bg-white text-slate-800 text-xs px-3 py-1.5 rounded-lg border border-emerald-200 font-semibold shadow-sm flex items-center gap-1.5 cursor-pointer hover:border-emerald-500 transition";
+                badge.innerHTML = `<i class="fa-solid fa-building text-emerald-600"></i> ${r.nome}`;
+                badge.onclick = () => {
+                    switchTab('directory');
+                    openModal(membersData.indexOf(r));
+                };
+                resNodesContainer.appendChild(badge);
+            });
+
+            document.getElementById('sim-result').classList.remove('hidden');
+        }
+
+        // ESPORTAZIONE & IMPORTAZIONE JSON
+        function exportJson() {
+            if (!membersData || membersData.length === 0) {
+                alert("Nessun dato da esportare.");
+                return;
+            }
+
+            const jsonString = JSON.stringify(membersData, null, 2);
+            const blob = new Blob([jsonString], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            const dateStr = new Date().toISOString().slice(0, 10);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `vegal_comuni_imprese_export_${dateStr}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function handleJsonUpload(e) {
+            const files = Array.from(e.target.files);
+            if (!files || files.length === 0) return;
+
+            const filePromises = files.map(file => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                        try {
+                            const parsed = JSON.parse(evt.target.result);
+                            const items = Array.isArray(parsed) ? parsed : [parsed];
+                            resolve(items);
+                        } catch (err) {
+                            reject(`Errore parsing ${file.name}: ${err.message}`);
+                        }
+                    };
+                    reader.onerror = () => reject(`Impossibile leggere ${file.name}`);
+                    reader.readAsText(file, 'UTF-8');
+                });
+            });
+
+            Promise.all(filePromises)
+                .then(results => {
+                    const rawItems = results.flat();
+                    if (rawItems.length === 0) {
+                        alert("Nessun dato valido nei file selezionati.");
+                        return;
+                    }
+
+                    membersData = rawItems.map((item, index) => ({
+                        id: item.id || Date.now() + index,
+                        nome: item.nome || "Nodo VeGAL",
+                        categoria: item.categoria || "Comuni & Enti Locali",
+                        area: item.area || "Tutto il Veneto Orientale",
+                        sito: item.sito || "",
+                        sintesi: item.sintesi || "Nessuna descrizione.",
+                        servizi: item.servizi || "",
+                        tratti: Array.isArray(item.tratti) ? item.tratti : [],
+                        connessioni: Array.isArray(item.connessioni) ? item.connessioni : [],
+                        note: Array.isArray(item.note) ? item.note : []
+                    }));
+
+                    initFilterOptions();
+                    render();
+                    alert(`Importati con successo ${membersData.length} nodi (Comuni, Imprese, Reti)!`);
+                })
+                .catch(err => alert("Errore durante il caricamento:\n" + err))
+                .finally(() => e.target.value = '');
+        }
+    </script>
+</body>
+</html>

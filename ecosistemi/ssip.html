@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Ecosistema SSIP | Stazione Sperimentale Pelli</title>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --panel-bg: rgba(15, 23, 42, 0.94);
+            --panel-border: rgba(255, 255, 255, 0.12);
+            --accent-gold: #f59e0b;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+            --accent-red: #ef4444;
+            --accent-pink: #ec4899;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, #d97706, #78350f);
+            color: #fff;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 10px rgba(217, 119, 6, 0.4);
+        }
+
+        h1 {
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        .kpi-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--panel-border);
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        .kpi-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .workspace {
+            display: flex;
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 55px);
+            overflow: hidden;
+        }
+
+        #network-container {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            cursor: grab;
+            background: radial-gradient(circle at center, #111827 0%, #090d16 100%);
+        }
+
+        #network-container:active {
+            cursor: grabbing;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Controlli Overlay */
+        .controls-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 5;
+            width: 330px;
+        }
+
+        .control-group {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .view-switcher {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+
+        .btn-view {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-view:hover {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: var(--accent-gold);
+        }
+
+        .btn-view.active {
+            background: var(--accent-gold);
+            color: #000;
+            font-weight: 700;
+            border-color: var(--accent-gold);
+        }
+
+        .search-box {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            font-size: 0.78rem;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .tag-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--panel-border);
+            color: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.68rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-btn.active, .tag-btn:hover {
+            color: #fff;
+            border-color: var(--accent-gold);
+            background: rgba(245, 158, 11, 0.2);
+        }
+
+        /* Finestra Laterale Dettagli Soggetto */
+        .detail-window {
+            width: 370px;
+            height: 100%;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 8;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+            flex-shrink: 0;
+        }
+
+        .detail-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .category-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .entity-title {
+            font-size: 1.15rem;
+            margin-bottom: 2px;
+            color: #fff;
+        }
+
+        .entity-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .detail-body {
+            padding: 14px 18px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .info-card h4 {
+            font-size: 0.68rem;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-card p {
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: #cbd5e1;
+        }
+
+        .connected-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .conn-chip {
+            background: rgba(255,255,255,0.08);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .conn-chip:hover {
+            background: rgba(245, 158, 11, 0.25);
+            border-color: var(--accent-gold);
+            color: #fff;
+        }
+
+        /* Legenda */
+        .legend {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.68rem;
+            display: flex;
+            gap: 12px;
+            backdrop-filter: blur(8px);
+            z-index: 5;
+            flex-wrap: wrap;
+            max-width: 70%;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace { flex-direction: column; }
+            .detail-window { width: 100%; height: 38%; }
+            .kpi-container { display: none; }
+            .controls-overlay { width: calc(100% - 24px); }
+            .legend { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-group">
+            <span class="logo-badge">SSIP</span>
+            <h1>Ecosistema Stazione Sperimentale Pelli & Filiera Conciaria</h1>
+        </div>
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-value">Pozzuoli + 3 Sedi</div>
+                <div class="kpi-label">Poli Tecnici</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">130+ Anni</div>
+                <div class="kpi-label">Ricerca & Innovazione</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">1200+ Concerie</div>
+                <div class="kpi-label">Supporto Filiera</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="controls-overlay">
+            <div class="control-group">
+                <div class="control-label">Modalità di Visualizzazione Rete</div>
+                <div class="view-switcher" id="viewSwitcher">
+                    <button class="btn-view active" data-view="hub">🏛️ Hub SSIP</button>
+                    <button class="btn-view" data-view="force">🌀 Fisica Repulsiva</button>
+                    <button class="btn-view" data-view="radial">⭕ Concentrica</button>
+                    <button class="btn-view" data-view="grid">📊 Per Categoria</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">Filtra e Cerca Attori SSIP</div>
+                <input type="text" id="searchInput" class="search-box" placeholder="Cerca ateneo, distretto, laboratorio...">
+                <div class="filter-tags" id="filterContainer">
+                    <button class="tag-btn active" data-cat="all">Tutti</button>
+                    <button class="tag-btn" data-cat="hub">Hub SSIP</button>
+                    <button class="tag-btn" data-cat="dist">Distretti Conciari</button>
+                    <button class="tag-btn" data-cat="uni">Università & CNR</button>
+                    <button class="tag-btn" data-cat="gov">Associazioni & MIMIT</button>
+                    <button class="tag-btn" data-cat="cert">Certificazione & ISO</button>
+                    <button class="tag-btn" data-cat="eco">Circolarità & Depurazione</button>
+                    <button class="tag-btn" data-cat="brand">Brand & Filiere</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="network-container">
+            <canvas id="networkCanvas"></canvas>
+
+            <div class="legend">
+                <div class="legend-item"><span class="legend-color" style="background:#f59e0b;"></span> Hub SSIP</div>
+                <div class="legend-item"><span class="legend-color" style="background:#ef4444;"></span> Distretti Conciari</div>
+                <div class="legend-item"><span class="legend-color" style="background:#3b82f6;"></span> Università & CNR</div>
+                <div class="legend-item"><span class="legend-color" style="background:#10b981;"></span> Associazioni & MIMIT</div>
+                <div class="legend-item"><span class="legend-color" style="background:#06b6d4;"></span> Certificazione & Norme</div>
+                <div class="legend-item"><span class="legend-color" style="background:#8b5cf6;"></span> Sostenibilità & Depurazione</div>
+                <div class="legend-item"><span class="legend-color" style="background:#ec4899;"></span> Brand & Filiere Finali</div>
+            </div>
+        </div>
+
+        <!-- Finestra Laterale di Visualizzazione Soggetti -->
+        <aside class="detail-window">
+            <div class="detail-header">
+                <span class="category-pill" id="detCategory">HUB NAZIONALE</span>
+                <h2 class="entity-title" id="detTitle">SSIP</h2>
+                <p class="entity-subtitle" id="detSubtitle">Stazione Sperimentale per l'Industria delle Pelli</p>
+            </div>
+            <div class="detail-body">
+                <div class="info-card">
+                    <h4>Ruolo nell'Ecosistema</h4>
+                    <p id="detRole">Organismo di Ricerca Nazionale e centro d'eccellenza tecnico-scientifico per l'industria conciaria italiana, operante sotto la vigilanza del MIMIT.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Attività & Iniziative Strategiche</h4>
+                    <p id="detDesc">Svolge attività di R&S, analisi e prove di laboratorio (REACH, ISO 17075, ISO 17226), supporto normativo, consulenza di processo e formazione specialistica per l'intera filiera del cuoio.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Soggetti Direttamente Connessi</h4>
+                    <div class="connected-list" id="detConns"></div>
+                </div>
+                <a id="detLink" href="https://ssip.it/" target="_blank" class="action-btn" style="display:block; text-align:center; background:var(--accent-gold); color:#000; font-weight:700; padding:9px; border-radius:6px; text-decoration:none; margin-top:auto; font-size:0.8rem;">Visita Sito Ufficiale SSIP</a>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // DATASET DEGLI ATTORI DELL'ECOSISTEMA SSIP
+        const nodes = [
+            // HUB CENTRALE SSIP
+            { id: 'ssip_hub', label: 'SSIP Hub Pozzuoli', cat: 'hub', color: '#f59e0b', radius: 24,
+              sub: 'Sede Centrale & Laboratori di Ricerca (Napoli)', 
+              desc: 'Ente pubblico di ricerca scientifica e tecnologica fondato nel 1885, punto di riferimento nazionale per la chimica e la tecnologia del cuoio.', 
+              role: 'Coordinamento R&S, accreditamento prova laboratorio, trasferimento tecnologico e formazione avanzata.',
+              url: 'https://ssip.it/' },
+
+            // DISTRETTI CONCIARI
+            { id: 'dist_veneto', label: 'Distretto Chiampo-Arzignano', cat: 'dist', color: '#ef4444', radius: 18,
+              sub: 'Polo Conciario Veneto (Vicenza)', desc: 'Il più grande distretto conciario d\'Europa per volume, specializzato in pellami per automotive e arredamento.', role: 'Produzione di cuoio industriale, innovazione nei bagni di concia e depurazione delle acque.', url: 'https://ssip.it/' },
+
+            { id: 'dist_toscana', label: 'Distretto Santa Croce s/Arno', cat: 'dist', color: '#ef4444', radius: 18,
+              sub: 'Polo Conciario Toscano (Pisa)', desc: 'Eccellenza mondiale per il cuoio da suola, la concia al vegetale e la pelle per calzatura e pelletteria di lusso.', role: 'Concia al vegetale con tannini naturali, tracciabilità di filiera e recupero sottoprodotti.', url: 'https://ssip.it/' },
+
+            { id: 'dist_campania', label: 'Distretto di Solofra', cat: 'dist', color: '#ef4444', radius: 17,
+              sub: 'Polo Conciario Campano (Avellino)', desc: 'Distretto storico leader nella lavorazione e rifinizione di pelli ovocaprine per abbigliamento e pelletteria.', role: 'Lavorazione pelli sottili, nobilitazione superficiale e soluzioni Metal-Free.', url: 'https://ssip.it/' },
+
+            { id: 'dist_lombardia', label: 'Polo Turbigo-Robecchetto', cat: 'dist', color: '#ef4444', radius: 15,
+              sub: 'Distretto Conciario Castano Primo (Milano)', desc: 'Polo specializzato in pellami di alta gamma per calzatura e rifinizione tecnica.', role: 'Rifinizione ecologica, trattamenti superficiali e cuoio per la moda milanese.', url: 'https://ssip.it/' },
+
+            // UNIVERSITÀ & RICERCA
+            { id: 'unina', label: 'Uniina Federico II', cat: 'uni', color: '#3b82f6', radius: 17,
+              sub: 'Università degli Studi di Napoli', desc: 'Partner accademico principale di SSIP per lo sviluppo della laurea in Ingegneria della Pelle e la ricerca molecolare.', role: 'Alta formazione universitaria, ingegneria chimica dei materiali concianti e biotecnologie.', url: 'https://www.unina.it/' },
+
+            { id: 'unifi', label: 'UniFi', cat: 'uni', color: '#3b82f6', radius: 15,
+              sub: 'Università degli Studi di Firenze', desc: 'Ateneo integrato nella ricerca sui chimici per la concia e le proprietà dei tannini vegetali.', role: 'Analisi spettroscopica delle pelli e sviluppo sintani sostenibili.', url: 'https://www.unifi.it/' },
+
+            { id: 'unipd', label: 'UniPd', cat: 'uni', color: '#3b82f6', radius: 15,
+              sub: 'Università degli Studi di Padova', desc: 'Collaborazione scientifica per l\'impiantistica chimica e il recupero fanghi di conceria.', role: 'Ingegneria ambientale, trattamento reflui e processi a impatto zero.', url: 'https://www.unipd.it/' },
+
+            { id: 'cnr_pelli', label: 'CNR IPCB', cat: 'uni', color: '#3b82f6', radius: 16,
+              sub: 'Istituto Polimeri, Compositi e Biomateriali', desc: 'Centro CNR attivo nella caratterizzazione dei polimeri naturali e nello sviluppo di pelli bio-based.', role: 'Studio della matrice collagenica, biopolimeri e alternative bio-ispirate.', url: 'https://www.ipcb.cnr.it/' },
+
+            // ASSOCIAZIONI DI CATEGORIA & GOVERNO
+            { id: 'mimit', label: 'MIMIT', cat: 'gov', color: '#10b981', radius: 18,
+              sub: 'Ministero Imprese e Made in Italy', desc: 'Ministero vigilante su SSIP che definisce le politiche industriali per la tutela del Made in Italy.', role: 'Vigilanza istituzionale, supporto normativo e difesa della denominazione Cuoio/Pelle.', url: 'https://www.mimit.gov.it/' },
+
+            { id: 'unic', label: 'UNIC - Concerie Italiane', cat: 'gov', color: '#10b981', radius: 17,
+              sub: 'Unione Nazionale Industria Conciaria', desc: 'Associazione che rappresenta oltre 1.000 concerie italiane nei tavoli nazionali ed europei.', role: 'Rappresentanza di categoria, report di sostenibilità di settore e promozione globale.', url: 'https://www.unic.it/' },
+
+            { id: 'assomac', label: 'ASSOMAC', cat: 'gov', color: '#10b981', radius: 15,
+              sub: 'Costruttori Macchine Conciarie e Calzaturiere', desc: 'Associazione dei produttori di macchinari per conceria, calzatura e pelletteria.', role: 'Innovazione tecnologica 4.0/5.0 nelle botti, spaccatrici e spruzzatrici.', url: 'https://www.assomac.it/' },
+
+            { id: 'lineapelle', label: 'Lineapelle & Cotance', cat: 'gov', color: '#10b981', radius: 15,
+              sub: 'Network Promozionale & Confederazione Europea', desc: 'Piattaforma fieristica internazionale e rappresentanza europea dell\'industria del cuoio.', role: 'Esposizione tendenze moda, benchmark internazionali ed eco-label europee.', url: 'https://www.lineapelle-fair.it/' },
+
+            // CERTIFICAZIONE, PROVE & STANDARDS
+            { id: 'ssip_labs', label: 'Laboratori Prove SSIP', cat: 'cert', color: '#06b6d4', radius: 17,
+              sub: 'Accreditamento ACCREDIA ISO 17025', desc: 'Unità analitiche SSIP operative su analisi chimiche (Cromo VI, Formaldeide, PFAS) e fisico-meccaniche.', role: 'Rilascio certificati di conformità ufficiale per l\'import/export e capitolati brand.', url: 'https://ssip.it/' },
+
+            { id: 'icec', label: 'ICEC', cat: 'cert', color: '#06b6d4', radius: 16,
+              sub: 'Istituto Certificazione Qualità Conciaria', desc: 'L\'unico organismo di certificazione specializzato esclusivamente per il settore pelle.', role: 'Certificazione di origine italiana, tracciabilità ambientale e benessere animale.', url: 'https://www.icec.it/' },
+
+            { id: 'uni_iso', label: 'UNI / ISO TC 120', cat: 'cert', color: '#06b6d4', radius: 15,
+              sub: 'Commissioni Tecniche di Normalizzazione', desc: 'Organismi di regolamentazione che definiscono le metodologie ufficiali di prova sui pellami.', role: 'Definizione degli standard ISO 17075 (Cromo VI), ISO 17226 e definizioni Cuoio.', url: 'https://www.uni.com/' },
+
+            // SOSTENIBILITÀ, ECO-TANNING & CIRCULARITY
+            { id: 'depuratori', label: 'Consorzi Depurazione Reflui', cat: 'eco', color: '#8b5cf6', radius: 16,
+              sub: 'Cuoiodepur, Acque del Chiampo, Solofra', desc: 'Grandi impianti centralizzati per la depurazione delle acque reflue conciarie nei distretti.', role: 'Abbattimento carico organico, recupero cromo ed effluenti industriali puliti.', url: 'https://ssip.it/' },
+
+            { id: 'recupero_scarti', label: 'Filiera Valorizzazione Scarti', cat: 'eco', color: '#8b5cf6', radius: 15,
+              sub: 'Gelatina, Collagene & Biostimolanti', desc: 'Imprese per la trasformazione dei ritagli incruditi/conciati in risorse per agricoltura e cosmesi.', role: 'Economia circolare: produzione di fertilizzanti organici e gelatine da carniccio.', url: 'https://ssip.it/' },
+
+            { id: 'pelle_sostenibile', label: 'Piattaforma Eco-Tanning SSIP', cat: 'eco', color: '#8b5cf6', radius: 16,
+              sub: 'Progetti Green & Life Cycle Assessment', desc: 'Iniziativa SSIP per la misurazione della Product Carbon Footprint (PEF) e bagni Metal-Free.', role: 'Valutazione impatto ambientale LCA, concia Wet-White e tecnologie idriche chiuse.', url: 'https://ssip.it/' },
+
+            // BRAND & FILIERE FINALI
+            { id: 'brand_luxury', label: 'Maison del Lusso', cat: 'brand', color: '#ec4899', radius: 16,
+              sub: 'Gucci, Prada, Kering, LVMH', desc: 'I grandi gruppi internazionali dell\'alta moda committenti di pellami italiani di altissima gamma.', role: 'Capitolati di fornitura stringenti (RSL), tracciabilità e requisiti di sostenibilità.', url: 'https://ssip.it/' },
+
+            { id: 'brand_automotive', label: 'Filiera Automotive', cat: 'brand', color: '#ec4899', radius: 15,
+              sub: 'Interni Auto & Arredamento', desc: 'Produttori di componenti in pelle per automobili di pregio, aviazione e yachting.', role: 'Standard severissimi di resistenza agli UV, nebbia salina, invecchiamento e VOC.', url: 'https://ssip.it/' },
+
+            { id: 'brand_footwear', label: 'Calzatura & Pelletteria', cat: 'brand', color: '#ec4899', radius: 15,
+              sub: 'Distretti Calzaturieri Italiani', desc: 'Fabbricanti di scarpe e borse Made in Italy alimentati dai pellami dei distretti italiani.', role: 'Assorbimento materia prima, test di flessione/strappo e requisiti estetici.', url: 'https://ssip.it/' }
+        ];
+
+        // RELAZIONI (LINK) TRA GLI ATTORI
+        const links = [
+            // SSIP Hub e Governance / Enti pubblici
+            { source: 'ssip_hub', target: 'mimit' },
+            { source: 'ssip_hub', target: 'unic' },
+            { source: 'ssip_hub', target: 'assomac' },
+            { source: 'ssip_hub', target: 'lineapelle' },
+
+            // SSIP e Distretti
+            { source: 'ssip_hub', target: 'dist_veneto' },
+            { source: 'ssip_hub', target: 'dist_toscana' },
+            { source: 'ssip_hub', target: 'dist_campania' },
+            { source: 'ssip_hub', target: 'dist_lombardia' },
+
+            // SSIP e Ricerca / Università
+            { source: 'ssip_hub', target: 'unina' },
+            { source: 'ssip_hub', target: 'unifi' },
+            { source: 'ssip_hub', target: 'unipd' },
+            { source: 'ssip_hub', target: 'cnr_pelli' },
+
+            // SSIP, Laboratori e Standards
+            { source: 'ssip_hub', target: 'ssip_labs' },
+            { source: 'ssip_hub', target: 'icec' },
+            { source: 'ssip_hub', target: 'uni_iso' },
+            { source: 'ssip_labs', target: 'uni_iso' },
+            { source: 'icec', target: 'unic' },
+
+            // Connessioni Distretti - Sostenibilità e Depurazione
+            { source: 'ssip_hub', target: 'depuratori' },
+            { source: 'ssip_hub', target: 'recupero_scarti' },
+            { source: 'ssip_hub', target: 'pelle_sostenibile' },
+            { source: 'dist_veneto', target: 'depuratori' },
+            { source: 'dist_toscana', target: 'depuratori' },
+            { source: 'dist_campania', target: 'depuratori' },
+            { source: 'dist_toscana', target: 'recupero_scarti' },
+
+            // Filiere industriali tra Distretti e Brand finali
+            { source: 'dist_veneto', target: 'brand_automotive' },
+            { source: 'dist_toscana', target: 'brand_luxury' },
+            { source: 'dist_campania', target: 'brand_footwear' },
+            { source: 'dist_lombardia', target: 'brand_luxury' },
+            { source: 'ssip_labs', target: 'brand_luxury' },
+            { source: 'ssip_labs', target: 'brand_automotive' },
+
+            // Inter-connessioni tecnologiche
+            { source: 'assomac', target: 'dist_veneto' },
+            { source: 'assomac', target: 'dist_toscana' },
+            { source: 'unina', target: 'dist_campania' },
+            { source: 'unipd', target: 'dist_veneto' },
+            { source: 'unifi', target: 'dist_toscana' }
+        ];
+
+        // CANVAS ENGINE
+        const container = document.getElementById('network-container');
+        const canvas = document.getElementById('networkCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = 0;
+        let height = 0;
+        let selectedNode = nodes[0];
+        let hoveredNode = null;
+        let draggedNode = null;
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let currentLayout = 'hub';
+        let initialized = false;
+
+        nodes.forEach(n => {
+            n.x = 0; n.y = 0;
+            n.tx = 0; n.ty = 0;
+            n.vx = 0; n.vy = 0;
+        });
+
+        // CALCOLO POSIZIONI TARGET PER LE DIVERSE VISTE
+        function computeTargetPositions() {
+            const padX = Math.max(100, Math.min(width * 0.12, 160));
+            const padY = Math.max(90, Math.min(height * 0.14, 130));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'hub') {
+                // VISTA 1: SSIP HUB CENTRALE E ORBITE PER CATEGORIA
+                const hub = nodes.find(n => n.id === 'ssip_hub');
+                hub.tx = cx;
+                hub.ty = cy;
+
+                const categories = ['dist', 'uni', 'gov', 'cert', 'eco', 'brand'];
+                const numCats = categories.length;
+
+                categories.forEach((catKey, cIdx) => {
+                    const angleCat = (cIdx / numCats) * Math.PI * 2 - Math.PI / 2;
+                    const catRadius = Math.min(width, height) * 0.32;
+                    const catNodes = nodes.filter(n => n.cat === catKey);
+
+                    catNodes.forEach((node, nIdx) => {
+                        const spreadAngle = 0.48;
+                        const angleNode = angleCat + (nIdx - (catNodes.length - 1) / 2) * (spreadAngle / Math.max(1, catNodes.length));
+                        node.tx = cx + Math.cos(angleNode) * catRadius;
+                        node.ty = cy + Math.sin(angleNode) * catRadius;
+
+                        node.tx = Math.max(minX, Math.min(maxX, node.tx));
+                        node.ty = Math.max(minY, Math.min(maxY, node.ty));
+                    });
+                });
+            }
+            else if (currentLayout === 'radial') {
+                // VISTA 2: ANELLI CONCENTRICI
+                const hubNode = nodes.find(n => n.id === 'ssip_hub');
+                hubNode.tx = cx;
+                hubNode.ty = cy;
+
+                const innerNodes = nodes.filter(n => ['unic', 'mimit', 'ssip_labs', 'unina', 'dist_veneto', 'dist_toscana', 'dist_campania'].includes(n.id));
+                const outerNodes = nodes.filter(n => n.id !== 'ssip_hub' && !innerNodes.includes(n));
+
+                const rInner = Math.min(maxX - minX, maxY - minY) * 0.22;
+                innerNodes.forEach((n, idx) => {
+                    const angle = (idx / innerNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rInner;
+                    n.ty = cy + Math.sin(angle) * rInner;
+                });
+
+                const rOuter = Math.min(maxX - minX, maxY - minY) * 0.42;
+                outerNodes.forEach((n, idx) => {
+                    const angle = (idx / outerNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rOuter;
+                    n.ty = cy + Math.sin(angle) * rOuter;
+                });
+            }
+            else if (currentLayout === 'grid') {
+                // VISTA 3: COLONNE PER CATEGORIA
+                const cats = [
+                    { cat: 'hub', label: 'HUB SSIP' },
+                    { cat: 'dist', label: 'DISTRETTI' },
+                    { cat: 'uni', label: 'UNIVERSITÀ' },
+                    { cat: 'gov', label: 'GOVERNO/UNIC' },
+                    { cat: 'cert', label: 'CERTIFICAZIONE' },
+                    { cat: 'eco', label: 'CIRCOLARITÀ' },
+                    { cat: 'brand', label: 'BRAND/FILIERE' }
+                ];
+                const colW = (maxX - minX) / cats.length;
+
+                cats.forEach((cObj, cIdx) => {
+                    const catNodes = nodes.filter(n => n.cat === cObj.cat);
+                    const x = minX + colW * cIdx + colW / 2;
+                    const rowH = (maxY - minY) / (catNodes.length + 1);
+
+                    catNodes.forEach((node, rIdx) => {
+                        node.tx = x;
+                        node.ty = minY + rowH * (rIdx + 1);
+                    });
+                });
+            }
+            else {
+                // VISTA 4: FISICA REPULSIVA (DISPOSIZIONE INIZIALE CIRCOLARE D'APPOGGIO)
+                const hub = nodes.find(n => n.id === 'ssip_hub');
+                hub.tx = cx;
+                hub.ty = cy;
+
+                const others = nodes.filter(n => n.id !== 'ssip_hub');
+                others.forEach((node, i) => {
+                    const angle = (i / others.length) * Math.PI * 2;
+                    const r = Math.min(width, height) * 0.32;
+                    node.tx = cx + Math.cos(angle) * r;
+                    node.ty = cy + Math.sin(angle) * r;
+                });
+            }
+        }
+
+        function resize() {
+            width = container.clientWidth;
+            height = container.clientHeight;
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+
+            if (width > 0 && height > 0) {
+                computeTargetPositions();
+                if (!initialized) {
+                    nodes.forEach(n => {
+                        n.x = n.tx;
+                        n.y = n.ty;
+                    });
+                    selectNode(nodes[0]);
+                    initialized = true;
+                }
+            }
+        }
+
+        const resizeObserver = new ResizeObserver(() => resize());
+        resizeObserver.observe(container);
+
+        // FISICA REPULSIVA A CAMPO INTEGRATO
+        function updatePositions() {
+            if (!initialized) return;
+
+            const padX = Math.max(90, Math.min(width * 0.1, 140));
+            const padY = Math.max(80, Math.min(height * 0.12, 120));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'force') {
+                // Repulsione tra nodi
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        let n1 = nodes[i];
+                        let n2 = nodes[j];
+                        let dx = n2.x - n1.x;
+                        let dy = n2.y - n1.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        let minDist = n1.radius + n2.radius + 35;
+
+                        let force = (minDist * minDist * 4.5) / (dist * dist);
+                        if (dist < minDist) {
+                            force += (minDist - dist) * 0.2;
+                        }
+
+                        let fx = (dx / dist) * force;
+                        let fy = (dy / dist) * force;
+
+                        n1.vx -= fx;
+                        n1.vy -= fy;
+                        n2.vx += fx;
+                        n2.vy += fy;
+                    }
+                }
+
+                // Molle sui collegamenti
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    let dx = target.x - source.x;
+                    let dy = target.y - source.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    let targetDist = 135;
+                    let springForce = (dist - targetDist) * 0.004;
+
+                    source.vx += dx * springForce;
+                    source.vy += dy * springForce;
+                    target.vx -= dx * springForce;
+                    target.vy -= dy * springForce;
+                });
+
+                // Gravità centrale e aggiornamento coordinate
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+
+                    let dx = cx - node.x;
+                    let dy = cy - node.y;
+                    node.vx += dx * 0.0006;
+                    node.vy += dy * 0.0006;
+
+                    node.vx *= 0.82;
+                    node.vy *= 0.82;
+
+                    node.x += node.vx;
+                    node.y += node.vy;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            } else {
+                // Layout guidati da posizioni Target
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+                    node.x += (node.tx - node.x) * 0.12;
+                    node.y += (node.ty - node.y) * 0.12;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            }
+        }
+
+        // RENDERING CANVAS
+        function render() {
+            updatePositions();
+            ctx.clearRect(0, 0, width, height);
+
+            if (initialized) {
+                if (currentLayout === 'grid') {
+                    const cats = [
+                        { label: 'HUB SSIP', color: '#f59e0b', x: width * 0.08 },
+                        { label: 'DISTRETTI', color: '#ef4444', x: width * 0.22 },
+                        { label: 'UNIVERSITÀ', color: '#3b82f6', x: width * 0.36 },
+                        { label: 'GOVERNO/UNIC', color: '#10b981', x: width * 0.50 },
+                        { label: 'CERTIFICAZIONE', color: '#06b6d4', x: width * 0.64 },
+                        { label: 'CIRCOLARITÀ', color: '#8b5cf6', x: width * 0.78 },
+                        { label: 'BRAND/FILIERE', color: '#ec4899', x: width * 0.92 }
+                    ];
+
+                    cats.forEach(c => {
+                        ctx.fillStyle = c.color;
+                        ctx.font = 'bold 10px Segoe UI, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(c.label, c.x, 32);
+
+                        ctx.beginPath();
+                        ctx.moveTo(c.x - 30, 40);
+                        ctx.lineTo(c.x + 30, 40);
+                        ctx.strokeStyle = c.color + '55';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    });
+                }
+
+                // COLLEGAMENTI
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    const isVisible = checkVisibility(source) && checkVisibility(target);
+                    const isHighlighted = selectedNode && (source.id === selectedNode.id || target.id === selectedNode.id);
+
+                    ctx.beginPath();
+                    ctx.moveTo(source.x, source.y);
+                    ctx.lineTo(target.x, target.y);
+                    ctx.strokeStyle = isHighlighted ? '#f59e0b' : (isVisible ? 'rgba(255, 255, 255, 0.14)' : 'rgba(255, 255, 255, 0.02)');
+                    ctx.lineWidth = isHighlighted ? 2.5 : 1;
+                    ctx.stroke();
+                });
+
+                // NODI CANVASI
+                nodes.forEach(node => {
+                    const isVisible = checkVisibility(node);
+                    const isSelected = selectedNode && selectedNode.id === node.id;
+                    const isHovered = hoveredNode && hoveredNode.id === node.id;
+
+                    ctx.save();
+                    ctx.translate(node.x, node.y);
+
+                    if (isSelected || isHovered) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, node.radius + 7, 0, Math.PI * 2);
+                        ctx.fillStyle = isSelected ? 'rgba(245, 158, 11, 0.28)' : 'rgba(255, 255, 255, 0.12)';
+                        ctx.fill();
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = isVisible ? node.color : '#334155';
+                    ctx.globalAlpha = isVisible ? 1.0 : 0.2;
+                    ctx.fill();
+
+                    ctx.lineWidth = isSelected ? 3 : 1.2;
+                    ctx.strokeStyle = isSelected ? '#ffffff' : 'rgba(0,0,0,0.5)';
+                    ctx.stroke();
+
+                    ctx.fillStyle = isVisible ? '#f8fafc' : '#64748b';
+                    ctx.font = (node.cat === 'hub' ? 'bold 11px' : '10px') + ' Segoe UI, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(node.label, 0, node.radius + 13);
+
+                    ctx.restore();
+                });
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        function checkVisibility(node) {
+            const matchesCat = currentFilter === 'all' || node.cat === currentFilter;
+            const matchesSearch = searchQuery === '' || 
+                node.label.toLowerCase().includes(searchQuery) || 
+                node.sub.toLowerCase().includes(searchQuery);
+            return matchesCat && matchesSearch;
+        }
+
+        // EVENTI MOUSE E TOUCH
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function findNodeAt(pos) {
+            return nodes.find(node => {
+                let dx = node.x - pos.x;
+                let dy = node.y - pos.y;
+                return Math.sqrt(dx * dx + dy * dy) <= node.radius + 6;
+            });
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getPos(e);
+            if (draggedNode) {
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            } else {
+                hoveredNode = findNodeAt(pos);
+                canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
+            }
+        });
+
+        window.addEventListener('mouseup', () => { draggedNode = null; });
+
+        canvas.addEventListener('touchstart', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            if (draggedNode) {
+                const pos = getPos(e);
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            }
+        });
+        canvas.addEventListener('touchend', () => { draggedNode = null; });
+
+        // FINESTRA LATERALE DI DETTAGLIO
+        function selectNode(node) {
+            selectedNode = node;
+
+            document.getElementById('detTitle').innerText = node.label;
+            document.getElementById('detSubtitle').innerText = node.sub;
+            document.getElementById('detDesc').innerText = node.desc;
+            document.getElementById('detRole').innerText = node.role;
+
+            const linkBtn = document.getElementById('detLink');
+            if (node.url && node.url !== '#') {
+                linkBtn.href = node.url;
+                linkBtn.style.display = 'block';
+            } else {
+                linkBtn.style.display = 'none';
+            }
+
+            const catNames = {
+                'hub': 'Hub Nazionale SSIP',
+                'dist': 'Distretto Conciario',
+                'uni': 'Università & Centri Ricerca',
+                'gov': 'Associazioni & MIMIT',
+                'cert': 'Certificazione & Standards ISO',
+                'eco': 'Circolarità & Depurazione',
+                'brand': 'Brand & Filiere Finali'
+            };
+            const catBadge = document.getElementById('detCategory');
+            catBadge.innerText = catNames[node.cat] || node.cat;
+            catBadge.style.color = node.color;
+            catBadge.style.background = node.color + '22';
+
+            const connsContainer = document.getElementById('detConns');
+            connsContainer.innerHTML = '';
+
+            const connectedLinks = links.filter(l => l.source === node.id || l.target === node.id);
+            connectedLinks.forEach(l => {
+                const otherId = l.source === node.id ? l.target : l.source;
+                const targetNode = nodes.find(n => n.id === otherId);
+                if (targetNode) {
+                    const chip = document.createElement('span');
+                    chip.className = 'conn-chip';
+                    chip.innerText = targetNode.label;
+                    chip.onclick = () => selectNode(targetNode);
+                    connsContainer.appendChild(chip);
+                }
+            });
+        }
+
+        // CONTROLLI LAYOUT E FILTRI
+        document.getElementById('viewSwitcher').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-view');
+            if (btn) {
+                document.querySelectorAll('.btn-view').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLayout = btn.dataset.view;
+                computeTargetPositions();
+            }
+        });
+
+        document.getElementById('filterContainer').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.cat;
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+        });
+
+        render();
+    </script>
+</body>
+</html>

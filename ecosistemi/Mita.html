@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Rete Fondazione ITS MITA Academy - 3 Sedi & 200+ Imprese</title>
+    <style>
+        :root {
+            --bg-dark: #080c14;
+            --panel-bg: rgba(15, 23, 42, 0.94);
+            --panel-border: rgba(255, 255, 255, 0.12);
+            --accent-gold: #fbbf24;
+            --accent-blue: #38bdf8;
+            --accent-purple: #a855f7;
+            --accent-pink: #f472b6;
+            --accent-green: #34d399;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, var(--accent-gold), #b45309);
+            color: #000;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            letter-spacing: 0.5px;
+        }
+
+        h1 {
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        .kpi-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--panel-border);
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        .kpi-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .workspace {
+            display: flex;
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 55px);
+            overflow: hidden;
+        }
+
+        #network-container {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            cursor: grab;
+            background: radial-gradient(circle at center, #111827 0%, #080c14 100%);
+        }
+
+        #network-container:active {
+            cursor: grabbing;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Overlays & Controls */
+        .controls-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 5;
+            width: 330px;
+        }
+
+        .control-group {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .view-switcher {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+
+        .btn-view {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-view:hover {
+            background: rgba(251, 191, 36, 0.15);
+            border-color: var(--accent-gold);
+        }
+
+        .btn-view.active {
+            background: var(--accent-gold);
+            color: #000;
+            font-weight: 700;
+            border-color: var(--accent-gold);
+        }
+
+        .search-box {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            font-size: 0.78rem;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .tag-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--panel-border);
+            color: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.68rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-btn.active, .tag-btn:hover {
+            color: #fff;
+            border-color: var(--accent-gold);
+            background: rgba(251, 191, 36, 0.2);
+        }
+
+        /* Detail Sidebar */
+        .detail-window {
+            width: 360px;
+            height: 100%;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 8;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+            flex-shrink: 0;
+        }
+
+        .detail-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .category-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .entity-title {
+            font-size: 1.15rem;
+            margin-bottom: 2px;
+            color: #fff;
+        }
+
+        .entity-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .detail-body {
+            padding: 14px 18px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 8px 10px;
+        }
+
+        .info-card h4 {
+            font-size: 0.68rem;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .info-card p, .info-card ul {
+            font-size: 0.78rem;
+            line-height: 1.35;
+            color: #cbd5e1;
+        }
+
+        .info-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-card ul li {
+            padding: 3px 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.08);
+        }
+
+        .connected-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .conn-chip {
+            background: rgba(255,255,255,0.08);
+            padding: 3px 7px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .conn-chip:hover {
+            background: rgba(251, 191, 36, 0.25);
+            border-color: var(--accent-gold);
+            color: #fff;
+        }
+
+        /* Directory Modal / Enterprise Catalog Drawer */
+        .enterprise-modal {
+            position: absolute;
+            bottom: 12px;
+            right: 372px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            max-width: 420px;
+            max-height: 220px;
+            overflow-y: auto;
+            backdrop-filter: blur(12px);
+            z-index: 6;
+            font-size: 0.75rem;
+        }
+
+        .enterprise-modal h3 {
+            font-size: 0.8rem;
+            color: var(--accent-gold);
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Legend */
+        .legend {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.68rem;
+            display: flex;
+            gap: 12px;
+            backdrop-filter: blur(8px);
+            z-index: 5;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace { flex-direction: column; }
+            .detail-window { width: 100%; height: 38%; }
+            .enterprise-modal { display: none; }
+            .kpi-container { display: none; }
+            .controls-overlay { width: calc(100% - 24px); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-group">
+            <span class="logo-badge">ITS MITA</span>
+            <h1>Ecosistema ITS MITA (3 Sedi & Network 200+ Imprese)</h1>
+        </div>
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-value">3 Sedi Hub</div>
+                <div class="kpi-label">Scandicci • Prato • Arezzo</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">> 200</div>
+                <div class="kpi-label">Imprese Partner</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">95%</div>
+                <div class="kpi-label">Tasso Occupazionale</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="controls-overlay">
+            <div class="control-group">
+                <div class="control-label">Visualizzazioni Rete (Anti-Collisione)</div>
+                <div class="view-switcher" id="viewSwitcher">
+                    <button class="btn-view active" data-view="sedi">🏛️ Per Sede Hub</button>
+                    <button class="btn-view" data-view="force">🌀 Fisica Bilanciata</button>
+                    <button class="btn-view" data-view="radial">⭕ Circolare Concentrica</button>
+                    <button class="btn-view" data-view="grid">📊 Categorie Canto</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">Filtra e Cerca nell'Ecosistema</div>
+                <input type="text" id="searchInput" class="search-box" placeholder="Cerca brand, sede o ente...">
+                <div class="filter-tags" id="filterContainer">
+                    <button class="tag-btn active" data-cat="all">Tutti</button>
+                    <button class="tag-btn" data-cat="hub">3 Sedi ITS</button>
+                    <button class="tag-btn" data-cat="brand">Maison & Brand</button>
+                    <button class="tag-btn" data-cat="cluster">Cluster 200+ Imprese</button>
+                    <button class="tag-btn" data-cat="enti">Istituzioni & Università</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="network-container">
+            <canvas id="networkCanvas"></canvas>
+            
+            <div class="enterprise-modal">
+                <h3><span>📁 Registro Imprese Partner (>200)</span> <span style="font-size: 0.65rem; color: var(--accent-gold);">Distretti Toscani</span></h3>
+                <p style="margin-bottom: 6px; color: var(--text-muted);">
+                    Oltre alle principali Maison visualizzate nel grafo, la rete MITA comprende un ecosistema di oltre 200 PMI manifatturiere, laboratori artigiani e terzisti certificati:
+                </p>
+                <div id="enterpriseList" style="max-height: 110px; overflow-y: auto; color: #cbd5e1; line-height: 1.4;">
+                    • <b>Distretto Pelletteria Scandicci / Firenze</b>: 85 pelletterie terziste, modellerie e cutter 3D.<br>
+                    • <b>Distretto Tessile & Filati Prato</b>: 62 tessiture, tintorie, finissaggi e laboratori green.<br>
+                    • <b>Distretto Orafo & Accessori Arezzo</b>: 44 aziende di micro-fusione, galvanica e minuterie.<br>
+                    • <b>Distretto Conciario Santa Croce</b>: 28 concerie di pelli pregiate e materiali biologici.
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item"><span class="legend-color" style="background:#fbbf24;"></span> Sedi ITS MITA</div>
+                <div class="legend-item"><span class="legend-color" style="background:#f472b6;"></span> Grandi Brand & Lusso</div>
+                <div class="legend-item"><span class="legend-color" style="background:#34d399;"></span> Cluster Imprese (>200)</div>
+                <div class="legend-item"><span class="legend-color" style="background:#38bdf8;"></span> Scuole & Università</div>
+                <div class="legend-item"><span class="legend-color" style="background:#a855f7;"></span> Associazioni & Ricerca</div>
+            </div>
+        </div>
+
+        <aside class="detail-window">
+            <div class="detail-header">
+                <span class="category-pill" id="detCategory">HUB CENTRALE</span>
+                <h2 class="entity-title" id="detTitle">ITS MITA - Sede Scandicci</h2>
+                <p class="entity-subtitle" id="detSubtitle">Castello dell'Acciaiolo (HQ Pelletteria & Alta Moda)</p>
+            </div>
+            <div class="detail-body">
+                <div class="info-card">
+                    <h4>Ruolo nella Rete</h4>
+                    <p id="detRole">Sede Legale ed Operativa Principale. Coordinamento dei corsi dedicati al Made in Italy, Pelletteria, Abbigliamento e Luxury Management.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Imprese e Distretto Collegati</h4>
+                    <p id="detDesc">Sede storica all'interno del distretto conciario e di pelletteria di Scandicci, in stretta sinergia con i principali marchi internazionali di moda e oltre 80 laboratori terzisti specializzati.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Nodi e Partner Direttamente Connessi</h4>
+                    <div class="connected-list" id="detConns"></div>
+                </div>
+                <a href="https://mitacademy.it/" target="_blank" class="action-btn" style="display:block; text-align:center; background:var(--accent-gold); color:#000; font-weight:700; padding:8px; border-radius:6px; text-decoration:none; margin-top:auto; font-size:0.8rem;">Sito Ufficiale MITA Academy</a>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // DATASET COMPLETO CON LE 3 SEDI MITA, I CLUSTER DELLE 200+ IMPRESE, LE ISTITUZIONI E I BRAND
+        const nodes = [
+            // LE 3 SEDI ITS MITA ACADEMY
+            { id: 'mita_scandicci', label: 'ITS MITA - Scandicci (HQ)', cat: 'hub', color: '#fbbf24', radius: 24,
+              sub: 'Castello Acciaiolo - Scandicci (FI)', 
+              desc: 'Sede Centrale e quartier generale per i percorsi terziari di Pelletteria, Modelleria CAD 3D, Borse e Alta Moda.', 
+              role: 'Coordinamento generale e gestione relazione con i grandi gruppi del Lusso di Firenze e Scandicci.' },
+
+            { id: 'mita_prato', label: 'ITS MITA - Prato', cat: 'hub', color: '#fbbf24', radius: 22,
+              sub: 'Polo Universitario PIN - Prato (PO)', 
+              desc: 'Sede operativa specializzata in Innovazione Tessile, Nobilitazione, Circular Economy, Green Fashion & Knitwear.', 
+              role: 'Hub per il distretto tessile e rigenerazione di filati ed ecomateriali.' },
+
+            { id: 'mita_arezzo', label: 'ITS MITA - Arezzo', cat: 'hub', color: '#fbbf24', radius: 22,
+              sub: 'Polo Formativo Orafo - Arezzo (AR)', 
+              desc: 'Sede specializzata in Oreficeria 4.0, Jewelry Design, Prototipazione di Minuterie Metalliche e Accessori.', 
+              role: 'Raccordo con le industrie di oreficeria e accessori per la Moda del territorio aretino.' },
+
+            // CLUSTER / RAGGRUPPAMENTI IMPRESE PARTNER (>200 IMPRESE)
+            { id: 'cluster_pelletteria', label: 'Cluster Pelletteria (80+ PMI)', cat: 'cluster', color: '#34d399', radius: 18,
+              sub: 'Distretto Scandicci / Firenze / Empoli',
+              desc: 'Rete di oltre 80 laboratori artigiani, terzisti di alta gamma, cutter e modellerie di borse e valigeria.',
+              role: 'Fornitura tirocini, apprendistati e docenze tecniche di mestiere.' },
+
+            { id: 'cluster_tessile', label: 'Cluster Tessile (60+ PMI)', cat: 'cluster', color: '#34d399', radius: 18,
+              sub: 'Distretto Pratese & Bisenzio',
+              desc: 'Network di oltre 60 tessiture, rifinizioni, tintorie, filature e lanifici della filiera tessile.',
+              role: 'Laboratori pratici su ecodesign, riciclo tessile e tracciabilità digital pass.' },
+
+            { id: 'cluster_orafo', label: 'Cluster Oreficeria (40+ PMI)', cat: 'cluster', color: '#34d399', radius: 17,
+              sub: 'Distretto Orafo Aretino',
+              desc: 'Oltre 40 imprese specializzate in micro-fusione, minuterie metalliche per borse e lavorazione metalli preziosi.',
+              role: 'Sviluppo di competenze su gioielleria 4.0, stampa 3D metallo e micro-meccanica.' },
+
+            { id: 'cluster_conceria', label: 'Cluster Concerie (30+ PMI)', cat: 'cluster', color: '#34d399', radius: 17,
+              sub: 'Comprensorio Cuoio - Santa Croce',
+              desc: 'Oltre 30 concerie leader nella produzione di pelli pregiate e cuoio per le più grandi griffe del mondo.',
+              role: 'Corsi su chimica conciaria, sostenibilità chimica e selezione pelli.' },
+
+            // BRAND E MAISON DI LUSSO (PARTNER DIRETTE)
+            { id: 'gucci', label: 'Gucci & ArtLab', cat: 'brand', color: '#f472b6', radius: 18,
+              sub: 'Scandicci & Firenze', desc: 'Centro ricerca e produzione accessori di lusso Gucci ArtLab.', role: 'Socio fondatore, masterclass e assunzione tirocinanti.' },
+            { id: 'prada', label: 'Prada Group', cat: 'brand', color: '#f472b6', radius: 18,
+              sub: 'Valvigna & Terranuova', desc: 'Gruppo internazionale di riferimento per abbigliamento e pelletteria.', role: 'Accoglienza stagisti e percorsi formativi dedicati.' },
+            { id: 'ferragamo', label: 'Salvatore Ferragamo', cat: 'brand', color: '#f472b6', radius: 17,
+              sub: 'Osmannoro & Firenze', desc: 'Maison iconica per calzatura e pelletteria d\'alta gamma.', role: 'Collaborazione su sviluppo calzature e collezioni archivio.' },
+            { id: 'celine', label: 'Celine (LVMH)', cat: 'brand', color: '#f472b6', radius: 17,
+              sub: 'Radda in Chianti / Scandicci', desc: 'Polo produttivo del gruppo LVMH per le borse Celine.', role: 'Inserimento diplomati in modelleria e controllo qualità.' },
+            { id: 'ysl', label: 'Saint Laurent', cat: 'brand', color: '#f472b6', radius: 17,
+              sub: 'Scandicci Atelier', desc: 'Atelier di sviluppo e produzione pelletteria YSL.', role: 'Partner aziendale per corsi di prototipazione.' },
+            { id: 'balenciaga', label: 'Balenciaga', cat: 'brand', color: '#f472b6', radius: 16,
+              sub: 'Piancastagnaio / Firenze', desc: 'Atelier pelletteria e sviluppo accessori del gruppo Kering.', role: 'Tirocini formativi per sviluppo prodotti innovativi.' },
+            { id: 'stefanoricci', label: 'Stefano Ricci', cat: 'brand', color: '#f472b6', radius: 16,
+              sub: 'Fiesole & Calenzano', desc: 'Eccellenza della sartoria maschile e accessori di lusso.', role: 'Formazione su manifattura di altissimo pregio.' },
+            { id: 'unoaerre', label: 'UnoAERRE', cat: 'brand', color: '#f472b6', radius: 16,
+              sub: 'Arezzo HQ', desc: 'Leader mondiale dell\'oreficeria e catene preziose.', role: 'Partner principale della sede MITA di Arezzo.' },
+
+            // ISTITUZIONI, SCUOLE E UNIVERSITÀ
+            { id: 'regione', label: 'Regione Toscana', cat: 'enti', color: '#38bdf8', radius: 17,
+              sub: 'Ente Finanziatore PR FSE+', desc: 'Autorità regionale di programmazione e finanziamento ITS.', role: 'Cofinanziamento con Fondo Sociale Europeo.' },
+            { id: 'comune_scandicci', label: 'Comune Scandicci', cat: 'enti', color: '#38bdf8', radius: 15,
+              sub: 'Ente Locale Partner', desc: 'Comune ospitante del quartier generale MITA.', role: 'Concessione Sede Castello Acciaiolo.' },
+            { id: 'comune_prato', label: 'Comune Prato', cat: 'enti', color: '#38bdf8', radius: 14,
+              sub: 'Ente Locale Partner', desc: 'Amministrazione comunale del distretto tessile.', role: 'Supporto ai progetti di economia circolare.' },
+            { id: 'comune_arezzo', label: 'Comune Arezzo', cat: 'enti', color: '#38bdf8', radius: 14,
+              sub: 'Ente Locale Partner', desc: 'Amministrazione locale del distretto orafo.', role: 'Integrazione nel polo orafo formativo.' },
+            { id: 'unifi', label: 'Università Firenze', cat: 'enti', color: '#38bdf8', radius: 16,
+              sub: 'Ateneo Fondatore', desc: 'Università degli Studi di Firenze.', role: 'Comitato scientifico, crediti formativi e ricerca.' },
+            { id: 'pin_prato', label: 'PIN Scrl - Polo Prato', cat: 'enti', color: '#38bdf8', radius: 15,
+              sub: 'Consorzio Universitario', desc: 'Polo Universitario della città di Prato.', role: 'Sede e laboratori didattici del corso Tessile.' },
+            { id: 'russell', label: 'ISIS Russell-Newton', cat: 'enti', color: '#38bdf8', radius: 15,
+              sub: 'Scuola Capofila', desc: 'Istituto Superiore Statale di Scandicci.', role: 'Gestione amministrativa e orientamento scolastico.' },
+
+            // ASSOCIAZIONI E CENTRI RICERCA
+            { id: 'cna', label: 'CNA Toscana', cat: 'assoc', color: '#a855f7', radius: 15,
+              sub: 'Confederazione Artigianato', desc: 'Rappresentanza del tessuto artigiano.', role: 'Collegamento con le PMI terziste.' },
+            { id: 'confartigianato', label: 'Confartigianato', cat: 'assoc', color: '#a855f7', radius: 15,
+              sub: 'Associazione Datoriale', desc: 'Tutela delle imprese artigiane manifatturiere.', role: 'Analisi dei fabbisogni formativi.' },
+            { id: 'confindustria', label: 'Confindustria Toscana', cat: 'assoc', color: '#a855f7', radius: 16,
+              sub: 'Rappresentanza Industriale', desc: 'Associazione delle medie e grandi industrie.', role: 'Indirizzo strategico sull\'Academy.' },
+            { id: 'tecnotessile', label: 'Next Tech Tecnotessile', cat: 'assoc', color: '#a855f7', radius: 15,
+              sub: 'Centro Ricerca Prato', desc: 'Organismo di ricerca per l\'innovazione tecnologica.', role: 'Docenze su sostenibilità ed ecodesign.' },
+            { id: 'unic', label: 'UNIC Concerie', cat: 'assoc', color: '#a855f7', radius: 15,
+              sub: 'Unione Nazionale Conciaria', desc: 'Associazione della filiera conciaria italiana.', role: 'Formazione specialistica sulla lavorazione pelli.' }
+        ];
+
+        // COLLEGAMENTI TRA I NODI DELLA RETE
+        const links = [
+            // Sede Scandicci -> Brand Moda & Pelletteria
+            { source: 'mita_scandicci', target: 'gucci' },
+            { source: 'mita_scandicci', target: 'prada' },
+            { source: 'mita_scandicci', target: 'ferragamo' },
+            { source: 'mita_scandicci', target: 'celine' },
+            { source: 'mita_scandicci', target: 'ysl' },
+            { source: 'mita_scandicci', target: 'balenciaga' },
+            { source: 'mita_scandicci', target: 'stefanoricci' },
+            { source: 'mita_scandicci', target: 'cluster_pelletteria' },
+            { source: 'mita_scandicci', target: 'cluster_conceria' },
+            { source: 'mita_scandicci', target: 'comune_scandicci' },
+            { source: 'mita_scandicci', target: 'russell' },
+            { source: 'mita_scandicci', target: 'unifi' },
+
+            // Sede Prato -> Tessile e Green
+            { source: 'mita_prato', target: 'cluster_tessile' },
+            { source: 'mita_prato', target: 'pin_prato' },
+            { source: 'mita_prato', target: 'tecnotessile' },
+            { source: 'mita_prato', target: 'comune_prato' },
+            { source: 'mita_prato', target: 'unifi' },
+
+            // Sede Arezzo -> Oreficeria e Accessori
+            { source: 'mita_arezzo', target: 'unoaerre' },
+            { source: 'mita_arezzo', target: 'cluster_orafo' },
+            { source: 'mita_arezzo', target: 'comune_arezzo' },
+            { source: 'mita_arezzo', target: 'prada' },
+
+            // Inter-connessioni Fondative e di Filiera
+            { source: 'regione', target: 'mita_scandicci' },
+            { source: 'regione', target: 'mita_prato' },
+            { source: 'regione', target: 'mita_arezzo' },
+
+            { source: 'confindustria', target: 'mita_scandicci' },
+            { source: 'cna', target: 'cluster_pelletteria' },
+            { source: 'confartigianato', target: 'cluster_orafo' },
+            { source: 'unic', target: 'cluster_conceria' },
+            { source: 'gucci', target: 'cluster_pelletteria' },
+            { source: 'prada', target: 'cluster_pelletteria' }
+        ];
+
+        // SETUP CANVAS E ENGINE DI SIMULAZIONE
+        const container = document.getElementById('network-container');
+        const canvas = document.getElementById('networkCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = 0;
+        let height = 0;
+        let selectedNode = nodes[0];
+        let hoveredNode = null;
+        let draggedNode = null;
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let currentLayout = 'sedi'; // 'sedi', 'force', 'radial', 'grid'
+        let initialized = false;
+
+        nodes.forEach(n => {
+            n.x = 0; n.y = 0;
+            n.tx = 0; n.ty = 0;
+            n.vx = 0; n.vy = 0;
+        });
+
+        // CALCOLO COORDINATE RIGOROSO PER EVITARE CHE I NODI VADANO AI BORDI / VERTICI
+        function computeTargetPositions() {
+            // Margin / Padding di sicurezza dai bordi della finestra
+            const padX = Math.max(100, Math.min(width * 0.12, 160));
+            const padY = Math.max(90, Math.min(height * 0.14, 130));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'sedi') {
+                // VISTA 1: A TRE POLI (LE 3 SEDI ITS MITA)
+                const sScandicci = nodes.find(n => n.id === 'mita_scandicci');
+                const sPrato = nodes.find(n => n.id === 'mita_prato');
+                const sArezzo = nodes.find(n => n.id === 'mita_arezzo');
+
+                // Triangolo bilanciato delle 3 Sedi
+                sScandicci.tx = cx;
+                sScandicci.ty = minY + (maxY - minY) * 0.22;
+
+                sPrato.tx = minX + (maxX - minX) * 0.25;
+                sPrato.ty = minY + (maxY - minY) * 0.75;
+
+                sArezzo.tx = minX + (maxX - minX) * 0.75;
+                sArezzo.ty = minY + (maxY - minY) * 0.75;
+
+                // Distribuzione satellitare attorno a ciascuna sede
+                const others = nodes.filter(n => !n.id.startsWith('mita_'));
+                others.forEach((node, i) => {
+                    let parent = sScandicci;
+                    if (node.cat === 'cluster') {
+                        if (node.id === 'cluster_tessile') parent = sPrato;
+                        else if (node.id === 'cluster_orafo') parent = sArezzo;
+                        else parent = sScandicci;
+                    } else if (node.id === 'pin_prato' || node.id === 'tecnotessile' || node.id === 'comune_prato') {
+                        parent = sPrato;
+                    } else if (node.id === 'unoaerre' || node.id === 'comune_arezzo') {
+                        parent = sArezzo;
+                    }
+
+                    const subNodes = others.filter(n => {
+                        if (parent === sPrato) return n.id === 'cluster_tessile' || n.id === 'pin_prato' || n.id === 'tecnotessile' || n.id === 'comune_prato';
+                        if (parent === sArezzo) return n.id === 'cluster_orafo' || n.id === 'unoaerre' || n.id === 'comune_arezzo';
+                        return !['cluster_tessile', 'pin_prato', 'tecnotessile', 'comune_prato', 'cluster_orafo', 'unoaerre', 'comune_arezzo'].includes(n.id);
+                    });
+
+                    const idxInSub = subNodes.indexOf(node);
+                    const angle = (idxInSub / Math.max(1, subNodes.length)) * Math.PI * 2;
+                    const dist = Math.min(width, height) * 0.18;
+
+                    node.tx = parent.tx + Math.cos(angle) * dist;
+                    node.ty = parent.ty + Math.sin(angle) * dist;
+
+                    // Clamping di sicurezza
+                    node.tx = Math.max(minX, Math.min(maxX, node.tx));
+                    node.ty = Math.max(minY, Math.min(maxY, node.ty));
+                });
+            }
+            else if (currentLayout === 'radial') {
+                // VISTA 2: RADIALE CONCENTRICA
+                const sedi = nodes.filter(n => n.cat === 'hub');
+                const nonSedi = nodes.filter(n => n.cat !== 'hub');
+
+                sedi.forEach((s, idx) => {
+                    const angle = (idx / sedi.length) * Math.PI * 2 - Math.PI / 2;
+                    const r = 60;
+                    s.tx = cx + Math.cos(angle) * r;
+                    s.ty = cy + Math.sin(angle) * r;
+                });
+
+                const rOuter = Math.min(maxX - minX, maxY - minY) * 0.42;
+                nonSedi.forEach((n, idx) => {
+                    const angle = (idx / nonSedi.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rOuter;
+                    n.ty = cy + Math.sin(angle) * rOuter;
+                });
+            }
+            else if (currentLayout === 'grid') {
+                // VISTA 3: IN COLONNE PER CATEGORIA
+                const cats = [
+                    { cat: 'hub', label: '3 SEDI ITS' },
+                    { cat: 'brand', label: 'MAISON & BRAND' },
+                    { cat: 'cluster', label: 'CLUSTER 200+ IMPRESE' },
+                    { cat: 'enti', label: 'ISTITUZIONI' },
+                    { cat: 'assoc', label: 'ASSOCIAZIONI' }
+                ];
+                const colW = (maxX - minX) / cats.length;
+
+                cats.forEach((cObj, cIdx) => {
+                    const catNodes = nodes.filter(n => n.cat === cObj.cat);
+                    const x = minX + colW * cIdx + colW / 2;
+                    const rowH = (maxY - minY) / (catNodes.length + 1);
+
+                    catNodes.forEach((node, rIdx) => {
+                        node.tx = x;
+                        node.ty = minY + rowH * (rIdx + 1);
+                    });
+                });
+            }
+            else {
+                // VISTA 4: FISICA BILANCIATA
+                const otherNodes = nodes.filter(n => n.cat !== 'hub');
+                nodes.filter(n => n.cat === 'hub').forEach((s, i) => {
+                    s.tx = cx + (i - 1) * 120;
+                    s.ty = cy;
+                });
+                otherNodes.forEach((node, i) => {
+                    const angle = (i / otherNodes.length) * Math.PI * 2;
+                    const r = Math.min(width, height) * 0.32;
+                    node.tx = cx + Math.cos(angle) * r;
+                    node.ty = cy + Math.sin(angle) * r;
+                });
+            }
+        }
+
+        function resize() {
+            width = container.clientWidth;
+            height = container.clientHeight;
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+
+            if (width > 0 && height > 0) {
+                computeTargetPositions();
+                if (!initialized) {
+                    nodes.forEach(n => {
+                        n.x = n.tx;
+                        n.y = n.ty;
+                    });
+                    selectNode(nodes[0]);
+                    initialized = true;
+                }
+            }
+        }
+
+        const resizeObserver = new ResizeObserver(() => resize());
+        resizeObserver.observe(container);
+
+        // LOGICA DI AGGIORNAMENTO FISICA ED EVITAMENTO BORDI
+        function updatePositions() {
+            if (!initialized) return;
+
+            const padX = Math.max(90, Math.min(width * 0.1, 140));
+            const padY = Math.max(80, Math.min(height * 0.12, 120));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'force') {
+                // REPULSIONE TRA NODI
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        let dx = nodes[j].x - nodes[i].x;
+                        let dy = nodes[j].y - nodes[i].y;
+                        let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        let minDist = nodes[i].radius + nodes[j].radius + 45;
+
+                        if (dist < minDist) {
+                            let force = (minDist - dist) / dist * 0.06;
+                            nodes[i].vx -= dx * force;
+                            nodes[i].vy -= dy * force;
+                            nodes[j].vx += dx * force;
+                            nodes[j].vy += dy * force;
+                        }
+                    }
+                }
+
+                // ATTRAZIONE COLLEGAMENTI
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    let dx = target.x - source.x;
+                    let dy = target.y - source.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    let targetDist = 130;
+                    let force = (dist - targetDist) * 0.002;
+
+                    source.vx += dx * force;
+                    source.vy += dy * force;
+                    target.vx -= dx * force;
+                    target.vy -= dy * force;
+                });
+
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+
+                    // GRAVITÀ DELICATA VERSO IL CENTRO SCHERMO
+                    let dx = cx - node.x;
+                    let dy = cy - node.y;
+                    node.vx += dx * 0.0005;
+                    node.vy += dy * 0.0005;
+
+                    node.vx *= 0.82;
+                    node.vy *= 0.82;
+
+                    node.x += node.vx;
+                    node.y += node.vy;
+
+                    // BOUNDING BOX MORBIDO PER NON FAR ANDARE NESSUN NODO NEI VERTICI
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            } else {
+                // TRANSIZIONE FLUIDA VERSO I TARGET PRECALCOLATI
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+                    node.x += (node.tx - node.x) * 0.12;
+                    node.y += (node.ty - node.y) * 0.12;
+
+                    // CLAMPING TASSATIVO DENTRO GLI MARGINI SICURI
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            }
+        }
+
+        // CICLO DI RENDERING CANVAS
+        function render() {
+            updatePositions();
+            ctx.clearRect(0, 0, width, height);
+
+            if (initialized) {
+                // ETICHETTE COLONNE IN MODALITÀ GRID
+                if (currentLayout === 'grid') {
+                    const cats = [
+                        { label: '3 SEDI ITS', color: '#fbbf24', x: width * 0.1 },
+                        { label: 'MAISON & BRAND', color: '#f472b6', x: width * 0.3 },
+                        { label: 'CLUSTER (200+ IMPRESE)', color: '#34d399', x: width * 0.5 },
+                        { label: 'ISTITUZIONI', color: '#38bdf8', x: width * 0.7 },
+                        { label: 'ASSOCIAZIONI', color: '#a855f7', x: width * 0.9 }
+                    ];
+
+                    cats.forEach(c => {
+                        ctx.fillStyle = c.color;
+                        ctx.font = 'bold 10px Segoe UI, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(c.label, c.x, 32);
+
+                        ctx.beginPath();
+                        ctx.moveTo(c.x - 35, 40);
+                        ctx.lineTo(c.x + 35, 40);
+                        ctx.strokeStyle = c.color + '55';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    });
+                }
+
+                // DISEGNO ARCHI / LINKE
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    const isVisible = checkVisibility(source) && checkVisibility(target);
+                    const isHighlighted = selectedNode && (source.id === selectedNode.id || target.id === selectedNode.id);
+
+                    ctx.beginPath();
+                    ctx.moveTo(source.x, source.y);
+                    ctx.lineTo(target.x, target.y);
+                    ctx.strokeStyle = isHighlighted ? '#fbbf24' : (isVisible ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.02)');
+                    ctx.lineWidth = isHighlighted ? 2.5 : 1;
+                    ctx.stroke();
+                });
+
+                // DISEGNO NODI
+                nodes.forEach(node => {
+                    const isVisible = checkVisibility(node);
+                    const isSelected = selectedNode && selectedNode.id === node.id;
+                    const isHovered = hoveredNode && hoveredNode.id === node.id;
+
+                    ctx.save();
+                    ctx.translate(node.x, node.y);
+
+                    // ALONE SELEZIONE
+                    if (isSelected || isHovered) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, node.radius + 7, 0, Math.PI * 2);
+                        ctx.fillStyle = isSelected ? 'rgba(251, 191, 36, 0.28)' : 'rgba(255, 255, 255, 0.12)';
+                        ctx.fill();
+                    }
+
+                    // CORPO NODO
+                    ctx.beginPath();
+                    ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = isVisible ? node.color : '#334155';
+                    ctx.globalAlpha = isVisible ? 1.0 : 0.2;
+                    ctx.fill();
+
+                    ctx.lineWidth = isSelected ? 3 : 1.2;
+                    ctx.strokeStyle = isSelected ? '#ffffff' : 'rgba(0,0,0,0.5)';
+                    ctx.stroke();
+
+                    // BADGE / ICONA PER I CLUSTER DELLE 200 IMPRESE
+                    if (node.cat === 'cluster') {
+                        ctx.fillStyle = '#000';
+                        ctx.font = 'bold 9px Segoe UI, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('200+', 0, 3);
+                    }
+
+                    // ETICHETTA NOME
+                    ctx.fillStyle = isVisible ? '#f8fafc' : '#64748b';
+                    ctx.font = (node.cat === 'hub' ? 'bold 11px' : '10px') + ' Segoe UI, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(node.label, 0, node.radius + 13);
+
+                    ctx.restore();
+                });
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        function checkVisibility(node) {
+            const matchesCat = currentFilter === 'all' || node.cat === currentFilter;
+            const matchesSearch = searchQuery === '' || 
+                node.label.toLowerCase().includes(searchQuery) || 
+                node.sub.toLowerCase().includes(searchQuery);
+            return matchesCat && matchesSearch;
+        }
+
+        // GESTIONE INTERAZIONI
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function findNodeAt(pos) {
+            return nodes.find(node => {
+                let dx = node.x - pos.x;
+                let dy = node.y - pos.y;
+                return Math.sqrt(dx * dx + dy * dy) <= node.radius + 6;
+            });
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getPos(e);
+            if (draggedNode) {
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            } else {
+                hoveredNode = findNodeAt(pos);
+                canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
+            }
+        });
+
+        window.addEventListener('mouseup', () => { draggedNode = null; });
+
+        canvas.addEventListener('touchstart', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            if (draggedNode) {
+                const pos = getPos(e);
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            }
+        });
+        canvas.addEventListener('touchend', () => { draggedNode = null; });
+
+        // SELEZIONE E PANNELLO DETTAGLI
+        function selectNode(node) {
+            selectedNode = node;
+
+            document.getElementById('detTitle').innerText = node.label;
+            document.getElementById('detSubtitle').innerText = node.sub;
+            document.getElementById('detDesc').innerText = node.desc;
+            document.getElementById('detRole').innerText = node.role;
+
+            const catNames = {
+                'hub': 'Sede ITS MITA Academy',
+                'brand': 'Maison / Brand di Lusso Partner',
+                'cluster': 'Cluster Manifatturiero (>200 Imprese)',
+                'enti': 'Istituzione / Università / Scuola',
+                'assoc': 'Associazione di Categoria / Ricerca'
+            };
+            const catBadge = document.getElementById('detCategory');
+            catBadge.innerText = catNames[node.cat] || node.cat;
+            catBadge.style.color = node.color;
+            catBadge.style.background = node.color + '22';
+
+            const connsContainer = document.getElementById('detConns');
+            connsContainer.innerHTML = '';
+
+            const connectedLinks = links.filter(l => l.source === node.id || l.target === node.id);
+            connectedLinks.forEach(l => {
+                const otherId = l.source === node.id ? l.target : l.source;
+                const targetNode = nodes.find(n => n.id === otherId);
+                if (targetNode) {
+                    const chip = document.createElement('span');
+                    chip.className = 'conn-chip';
+                    chip.innerText = targetNode.label;
+                    chip.onclick = () => selectNode(targetNode);
+                    connsContainer.appendChild(chip);
+                }
+            });
+        }
+
+        // CONTROLLI LAYOUT E FILTRI
+        document.getElementById('viewSwitcher').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-view');
+            if (btn) {
+                document.querySelectorAll('.btn-view').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLayout = btn.dataset.view;
+                computeTargetPositions();
+            }
+        });
+
+        document.getElementById('filterContainer').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.cat;
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+        });
+
+        render();
+    </script>
+</body>
+</html>

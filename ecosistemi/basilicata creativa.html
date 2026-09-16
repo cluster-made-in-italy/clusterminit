@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Ecosistema Basilicata Creativa</title>
+    <style>
+        :root {
+            --bg-dark: #090714;
+            --panel-bg: rgba(18, 14, 38, 0.94);
+            --panel-border: rgba(168, 85, 247, 0.28);
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-cyan: #06b6d4;
+            --accent-amber: #f59e0b;
+            --accent-emerald: #10b981;
+            --accent-indigo: #6366f1;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+            color: #fff;
+            font-weight: 800;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 14px rgba(168, 85, 247, 0.45);
+        }
+
+        h1 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid var(--panel-border);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active, .tab-btn:hover {
+            background: var(--accent-purple);
+            color: #fff;
+        }
+
+        .kpi-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--panel-border);
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--accent-pink);
+        }
+
+        .kpi-label {
+            font-size: 0.58rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .workspace {
+            display: flex;
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 55px);
+            overflow: hidden;
+        }
+
+        .page-view {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .page-view.active {
+            display: flex;
+        }
+
+        /* TAB 1: GRAFO INTERATTIVO */
+        #network-container {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            cursor: grab;
+            background: radial-gradient(circle at center, #1a0f35 0%, #090714 100%);
+        }
+
+        #network-container:active { cursor: grabbing; }
+        canvas { display: block; width: 100%; height: 100%; }
+
+        .controls-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 5;
+            width: 340px;
+        }
+
+        .control-group {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .view-switcher {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+
+        .btn-view {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-view:hover {
+            background: rgba(168, 85, 247, 0.2);
+            border-color: var(--accent-purple);
+        }
+
+        .btn-view.active {
+            background: var(--accent-purple);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .search-box {
+            background: rgba(9, 7, 20, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            font-size: 0.78rem;
+        }
+
+        .search-box:focus { border-color: var(--accent-pink); }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .tag-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--panel-border);
+            color: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.68rem;
+            cursor: pointer;
+        }
+
+        .tag-btn.active, .tag-btn:hover {
+            color: #fff;
+            border-color: var(--accent-pink);
+            background: rgba(236, 72, 153, 0.2);
+        }
+
+        .detail-window {
+            width: 380px;
+            height: 100%;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 8;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.6);
+            flex-shrink: 0;
+        }
+
+        .detail-header { padding: 14px 18px; border-bottom: 1px solid var(--panel-border); }
+        .category-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .entity-title { font-size: 1.15rem; color: #fff; }
+        .entity-subtitle { font-size: 0.78rem; color: var(--text-muted); }
+        .detail-body { padding: 14px 18px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 12px; }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .info-card h4 {
+            font-size: 0.68rem;
+            color: var(--accent-pink);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-card p { font-size: 0.78rem; line-height: 1.4; color: #cbd5e1; }
+
+        .connected-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; }
+        .conn-chip {
+            background: rgba(255,255,255,0.08);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .conn-chip:hover {
+            background: rgba(168, 85, 247, 0.25);
+            border-color: var(--accent-purple);
+            color: #fff;
+        }
+
+        /* TAB 2: LIVING LABS & MAPPA */
+        .grid-page {
+            width: 100%;
+            height: 100%;
+            padding: 24px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 18px;
+            align-content: start;
+        }
+
+        .lab-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .lab-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent-pink);
+        }
+
+        .lab-card h3 { font-size: 1rem; color: #fff; }
+        .lab-card .tag { font-size: 0.65rem; color: var(--accent-cyan); text-transform: uppercase; font-weight: 700; }
+        .lab-card p { font-size: 0.8rem; color: #cbd5e1; line-height: 1.4; }
+
+        /* TAB 3: SIMULATORE PROGETTI */
+        .simulator-page {
+            width: 100%;
+            height: 100%;
+            padding: 24px;
+            display: flex;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .sim-panel {
+            flex: 1;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .sim-panel h3 { font-size: 1.1rem; color: var(--accent-purple); }
+        .checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.03);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.82rem;
+        }
+
+        .sim-result {
+            flex: 1.2;
+            background: rgba(255,255,255,0.02);
+            border: 1px dashed var(--panel-border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .score-bar {
+            height: 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink));
+            transition: width 0.4s ease;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace { flex-direction: column; }
+            .detail-window { width: 100%; height: 38%; }
+            .kpi-container { display: none; }
+            .simulator-page { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-group">
+            <span class="logo-badge">BASILICATA CREATIVA</span>
+            <h1>Cluster Lucano dell'Industria Culturale e Creativa</h1>
+        </div>
+
+        <nav class="nav-tabs">
+            <button class="tab-btn active" onclick="switchPage('page-graph', this)">🌐 Grafo Ecosistema</button>
+            <button class="tab-btn" onclick="switchPage('page-labs', this)">🔬 Living Labs & Asset</button>
+            <button class="tab-btn" onclick="switchPage('page-sim', this)">⚡ Simulatore Sinergie</button>
+        </nav>
+
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-value">150+</div>
+                <div class="kpi-label">Imprese e Soci</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">5</div>
+                <div class="kpi-label">Living Labs</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">3</div>
+                <div class="kpi-label">Centri Ricerca</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        
+        <!-- PAGINA 1: GRAFO INTERATTIVO -->
+        <div id="page-graph" class="page-view active">
+            <div class="controls-overlay">
+                <div class="control-group">
+                    <div class="control-label">Modalità Layout Grafo</div>
+                    <div class="view-switcher" id="viewSwitcher">
+                        <button class="btn-view active" data-view="hub">🌐 Hub Cluster</button>
+                        <button class="btn-view" data-view="force">🌀 Fisica Repulsiva</button>
+                        <button class="btn-view" data-view="radial">⭕ Concentrico</button>
+                        <button class="btn-view" data-view="grid">📊 Per Settore</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">Filtra Attori dell'Ecosistema</div>
+                    <input type="text" id="searchInput" class="search-box" placeholder="Cerca Matera, CNR, Cinema, Digital, Living Lab...">
+                    <div class="filter-tags" id="filterContainer">
+                        <button class="tag-btn active" data-cat="all">Tutti</button>
+                        <button class="tag-btn" data-cat="hub">Hub Cluster</button>
+                        <button class="tag-btn" data-cat="research">Ricerca & UNIBAS</button>
+                        <button class="tag-btn" data-cat="heritage">Digital Heritage</button>
+                        <button class="tag-btn" data-cat="craft">Design & Artigianato</button>
+                        <button class="tag-btn" data-cat="cinema">Cinema & Audiovisivo</button>
+                        <button class="tag-btn" data-cat="performing">Spettacolo & Events</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="network-container">
+                <canvas id="networkCanvas"></canvas>
+            </div>
+
+            <aside class="detail-window">
+                <div class="detail-header">
+                    <span class="category-pill" id="detCategory">HUB CENTRALE</span>
+                    <h2 class="entity-title" id="detTitle">Basilicata Creativa</h2>
+                    <p class="entity-subtitle" id="detSubtitle">Cluster Lucano Industrie Culturali e Creative</p>
+                </div>
+                <div class="detail-body">
+                    <div class="info-card">
+                        <h4>Ruolo nell'Ecosistema</h4>
+                        <p id="detRole">Coordinatore delle filiere culturali e creative della Basilicata, aggregatore tra ricerca, imprese, pubblica amministrazione e terzo settore.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>Iniziative & Progetti Chiave</h4>
+                        <p id="detDesc">Gestione dei Living Labs territoriali, accelerazione d'impresa, valorizzazione digitale dei beni culturali, prototipazione design e attrazione investimenti cinematografici.</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>Nodi & Partner Collegati</h4>
+                        <div class="connected-list" id="detConns"></div>
+                    </div>
+                    <a id="detLink" href="https://www.basilicatacreativa.it/" target="_blank" class="action-btn" style="display:block; text-align:center; background:var(--accent-purple); color:#fff; font-weight:700; padding:9px; border-radius:6px; text-decoration:none; margin-top:auto; font-size:0.8rem; box-shadow: 0 0 10px rgba(168,85,247,0.3);">Visita Portale Basilicata Creativa</a>
+                </div>
+            </aside>
+        </div>
+
+        <!-- PAGINA 2: LIVING LABS & DOMINI -->
+        <div id="page-labs" class="page-view">
+            <div class="grid-page">
+                <div class="lab-card">
+                    <span class="tag">Living Lab 01</span>
+                    <h3>Heritage & Digital 3D</h3>
+                    <p>Digitalizzazione del patrimonio culturale lucano mediante rilievi 3D, fotogrammetria, BIM per il restauro e fruizione in Realtà Virtuale e Aumentata.</p>
+                </div>
+                <div class="lab-card">
+                    <span class="tag">Living Lab 02</span>
+                    <h3>Design, Materials & Craftsmanship</h3>
+                    <p>Incontro tra il sapere artigiano tradizionale lucano (terracotta, legno, tessile) e le nuove metodologie dell'Open Design e della fabbricazione digitale.</p>
+                </div>
+                <div class="lab-card">
+                    <span class="tag">Living Lab 03</span>
+                    <h3>Film & Audiovisual Innovation</h3>
+                    <p>Sviluppo di tecnologie per la produzione cinematografica, virtual production, sonorizzazione avanzata e valorizzazione del territorio come set di ripresa.</p>
+                </div>
+                <div class="lab-card">
+                    <span class="tag">Living Lab 04</span>
+                    <h3>Performing Arts & Live Industry</h3>
+                    <p>Modelli innovativi per l'organizzazione di festival sostenibili, ingaggio dei pubblici (audience development) e allestimenti performativi diffusi.</p>
+                </div>
+                <div class="lab-card">
+                    <span class="tag">Living Lab 05</span>
+                    <h3>Green Architecture & Landscaping</h3>
+                    <p>Soluzioni per la rigenerazione dei borghi lucani, bioarchitettura, sostenibilità dei materiali locali e riqualificazione degli spazi pubblici.</p>
+                </div>
+                <div class="lab-card">
+                    <span class="tag">Hub di Coordinamento</span>
+                    <h3>Casa delle Tecnologie Emergenti (CTEMT)</h3>
+                    <p>Infrastruttura di innovazione a Matera supportata dal MIMIT per il trasferimento tecnologico verso le PMI creative del territorio.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGINA 3: SIMULATORE PROGETTI E SINERGIE -->
+        <div id="page-sim" class="page-view">
+            <div class="simulator-page">
+                <div class="sim-panel">
+                    <h3>Configura Progetto Collaborativo</h3>
+                    <p style="font-size:0.8rem; color:var(--text-muted);">Seleziona gli attori e le competenze da coinvolgere per calcolare l'indice di impatto e il potenziale di finanziamento dell'ecosistema.</p>
+
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="sim-check" value="25" data-name="UNIBAS / CNR (Ricerca scientifica)"> UNIBAS & CNR ISPC (Ricerca & Brevetti)
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="sim-check" value="20" data-name="Living Lab Digital Heritage"> Living Lab Heritage 3D & VR
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="sim-check" value="20" data-name="PMI Artigiane & Design"> Rete Artigiani & Open Design
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="sim-check" value="15" data-name="Lucana Film Commission"> Industria Audiovisiva & Cinema
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="sim-check" value="20" data-name="Fondazioni Culturali e Comuni"> Fondazioni Culturali & Enti Locali
+                        </label>
+                    </div>
+                </div>
+
+                <div class="sim-result">
+                    <h3 style="color:#fff;">Output Sinergico e Fattibilità</h3>
+                    
+                    <div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:4px;">
+                            <span>Indice Innovazione Ecosistema</span>
+                            <span id="scoreVal" style="font-weight:700; color:var(--accent-pink);">0%</span>
+                        </div>
+                        <div class="score-bar">
+                            <div class="score-fill" id="scoreBar"></div>
+                        </div>
+                    </div>
+
+                    <div class="info-card" style="margin-top:10px;">
+                        <h4>Tipologia di Progetto Generato</h4>
+                        <p id="projectType">Seleziona almeno un partner per simulare il progetto.</p>
+                    </div>
+
+                    <div class="info-card">
+                        <h4>Bandi & Opportunità Scalabili</h4>
+                        <p id="fundingType">Seleziona le componenti dell'ecosistema per visualizzare le fonti di cofinanziamento idonee.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // PAGINE NAVIGAZIONE
+        function switchPage(pageId, btn) {
+            document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            btn.classList.add('active');
+            if (pageId === 'page-graph') {
+                setTimeout(resize, 50);
+            }
+        }
+
+        // DATASET ATTORI BASILICATA CREATIVA
+        const nodes = [
+            { id: 'bc_hub', label: 'Basilicata Creativa', cat: 'hub', color: '#a855f7', radius: 26,
+              sub: 'Cluster Lucano Industrie Culturali',
+              desc: 'Ente coordinatore dell\'ecosistema di innovazione culturale della Regione Basilicata.',
+              role: 'Integrazione tra ricerca, imprese creative e istituzioni pubbliche.',
+              url: 'https://www.basilicatacreativa.it/' },
+
+            { id: 'unibas_cnr', label: 'UNIBAS & CNR ISPC', cat: 'research', color: '#06b6d4', radius: 22,
+              sub: 'Ateneo & Ricerca Scientifica',
+              desc: 'Università degli Studi della Basilicata e CNR per il patrimonio culturale.',
+              role: 'Trasferimento tecnologico, brevetti, analisi scientifica dei materiali e archeologia digitale.',
+              url: 'https://www.basilicatacreativa.it/' },
+
+            { id: 'matera2019', label: 'Fondazione Matera 2019', cat: 'heritage', color: '#ec4899', radius: 20,
+              sub: 'Legacy Capitale della Cultura',
+              desc: 'Istituzione garante dell\'eredità culturale di Matera 2019.',
+              role: 'Co-progettazione culturale, relazioni internazionali e modelli di partecipazione sociale.',
+              url: 'https://www.basilicatacreativa.it/' },
+
+            { id: 'digital_heritage', label: 'Lab Digital Heritage', cat: 'heritage', color: '#ec4899', radius: 21,
+              sub: 'Living Lab 3D & Metaverso',
+              desc: 'Polo per la digitalizzazione ad alta risoluzione dei Beni Culturali lucani.',
+              role: 'Sviluppo di archivi 3D, esperienze VR/AR e gemelli digitali dei monumenti.',
+              url: 'https://www.basilicatacreativa.it/' },
+
+            { id: 'open_design', label: 'Open Design & Craft', cat: 'craft', color: '#f59e0b', radius: 20,
+              sub: 'Design & Fabbricazione Digitale',
+              desc: 'Network di designer, makers e botteghe artigiane storiche della Basilicata.',
+              role: 'Rinnovamento del prodotto artigianale tipico tramite stampa 3D e prototipazione rapida.',
+              url: 'https://www.basilicatacreativa.it/' },
+
+            { id: 'lucana_film', label: 'Lucana Film Commission', cat: 'cinema', color: '#6366f1', radius: 20,
+              sub: 'Audiovisivo & Cinema',
+              desc: 'Ente per la promozione del territorio lucano come set cinematografico internazionale.',
+              role: 'Attrazione produzioni, Virtual Production, formazione maestranze locali.',
+              url: 'https://www.basilicatacreativa.it/' },
+
+            { id: 'performing_arts', label: 'Performing Arts Network', cat: 'performing', color: '#10b981', radius: 19,
+              sub: 'Teatro, Musica & Festival',
+              desc: 'Aggregazione di compagnie teatrali, festival musicali ed eventi dal vivo.',
+              role: 'Audience development, spettacoli immersivi e sostenibilità degli eventi.',
+              url: 'https://www.basilicatacreativa.it/' },
+
+            { id: 'pmi_creative', label: 'Rete PMI Creative Lucane', cat: 'hub', color: '#a855f7', radius: 21,
+              sub: 'Oltre 100 Imprese Associate',
+              desc: 'Tessuto imprenditoriale lucano nei settori comunicazione, gaming, architettura e moda.',
+              role: 'Esecuzione industriale, sviluppo prodotti commerciali e occupazione giovanile.',
+              url: 'https://www.basilicatacreativa.it/' }
+        ];
+
+        const links = [
+            { source: 'bc_hub', target: 'unibas_cnr' },
+            { source: 'bc_hub', target: 'matera2019' },
+            { source: 'bc_hub', target: 'digital_heritage' },
+            { source: 'bc_hub', target: 'open_design' },
+            { source: 'bc_hub', target: 'lucana_film' },
+            { source: 'bc_hub', target: 'performing_arts' },
+            { source: 'bc_hub', target: 'pmi_creative' },
+            
+            { source: 'unibas_cnr', target: 'digital_heritage' },
+            { source: 'open_design', target: 'pmi_creative' },
+            { source: 'digital_heritage', target: 'matera2019' },
+            { source: 'lucana_film', target: 'performing_arts' }
+        ];
+
+        // ENGINE CANVAS & SIMULAZIONE GRAFO
+        const container = document.getElementById('network-container');
+        const canvas = document.getElementById('networkCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = 0, height = 0;
+        let selectedNode = nodes[0];
+        let hoveredNode = null, draggedNode = null;
+        let currentFilter = 'all', searchQuery = '', currentLayout = 'hub';
+        let initialized = false;
+
+        nodes.forEach(n => { n.x = 0; n.y = 0; n.tx = 0; n.ty = 0; n.vx = 0; n.vy = 0; });
+
+        function computeTargetPositions() {
+            const pad = 100;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'hub') {
+                const hub = nodes.find(n => n.id === 'bc_hub');
+                hub.tx = cx; hub.ty = cy;
+                const others = nodes.filter(n => n.id !== 'bc_hub');
+                others.forEach((n, idx) => {
+                    const angle = (idx / others.length) * Math.PI * 2;
+                    const r = Math.min(width, height) * 0.32;
+                    n.tx = cx + Math.cos(angle) * r;
+                    n.ty = cy + Math.sin(angle) * r;
+                });
+            } else if (currentLayout === 'radial') {
+                nodes.forEach((n, idx) => {
+                    const angle = (idx / nodes.length) * Math.PI * 2;
+                    const r = Math.min(width, height) * 0.35;
+                    n.tx = cx + Math.cos(angle) * r;
+                    n.ty = cy + Math.sin(angle) * r;
+                });
+            } else if (currentLayout === 'grid') {
+                const cols = 4;
+                nodes.forEach((n, idx) => {
+                    const c = idx % cols;
+                    const r = Math.floor(idx / cols);
+                    n.tx = pad + c * ((width - pad * 2) / (cols - 1));
+                    n.ty = pad + r * 150;
+                });
+            } else {
+                nodes.forEach(n => { n.tx = cx + (Math.random() - 0.5) * 200; n.ty = cy + (Math.random() - 0.5) * 200; });
+            }
+        }
+
+        function resize() {
+            width = container.clientWidth;
+            height = container.clientHeight;
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+            if (width > 0 && height > 0) {
+                computeTargetPositions();
+                if (!initialized) {
+                    nodes.forEach(n => { n.x = n.tx; n.y = n.ty; });
+                    selectNode(nodes[0]);
+                    initialized = true;
+                }
+            }
+        }
+
+        const resizeObserver = new ResizeObserver(() => resize());
+        resizeObserver.observe(container);
+
+        function updatePositions() {
+            if (!initialized) return;
+            nodes.forEach(node => {
+                if (node === draggedNode) return;
+                node.x += (node.tx - node.x) * 0.1;
+                node.y += (node.ty - node.y) * 0.1;
+            });
+        }
+
+        function render() {
+            updatePositions();
+            ctx.clearRect(0, 0, width, height);
+
+            if (initialized) {
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    const isHighlighted = selectedNode && (source.id === selectedNode.id || target.id === selectedNode.id);
+                    ctx.beginPath();
+                    ctx.moveTo(source.x, source.y);
+                    ctx.lineTo(target.x, target.y);
+                    ctx.strokeStyle = isHighlighted ? '#ec4899' : 'rgba(255, 255, 255, 0.12)';
+                    ctx.lineWidth = isHighlighted ? 2.5 : 1;
+                    ctx.stroke();
+                });
+
+                nodes.forEach(node => {
+                    const matchesFilter = (currentFilter === 'all' || node.cat === currentFilter);
+                    const matchesSearch = searchQuery === '' || node.label.toLowerCase().includes(searchQuery);
+                    const isVisible = matchesFilter && matchesSearch;
+                    const isSelected = selectedNode && selectedNode.id === node.id;
+
+                    ctx.save();
+                    ctx.translate(node.x, node.y);
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = isVisible ? node.color : '#334155';
+                    ctx.globalAlpha = isVisible ? 1.0 : 0.2;
+                    ctx.fill();
+
+                    ctx.lineWidth = isSelected ? 3 : 1;
+                    ctx.strokeStyle = isSelected ? '#ffffff' : 'rgba(0,0,0,0.5)';
+                    ctx.stroke();
+
+                    ctx.fillStyle = isVisible ? '#f8fafc' : '#64748b';
+                    ctx.font = '11px Segoe UI, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(node.label, 0, node.radius + 14);
+
+                    ctx.restore();
+                });
+            }
+            requestAnimationFrame(render);
+        }
+
+        function selectNode(node) {
+            selectedNode = node;
+            document.getElementById('detTitle').innerText = node.label;
+            document.getElementById('detSubtitle').innerText = node.sub;
+            document.getElementById('detDesc').innerText = node.desc;
+            document.getElementById('detRole').innerText = node.role;
+
+            const connsContainer = document.getElementById('detConns');
+            connsContainer.innerHTML = '';
+            links.filter(l => l.source === node.id || l.target === node.id).forEach(l => {
+                const otherId = l.source === node.id ? l.target : l.source;
+                const targetNode = nodes.find(n => n.id === otherId);
+                if (targetNode) {
+                    const chip = document.createElement('span');
+                    chip.className = 'conn-chip';
+                    chip.innerText = targetNode.label;
+                    chip.onclick = () => selectNode(targetNode);
+                    connsContainer.appendChild(chip);
+                }
+            });
+        }
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const clicked = nodes.find(n => Math.hypot(n.x - x, n.y - y) <= n.radius + 5);
+            if (clicked) selectNode(clicked);
+        });
+
+        document.getElementById('viewSwitcher').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-view');
+            if (btn) {
+                document.querySelectorAll('.btn-view').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLayout = btn.dataset.view;
+                computeTargetPositions();
+            }
+        });
+
+        document.getElementById('filterContainer').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.cat;
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+        });
+
+        // SIMULATORE PROGETTI (TAB 3)
+        document.querySelectorAll('.sim-check').forEach(chk => {
+            chk.addEventListener('change', () => {
+                let total = 0;
+                let selected = [];
+                document.querySelectorAll('.sim-check:checked').forEach(c => {
+                    total += parseInt(c.value);
+                    selected.push(c.dataset.name);
+                });
+
+                document.getElementById('scoreVal').innerText = total + '%';
+                document.getElementById('scoreBar').style.width = total + '%';
+
+                const projText = document.getElementById('projectType');
+                const fundText = document.getElementById('fundingType');
+
+                if (total === 0) {
+                    projText.innerText = "Seleziona almeno un partner per simulare il progetto.";
+                    fundText.innerText = "Seleziona le componenti dell'ecosistema per visualizzare le fonti di cofinanziamento idonee.";
+                } else if (total < 40) {
+                    projText.innerText = "Iniziativa Locale / Micro-Progetto Culturale. Coinvolge: " + selected.join(", ");
+                    fundText.innerText = "Bandi Regionali Basilicata, Micro-credito e Voucher Innovazione.";
+                } else if (total < 75) {
+                    projText.innerText = "Progetto Integrato Ecosistemico. Partner: " + selected.join(", ");
+                    fundText.innerText = "Fondo Sviluppo e Coesione (FSC), PNRR Borghi e CTE Matera.";
+                } else {
+                    projText.innerText = "Flagship Project Internazionale (Cluster Lead). Partner: " + selected.join(", ");
+                    fundText.innerText = "Creative Europe, Horizon Europe (Cluster 2 - Heritage) e MIMIT CTE.";
+                }
+            });
+        });
+
+        render();
+    </script>
+</body>
+</html>

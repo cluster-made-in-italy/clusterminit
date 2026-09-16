@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Ecosistema Città Studi Biella</title>
+    <style>
+        :root {
+            --bg-dark: #090e17;
+            --panel-bg: rgba(13, 22, 38, 0.94);
+            --panel-border: rgba(16, 185, 129, 0.25);
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, #10b981, #047857);
+            color: #fff;
+            font-weight: 800;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+
+        h1 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .kpi-container {
+            display: flex;
+            gap: 12px;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--panel-border);
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        .kpi-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .workspace {
+            display: flex;
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 55px);
+            overflow: hidden;
+        }
+
+        #network-container {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            cursor: grab;
+            background: radial-gradient(circle at center, #111e33 0%, #090e17 100%);
+        }
+
+        #network-container:active {
+            cursor: grabbing;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 5;
+            width: 330px;
+        }
+
+        .control-group {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .view-switcher {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+
+        .btn-view {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-view:hover {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--accent-green);
+        }
+
+        .btn-view.active {
+            background: var(--accent-green);
+            color: #000;
+            font-weight: 700;
+            border-color: var(--accent-green);
+        }
+
+        .search-box {
+            background: rgba(9, 14, 23, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            font-size: 0.78rem;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-green);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .tag-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--panel-border);
+            color: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.68rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-btn.active, .tag-btn:hover {
+            color: #fff;
+            border-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.2);
+        }
+
+        .detail-window {
+            width: 370px;
+            height: 100%;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 8;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.6);
+            flex-shrink: 0;
+        }
+
+        .detail-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .category-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .entity-title {
+            font-size: 1.15rem;
+            margin-bottom: 2px;
+            color: #fff;
+        }
+
+        .entity-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .detail-body {
+            padding: 14px 18px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .info-card h4 {
+            font-size: 0.68rem;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-card p {
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: #cbd5e1;
+        }
+
+        .connected-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .conn-chip {
+            background: rgba(255,255,255,0.08);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .conn-chip:hover {
+            background: rgba(16, 185, 129, 0.25);
+            border-color: var(--accent-green);
+            color: #fff;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.68rem;
+            display: flex;
+            gap: 12px;
+            backdrop-filter: blur(8px);
+            z-index: 5;
+            flex-wrap: wrap;
+            max-width: 72%;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace { flex-direction: column; }
+            .detail-window { width: 100%; height: 38%; }
+            .kpi-container { display: none; }
+            .controls-overlay { width: calc(100% - 24px); }
+            .legend { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-group">
+            <span class="logo-badge">CSB</span>
+            <h1>Ecosistema Città Studi Biella</h1>
+        </div>
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-value">Campus Integrato</div>
+                <div class="kpi-label">Università & Ricerca</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">Pointex & Lab</div>
+                <div class="kpi-label">Innovazione Tessile</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">Formazione ITS</div>
+                <div class="kpi-label">Academy & Reskilling</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="controls-overlay">
+            <div class="control-group">
+                <div class="control-label">Modalità Visualizzazione Rete</div>
+                <div class="view-switcher" id="viewSwitcher">
+                    <button class="btn-view active" data-view="hub">🎓 Hub Centrale</button>
+                    <button class="btn-view" data-view="force">🌀 Fisica Repulsiva</button>
+                    <button class="btn-view" data-view="radial">⭕ Concentrica</button>
+                    <button class="btn-view" data-view="grid">📊 Per Categoria</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">Filtra e Cerca Attori CSB</div>
+                <input type="text" id="searchInput" class="search-box" placeholder="Cerca UniTO, PoliTO, Pointex, CNR, ITS...">
+                <div class="filter-tags" id="filterContainer">
+                    <button class="tag-btn active" data-cat="all">Tutti</button>
+                    <button class="tag-btn" data-cat="hub">Hub Campus</button>
+                    <button class="tag-btn" data-cat="uni">Università & ITS</button>
+                    <button class="tag-btn" data-cat="research">Ricerca & Lab</button>
+                    <button class="tag-btn" data-cat="pointex">Polo Pointex & Imprese</button>
+                    <button class="tag-btn" data-cat="services">Servizi & Congressi</button>
+                    <button class="tag-btn" data-cat="stakeholder">Soci & Partner</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="network-container">
+            <canvas id="networkCanvas"></canvas>
+
+            <div class="legend">
+                <div class="legend-item"><span class="legend-color" style="background:#10b981;"></span> Hub Campus Città Studi</div>
+                <div class="legend-item"><span class="legend-color" style="background:#3b82f6;"></span> Università & ITS TAM</div>
+                <div class="legend-item"><span class="legend-color" style="background:#8b5cf6;"></span> Ricerca, CNR & Laboratorio Tessile</div>
+                <div class="legend-item"><span class="legend-color" style="background:#06b6d4;"></span> Polo Pointex & Trasferimento Tecnologico</div>
+                <div class="legend-item"><span class="legend-color" style="background:#f59e0b;"></span> Biblioteca, Congressi & Residenza</div>
+                <div class="legend-item"><span class="legend-color" style="background:#ef4444;"></span> Fondazione CRB, UIB & Regione</div>
+            </div>
+        </div>
+
+        <aside class="detail-window">
+            <div class="detail-header">
+                <span class="category-pill" id="detCategory">HUB CAMPUS</span>
+                <h2 class="entity-title" id="detTitle">Città Studi Biella</h2>
+                <p class="entity-subtitle" id="detSubtitle">Polo Universitario, Formativo, di Ricerca e Servizi per il Territorio</p>
+            </div>
+            <div class="detail-body">
+                <div class="info-card">
+                    <h4>Ruolo nell'Ecosistema</h4>
+                    <p id="detRole">Infrastruttura strategica del Biellese che integra corsi universitari, istruzione tecnica superiore (ITS), ricerca tessile applicata, centro congressi e servizi per l'innovazione industriale.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Attività & Servizi Chiave</h4>
+                    <p id="detDesc">Sede dei corsi UniTO e PoliTO, gestione del Polo d'Innovazione Tessile Pointex, Laboratorio prove materiali, Biblioteca specialistica G. Pella, residenza campus e formazione professionale.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Nodi Collegati</h4>
+                    <div class="connected-list" id="detConns"></div>
+                </div>
+                <a id="detLink" href="https://www.cittastudi.org/" target="_blank" class="action-btn" style="display:block; text-align:center; background:var(--accent-green); color:#000; font-weight:700; padding:9px; border-radius:6px; text-decoration:none; margin-top:auto; font-size:0.8rem;">Visita Sito Ufficiale Città Studi</a>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // DATASET ATTORI ECOSISTEMA CITTÀ STUDI BIELLA
+        const nodes = [
+            // HUB CENTRALE
+            { id: 'cs_hub', label: 'Città Studi Biella', cat: 'hub', color: '#10b981', radius: 24,
+              sub: 'Polo Universitario, Formativo e Tecnologico',
+              desc: 'Città Studi S.p.A. è la società che gestisce il moderno campus di Biella, favorendo lo sviluppo del capitale umano e la competitività del distretto manifatturiero e tessile.',
+              role: 'Coordinamento delle attività universitarie, laboratoriali, formative e di trasferimento tecnologico a supporto di studenti e imprese.',
+              url: 'https://www.cittastudi.org/' },
+
+            // UNIVERSITÀ & ITS
+            { id: 'unito', label: 'Università degli Studi di Torino', cat: 'uni', color: '#3b82f6', radius: 20,
+              sub: 'Campus Universitario di Biella',
+              desc: 'Sede decentrata di UniTO a Città Studi, con corsi di laurea in Economia aziendale, Amministrazione e Controllo, Servizio Sociale e Infermieristica.',
+              role: 'Offerta formativa accademica di primo e secondo livello e ricerca scientifica in ambito economico, sociale e sanitario.',
+              url: 'https://www.cittastudi.org/universita' },
+
+            { id: 'polito', label: 'Politecnico di Torino', cat: 'uni', color: '#3b82f6', radius: 19,
+              sub: 'Ingegneria & Innovazione Industriale',
+              desc: 'Collaborazione storica con il Politecnico di Torino per iniziative formative, progetti di ricerca ingegneristica e scienze dei materiali.',
+              role: 'Formazione ingegneristica avanzata, sviluppo tecnologico per la manifattura e il settore tessile sostenibile.',
+              url: 'https://www.cittastudi.org/' },
+
+            { id: 'its_tam', label: 'ITS TAM Biella', cat: 'uni', color: '#3b82f6', radius: 18,
+              sub: 'Istituto Tecnico Superiore Tessile Abbigliamento Moda',
+              desc: 'Accademia ad alta specializzazione tecnologica che forma i super-tecnici del settore moda, tessile e materiali innovativi.',
+              role: 'Formazione terziaria professionalizzante, tirocini in azienda e trasferimento immediato di competenze al mercato.',
+              url: 'https://www.itstam.it/' },
+
+            { id: 'cs_formazione', label: 'Città Studi Formazione', cat: 'uni', color: '#3b82f6', radius: 17,
+              sub: 'Agenzia Formativa Accredidata',
+              desc: 'Ente per la formazione continua, reskilling, academy aziendali e corsi finanziati dal Fondo Sociale Europeo e Regione Piemonte.',
+              role: 'Sviluppo di competenze professionali per occupati, disoccupati e corsi su misura per le imprese del territorio.',
+              url: 'https://www.cittastudi.org/formazione' },
+
+            // RICERCA & LABORATORI
+            { id: 'lab_tessile', label: 'Laboratorio Tessile & Prove', cat: 'research', color: '#8b5cf6', radius: 19,
+              sub: 'Centro Prove accredited & Certificazioni',
+              desc: 'Laboratorio tecnologico accreditato per analisi fisico-meccaniche, chimiche ed ecotossicologiche su filati, tessuti e materiali avanzati.',
+              role: 'Certificazione di qualità, controllo conformità sostenibile (ZDHC, Oeko-Tex), supporto R&S per le aziende tessili.',
+              url: 'https://www.cittastudi.org/laboratorio' },
+
+            { id: 'cnr_stiima', label: 'CNR-STIIMA Biella', cat: 'research', color: '#8b5cf6', radius: 18,
+              sub: 'Sede CNR - Sistemi e Tecnologie Industriali',
+              desc: 'Istituto del Consiglio Nazionale delle Ricerche insediato presso Città Studi, focalizzato su sostenibilità e processi industriali intelligenti.',
+              role: 'Ricerca scientifica applicata al riuso delle fibre, processi circolari e robotica per la manifattura avanzata.',
+              url: 'https://www.stiima.cnr.it/' },
+
+            // POLO POINTEX & TRASFERIMENTO TECNOLOGICO
+            { id: 'pointex', label: 'Polo d\'Innovazione Pointex', cat: 'pointex', color: '#06b6d4', radius: 21,
+              sub: 'Polo Tessile e Materiali Sostenibili',
+              desc: 'Gestito da Città Studi per conto della Regione Piemonte, coordina oltre 100 soggetti tra imprese, centri di ricerca e università.',
+              role: 'Finanziamento e gestione di progetti di ricerca industriale, trasferimento tecnologico e innovazione aperta.',
+              url: 'https://pointex.cittastudi.org/' },
+
+            { id: 'cluster_imprese', label: 'Rete Imprese & Distretto Tessile', cat: 'pointex', color: '#06b6d4', radius: 17,
+              sub: 'Filiera Manifatturiera d\'Eccellenza Biellese',
+              desc: 'Insieme delle imprese del distretto laniero e meccanotessile che collaborano con il Polo per progetti di economia circolare e digitalizzazione.',
+              role: 'Adozione delle tecnologie sviluppate, partnership nei bandi R&S e fabbisogno di innovazione.',
+              url: 'https://www.cittastudi.org/' },
+
+            // SERVIZI & CONGRESSI
+            { id: 'centro_congressi', label: 'Centro Congressi Città Studi', cat: 'services', color: '#f59e0b', radius: 18,
+              sub: 'Auditorium & Spazi Eventi',
+              desc: 'Infrastruttura congressuale dotata di auditorium da centinaia di posti, sale meeting e spazi espositivi per eventi aziendali e culturali.',
+              role: 'Hosting di fiere, convegni scientifici, assemblee associative ed eventi di networking istituzionale.',
+              url: 'https://www.cittastudi.org/congressi' },
+
+            { id: 'biblioteca_pella', label: 'Biblioteca Specialistica "G. Pella"', cat: 'services', color: '#f59e0b', radius: 17,
+              sub: 'Documentazione Tessile ed Economica',
+              desc: 'Una delle biblioteche tessili più importanti d\'Europa, con un vasto patrimonio di volumi, campionari storici e banche dati d\'impresa.',
+              role: 'Conservazione della memoria storica industriale, consultazione per ricercatori, studenti e stilisti.',
+              url: 'https://www.cittastudi.org/biblioteca' },
+
+            { id: 'residenza_campus', label: 'Campus Residenziale & Studentato', cat: 'services', color: '#f59e0b', radius: 16,
+              sub: 'Ospitalità Studenti & Visiting Professor', desc: 'Struttura residenziale integrata nel campus che offre alloggi e servizi di accoglienza per universitari, docenti e ricercatori.', role: 'Attrattività del territorio per studenti fuori sede e ricercatori internazionali.', url: 'https://www.cittastudi.org/' },
+
+            // STAKEHOLDER & GOVERNANCE
+            { id: 'fondazione_crb', label: 'Fondazione Cassa Risparmio Biella', cat: 'stakeholder', color: '#ef4444', radius: 20,
+              sub: 'Sostenitore Strategico & Azionista', desc: 'Ente fondazionale di riferimento che sostiene gli investimenti strutturali e i progetti di sviluppo di Città Studi.', role: 'Finanziamento di borse di studio, ampliamento infrastrutturale e programmi strategici per il capitale umano.', url: 'https://www.fondazionecrb.it/' },
+
+            { id: 'uib_biella', label: 'Unione Industriale Biellese (UIB)', cat: 'stakeholder', color: '#ef4444', radius: 18,
+              sub: 'Associazione di Categoria', desc: 'Rappresenta il tessuto imprenditoriale biellese e promuove il raccordo tra le esigenze delle aziende e i servizi di Città Studi.', role: 'Indirizzo sulle esigenze formative e di ricerca dell\'industria locale.', url: 'https://www.ui.biella.it/' },
+
+            { id: 'regione_piemonte', label: 'Regione Piemonte & Enti Locali', cat: 'stakeholder', color: '#ef4444', radius: 18,
+              sub: 'Istituzioni & Programmazione PR FESR / FSE+', desc: 'Regione Piemonte, Provincia e Comune di Biella che supportano le politiche di sviluppo e i finanziamenti dei Poli d\'Innovazione.', role: 'Programmazione delle risorse europee e regionali per la ricerca e la formazione.', url: 'https://www.regione.piemonte.it/' }
+        ];
+
+        // RELAZIONI (LINK) NELL'ECOSISTEMA
+        const links = [
+            // Hub centrale
+            { source: 'cs_hub', target: 'unito' },
+            { source: 'cs_hub', target: 'polito' },
+            { source: 'cs_hub', target: 'its_tam' },
+            { source: 'cs_hub', target: 'cs_formazione' },
+            { source: 'cs_hub', target: 'lab_tessile' },
+            { source: 'cs_hub', target: 'cnr_stiima' },
+            { source: 'cs_hub', target: 'pointex' },
+            { source: 'cs_hub', target: 'centro_congressi' },
+            { source: 'cs_hub', target: 'biblioteca_pella' },
+            { source: 'cs_hub', target: 'residenza_campus' },
+            { source: 'cs_hub', target: 'fondazione_crb' },
+            { source: 'cs_hub', target: 'uib_biella' },
+            { source: 'cs_hub', target: 'regione_piemonte' },
+
+            // Università & Formazione
+            { source: 'unito', target: 'residenza_campus' },
+            { source: 'unito', target: 'biblioteca_pella' },
+            { source: 'polito', target: 'cnr_stiima' },
+            { source: 'its_tam', target: 'cluster_imprese' },
+            { source: 'cs_formazione', target: 'uib_biella' },
+
+            // Ricerca & Pointex
+            { source: 'pointex', target: 'lab_tessile' },
+            { source: 'pointex', target: 'cnr_stiima' },
+            { source: 'pointex', target: 'cluster_imprese' },
+            { source: 'pointex', target: 'regione_piemonte' },
+            { source: 'lab_tessile', target: 'cluster_imprese' },
+
+            // Governance & Territorio
+            { source: 'fondazione_crb', target: 'pointex' },
+            { source: 'uib_biella', target: 'cluster_imprese' },
+            { source: 'regione_piemonte', target: 'cs_formazione' }
+        ];
+
+        // ENGINE CANVAS & SIMULAZIONE GRAFO
+        const container = document.getElementById('network-container');
+        const canvas = document.getElementById('networkCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = 0;
+        let height = 0;
+        let selectedNode = nodes[0];
+        let hoveredNode = null;
+        let draggedNode = null;
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let currentLayout = 'hub';
+        let initialized = false;
+
+        nodes.forEach(n => {
+            n.x = 0; n.y = 0;
+            n.tx = 0; n.ty = 0;
+            n.vx = 0; n.vy = 0;
+        });
+
+        function computeTargetPositions() {
+            const padX = Math.max(100, Math.min(width * 0.12, 160));
+            const padY = Math.max(90, Math.min(height * 0.14, 130));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'hub') {
+                const hub = nodes.find(n => n.id === 'cs_hub');
+                hub.tx = cx;
+                hub.ty = cy;
+
+                const categories = ['uni', 'research', 'pointex', 'services', 'stakeholder'];
+                const numCats = categories.length;
+
+                categories.forEach((catKey, cIdx) => {
+                    const angleCat = (cIdx / numCats) * Math.PI * 2 - Math.PI / 2;
+                    const catRadius = Math.min(width, height) * 0.32;
+                    const catNodes = nodes.filter(n => n.cat === catKey);
+
+                    catNodes.forEach((node, nIdx) => {
+                        const spreadAngle = 0.65;
+                        const angleNode = angleCat + (nIdx - (catNodes.length - 1) / 2) * (spreadAngle / Math.max(1, catNodes.length));
+                        node.tx = cx + Math.cos(angleNode) * catRadius;
+                        node.ty = cy + Math.sin(angleNode) * catRadius;
+
+                        node.tx = Math.max(minX, Math.min(maxX, node.tx));
+                        node.ty = Math.max(minY, Math.min(maxY, node.ty));
+                    });
+                });
+            }
+            else if (currentLayout === 'radial') {
+                const hubNode = nodes.find(n => n.id === 'cs_hub');
+                hubNode.tx = cx;
+                hubNode.ty = cy;
+
+                const innerNodes = nodes.filter(n => ['unito', 'polito', 'its_tam', 'pointex', 'lab_tessile', 'fondazione_crb'].includes(n.id));
+                const outerNodes = nodes.filter(n => n.id !== 'cs_hub' && !innerNodes.includes(n));
+
+                const rInner = Math.min(maxX - minX, maxY - minY) * 0.22;
+                innerNodes.forEach((n, idx) => {
+                    const angle = (idx / innerNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rInner;
+                    n.ty = cy + Math.sin(angle) * rInner;
+                });
+
+                const rOuter = Math.min(maxX - minX, maxY - minY) * 0.42;
+                outerNodes.forEach((n, idx) => {
+                    const angle = (idx / outerNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rOuter;
+                    n.ty = cy + Math.sin(angle) * rOuter;
+                });
+            }
+            else if (currentLayout === 'grid') {
+                const cats = [
+                    { cat: 'hub', label: 'HUB CAMPUS' },
+                    { cat: 'uni', label: 'UNIVERSITÀ & ITS' },
+                    { cat: 'research', label: 'RICERCA & LAB' },
+                    { cat: 'pointex', label: 'POINTEX & IMPRESE' },
+                    { cat: 'services', label: 'SERVIZI' },
+                    { cat: 'stakeholder', label: 'PARTNER' }
+                ];
+                const colW = (maxX - minX) / cats.length;
+
+                cats.forEach((cObj, cIdx) => {
+                    const catNodes = nodes.filter(n => n.cat === cObj.cat);
+                    const x = minX + colW * cIdx + colW / 2;
+                    const rowH = (maxY - minY) / (catNodes.length + 1);
+
+                    catNodes.forEach((node, rIdx) => {
+                        node.tx = x;
+                        node.ty = minY + rowH * (rIdx + 1);
+                    });
+                });
+            }
+            else { // Force simulation layout
+                const hub = nodes.find(n => n.id === 'cs_hub');
+                hub.tx = cx;
+                hub.ty = cy;
+
+                const others = nodes.filter(n => n.id !== 'cs_hub');
+                others.forEach((node, i) => {
+                    const angle = (i / others.length) * Math.PI * 2;
+                    const r = Math.min(width, height) * 0.32;
+                    node.tx = cx + Math.cos(angle) * r;
+                    node.ty = cy + Math.sin(angle) * r;
+                });
+            }
+        }
+
+        function resize() {
+            width = container.clientWidth;
+            height = container.clientHeight;
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+
+            if (width > 0 && height > 0) {
+                computeTargetPositions();
+                if (!initialized) {
+                    nodes.forEach(n => {
+                        n.x = n.tx;
+                        n.y = n.ty;
+                    });
+                    selectNode(nodes[0]);
+                    initialized = true;
+                }
+            }
+        }
+
+        const resizeObserver = new ResizeObserver(() => resize());
+        resizeObserver.observe(container);
+
+        function updatePositions() {
+            if (!initialized) return;
+
+            const padX = Math.max(90, Math.min(width * 0.1, 140));
+            const padY = Math.max(80, Math.min(height * 0.12, 120));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'force') {
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        let n1 = nodes[i];
+                        let n2 = nodes[j];
+                        let dx = n2.x - n1.x;
+                        let dy = n2.y - n1.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        let minDist = n1.radius + n2.radius + 38;
+
+                        let force = (minDist * minDist * 4.5) / (dist * dist);
+                        if (dist < minDist) {
+                            force += (minDist - dist) * 0.2;
+                        }
+
+                        let fx = (dx / dist) * force;
+                        let fy = (dy / dist) * force;
+
+                        n1.vx -= fx;
+                        n1.vy -= fy;
+                        n2.vx += fx;
+                        n2.vy += fy;
+                    }
+                }
+
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    let dx = target.x - source.x;
+                    let dy = target.y - source.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    let targetDist = 130;
+                    let springForce = (dist - targetDist) * 0.004;
+
+                    source.vx += dx * springForce;
+                    source.vy += dy * springForce;
+                    target.vx -= dx * springForce;
+                    target.vy -= dy * springForce;
+                });
+
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+
+                    let dx = cx - node.x;
+                    let dy = cy - node.y;
+                    node.vx += dx * 0.0006;
+                    node.vy += dy * 0.0006;
+
+                    node.vx *= 0.82;
+                    node.vy *= 0.82;
+
+                    node.x += node.vx;
+                    node.y += node.vy;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            } else {
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+                    node.x += (node.tx - node.x) * 0.12;
+                    node.y += (node.ty - node.y) * 0.12;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            }
+        }
+
+        function render() {
+            updatePositions();
+            ctx.clearRect(0, 0, width, height);
+
+            if (initialized) {
+                if (currentLayout === 'grid') {
+                    const cats = [
+                        { label: 'HUB CAMPUS', color: '#10b981', x: width * 0.09 },
+                        { label: 'UNIVERSITÀ & ITS', color: '#3b82f6', x: width * 0.25 },
+                        { label: 'RICERCA & LAB', color: '#8b5cf6', x: width * 0.41 },
+                        { label: 'POINTEX & IMPRESE', color: '#06b6d4', x: width * 0.57 },
+                        { label: 'SERVIZI', color: '#f59e0b', x: width * 0.73 },
+                        { label: 'PARTNER', color: '#ef4444', x: width * 0.89 }
+                    ];
+
+                    cats.forEach(c => {
+                        ctx.fillStyle = c.color;
+                        ctx.font = 'bold 10px Segoe UI, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(c.label, c.x, 32);
+
+                        ctx.beginPath();
+                        ctx.moveTo(c.x - 30, 40);
+                        ctx.lineTo(c.x + 30, 40);
+                        ctx.strokeStyle = c.color + '55';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    });
+                }
+
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    const isVisible = checkVisibility(source) && checkVisibility(target);
+                    const isHighlighted = selectedNode && (source.id === selectedNode.id || target.id === selectedNode.id);
+
+                    ctx.beginPath();
+                    ctx.moveTo(source.x, source.y);
+                    ctx.lineTo(target.x, target.y);
+                    ctx.strokeStyle = isHighlighted ? '#10b981' : (isVisible ? 'rgba(255, 255, 255, 0.14)' : 'rgba(255, 255, 255, 0.02)');
+                    ctx.lineWidth = isHighlighted ? 2.5 : 1;
+                    ctx.stroke();
+                });
+
+                nodes.forEach(node => {
+                    const isVisible = checkVisibility(node);
+                    const isSelected = selectedNode && selectedNode.id === node.id;
+                    const isHovered = hoveredNode && hoveredNode.id === node.id;
+
+                    ctx.save();
+                    ctx.translate(node.x, node.y);
+
+                    if (isSelected || isHovered) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, node.radius + 7, 0, Math.PI * 2);
+                        ctx.fillStyle = isSelected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255, 255, 255, 0.12)';
+                        ctx.fill();
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = isVisible ? node.color : '#334155';
+                    ctx.globalAlpha = isVisible ? 1.0 : 0.2;
+                    ctx.fill();
+
+                    ctx.lineWidth = isSelected ? 3 : 1.2;
+                    ctx.strokeStyle = isSelected ? '#ffffff' : 'rgba(0,0,0,0.5)';
+                    ctx.stroke();
+
+                    ctx.fillStyle = isVisible ? '#f8fafc' : '#64748b';
+                    ctx.font = (node.cat === 'hub' ? 'bold 11px' : '10px') + ' Segoe UI, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(node.label, 0, node.radius + 13);
+
+                    ctx.restore();
+                });
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        function checkVisibility(node) {
+            const matchesCat = currentFilter === 'all' || node.cat === currentFilter;
+            const matchesSearch = searchQuery === '' || 
+                node.label.toLowerCase().includes(searchQuery) || 
+                node.sub.toLowerCase().includes(searchQuery);
+            return matchesCat && matchesSearch;
+        }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function findNodeAt(pos) {
+            return nodes.find(node => {
+                let dx = node.x - pos.x;
+                let dy = node.y - pos.y;
+                return Math.sqrt(dx * dx + dy * dy) <= node.radius + 6;
+            });
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getPos(e);
+            if (draggedNode) {
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            } else {
+                hoveredNode = findNodeAt(pos);
+                canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
+            }
+        });
+
+        window.addEventListener('mouseup', () => { draggedNode = null; });
+
+        canvas.addEventListener('touchstart', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            if (draggedNode) {
+                const pos = getPos(e);
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            }
+        });
+        canvas.addEventListener('touchend', () => { draggedNode = null; });
+
+        function selectNode(node) {
+            selectedNode = node;
+
+            document.getElementById('detTitle').innerText = node.label;
+            document.getElementById('detSubtitle').innerText = node.sub;
+            document.getElementById('detDesc').innerText = node.desc;
+            document.getElementById('detRole').innerText = node.role;
+
+            const linkBtn = document.getElementById('detLink');
+            if (node.url && node.url !== '#') {
+                linkBtn.href = node.url;
+                linkBtn.style.display = 'block';
+            } else {
+                linkBtn.style.display = 'none';
+            }
+
+            const catNames = {
+                'hub': 'Hub Campus Città Studi',
+                'uni': 'Università & Formazione ITS',
+                'research': 'Ricerca & Laboratorio Tecnologico',
+                'pointex': 'Polo Pointex & Rete Imprese',
+                'services': 'Servizi, Congressi & Biblioteca',
+                'stakeholder': 'Governance, Soci & Partner'
+            };
+            const catBadge = document.getElementById('detCategory');
+            catBadge.innerText = catNames[node.cat] || node.cat;
+            catBadge.style.color = node.color;
+            catBadge.style.background = node.color + '22';
+
+            const connsContainer = document.getElementById('detConns');
+            connsContainer.innerHTML = '';
+
+            const connectedLinks = links.filter(l => l.source === node.id || l.target === node.id);
+            connectedLinks.forEach(l => {
+                const otherId = l.source === node.id ? l.target : l.source;
+                const targetNode = nodes.find(n => n.id === otherId);
+                if (targetNode) {
+                    const chip = document.createElement('span');
+                    chip.className = 'conn-chip';
+                    chip.innerText = targetNode.label;
+                    chip.onclick = () => selectNode(targetNode);
+                    connsContainer.appendChild(chip);
+                }
+            });
+        }
+
+        document.getElementById('viewSwitcher').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-view');
+            if (btn) {
+                document.querySelectorAll('.btn-view').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLayout = btn.dataset.view;
+                computeTargetPositions();
+            }
+        });
+
+        document.getElementById('filterContainer').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.cat;
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+        });
+
+        render();
+    </script>
+</body>
+</html>

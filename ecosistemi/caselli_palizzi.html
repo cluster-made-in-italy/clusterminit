@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Ecosistema I.S.I.S. Caselli - Palizzi</title>
+    <style>
+        :root {
+            --bg-dark: #0a0d14;
+            --panel-bg: rgba(15, 23, 42, 0.94);
+            --panel-border: rgba(217, 119, 6, 0.25);
+            --accent-gold: #f59e0b;
+            --accent-amber: #d97706;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+            --accent-purple: #a855f7;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            color: #fff;
+            font-weight: 800;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 12px rgba(217, 119, 6, 0.4);
+        }
+
+        h1 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .kpi-container {
+            display: flex;
+            gap: 12px;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--panel-border);
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+        }
+
+        .kpi-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .workspace {
+            display: flex;
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 55px);
+            overflow: hidden;
+        }
+
+        #network-container {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            cursor: grab;
+            background: radial-gradient(circle at center, #151d2a 0%, #0a0d14 100%);
+        }
+
+        #network-container:active {
+            cursor: grabbing;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 5;
+            width: 330px;
+        }
+
+        .control-group {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .view-switcher {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+
+        .btn-view {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-view:hover {
+            background: rgba(217, 119, 6, 0.15);
+            border-color: var(--accent-gold);
+        }
+
+        .btn-view.active {
+            background: var(--accent-gold);
+            color: #000;
+            font-weight: 700;
+            border-color: var(--accent-gold);
+        }
+
+        .search-box {
+            background: rgba(10, 13, 20, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            font-size: 0.78rem;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .tag-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--panel-border);
+            color: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.68rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-btn.active, .tag-btn:hover {
+            color: #fff;
+            border-color: var(--accent-gold);
+            background: rgba(217, 119, 6, 0.2);
+        }
+
+        .detail-window {
+            width: 370px;
+            height: 100%;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 8;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.6);
+            flex-shrink: 0;
+        }
+
+        .detail-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .category-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .entity-title {
+            font-size: 1.15rem;
+            margin-bottom: 2px;
+            color: #fff;
+        }
+
+        .entity-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .detail-body {
+            padding: 14px 18px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .info-card h4 {
+            font-size: 0.68rem;
+            color: var(--accent-gold);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-card p {
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: #cbd5e1;
+        }
+
+        .connected-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .conn-chip {
+            background: rgba(255,255,255,0.08);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .conn-chip:hover {
+            background: rgba(217, 119, 6, 0.25);
+            border-color: var(--accent-gold);
+            color: #fff;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.68rem;
+            display: flex;
+            gap: 12px;
+            backdrop-filter: blur(8px);
+            z-index: 5;
+            flex-wrap: wrap;
+            max-width: 72%;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace { flex-direction: column; }
+            .detail-window { width: 100%; height: 38%; }
+            .kpi-container { display: none; }
+            .controls-overlay { width: calc(100% - 24px); }
+            .legend { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-group">
+            <span class="logo-badge">CASELLI-PALIZZI</span>
+            <h1>Ecosistema Formativo & Artistico I.S.I.S. Caselli - Palizzi</h1>
+        </div>
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-value">Indirizzo Raro</div>
+                <div class="kpi-label">Real Fabbrica Capodimonte</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">Liceo Palizzi</div>
+                <div class="kpi-label">Arte & Design Industriale</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">Polo Museale</div>
+                <div class="kpi-label">Patrimonio & Botteghe</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="controls-overlay">
+            <div class="control-group">
+                <div class="control-label">Modalità Visualizzazione Rete</div>
+                <div class="view-switcher" id="viewSwitcher">
+                    <button class="btn-view active" data-view="hub">🏛️ Hub Istituto</button>
+                    <button class="btn-view" data-view="force">🌀 Fisica Repulsiva</button>
+                    <button class="btn-view" data-view="radial">⭕ Concentrica</button>
+                    <button class="btn-view" data-view="grid">📊 Per Area</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">Filtra e Cerca Nodi Ecosistema</div>
+                <input type="text" id="searchInput" class="search-box" placeholder="Cerca porcellana, liceo, musei, laboratori...">
+                <div class="filter-tags" id="filterContainer">
+                    <button class="tag-btn active" data-cat="all">Tutti</button>
+                    <button class="tag-btn" data-cat="hub">Hub Centrale</button>
+                    <button class="tag-btn" data-cat="schools">Sedi & Indirizzi</button>
+                    <button class="tag-btn" data-cat="labs">Laboratori & Botteghe</button>
+                    <button class="tag-btn" data-cat="museums">Musei & Cultura</button>
+                    <button class="tag-btn" data-cat="higher">ITS & Università</button>
+                    <button class="tag-btn" data-cat="gov">Ministero & Enti</button>
+                    <button class="tag-btn" data-cat="industry">Design & Distretti</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="network-container">
+            <canvas id="networkCanvas"></canvas>
+
+            <div class="legend">
+                <div class="legend-item"><span class="legend-color" style="background:#f59e0b;"></span> Hub Centrale</div>
+                <div class="legend-item"><span class="legend-color" style="background:#ef4444;"></span> Sedi & Indirizzi di Studio</div>
+                <div class="legend-item"><span class="legend-color" style="background:#a855f7;"></span> Laboratori & Botteghe</div>
+                <div class="legend-item"><span class="legend-color" style="background:#dc2626;"></span> Musei & Patrimonio Storico</div>
+                <div class="legend-item"><span class="legend-color" style="background:#3b82f6;"></span> ITS & Università</div>
+                <div class="legend-item"><span class="legend-color" style="background:#10b981;"></span> Ministero & Enti Locali</div>
+                <div class="legend-item"><span class="legend-color" style="background:#06b6d4;"></span> Design & Distretti Artigianali</div>
+            </div>
+        </div>
+
+        <aside class="detail-window">
+            <div class="detail-header">
+                <span class="category-pill" id="detCategory">HUB ISTITUZIONALE</span>
+                <h2 class="entity-title" id="detTitle">ISIS Caselli - Palizzi</h2>
+                <p class="entity-subtitle" id="detSubtitle">Istituto Statale d'Istruzione Superiore</p>
+            </div>
+            <div class="detail-body">
+                <div class="info-card">
+                    <h4>Identità e Missione</h4>
+                    <p id="detRole">Polo di eccellenza formativa unico in Italia, unisce la tradizione secolare della Real Fabbrica della Porcellana di Capodimonte al Liceo Artistico Boccioni-Palizzi per la salvaguardia dei mestieri d'arte e il design contemporaneo.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Attività & Competenze Clave</h4>
+                    <p id="detDesc">Formazione ad "Indirizzo Raro" per la ceramica e porcellana, design di prodotto, arti figurative, scenografia, restauro del patrimonio e prototipazione digitale 3D.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Connessioni nell'Ecosistema</h4>
+                    <div class="connected-list" id="detConns"></div>
+                </div>
+                <a id="detLink" href="https://www.iscasellipalizzi.edu.it/" target="_blank" class="action-btn" style="display:block; text-align:center; background:var(--accent-gold); color:#000; font-weight:700; padding:9px; border-radius:6px; text-decoration:none; margin-top:auto; font-size:0.8rem;">Visita Sito Ufficiale I.S.I.S.</a>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // DATASET DEGLI ATTORI DELL'ECOSISTEMA CASELLI - PALIZZI
+        const nodes = [
+            // HUB CENTRALE
+            { id: 'caselli_palizzi_hub', label: 'ISIS Caselli - Palizzi', cat: 'hub', color: '#f59e0b', radius: 24,
+              sub: 'Istituto Statale d\'Istruzione Superiore (Napoli)', 
+              desc: 'Ente scolastico e produttivo unico che unisce l\'Istituto ad Indirizzo Raro "Caselli" nel Real Bosco di Capodimonte e lo storico Liceo Artistico "Palizzi" di Napoli.', 
+              role: 'Coordinamento didattico, gestione botteghe scuola, conservazione dell\'Indirizzo Raro ed esposizioni museali.',
+              url: 'https://www.iscasellipalizzi.edu.it/' },
+
+            // SEDI E INDIRIZZI DI STUDIO
+            { id: 'caselli_capodimonte', label: 'Istituto Caselli (Real Fabbrica)', cat: 'schools', color: '#ef4444', radius: 20,
+              sub: 'Indirizzo Raro della Porcellana di Capodimonte', desc: 'Sede storica fondata nel 1743 da Carlo di Borbone nel Real Bosco di Capodimonte per la produzione e l\'insegnamento dell\'arte della porcellana.', role: 'Produzione artigianale di pregio, formazione maestri ceramisti, lavorazione dell\'oro e del bianco di Capodimonte.', url: 'https://www.iscasellipalizzi.edu.it/' },
+
+            { id: 'palizzi_liceo', label: 'Liceo Artistico Boccioni - Palizzi', cat: 'schools', color: '#ef4444', radius: 19,
+              sub: 'Sede Storica Piazzetta Salazar', desc: 'Prestigioso liceo artistico partenopeo nato dall\'Istituto d\'Arte Palizzi, punto di riferimento per il design, le arti figurative e l\'architettura.', role: 'Percorsi liceali in Arti Figurative, Design dell\'Arredo, Architettura, Scenografia e Grafica.', url: 'https://www.iscasellipalizzi.edu.it/' },
+
+            // LABORATORI & BOTTEGHE
+            { id: 'lab_porcellana', label: 'Laboratori Ceramica & Porcellana', cat: 'labs', color: '#a855f7', radius: 17,
+              sub: 'Bottega Scuola Capodimonte', desc: 'Laboratori manifatturieri dotati di forni ad alta temperatura, torni e reparti di foggiatura e pittura su porcellana.', role: 'Fornitura materiali, impasti speciali, cottura e decorazione manuale a pennello secondo la tradizione borbonica.', url: 'https://www.iscasellipalizzi.edu.it/' },
+
+            { id: 'lab_3d_design', label: 'Digital Craft & 3D Design Lab', cat: 'labs', color: '#a855f7', radius: 17,
+              sub: 'Innovazione & Prototipazione Artistica', desc: 'Laboratorio tecnologico con scanner 3D, stampanti per argilla/ceramica e software CAD per il design industriale.', role: 'Integrazione tra artigianato storico e manifattura digitale 4.0.', url: 'https://www.iscasellipalizzi.edu.it/' },
+
+            { id: 'lab_restauro', label: 'Laboratorio Restauro & Conservazione', cat: 'labs', color: '#a855f7', radius: 16,
+              sub: 'Conservazione del Patrimonio Artistico', desc: 'Reparto tecnico dedicato allo studio, alla diagnosi e al recupero dei manufatti ceramici e lignei storici.', role: 'Interventi conservativi sui reperti del museo interno e collezioni partner.', url: 'https://www.iscasellipalizzi.edu.it/' },
+
+            // MUSEI & PATRIMONIO STORICO
+            { id: 'museo_palizzi', label: 'Museo Artistico Industriale (MAI)', cat: 'museums', color: '#dc2626', radius: 18,
+              sub: 'Collezione Storica Palizzi', desc: 'Galleria e museo integrato presso la sede Palizzi con oltre 6.000 opere tra ceramiche orientali, vetri, arredi e maioliche storiche.', role: 'Archivio storico delle arti applicate, fruizione didattica e ricerca espositiva.', url: 'https://www.iscasellipalizzi.edu.it/' },
+
+            { id: 'real_bosco_capodimonte', label: 'Museo e Real Bosco di Capodimonte', cat: 'museums', color: '#dc2626', radius: 18,
+              sub: 'Polo Museale e Parco Storico', desc: 'Complesso museale confinate con l\'Istituto Caselli, custode della Reggia di Capodimonte e delle collezioni reali borboniche.', role: 'Partnership strategica per percorsi espositivi, ricerca sulla porcellana borbonica ed eventi ambientali.', url: 'https://capodimonte.cultura.gov.it/' },
+
+            // HIGHER EDUCATION & UNIVERSITÀ
+            { id: 'accademia_napoli', label: 'Accademia di Belle Arti di Napoli', cat: 'higher', color: '#3b82f6', radius: 17,
+              sub: 'Istruzione Superiore Artistica (AFAM)', desc: 'Storica istituzione di alta formazione artistica con cui l\'Istituto condivide percorsi di continuità e master.', role: 'Prosecuzione degli studi in Scultura, Decorazione, Restauro e Nuove Tecnologie dell\'Arte.', url: 'http://www.abana.it/' },
+
+            { id: 'unina_vanvitelli', label: 'Università Federico II & Vanvitelli', cat: 'higher', color: '#3b82f6', radius: 17,
+              sub: 'Dipartimenti di Architettura e Chimica', desc: 'Atenei campani collaboratori per l\'analisi scientifica dei materiali ceramici e progetti di architettura/design.', role: 'Analisi chimico-fisica degli impasti, caratterizzazione dei pigmenti e tesi di laurea congiunte.', url: 'https://www.unina.it/' },
+
+            { id: 'its_bact', label: 'ITS BACT & Fondazioni ITS', cat: 'higher', color: '#3b82f6', radius: 16,
+              sub: 'Istituti Tecnologici Superiori', desc: 'Fondazioni per la formazione terziaria professionalizzante nei settori dei beni culturali, turismo e manifattura avanzata.', role: 'Corsi post-diploma per Master Ceramista, Manager del Patrimonio e Tecnico del Design.', url: 'https://www.fondazioneitsbact.it/' },
+
+            // MINISTERI & ENTI PUBBLICI
+            { id: 'mim_mic', label: 'MIM & Ministero della Cultura (MiC)', cat: 'gov', color: '#10b981', radius: 18,
+              sub: 'Ministero dell\'Istruzione e della Cultura', desc: 'Istituzioni governative che tutelano gli Indirizzi Rari nazionali e finanziano i progetti di conservazione.', role: 'Riconoscimento della Scuola ad Indirizzo Raro, finanziamenti PNRR e tutela delle arti tradizionali.', url: 'https://www.mim.gov.it/' },
+
+            { id: 'regione_campania', label: 'Regione Campania & Comune di Napoli', cat: 'gov', color: '#10b981', radius: 16,
+              sub: 'Governance Territoriale e Promozione', desc: 'Enti territoriali di governo impegnati nel sostegno all\'artigianato tipico e nelle politiche giovanili.', role: 'Sostegno alle botteghe scuola, bandi territoriali per il Made in Campania e fiere d\'arte.', url: 'https://www.regione.campania.it/' },
+
+            // DESIGN, ADI & DISTRETTI ARTIGIANALI
+            { id: 'adi_design', label: 'ADI - Associazione Disegno Industriale', cat: 'industry', color: '#06b6d4', radius: 16,
+              sub: 'Delegazione Campania', desc: 'Associazione nazionale del design per il coordinamento tra scuola, progettisti e compasso d\'oro.', role: 'Promozione del design ceramico contemporaneo, mostre e connessione con i brand del design.', url: 'https://www.adi-design.org/' },
+
+            { id: 'distretto_ceramica', label: 'Distretto Ceramica & Porcellana di Capodimonte', cat: 'industry', color: '#06b6d4', radius: 17,
+              sub: 'Rete degli Artigiani e Produttori', desc: 'Cluster delle botteghe artigiane, fornaci e aziende campane produttrici di porcellana e maiolica di alta gamma.', role: 'Tirocini formativi, assunzione di giovani maestri d\'arte e produzione su commissione.', url: 'https://www.iscasellipalizzi.edu.it/' }
+        ];
+
+        // RELAZIONI TRA I NODI DELL'ECOSISTEMA
+        const links = [
+            // Hub centrale con le due anime
+            { source: 'caselli_palizzi_hub', target: 'caselli_capodimonte' },
+            { source: 'caselli_palizzi_hub', target: 'palizzi_liceo' },
+            { source: 'caselli_palizzi_hub', target: 'mim_mic' },
+            { source: 'caselli_palizzi_hub', target: 'regione_campania' },
+
+            // Sede Caselli -> Laboratori e Musei vicini
+            { source: 'caselli_capodimonte', target: 'lab_porcellana' },
+            { source: 'caselli_capodimonte', target: 'lab_3d_design' },
+            { source: 'caselli_capodimonte', target: 'real_bosco_capodimonte' },
+            { source: 'caselli_capodimonte', target: 'distretto_ceramica' },
+
+            // Sede Palizzi -> Musei, Lab e Architettura
+            { source: 'palizzi_liceo', target: 'museo_palizzi' },
+            { source: 'palizzi_liceo', target: 'lab_restauro' },
+            { source: 'palizzi_liceo', target: 'accademia_napoli' },
+            { source: 'palizzi_liceo', target: 'adi_design' },
+
+            // Connessioni Tecnologiche e Formative
+            { source: 'lab_porcellana', target: 'distretto_ceramica' },
+            { source: 'lab_3d_design', target: 'unina_vanvitelli' },
+            { source: 'lab_restauro', target: 'real_bosco_capodimonte' },
+            { source: 'lab_restauro', target: 'unina_vanvitelli' },
+
+            // Connessioni Università & ITS
+            { source: 'its_bact', target: 'caselli_palizzi_hub' },
+            { source: 'accademia_napoli', target: 'museo_palizzi' },
+            { source: 'unina_vanvitelli', target: 'adi_design' },
+
+            // Connessioni Istituzionali
+            { source: 'mim_mic', target: 'caselli_capodimonte' },
+            { source: 'regione_campania', target: 'its_bact' },
+            { source: 'regione_campania', target: 'distretto_ceramica' }
+        ];
+
+        // ENGINE CANVAS & GRAFICA
+        const container = document.getElementById('network-container');
+        const canvas = document.getElementById('networkCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = 0;
+        let height = 0;
+        let selectedNode = nodes[0];
+        let hoveredNode = null;
+        let draggedNode = null;
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let currentLayout = 'hub';
+        let initialized = false;
+
+        nodes.forEach(n => {
+            n.x = 0; n.y = 0;
+            n.tx = 0; n.ty = 0;
+            n.vx = 0; n.vy = 0;
+        });
+
+        function computeTargetPositions() {
+            const padX = Math.max(100, Math.min(width * 0.12, 160));
+            const padY = Math.max(90, Math.min(height * 0.14, 130));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'hub') {
+                const hub = nodes.find(n => n.id === 'caselli_palizzi_hub');
+                hub.tx = cx;
+                hub.ty = cy;
+
+                const categories = ['schools', 'labs', 'museums', 'higher', 'gov', 'industry'];
+                const numCats = categories.length;
+
+                categories.forEach((catKey, cIdx) => {
+                    const angleCat = (cIdx / numCats) * Math.PI * 2 - Math.PI / 2;
+                    const catRadius = Math.min(width, height) * 0.32;
+                    const catNodes = nodes.filter(n => n.cat === catKey);
+
+                    catNodes.forEach((node, nIdx) => {
+                        const spreadAngle = 0.55;
+                        const angleNode = angleCat + (nIdx - (catNodes.length - 1) / 2) * (spreadAngle / Math.max(1, catNodes.length));
+                        node.tx = cx + Math.cos(angleNode) * catRadius;
+                        node.ty = cy + Math.sin(angleNode) * catRadius;
+
+                        node.tx = Math.max(minX, Math.min(maxX, node.tx));
+                        node.ty = Math.max(minY, Math.min(maxY, node.ty));
+                    });
+                });
+            }
+            else if (currentLayout === 'radial') {
+                const hubNode = nodes.find(n => n.id === 'caselli_palizzi_hub');
+                hubNode.tx = cx;
+                hubNode.ty = cy;
+
+                const innerNodes = nodes.filter(n => ['caselli_capodimonte', 'palizzi_liceo', 'museo_palizzi', 'real_bosco_capodimonte', 'mim_mic'].includes(n.id));
+                const outerNodes = nodes.filter(n => n.id !== 'caselli_palizzi_hub' && !innerNodes.includes(n));
+
+                const rInner = Math.min(maxX - minX, maxY - minY) * 0.22;
+                innerNodes.forEach((n, idx) => {
+                    const angle = (idx / innerNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rInner;
+                    n.ty = cy + Math.sin(angle) * rInner;
+                });
+
+                const rOuter = Math.min(maxX - minX, maxY - minY) * 0.42;
+                outerNodes.forEach((n, idx) => {
+                    const angle = (idx / outerNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rOuter;
+                    n.ty = cy + Math.sin(angle) * rOuter;
+                });
+            }
+            else if (currentLayout === 'grid') {
+                const cats = [
+                    { cat: 'hub', label: 'HUB ISTITUTO' },
+                    { cat: 'schools', label: 'SEDI & INDIRIZZI' },
+                    { cat: 'labs', label: 'LABORATORI' },
+                    { cat: 'museums', label: 'PATRIMONIO/MUSEI' },
+                    { cat: 'higher', label: 'UNIVERSITÀ/ITS' },
+                    { cat: 'gov', label: 'ENTI/MINISTERO' },
+                    { cat: 'industry', label: 'DESIGN/DISTRETTI' }
+                ];
+                const colW = (maxX - minX) / cats.length;
+
+                cats.forEach((cObj, cIdx) => {
+                    const catNodes = nodes.filter(n => n.cat === cObj.cat);
+                    const x = minX + colW * cIdx + colW / 2;
+                    const rowH = (maxY - minY) / (catNodes.length + 1);
+
+                    catNodes.forEach((node, rIdx) => {
+                        node.tx = x;
+                        node.ty = minY + rowH * (rIdx + 1);
+                    });
+                });
+            }
+            else { // Force layout initial position
+                const hub = nodes.find(n => n.id === 'caselli_palizzi_hub');
+                hub.tx = cx;
+                hub.ty = cy;
+
+                const others = nodes.filter(n => n.id !== 'caselli_palizzi_hub');
+                others.forEach((node, i) => {
+                    const angle = (i / others.length) * Math.PI * 2;
+                    const r = Math.min(width, height) * 0.32;
+                    node.tx = cx + Math.cos(angle) * r;
+                    node.ty = cy + Math.sin(angle) * r;
+                });
+            }
+        }
+
+        function resize() {
+            width = container.clientWidth;
+            height = container.clientHeight;
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+
+            if (width > 0 && height > 0) {
+                computeTargetPositions();
+                if (!initialized) {
+                    nodes.forEach(n => {
+                        n.x = n.tx;
+                        n.y = n.ty;
+                    });
+                    selectNode(nodes[0]);
+                    initialized = true;
+                }
+            }
+        }
+
+        const resizeObserver = new ResizeObserver(() => resize());
+        resizeObserver.observe(container);
+
+        function updatePositions() {
+            if (!initialized) return;
+
+            const padX = Math.max(90, Math.min(width * 0.1, 140));
+            const padY = Math.max(80, Math.min(height * 0.12, 120));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'force') {
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        let n1 = nodes[i];
+                        let n2 = nodes[j];
+                        let dx = n2.x - n1.x;
+                        let dy = n2.y - n1.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        let minDist = n1.radius + n2.radius + 40;
+
+                        let force = (minDist * minDist * 4.5) / (dist * dist);
+                        if (dist < minDist) {
+                            force += (minDist - dist) * 0.2;
+                        }
+
+                        let fx = (dx / dist) * force;
+                        let fy = (dy / dist) * force;
+
+                        n1.vx -= fx;
+                        n1.vy -= fy;
+                        n2.vx += fx;
+                        n2.vy += fy;
+                    }
+                }
+
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    let dx = target.x - source.x;
+                    let dy = target.y - source.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    let targetDist = 135;
+                    let springForce = (dist - targetDist) * 0.004;
+
+                    source.vx += dx * springForce;
+                    source.vy += dy * springForce;
+                    target.vx -= dx * springForce;
+                    target.vy -= dy * springForce;
+                });
+
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+
+                    let dx = cx - node.x;
+                    let dy = cy - node.y;
+                    node.vx += dx * 0.0006;
+                    node.vy += dy * 0.0006;
+
+                    node.vx *= 0.82;
+                    node.vy *= 0.82;
+
+                    node.x += node.vx;
+                    node.y += node.vy;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            } else {
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+                    node.x += (node.tx - node.x) * 0.12;
+                    node.y += (node.ty - node.y) * 0.12;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            }
+        }
+
+        function render() {
+            updatePositions();
+            ctx.clearRect(0, 0, width, height);
+
+            if (initialized) {
+                if (currentLayout === 'grid') {
+                    const cats = [
+                        { label: 'HUB ISTITUTO', color: '#f59e0b', x: width * 0.08 },
+                        { label: 'SEDI & INDIRIZZI', color: '#ef4444', x: width * 0.22 },
+                        { label: 'LABORATORI', color: '#a855f7', x: width * 0.36 },
+                        { label: 'PATRIMONIO/MUSEI', color: '#dc2626', x: width * 0.50 },
+                        { label: 'UNIVERSITÀ/ITS', color: '#3b82f6', x: width * 0.64 },
+                        { label: 'ENTI/MINISTERO', color: '#10b981', x: width * 0.78 },
+                        { label: 'DESIGN/DISTRETTI', color: '#06b6d4', x: width * 0.92 }
+                    ];
+
+                    cats.forEach(c => {
+                        ctx.fillStyle = c.color;
+                        ctx.font = 'bold 10px Segoe UI, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(c.label, c.x, 32);
+
+                        ctx.beginPath();
+                        ctx.moveTo(c.x - 30, 40);
+                        ctx.lineTo(c.x + 30, 40);
+                        ctx.strokeStyle = c.color + '55';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    });
+                }
+
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    const isVisible = checkVisibility(source) && checkVisibility(target);
+                    const isHighlighted = selectedNode && (source.id === selectedNode.id || target.id === selectedNode.id);
+
+                    ctx.beginPath();
+                    ctx.moveTo(source.x, source.y);
+                    ctx.lineTo(target.x, target.y);
+                    ctx.strokeStyle = isHighlighted ? '#f59e0b' : (isVisible ? 'rgba(255, 255, 255, 0.14)' : 'rgba(255, 255, 255, 0.02)');
+                    ctx.lineWidth = isHighlighted ? 2.5 : 1;
+                    ctx.stroke();
+                });
+
+                nodes.forEach(node => {
+                    const isVisible = checkVisibility(node);
+                    const isSelected = selectedNode && selectedNode.id === node.id;
+                    const isHovered = hoveredNode && hoveredNode.id === node.id;
+
+                    ctx.save();
+                    ctx.translate(node.x, node.y);
+
+                    if (isSelected || isHovered) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, node.radius + 7, 0, Math.PI * 2);
+                        ctx.fillStyle = isSelected ? 'rgba(245, 158, 11, 0.3)' : 'rgba(255, 255, 255, 0.12)';
+                        ctx.fill();
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = isVisible ? node.color : '#334155';
+                    ctx.globalAlpha = isVisible ? 1.0 : 0.2;
+                    ctx.fill();
+
+                    ctx.lineWidth = isSelected ? 3 : 1.2;
+                    ctx.strokeStyle = isSelected ? '#ffffff' : 'rgba(0,0,0,0.5)';
+                    ctx.stroke();
+
+                    ctx.fillStyle = isVisible ? '#f8fafc' : '#64748b';
+                    ctx.font = (node.cat === 'hub' ? 'bold 11px' : '10px') + ' Segoe UI, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(node.label, 0, node.radius + 13);
+
+                    ctx.restore();
+                });
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        function checkVisibility(node) {
+            const matchesCat = currentFilter === 'all' || node.cat === currentFilter;
+            const matchesSearch = searchQuery === '' || 
+                node.label.toLowerCase().includes(searchQuery) || 
+                node.sub.toLowerCase().includes(searchQuery);
+            return matchesCat && matchesSearch;
+        }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function findNodeAt(pos) {
+            return nodes.find(node => {
+                let dx = node.x - pos.x;
+                let dy = node.y - pos.y;
+                return Math.sqrt(dx * dx + dy * dy) <= node.radius + 6;
+            });
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getPos(e);
+            if (draggedNode) {
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            } else {
+                hoveredNode = findNodeAt(pos);
+                canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
+            }
+        });
+
+        window.addEventListener('mouseup', () => { draggedNode = null; });
+
+        canvas.addEventListener('touchstart', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            if (draggedNode) {
+                const pos = getPos(e);
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            }
+        });
+        canvas.addEventListener('touchend', () => { draggedNode = null; });
+
+        function selectNode(node) {
+            selectedNode = node;
+
+            document.getElementById('detTitle').innerText = node.label;
+            document.getElementById('detSubtitle').innerText = node.sub;
+            document.getElementById('detDesc').innerText = node.desc;
+            document.getElementById('detRole').innerText = node.role;
+
+            const linkBtn = document.getElementById('detLink');
+            if (node.url && node.url !== '#') {
+                linkBtn.href = node.url;
+                linkBtn.style.display = 'block';
+            } else {
+                linkBtn.style.display = 'none';
+            }
+
+            const catNames = {
+                'hub': 'Hub Centrale Istituto',
+                'schools': 'Sedi & Indirizzi di Studio',
+                'labs': 'Laboratori & Botteghe Scuola',
+                'museums': 'Patrimonio Museale & Storico',
+                'higher': 'ITS & Università Partner',
+                'gov': 'Ministeri & Enti di Governo',
+                'industry': 'Design & Distretti Artigianali'
+            };
+            const catBadge = document.getElementById('detCategory');
+            catBadge.innerText = catNames[node.cat] || node.cat;
+            catBadge.style.color = node.color;
+            catBadge.style.background = node.color + '22';
+
+            const connsContainer = document.getElementById('detConns');
+            connsContainer.innerHTML = '';
+
+            const connectedLinks = links.filter(l => l.source === node.id || l.target === node.id);
+            connectedLinks.forEach(l => {
+                const otherId = l.source === node.id ? l.target : l.source;
+                const targetNode = nodes.find(n => n.id === otherId);
+                if (targetNode) {
+                    const chip = document.createElement('span');
+                    chip.className = 'conn-chip';
+                    chip.innerText = targetNode.label;
+                    chip.onclick = () => selectNode(targetNode);
+                    connsContainer.appendChild(chip);
+                }
+            });
+        }
+
+        document.getElementById('viewSwitcher').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-view');
+            if (btn) {
+                document.querySelectorAll('.btn-view').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLayout = btn.dataset.view;
+                computeTargetPositions();
+            }
+        });
+
+        document.getElementById('filterContainer').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.cat;
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+        });
+
+        render();
+    </script>
+</body>
+</html>

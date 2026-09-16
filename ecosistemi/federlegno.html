@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Ecosistema FederlegnoArredo</title>
+    <style>
+        :root {
+            --bg-dark: #090e17;
+            --panel-bg: rgba(15, 23, 42, 0.94);
+            --panel-border: rgba(34, 197, 94, 0.25);
+            --accent-green: #22c55e;
+            --accent-gold: #eab308;
+            --accent-red: #ef4444;
+            --accent-blue: #3b82f6;
+            --accent-purple: #a855f7;
+            --accent-cyan: #06b6d4;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            color: #fff;
+            font-weight: 800;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+        }
+
+        h1 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .kpi-container {
+            display: flex;
+            gap: 12px;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--panel-border);
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        .kpi-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .workspace {
+            display: flex;
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 55px);
+            overflow: hidden;
+        }
+
+        #network-container {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            cursor: grab;
+            background: radial-gradient(circle at center, #111c2e 0%, #090e17 100%);
+        }
+
+        #network-container:active {
+            cursor: grabbing;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 5;
+            width: 330px;
+        }
+
+        .control-group {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .view-switcher {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+
+        .btn-view {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-view:hover {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: var(--accent-green);
+        }
+
+        .btn-view.active {
+            background: var(--accent-green);
+            color: #000;
+            font-weight: 700;
+            border-color: var(--accent-green);
+        }
+
+        .search-box {
+            background: rgba(9, 14, 23, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            font-size: 0.78rem;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-green);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .tag-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--panel-border);
+            color: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.68rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-btn.active, .tag-btn:hover {
+            color: #fff;
+            border-color: var(--accent-green);
+            background: rgba(34, 197, 94, 0.2);
+        }
+
+        .detail-window {
+            width: 370px;
+            height: 100%;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 8;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.6);
+            flex-shrink: 0;
+        }
+
+        .detail-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .category-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .entity-title {
+            font-size: 1.15rem;
+            margin-bottom: 2px;
+            color: #fff;
+        }
+
+        .entity-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .detail-body {
+            padding: 14px 18px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .info-card h4 {
+            font-size: 0.68rem;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-card p {
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: #cbd5e1;
+        }
+
+        .connected-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .conn-chip {
+            background: rgba(255,255,255,0.08);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .conn-chip:hover {
+            background: rgba(34, 197, 94, 0.25);
+            border-color: var(--accent-green);
+            color: #fff;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.68rem;
+            display: flex;
+            gap: 12px;
+            backdrop-filter: blur(8px);
+            z-index: 5;
+            flex-wrap: wrap;
+            max-width: 72%;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace { flex-direction: column; }
+            .detail-window { width: 100%; height: 38%; }
+            .kpi-container { display: none; }
+            .controls-overlay { width: calc(100% - 24px); }
+            .legend { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-group">
+            <span class="logo-badge">FLA</span>
+            <h1>Ecosistema FederlegnoArredo</h1>
+        </div>
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-value">Filiera Legno-Arredo</div>
+                <div class="kpi-label">Eccellenza Made in Italy</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">Salone del Mobile</div>
+                <div class="kpi-label">Manifestazione Globale</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">Sostenibilità & Circular</div>
+                <div class="kpi-label">Riciclo & Transizione</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="controls-overlay">
+            <div class="control-group">
+                <div class="control-label">Modalità Visualizzazione Rete</div>
+                <div class="view-switcher" id="viewSwitcher">
+                    <button class="btn-view active" data-view="hub">🌲 Hub FLA</button>
+                    <button class="btn-view" data-view="force">🌀 Fisica Repulsiva</button>
+                    <button class="btn-view" data-view="radial">⭕ Concentrica</button>
+                    <button class="btn-view" data-view="grid">📊 Per Categoria</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">Filtra e Cerca Attori FLA</div>
+                <input type="text" id="searchInput" class="search-box" placeholder="Cerca Salone, Assaarredo, Centro Studi...">
+                <div class="filter-tags" id="filterContainer">
+                    <button class="tag-btn active" data-cat="all">Tutti</button>
+                    <button class="tag-btn" data-cat="hub">Hub Federazione</button>
+                    <button class="tag-btn" data-cat="fairs">Saloni & Fiere</button>
+                    <button class="tag-btn" data-cat="associations">Associazioni di Settore</button>
+                    <button class="tag-btn" data-cat="services">Studi & Formazione</button>
+                    <button class="tag-btn" data-cat="sustainability">Sostenibilità & Riciclo</button>
+                    <button class="tag-btn" data-cat="gov">Confindustria & UE</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="network-container">
+            <canvas id="networkCanvas"></canvas>
+
+            <div class="legend">
+                <div class="legend-item"><span class="legend-color" style="background:#22c55e;"></span> Hub Federazione</div>
+                <div class="legend-item"><span class="legend-color" style="background:#ef4444;"></span> Saloni & Eventi (FLA Eventi)</div>
+                <div class="legend-item"><span class="legend-color" style="background:#3b82f6;"></span> Associazioni di Settore</div>
+                <div class="legend-item"><span class="legend-color" style="background:#a855f7;"></span> Centro Studi & Formazione</div>
+                <div class="legend-item"><span class="legend-color" style="background:#eab308;"></span> Sostenibilità & Circolarità</div>
+                <div class="legend-item"><span class="legend-color" style="background:#06b6d4;"></span> Confindustria & Reti Estere</div>
+            </div>
+        </div>
+
+        <aside class="detail-window">
+            <div class="detail-header">
+                <span class="category-pill" id="detCategory">HUB FEDERALE</span>
+                <h2 class="entity-title" id="detTitle">FederlegnoArredo</h2>
+                <p class="entity-subtitle" id="detSubtitle">Federazione Nazionale Industrie del Legno e Arredamento</p>
+            </div>
+            <div class="detail-body">
+                <div class="info-card">
+                    <h4>Ruolo nella Filiera</h4>
+                    <p id="detRole">Organizzazione di rappresentanza delle imprese italiane della filiera legno, sughero, mobile, illuminazione e arredamento aderente a Confindustria.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Aree d'Azione & Servizi</h4>
+                    <p id="detDesc">Promozione del Made in Italy, organizzazione del Salone del Mobile.Milano, tutela normativa, supporto all'export, transizione ecologica ed elaborazione di dati di mercato.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Nodi Collegati</h4>
+                    <div class="connected-list" id="detConns"></div>
+                </div>
+                <a id="detLink" href="https://www.federlegnoarredo.it/" target="_blank" class="action-btn" style="display:block; text-align:center; background:var(--accent-green); color:#000; font-weight:700; padding:9px; border-radius:6px; text-decoration:none; margin-top:auto; font-size:0.8rem;">Visita Sito Ufficiale FederlegnoArredo</a>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // DATASET DEGLI ATTORI DELL'ECOSISTEMA FEDERLEGNOARREDO
+        const nodes = [
+            // HUB CENTRALE FEDERALE
+            { id: 'fla_hub', label: 'FederlegnoArredo Hub', cat: 'hub', color: '#22c55e', radius: 24,
+              sub: 'Federazione Italiana Industrie Legno & Arredo', 
+              desc: 'Cuore istituzionale e operativo della rappresentanza industriale del Made in Italy per il settore legno-arredo.', 
+              role: 'Rappresentanza sindacale e industriale, relazioni istituzionali, indirizzo strategico e internazionalizzazione.',
+              url: 'https://www.federlegnoarredo.it/' },
+
+            // FIERE & EVENTI INTERNAZIONALI
+            { id: 'salone_mobile', label: 'Salone del Mobile.Milano', cat: 'fairs', color: '#ef4444', radius: 21,
+              sub: 'FLA Eventi SpA / Cosmit', desc: 'La fiera di riferimento mondiale per il settore dell\'arredamento, del design, dell\'illuminazione e della cultura dell\'abitare.', role: 'Piattaforma di business internazionale, showcase di innovazione e tendenze del design.', url: 'https://www.salonemilano.it/' },
+
+            { id: 'euroluce_s_project', label: 'Euroluce & SaloneSatellite', cat: 'fairs', color: '#ef4444', radius: 17,
+              sub: 'Mostre Specializzate & Young Designers', desc: 'Biennale internazionale dell\'illuminazione e fiera dedicata ai giovani talenti emergenti del design.', role: 'Valorizzazione del lighting design, scouting di nuovi creativi ed esperienze espositive phygital.', url: 'https://www.salonemilano.it/' },
+
+            // ASSOCIAZIONI DI SETTORE FEDERATE
+            { id: 'assaarredo', label: 'Assaarredo', cat: 'associations', color: '#3b82f6', radius: 18,
+              sub: 'Associazione Nazionale Produttori Mobili', desc: 'Associazione che riunisce i produttori di arredo domestico, imbottiti, cucine e componenti per la casa.', role: 'Sviluppo di mercato, standard qualitativi, relazioni con la distribuzione e tutela del design.', url: 'https://www.federlegnoarredo.it/it/associazioni/assaarredo' },
+
+            { id: 'assoluce', label: 'Assoluce', cat: 'associations', color: '#3b82f6', radius: 17,
+              sub: 'Associazione Produttori Illuminazione', desc: 'Rappresenta le aziende italiane produttrici di apparecchi di illuminazione d\'arredo e architetturali.', role: 'Normative tecniche di sicurezza elettrica, efficienza energetica e lighting design.', url: 'https://www.federlegnoarredo.it/it/associazioni/assoluce' },
+
+            { id: 'assobagno', label: 'Assobagno', cat: 'associations', color: '#3b82f6', radius: 17,
+              sub: 'Associazione Arredobagno & Wellness', desc: 'Raggruppa le aziende produttrici di mobili da bagno, rubinetteria, cabine doccia e sanitari.', role: 'Promozione della stanza da bagno come ambiente di benessere sostenibile e risparmio idrico.', url: 'https://www.federlegnoarredo.it/it/associazioni/assobagno' },
+
+            { id: 'assolegno', label: 'Assolegno', cat: 'associations', color: '#3b82f6', radius: 18,
+              sub: 'Prima Lavorazione & Costruzioni in Legno', desc: 'Associazione delle industrie di prima lavorazione, segherie e costruttori di case ed edifici in legno.', role: 'Normative tecniche strutturali, edilizia sostenibile in legno e certificazione di filiera boschiva.', url: 'https://www.federlegnoarredo.it/it/associazioni/assolegno' },
+
+            { id: 'assopanello', label: 'Assopanello', cat: 'associations', color: '#3b82f6', radius: 17,
+              sub: 'Produttori Pannelli e Semilavorati', desc: 'Rappresenta i produttori di pannelli truciolari, MDF, compensati e sfogliati in legno.', role: 'Economia circolare, uso di legno riciclato, basse emissioni di formaldeide e ricerca materiali.', url: 'https://www.federlegnoarredo.it/it/associazioni/assopanello' },
+
+            { id: 'assoimballaggi', label: 'Assoimballaggi', cat: 'associations', color: '#3b82f6', radius: 16,
+              sub: 'Imballaggi Industriali & Pallet', desc: 'Associazione dei produttori di pallet, imballaggi ortofrutticoli e contenitori industriali in legno.', role: 'Standard fitosanitari ISPM-15, recupero e riutilizzo degli imballaggi in legno.', url: 'https://www.federlegnoarredo.it/it/associazioni/assoimballaggi' },
+
+            { id: 'edillegnoarredo', label: 'EdillegnoArredo', cat: 'associations', color: '#3b82f6', radius: 17,
+              sub: 'Serramenti, Pavimenti & Finiture', desc: 'Raggruppa i produttori di serramenti esterni, porte interne, pavimenti in legno e arredo urbano.', role: 'Efficienza energetica degli infissi, bonus edilizi e marcatura CE per le costruzioni.', url: 'https://www.federlegnoarredo.it/it/associazioni/edillegnoarredo' },
+
+            // CENTRO STUDI & SERVIZI
+            { id: 'centro_studi', label: 'Centro Studi FederlegnoArredo', cat: 'services', color: '#a855f7', radius: 18,
+              sub: 'Market Intelligence & Data Analytics', desc: 'Unità di ricerca economica della Federazione focalizzata sui consuntivi della filiera, monitoraggio export e previsioni di settore.', role: 'Pubblicazione del Rapporto di Filiera, analisi dei mercati esteri e monitoraggio congiunturale.', url: 'https://www.federlegnoarredo.it/it/servizi/centro-studi' },
+
+            { id: 'polo_formativo', label: 'Polo Formativo Legno Arredo', cat: 'services', color: '#a855f7', radius: 17,
+              sub: 'ITS & Formazione Professionale (Lentate)', desc: 'Centro di formazione d\'eccellenza per la preparazione delle maestranze e dei tecnici del futuro della Brianza e d\'Italia.', role: 'Percorsi ITS e corsi abilitanti per operatore del legno, prototipatore 3D e designer tecnico.', url: 'https://www.poloformativolegnoarredo.it/' },
+
+            // SOSTENIBILITÀ & ECONOMIA CIRCOLARE
+            { id: 'fla_sustainability', label: 'Piattaforma Sostenibilità FLA', cat: 'sustainability', color: '#eab308', radius: 18,
+              sub: 'Transizione Ecologica & Decarbonizzazione', desc: 'Iniziativa strategica per guidare le imprese associate verso la misurazione della Carbon Footprint, ESG e certificazioni EPD.', role: 'Elaborazione del Decalogo della Sostenibilità, passaporto digitale di prodotto e strumenti LCA.', url: 'https://www.federlegnoarredo.it/it/sostenibilita' },
+
+            { id: 'rilegno', label: 'Consorzio Rilegno', cat: 'sustainability', color: '#eab308', radius: 17,
+              sub: 'Recupero e Riciclo del Legno in Italia', desc: 'Consorzio nazionale per la gestione, la raccolta e il riciclo degli imballaggi in legno in Italia.', role: 'Riciclo del 100% degli imballaggi in legno per la produzione di nuovi pannelli truciolari.', url: 'https://www.rilegno.org/' },
+
+            // ISTITUZIONI, NETWORK ED EXPORT
+            { id: 'confindustria', label: 'Confindustria', cat: 'gov', color: '#06b6d4', radius: 18,
+              sub: 'Rappresentanza dell\'Industria Italiana', desc: 'Confederazione generale dell\'industria italiana a cui FederlegnoArredo aderisce primariamente.', role: 'Politiche industriali di alto livello, contrattazione collettiva e relazioni sindacali.', url: 'https://www.confindustria.it/' },
+
+            { id: 'ice_agenzia', label: 'ICE Agenzia & MIMIT', cat: 'gov', color: '#06b6d4', radius: 17,
+              sub: 'Ministero Made in Italy & Internazionalizzazione', desc: 'Agenzia governativa per la promozione all\'estero delle imprese italiane e attrazione investimenti.', role: 'Missioni commerciali internazionali, fiere estere e supporto ai distretti del design.', url: 'https://www.ice.it/' },
+
+            { id: 'efici_ceibois', label: 'EFIC & CEI-Bois', cat: 'gov', color: '#06b6d4', radius: 16,
+              sub: 'European Furniture & Wood Confederations', desc: 'Confederazioni europee di rappresentanza dell\'industria del mobile e delle costruzioni in legno a Bruxelles.', role: 'Lobbying europeo sulle direttive eco-design, deforestazione (EUDR) e regolamenti imballaggi.', url: 'https://www.efic.eu/' }
+        ];
+
+        // RELAZIONI (LINK) NELL'ECOSISTEMA
+        const links = [
+            // Hub centrale
+            { source: 'fla_hub', target: 'salone_mobile' },
+            { source: 'fla_hub', target: 'assaarredo' },
+            { source: 'fla_hub', target: 'assoluce' },
+            { source: 'fla_hub', target: 'assobagno' },
+            { source: 'fla_hub', target: 'assolegno' },
+            { source: 'fla_hub', target: 'assopanello' },
+            { source: 'fla_hub', target: 'assoimballaggi' },
+            { source: 'fla_hub', target: 'edillegnoarredo' },
+            { source: 'fla_hub', target: 'centro_studi' },
+            { source: 'fla_hub', target: 'polo_formativo' },
+            { source: 'fla_hub', target: 'fla_sustainability' },
+            { source: 'fla_hub', target: 'confindustria' },
+
+            // Fiere & Associazioni
+            { source: 'salone_mobile', target: 'euroluce_s_project' },
+            { source: 'salone_mobile', target: 'assaarredo' },
+            { source: 'salone_mobile', target: 'assoluce' },
+            { source: 'salone_mobile', target: 'assobagno' },
+            { source: 'salone_mobile', target: 'ice_agenzia' },
+
+            // Filiera Legno & Circolarità
+            { source: 'assopanello', target: 'rilegno' },
+            { source: 'assoimballaggi', target: 'rilegno' },
+            { source: 'assolegno', target: 'fla_sustainability' },
+            { source: 'assopanello', target: 'fla_sustainability' },
+
+            // Centro Studi, Formazione & Mercato
+            { source: 'centro_studi', target: 'ice_agenzia' },
+            { source: 'centro_studi', target: 'assaarredo' },
+            { source: 'polo_formativo', target: 'assaarredo' },
+            { source: 'polo_formativo', target: 'assolegno' },
+
+            // Confindustria & Europa
+            { source: 'confindustria', target: 'efici_ceibois' },
+            { source: 'fla_hub', target: 'efici_ceibois' },
+            { source: 'fla_hub', target: 'ice_agenzia' }
+        ];
+
+        // ENGINE CANVAS & SIMULAZIONE GRAFO
+        const container = document.getElementById('network-container');
+        const canvas = document.getElementById('networkCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = 0;
+        let height = 0;
+        let selectedNode = nodes[0];
+        let hoveredNode = null;
+        let draggedNode = null;
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let currentLayout = 'hub';
+        let initialized = false;
+
+        nodes.forEach(n => {
+            n.x = 0; n.y = 0;
+            n.tx = 0; n.ty = 0;
+            n.vx = 0; n.vy = 0;
+        });
+
+        function computeTargetPositions() {
+            const padX = Math.max(100, Math.min(width * 0.12, 160));
+            const padY = Math.max(90, Math.min(height * 0.14, 130));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'hub') {
+                const hub = nodes.find(n => n.id === 'fla_hub');
+                hub.tx = cx;
+                hub.ty = cy;
+
+                const categories = ['fairs', 'associations', 'services', 'sustainability', 'gov'];
+                const numCats = categories.length;
+
+                categories.forEach((catKey, cIdx) => {
+                    const angleCat = (cIdx / numCats) * Math.PI * 2 - Math.PI / 2;
+                    const catRadius = Math.min(width, height) * 0.32;
+                    const catNodes = nodes.filter(n => n.cat === catKey);
+
+                    catNodes.forEach((node, nIdx) => {
+                        const spreadAngle = 0.58;
+                        const angleNode = angleCat + (nIdx - (catNodes.length - 1) / 2) * (spreadAngle / Math.max(1, catNodes.length));
+                        node.tx = cx + Math.cos(angleNode) * catRadius;
+                        node.ty = cy + Math.sin(angleNode) * catRadius;
+
+                        node.tx = Math.max(minX, Math.min(maxX, node.tx));
+                        node.ty = Math.max(minY, Math.min(maxY, node.ty));
+                    });
+                });
+            }
+            else if (currentLayout === 'radial') {
+                const hubNode = nodes.find(n => n.id === 'fla_hub');
+                hubNode.tx = cx;
+                hubNode.ty = cy;
+
+                const innerNodes = nodes.filter(n => ['salone_mobile', 'assaarredo', 'assoluce', 'assolegno', 'centro_studi', 'fla_sustainability', 'confindustria'].includes(n.id));
+                const outerNodes = nodes.filter(n => n.id !== 'fla_hub' && !innerNodes.includes(n));
+
+                const rInner = Math.min(maxX - minX, maxY - minY) * 0.22;
+                innerNodes.forEach((n, idx) => {
+                    const angle = (idx / innerNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rInner;
+                    n.ty = cy + Math.sin(angle) * rInner;
+                });
+
+                const rOuter = Math.min(maxX - minX, maxY - minY) * 0.42;
+                outerNodes.forEach((n, idx) => {
+                    const angle = (idx / outerNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rOuter;
+                    n.ty = cy + Math.sin(angle) * rOuter;
+                });
+            }
+            else if (currentLayout === 'grid') {
+                const cats = [
+                    { cat: 'hub', label: 'HUB FEDERALE' },
+                    { cat: 'fairs', label: 'SALONI/FIERE' },
+                    { cat: 'associations', label: 'ASSOCIAZIONI' },
+                    { cat: 'services', label: 'STUDI/FORM.' },
+                    { cat: 'sustainability', label: 'SOSTENIBILITÀ' },
+                    { cat: 'gov', label: 'ISTITUZIONI/UE' }
+                ];
+                const colW = (maxX - minX) / cats.length;
+
+                cats.forEach((cObj, cIdx) => {
+                    const catNodes = nodes.filter(n => n.cat === cObj.cat);
+                    const x = minX + colW * cIdx + colW / 2;
+                    const rowH = (maxY - minY) / (catNodes.length + 1);
+
+                    catNodes.forEach((node, rIdx) => {
+                        node.tx = x;
+                        node.ty = minY + rowH * (rIdx + 1);
+                    });
+                });
+            }
+            else { // Force simulation
+                const hub = nodes.find(n => n.id === 'fla_hub');
+                hub.tx = cx;
+                hub.ty = cy;
+
+                const others = nodes.filter(n => n.id !== 'fla_hub');
+                others.forEach((node, i) => {
+                    const angle = (i / others.length) * Math.PI * 2;
+                    const r = Math.min(width, height) * 0.32;
+                    node.tx = cx + Math.cos(angle) * r;
+                    node.ty = cy + Math.sin(angle) * r;
+                });
+            }
+        }
+
+        function resize() {
+            width = container.clientWidth;
+            height = container.clientHeight;
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+
+            if (width > 0 && height > 0) {
+                computeTargetPositions();
+                if (!initialized) {
+                    nodes.forEach(n => {
+                        n.x = n.tx;
+                        n.y = n.ty;
+                    });
+                    selectNode(nodes[0]);
+                    initialized = true;
+                }
+            }
+        }
+
+        const resizeObserver = new ResizeObserver(() => resize());
+        resizeObserver.observe(container);
+
+        function updatePositions() {
+            if (!initialized) return;
+
+            const padX = Math.max(90, Math.min(width * 0.1, 140));
+            const padY = Math.max(80, Math.min(height * 0.12, 120));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'force') {
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        let n1 = nodes[i];
+                        let n2 = nodes[j];
+                        let dx = n2.x - n1.x;
+                        let dy = n2.y - n1.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        let minDist = n1.radius + n2.radius + 38;
+
+                        let force = (minDist * minDist * 4.5) / (dist * dist);
+                        if (dist < minDist) {
+                            force += (minDist - dist) * 0.2;
+                        }
+
+                        let fx = (dx / dist) * force;
+                        let fy = (dy / dist) * force;
+
+                        n1.vx -= fx;
+                        n1.vy -= fy;
+                        n2.vx += fx;
+                        n2.vy += fy;
+                    }
+                }
+
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    let dx = target.x - source.x;
+                    let dy = target.y - source.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    let targetDist = 130;
+                    let springForce = (dist - targetDist) * 0.004;
+
+                    source.vx += dx * springForce;
+                    source.vy += dy * springForce;
+                    target.vx -= dx * springForce;
+                    target.vy -= dy * springForce;
+                });
+
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+
+                    let dx = cx - node.x;
+                    let dy = cy - node.y;
+                    node.vx += dx * 0.0006;
+                    node.vy += dy * 0.0006;
+
+                    node.vx *= 0.82;
+                    node.vy *= 0.82;
+
+                    node.x += node.vx;
+                    node.y += node.vy;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            } else {
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+                    node.x += (node.tx - node.x) * 0.12;
+                    node.y += (node.ty - node.y) * 0.12;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            }
+        }
+
+        function render() {
+            updatePositions();
+            ctx.clearRect(0, 0, width, height);
+
+            if (initialized) {
+                if (currentLayout === 'grid') {
+                    const cats = [
+                        { label: 'HUB FEDERALE', color: '#22c55e', x: width * 0.09 },
+                        { label: 'SALONI/FIERE', color: '#ef4444', x: width * 0.25 },
+                        { label: 'ASSOCIAZIONI', color: '#3b82f6', x: width * 0.41 },
+                        { label: 'STUDI/FORM.', color: '#a855f7', x: width * 0.57 },
+                        { label: 'SOSTENIBILITÀ', color: '#eab308', x: width * 0.73 },
+                        { label: 'ISTITUZIONI/UE', color: '#06b6d4', x: width * 0.89 }
+                    ];
+
+                    cats.forEach(c => {
+                        ctx.fillStyle = c.color;
+                        ctx.font = 'bold 10px Segoe UI, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(c.label, c.x, 32);
+
+                        ctx.beginPath();
+                        ctx.moveTo(c.x - 30, 40);
+                        ctx.lineTo(c.x + 30, 40);
+                        ctx.strokeStyle = c.color + '55';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    });
+                }
+
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    const isVisible = checkVisibility(source) && checkVisibility(target);
+                    const isHighlighted = selectedNode && (source.id === selectedNode.id || target.id === selectedNode.id);
+
+                    ctx.beginPath();
+                    ctx.moveTo(source.x, source.y);
+                    ctx.lineTo(target.x, target.y);
+                    ctx.strokeStyle = isHighlighted ? '#22c55e' : (isVisible ? 'rgba(255, 255, 255, 0.14)' : 'rgba(255, 255, 255, 0.02)');
+                    ctx.lineWidth = isHighlighted ? 2.5 : 1;
+                    ctx.stroke();
+                });
+
+                nodes.forEach(node => {
+                    const isVisible = checkVisibility(node);
+                    const isSelected = selectedNode && selectedNode.id === node.id;
+                    const isHovered = hoveredNode && hoveredNode.id === node.id;
+
+                    ctx.save();
+                    ctx.translate(node.x, node.y);
+
+                    if (isSelected || isHovered) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, node.radius + 7, 0, Math.PI * 2);
+                        ctx.fillStyle = isSelected ? 'rgba(34, 197, 94, 0.3)' : 'rgba(255, 255, 255, 0.12)';
+                        ctx.fill();
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = isVisible ? node.color : '#334155';
+                    ctx.globalAlpha = isVisible ? 1.0 : 0.2;
+                    ctx.fill();
+
+                    ctx.lineWidth = isSelected ? 3 : 1.2;
+                    ctx.strokeStyle = isSelected ? '#ffffff' : 'rgba(0,0,0,0.5)';
+                    ctx.stroke();
+
+                    ctx.fillStyle = isVisible ? '#f8fafc' : '#64748b';
+                    ctx.font = (node.cat === 'hub' ? 'bold 11px' : '10px') + ' Segoe UI, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(node.label, 0, node.radius + 13);
+
+                    ctx.restore();
+                });
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        function checkVisibility(node) {
+            const matchesCat = currentFilter === 'all' || node.cat === currentFilter;
+            const matchesSearch = searchQuery === '' || 
+                node.label.toLowerCase().includes(searchQuery) || 
+                node.sub.toLowerCase().includes(searchQuery);
+            return matchesCat && matchesSearch;
+        }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function findNodeAt(pos) {
+            return nodes.find(node => {
+                let dx = node.x - pos.x;
+                let dy = node.y - pos.y;
+                return Math.sqrt(dx * dx + dy * dy) <= node.radius + 6;
+            });
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getPos(e);
+            if (draggedNode) {
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            } else {
+                hoveredNode = findNodeAt(pos);
+                canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
+            }
+        });
+
+        window.addEventListener('mouseup', () => { draggedNode = null; });
+
+        canvas.addEventListener('touchstart', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            if (draggedNode) {
+                const pos = getPos(e);
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            }
+        });
+        canvas.addEventListener('touchend', () => { draggedNode = null; });
+
+        function selectNode(node) {
+            selectedNode = node;
+
+            document.getElementById('detTitle').innerText = node.label;
+            document.getElementById('detSubtitle').innerText = node.sub;
+            document.getElementById('detDesc').innerText = node.desc;
+            document.getElementById('detRole').innerText = node.role;
+
+            const linkBtn = document.getElementById('detLink');
+            if (node.url && node.url !== '#') {
+                linkBtn.href = node.url;
+                linkBtn.style.display = 'block';
+            } else {
+                linkBtn.style.display = 'none';
+            }
+
+            const catNames = {
+                'hub': 'Hub Centrale FederlegnoArredo',
+                'fairs': 'Saloni, Fiere & Eventi',
+                'associations': 'Associazione Nazionale di Settore',
+                'services': 'Centro Studi & Formazione ITS',
+                'sustainability': 'Sostenibilità & Economia Circolare',
+                'gov': 'Confindustria & Reti Internazionali'
+            };
+            const catBadge = document.getElementById('detCategory');
+            catBadge.innerText = catNames[node.cat] || node.cat;
+            catBadge.style.color = node.color;
+            catBadge.style.background = node.color + '22';
+
+            const connsContainer = document.getElementById('detConns');
+            connsContainer.innerHTML = '';
+
+            const connectedLinks = links.filter(l => l.source === node.id || l.target === node.id);
+            connectedLinks.forEach(l => {
+                const otherId = l.source === node.id ? l.target : l.source;
+                const targetNode = nodes.find(n => n.id === otherId);
+                if (targetNode) {
+                    const chip = document.createElement('span');
+                    chip.className = 'conn-chip';
+                    chip.innerText = targetNode.label;
+                    chip.onclick = () => selectNode(targetNode);
+                    connsContainer.appendChild(chip);
+                }
+            });
+        }
+
+        document.getElementById('viewSwitcher').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-view');
+            if (btn) {
+                document.querySelectorAll('.btn-view').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLayout = btn.dataset.view;
+                computeTargetPositions();
+            }
+        });
+
+        document.getElementById('filterContainer').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.cat;
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+        });
+
+        render();
+    </script>
+</body>
+</html>

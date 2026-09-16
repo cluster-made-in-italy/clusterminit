@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rete della Cosmetica Lombarda - Beauty & Makeup Valley</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #06080d; color: #f8fafc; overflow: hidden; }
+        #canvas-container { width: 100vw; height: 100vh; position: relative; }
+        canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+        canvas:active { cursor: grabbing; }
+        
+        /* Control Panel UI */
+        .ui-panel { position: absolute; top: 16px; left: 16px; background: rgba(10, 14, 23, 0.92); backdrop-filter: blur(14px); border: 1px solid #1e293b; padding: 18px; border-radius: 12px; width: 360px; box-shadow: 0 12px 32px rgba(0,0,0,0.7); z-index: 10; max-height: 95vh; overflow-y: auto; }
+        .ui-panel h1 { font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; color: #ec4899; letter-spacing: -0.02em; }
+        .ui-panel p { font-size: 0.78rem; color: #94a3b8; margin-bottom: 12px; line-height: 1.35; }
+        .ui-panel .hint { font-size: 0.72rem; color: #ec4899; background: rgba(236, 72, 153, 0.1); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(236, 72, 153, 0.25); margin-bottom: 14px; }
+        
+        .control-group { margin-bottom: 12px; }
+        .control-group label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: #64748b; margin-bottom: 4px; font-weight: 600; }
+        input[type="text"], select { width: 100%; padding: 8px 10px; background: #020617; border: 1px solid #334155; border-radius: 6px; color: #fff; font-size: 0.82rem; outline: none; transition: border-color 0.2s; }
+        input[type="text"]:focus, select:focus { border-color: #ec4899; }
+        select { cursor: pointer; }
+        input[type="range"] { width: 100%; accent-color: #ec4899; cursor: pointer; }
+        
+        /* Sim Control Bar */
+        .sim-control-bar { display: flex; align-items: center; justify-content: space-between; background: #020617; padding: 8px 12px; border-radius: 8px; border: 1px solid #1e293b; margin-bottom: 12px; }
+        .sim-status { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; font-weight: 600; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; }
+        .status-dot.paused { background: #ef4444; }
+        .btn-toggle { background: #ec4899; color: #020617; border: none; padding: 5px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+        .btn-toggle:hover { background: #db2777; color: #fff; }
+
+        /* Legend Grid */
+        .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 12px 0; padding: 8px; background: rgba(2, 6, 23, 0.6); border-radius: 6px; border: 1px solid #1e293b; }
+        .legend-item { display: flex; align-items: center; font-size: 0.68rem; color: #cbd5e1; }
+        .legend-color { width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; flex-shrink: 0; }
+
+        .stats { display: flex; justify-content: space-between; font-size: 0.72rem; color: #94a3b8; padding-top: 10px; border-top: 1px solid #1e293b; }
+        
+        /* Info Card Panel */
+        #info-card { position: absolute; bottom: 20px; right: 20px; background: rgba(10, 14, 23, 0.94); backdrop-filter: blur(14px); border: 1px solid #334155; padding: 18px; border-radius: 12px; width: 340px; display: none; z-index: 10; box-shadow: 0 10px 25px rgba(0,0,0,0.6); }
+        #info-card h2 { font-size: 1.1rem; color: #f8fafc; margin-bottom: 4px; line-height: 1.2; }
+        #info-card .category-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.68rem; font-weight: 600; margin-bottom: 8px; text-transform: uppercase; }
+        #info-card .meta { font-size: 0.8rem; color: #ec4899; font-weight: 500; margin-bottom: 10px; }
+        #info-card .details { font-size: 0.76rem; color: #cbd5e1; line-height: 1.5; }
+        #info-card .partners { margin-top: 8px; padding-top: 8px; border-top: 1px solid #334155; font-size: 0.72rem; color: #94a3b8; }
+
+        /* Context Menu Modal */
+        #work-modal { position: absolute; display: none; background: rgba(10, 14, 23, 0.96); backdrop-filter: blur(16px); border: 1px solid #ec4899; border-radius: 12px; padding: 18px; width: 330px; box-shadow: 0 15px 35px rgba(0,0,0,0.85); z-index: 100; animation: popup 0.15s ease-out; }
+        @keyframes popup { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+        #work-modal .close-btn { position: absolute; top: 10px; right: 12px; background: none; border: none; color: #64748b; font-size: 1.2rem; cursor: pointer; }
+        #work-modal .close-btn:hover { color: #fff; }
+        #work-modal h3 { font-size: 1.05rem; color: #f8fafc; margin-bottom: 2px; padding-right: 20px; }
+        #work-modal .designer-sub { font-size: 0.75rem; color: #ec4899; margin-bottom: 12px; font-weight: 500; }
+        #work-modal .work-box { background: #020617; border: 1px solid #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 14px; }
+        #work-modal .work-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 4px; font-weight: 700; }
+        #work-modal .work-title { font-size: 0.88rem; color: #f1f5f9; font-weight: 600; line-height: 1.35; }
+        #work-modal .open-link-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; background: #db2777; color: #fff; border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background 0.2s; text-decoration: none; }
+        #work-modal .open-link-btn:hover { background: #be185d; }
+    </style>
+</head>
+<body>
+
+<div id="canvas-container">
+    <canvas id="networkCanvas"></canvas>
+    
+    <div class="ui-panel">
+        <h1>Cosmetica Lombarda Network</h1>
+        <p>Mappa concettuale di 200 nodi dell'Ecosistema Cosmetico della Lombardia: il Polo della Cosmesi di Crema, la capitale Milano, terzismo mondiale del make-up, packaging e R&D.</p>
+        <div class="hint">💡 <strong>Tasto Destro:</strong> Clicca su un nodo per avviare una ricerca di approfondimento sulla cosmetica lombarda.</div>
+
+        <div class="sim-control-bar">
+            <div class="sim-status">
+                <span id="status-dot" class="status-dot"></span>
+                <span id="status-text">Simulazione Attiva</span>
+            </div>
+            <button id="toggleSimBtn" class="btn-toggle" onclick="toggleSimulation()">Pausa</button>
+        </div>
+
+        <div class="control-group">
+            <label for="layoutSelect">Modalità di Visualizzazione</label>
+            <select id="layoutSelect" onchange="changeLayout(this.value)">
+                <option value="radial">Radiale (Milano & Polo Crema al Centro)</option>
+                <option value="force">Fisica Dinamica (Force-Directed)</option>
+                <option value="cluster">Cluster per Categoria Tematica</option>
+                <option value="circular">Anello Circolare Perimetrale</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="categorySelect">Filtra per Categoria</label>
+            <select id="categorySelect">
+                <option value="ALL">Tutte le Categorie</option>
+                <option value="HUB_MILANO_CREMA">Milano, Crema & Polo Cosmesi</option>
+                <option value="MAKEUP_CONTRACT">Terzisti & Formulatori Make-Up</option>
+                <option value="PACKAGING_DISPENSING">Packaging, Vetro & Componenti</option>
+                <option value="BRANDS_MAISON">Brand, Fashion & Skincare</option>
+                <option value="RESEARCH_ACADEMIA">Atenei, R&D & Cosmetica Italia</option>
+                <option value="EVENTS_CULTURE">Milano Beauty Week & Eventi</option>
+                <option value="GREEN_BIOTECH">Chimica Verde & Bio-Upcycling</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="searchInput">Cerca Azienda, Brand, Tecnologia o Hub</label>
+            <input type="text" id="searchInput" placeholder="es. Intercos, Crema, KIKO, Lumson, Ancorotti, Statale...">
+        </div>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-color" style="background:#ec4899"></div>Polo Milano & Crema</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f59e0b"></div>Terzismo & Make-up</div>
+            <div class="legend-item"><div class="legend-color" style="background:#06b6d4"></div>Packaging & Vetro</div>
+            <div class="legend-item"><div class="legend-color" style="background:#a855f7"></div>Brand & Fashion</div>
+            <div class="legend-item"><div class="legend-color" style="background:#3b82f6"></div>Ricerca & Università</div>
+            <div class="legend-item"><div class="legend-color" style="background:#ef4444"></div>Eventi & Beauty Week</div>
+            <div class="legend-item" style="grid-column: span 2;"><div class="legend-color" style="background:#10b981"></div>Bio-Tech & Upcycling</div>
+        </div>
+        
+        <div class="control-group" id="repulsionControl" style="display:none;">
+            <label for="repulsionSlider">Forza di Repulsione Fisica</label>
+            <input type="range" id="repulsionSlider" min="50" max="600" value="260">
+        </div>
+
+        <div class="stats">
+            <span>Nodi Connessi: <strong id="stat-nodes">200</strong></span>
+            <span>Relazioni: <strong id="stat-edges">0</strong></span>
+            <span>FPS: <strong id="stat-fps">60</strong></span>
+        </div>
+    </div>
+
+    <!-- Info Card Panel -->
+    <div id="info-card">
+        <h2 id="card-title">-</h2>
+        <span id="card-badge" class="category-badge">-</span>
+        <div id="card-meta" class="meta">-</div>
+        <div id="card-details" class="details"></div>
+        <div id="card-partners" class="partners"></div>
+    </div>
+
+    <!-- Right-Click Modal -->
+    <div id="work-modal">
+        <button class="close-btn" onclick="closeWorkModal()">&times;</button>
+        <h3 id="modal-node-name">Nome Nodo</h3>
+        <div id="modal-node-meta" class="designer-sub">Categoria • Rilevanza</div>
+        <div class="work-box">
+            <div class="work-label">Profilo Distrettuale Lombardo</div>
+            <div id="modal-node-title" class="work-title">Dettaglio approfondito dell'ecosistema cosmetico</div>
+        </div>
+        <a id="modal-web-link" href="#" target="_blank" class="open-link-btn">
+            🔍 Approfondisci su Cosmetica Lombarda ↗
+        </a>
+    </div>
+</div>
+
+<script>
+// --- CATEGORIE DELL'ECOSISTEMA COSMETICO LOMBARDO ---
+const CATEGORIES = {
+    HUB_MILANO_CREMA: { name: 'Polo Milano & Crema', color: '#ec4899' },
+    MAKEUP_CONTRACT: { name: 'Terzismo & Make-up', color: '#f59e0b' },
+    PACKAGING_DISPENSING: { name: 'Packaging & Vetro', color: '#06b6d4' },
+    BRANDS_MAISON: { name: 'Brand & Skincare', color: '#a855f7' },
+    RESEARCH_ACADEMIA: { name: 'Ricerca & Atenei', color: '#3b82f6' },
+    EVENTS_CULTURE: { name: 'Eventi & Beauty Week', color: '#ef4444' },
+    GREEN_BIOTECH: { name: 'Bio-Tech & Upcycling', color: '#10b981' }
+};
+
+// --- DATASET SEED LOMBARDIA COSMETICS (48 NODI FONDAMENTALI) ---
+const SEED_NODES = [
+    { name: "Lombardia - Capitale Globale del Make-Up", category: "HUB_MILANO_CREMA", relevance: 1, sub: "Epicentro Industriale Mondiale", details: "L'ecosistema lombardo realizza oltre il 55% del trucco distribuito a livello globale e più del 65% del consumato europeo, combinando formulazione, packaging di lusso e design.", connections: ["Polo della Cosmesi (Crema)", "Milano Beauty Hub", "Cosmetica Italia", "Intercos Group", "Chromavis Fareva", "Lumson Packaging", "Università degli Studi di Milano"] },
+    
+    // POLO CREMA & MILANO
+    { name: "Polo della Cosmesi (Crema)", category: "HUB_MILANO_CREMA", relevance: 1, sub: "Distretto di Crema-Bergamo-Lodi", details: "Associazione di filiera che raggruppa le aziende terziste di formulazione e confezionamento dell'area cremasca e bergamasca, cuore manifatturiero del rossetto e delle polveri.", connections: ["Lombardia - Capitale Globale del Make-Up", "Ancorotti Cosmetics", "Chromavis Fareva", "Lumson Packaging", "Omnicos Group"] },
+    { name: "Milano Beauty Hub", category: "HUB_MILANO_CREMA", relevance: 1, sub: "Capitale della Moda & Beauty", details: "Milano è la vetrina internazionale dei grandi marchi, delle agenzie di trend forecasting, del marketing cosmetico e degli HQ dei gruppi beauty globali.", connections: ["Lombardia - Capitale Globale del Make-Up", "Milano Beauty Week", "KIKO Milano", "Cosmetica Italia", "Politecnico di Milano (Design)"] },
+    { name: "Monza & Brianza Beauty Valley", category: "HUB_MILANO_CREMA", relevance: 2, sub: "Distretto Produttivo Monza-Agrate", details: "Polo ad alta intensità tecnologica per l'ingegneria dei processi di riempimento, automazione industriale cosmetica e ricerca formulativa avanzata.", connections: ["Intercos Group", "Pupa Milano (Micys Company)"] },
+
+    // TERZISTI & MAKE-UP CONTRACT MANUFACTURING
+    { name: "Intercos Group", category: "MAKEUP_CONTRACT", relevance: 1, sub: "Gigante Mondiale Terzista", details: "Fondata da Dario Ferrari, multinazionale con sede ad Agrate Brianza, leader mondiale incontestato nella creazione e formulazione di trucco, skincare e haircare per i top brand di lusso.", connections: ["Lombardia - Capitale Globale del Make-Up", "Monza & Brianza Beauty Valley", "Tecnologia delle Polveri Cotte", "Inovacos Formulations"] },
+    { name: "Chromavis Fareva", category: "MAKEUP_CONTRACT", relevance: 1, sub: "Eccellenza Formulativa Cremasca", details: "Azienda leader con sede a Vaiano Cremasco, rinomata per l'innovazione in rossetti, colature, mascare ed emulsionati cosmetici per il mercato internazionale.", connections: ["Polo della Cosmesi (Crema)", "Lombardia - Capitale Globale del Make-Up", "Rossetti & Injection Molding"] },
+    { name: "Ancorotti Cosmetics", category: "MAKEUP_CONTRACT", relevance: 1, sub: "Leader Mondiale del Mascara", details: "Fondata da Renato Ancorotti a Crema, punto di riferimento mondiale nella produzione di mascara, fondotinta e prodotti per il trucco occhi.", connections: ["Polo della Cosmesi (Crema)", "Formulazione Mascara Bulk", "Progetto Officine Scuole Crema"] },
+    { name: "Cosmint (Olgiate Comasco)", category: "MAKEUP_CONTRACT", relevance: 2, sub: "Specialista Skincare & Bodycare", details: "Polo produttivo d'eccellenza comasco specializzato nella fabbricazione su grande scala di emulsioni, solari e prodotti per la cura della persona.", connections: ["Lombardia - Capitale Globale del Make-Up", "Emulsionatori Alto Scorrimento"] },
+    { name: "Omnicos Group", category: "MAKEUP_CONTRACT", relevance: 2, sub: "Innovazione Make-up & Lab", details: "Azienda cremasca ad alta automazione con laboratori all'avanguardia per la produzione di matite, matitoni e compatti decorativi.", connections: ["Polo della Cosmesi (Crema)", "Automazione Linee Riempimento"] },
+    { name: "Regi Laboratories", category: "MAKEUP_CONTRACT", relevance: 2, sub: "Formulazione Colore & Polveri", details: "Realtà bergamasca specializzata in polveri cotte, ombretti ad altissima pigmentazione e texture sensoriali.", connections: ["Polo della Cosmesi (Crema)"] },
+
+    // PACKAGING, VETRO & COMPONENTI
+    { name: "Lumson Packaging", category: "PACKAGING_DISPENSING", relevance: 1, sub: "Innovazione Airless & Glass", details: "Gruppo cremasco con sede a Capergnanica, pioniero mondiale nei sistemi di erogazione airless, flaconi in vetro e componenti di lusso per skincare.", connections: ["Polo della Cosmesi (Crema)", "Sistemi Airless in Plastica/Vetro", "Erogatori & Dropper"] },
+    { name: "Baralan International", category: "PACKAGING_DISPENSING", relevance: 1, sub: "Packaging primario di Lusso", details: "Storica azienda con HQ a Milano specializzata nella creazione e distribuzione di contenitori in vetro e plastica per profumeria e cosmesi.", connections: ["Milano Beauty Hub", "Vetro per Smalti & Trattamento"] },
+    { name: "Brivaplast Group", category: "PACKAGING_DISPENSING", relevance: 2, sub: "Applicatori Mascara & Gloss", details: "Specialista lombardo nell'ingegneria degli scovolini in fibra e silicone e contenitori per make-up occhi.", connections: ["Ancorotti Cosmetics", "Erogatori & Dropper"] },
+    { name: "Eurovetrocap", category: "PACKAGING_DISPENSING", relevance: 2, sub: "Flaconeria & Green Packaging", details: "Azienda milanese specializzata nel confezionamento primario con forte orientamento alla plastica riciclata post-consumo (PCR).", connections: ["Milano Beauty Hub", "Eco-Packaging & PCR"] },
+    { name: "Geka Italia", category: "PACKAGING_DISPENSING", relevance: 3, sub: "Iniezione Micro-Spazzole", details: "Sito specializzato nella micro-iniezione di scovolini per mascara e gloss ad alta precisione.", connections: ["Brivaplast Group"] },
+
+    // BRAND, FASHION & SKINCARE
+    { name: "KIKO Milano", category: "BRANDS_MAISON", relevance: 1, sub: "Retailer Mondiale Make-up", details: "Nato a Milano dal Gruppo Percassi, brand democratico di cosmetica decorativa con una rete globale di oltre 1.000 store monomarca.", connections: ["Milano Beauty Hub", "Chromavis Fareva", "Ancorotti Cosmetics"] },
+    { name: "L'Erbolario (Lodi)", category: "BRANDS_MAISON", relevance: 1, sub: "Pioniere Cosmesi Naturale", details: "Fondata a Lodi da Franco Bergamaschi, storica marca di fitocosmesi vegetale con proprio parco botanico e laboratori estrattivi.", connections: ["Lombardia - Capitale Globale del Make-Up", "Fitocosmesi & Estratti Botanici", "Lodi Bio-Valley"] },
+    { name: "Collistar Milano", category: "BRANDS_MAISON", relevance: 1, sub: "Eccellentissimo Skincare Italiano", details: "Brand icona della profumeria italiana nato a Milano, leader nei trattamenti corpo, solari e specialties cosmetiche.", connections: ["Milano Beauty Hub", "Cosmetica Italia"] },
+    { name: "Diego Dalla Palma Milano", category: "BRANDS_MAISON", relevance: 2, sub: "Make-up Artist & Professional", details: "Maison milanese di trucco professionale, cura dei capelli e trattamenti estetici d'alta gamma.", connections: ["Milano Beauty Hub"] },
+    { name: "Pupa Milano (Micys Company)", category: "BRANDS_MAISON", relevance: 2, sub: "Cofanetti & Make-up Creativo", details: "Brand celebre per le trousse regalo, il colore e le collezioni stagionali di make-up con sede a Monza.", connections: ["Monza & Brianza Beauty Valley"] },
+    { name: "Deborah Milano", category: "BRANDS_MAISON", relevance: 2, sub: "Storico Brand del Colore dal 1962", details: "Maison milanese che ha democratizzato il make-up in Italia rendendo il design accessibile a generazioni di donne.", connections: ["Milano Beauty Hub"] },
+    { name: "Alfaparf Milano", category: "BRANDS_MAISON", relevance: 2, sub: "Haircare Professionale Globale", details: "Colosso bergamasco della cura professionale del capello e colorazione con presenza in oltre 100 paesi.", connections: ["Polo della Cosmesi (Crema)"] },
+
+    // RICERCA & ATENEI LOMBARDI
+    { name: "Cosmetica Italia", category: "RESEARCH_ACADEMIA", relevance: 1, sub: "Associazione Nazionale con HQ Milano", details: "La voce dell'industria cosmetica nazionale. Raccoglie oltre 600 imprese e coordina i dati economici del settore italiano.", connections: ["Lombardia - Capitale Globale del Make-Up", "Milano Beauty Hub", "Milano Beauty Week", "Cosmoprof Bologna"] },
+    { name: "Università degli Studi di Milano (Statale)", category: "RESEARCH_ACADEMIA", relevance: 1, sub: "Master in Cosmetologia & Farmacia", details: "Centro accademico di primo piano per la ricerca chimico-farmaceutica e la formazione di esperti formulatori.", connections: ["Lombardia - Capitale Globale del Make-Up", "Centro di Ricerca Tossicologica UNIMI"] },
+    { name: "Università di Pavia (UNIPV)", category: "RESEARCH_ACADEMIA", relevance: 1, sub: "Scuola di Cosmetologia Master COSMAST", details: "Storico ateneo con corsi di perfezionamento e laboratori di efficacia, sicurezza e valutazione sensoriale dei cosmetici.", connections: ["Lombardia - Capitale Globale del Make-Up", "Test di Efficacia Cutanea"] },
+    { name: "Politecnico di Milano (Design Beauty)", category: "RESEARCH_ACADEMIA", relevance: 2, sub: "Packaging & Sustainable Design", details: "Dipartimento di Design concentrato sullo studio dei materiali sostenibili, dell'ergonomia dei flaconi e dell'esperienza utente.", connections: ["Milano Beauty Hub", "Eco-Packaging & PCR"] },
+
+    // EVENTI, CULTURA & BEAUTY WEEK
+    { name: "Milano Beauty Week", category: "EVENTS_CULTURE", relevance: 1, sub: "La Settimana della Cultura Cosmetica", details: "Iniziativa promossa da Cosmetica Italia con il Comune di Milano per celebrare l'eccellenza scientifica, artistica e industriale del beauty.", connections: ["Milano Beauty Hub", "Cosmetica Italia", "Palazzo Giureconsulti"] },
+    { name: "Palazzo Giureconsulti (Hub Beauty)", category: "EVENTS_CULTURE", relevance: 2, sub: "Cuore di Milano Beauty Week", details: "Sede storica di mostre, talk, laboratori olfattivi ed esperienze immersive durante la settimana del beauty a Milano.", connections: ["Milano Beauty Week"] },
+    { name: "Accademia del Profumo", category: "EVENTS_CULTURE", relevance: 2, sub: "Valorizzazione della Cultura Olfattiva", details: "Istituzione nata a Milano per promuovere il valore storico, artistico e sensoriale delle fragranze d'autore.", connections: ["Cosmetica Italia", "Milano Beauty Hub"] },
+
+    // CHIMICA VERDE & BIO-UPCYCLING
+    { name: "Lombardy Green Chemistry Cluster", category: "GREEN_BIOTECH", relevance: 1, sub: "Rete Regionale Chimica Sostenibile", details: "Cluster tecnologico regionale per lo sviluppo di bio-raffinerie, bio-ingredienti e processi di chimica circolare applicati alla cosmetica.", connections: ["Lombardia - Capitale Globale del Make-Up", "Upcycling da Filiera Agroalimentare", "Bio-Polimeri Naturali"] },
+    { name: "Upcycling da Filiera Agroalimentare", category: "GREEN_BIOTECH", relevance: 1, sub: "Valorizzazione Scarti Cibo", details: "Estrazione di attivi antiossidanti e pigmenti naturali dai sottoprodotti di riso, uva, olive e vinacce della Lombardia.", connections: ["Lombardy Green Chemistry Cluster", "Lodi Bio-Valley"] },
+    { name: "Lodi Bio-Valley", category: "GREEN_BIOTECH", relevance: 2, sub: "Polo Agri-Biotech & Fitocosmesi", details: "Territorio specializzato nell'estrazione sostenibile di fitocomplessi da coltivazioni biologiche locali.", connections: ["L'Erbolario (Lodi)", "Upcycling da Filiera Agroalimentare"] }
+];
+
+// GENERAZIONE DATASET ESPANSO (200 NODI COMPLETI ED EQUILIBRATI)
+function generateLombardiaDataset() {
+    const nodes = [];
+    const nodeMap = new Map();
+
+    // Inserisci i nodi Seed
+    SEED_NODES.forEach((d, idx) => {
+        const node = {
+            id: idx + 1,
+            name: d.name,
+            category: d.category,
+            relevance: d.relevance,
+            sub: d.sub,
+            details: d.details,
+            radius: Math.max(17 - d.relevance * 2.8, 7),
+            x: (Math.random() - 0.5) * 1000,
+            y: (Math.random() - 0.5) * 700,
+            targetX: 0, targetY: 0,
+            vx: 0, vy: 0,
+            connections: []
+        };
+        nodes.push(node);
+        nodeMap.set(d.name, node);
+    });
+
+    const categoryKeys = Object.keys(CATEGORIES);
+    const lombardiaLocations = ["Crema", "Milano", "Bergamo", "Monza", "Lodi", "Pavia", "Como", "Brescia", "Vaiano Cremasco", "Capergnanica", "Agrate Brianza"];
+    const techWords = ["Silicone-Free", "Micronizzazione", "Polveri Cotte", "Anidro", "Cold Process", "Bioliquefazione", "Micro-Encapsulazione", "Clean Beauty"];
+
+    // Genera nodi procedurali coerenti fino a 200
+    for (let i = nodes.length; i < 200; i++) {
+        const id = i + 1;
+        const category = categoryKeys[i % categoryKeys.length];
+        const location = lombardiaLocations[i % lombardiaLocations.length];
+        const tech = techWords[i % techWords.length];
+
+        let name = "";
+        let sub = "";
+        let details = "";
+
+        if (category === "HUB_MILANO_CREMA") {
+            name = `Distretto Produttivo ${location} #${id}`;
+            sub = `Polo di Specializzazione Territoriale`;
+            details = `Unità locale del distretto cosmetico lombardo specializzata in operazioni ad alta intensità tecnologica per la filiera del beauty.`;
+        } else if (category === "MAKEUP_CONTRACT") {
+            name = `Laboratorio Formulatorio ${location} #${id}`;
+            sub = `Terzista & Contratto Make-Up`;
+            details = `Officina di produzione e riempimento specializzata nello sviluppo di texture innovative, bulk per rossetti o emulsioni colorate.`;
+        } else if (category === "PACKAGING_DISPENSING") {
+            name = `Packaging Lab ${location} [${tech}]`;
+            sub = `Componentistica & Soluzioni Erogazione`;
+            details = `Sviluppo di chiusure ermetiche, capsule serigrafate, pompe dosatrici e materiali plastici ad alta barriera per la cosmesi.`;
+        } else if (category === "BRANDS_MAISON") {
+            name = `Brand Emergente Milano #${id}`;
+            sub = `Indie Beauty & Skincare Nicchia`;
+            details = `Marchio cosmetico nativo digitale con formulazioni dermo-compatibili prodotte interamente nella Beauty Valley lombarda.`;
+        } else if (category === "RESEARCH_ACADEMIA") {
+            name = `Progetto R&D ${tech} (#${id})`;
+            sub = `Ricerca Universitaria & Spin-off`;
+            details = `Programma scientifico per la misurazione della penetrazione cutanea, test clinici di efficacia e stabilità formulativa.`;
+        } else if (category === "EVENTS_CULTURE") {
+            name = `Workshop Beauty Week #${id}`;
+            sub = `Divulgazione & Trend Forecasting`;
+            details = `Evento dedicato all'analisi dei trend olfattivi, del colore e delle nuove abitudini di consumo cosmetico nel mondo.`;
+        } else {
+            name = `Estratto Bio-Attivo ${tech} #${id}`;
+            sub = `Molecola Green & Bio-Fermentazione`;
+            details = `Ingrediente funzionale ricavato da biotecnologie sostenibili per il trattamento antietà e la protezione della barriera cutanea.`;
+        }
+
+        const node = {
+            id: id,
+            name: name,
+            category: category,
+            relevance: 3,
+            sub: sub,
+            details: details,
+            radius: Math.max(7 - (id * 0.015), 4),
+            x: (Math.random() - 0.5) * 1600,
+            y: (Math.random() - 0.5) * 1100,
+            targetX: 0, targetY: 0,
+            vx: 0, vy: 0,
+            connections: []
+        };
+        nodes.push(node);
+        nodeMap.set(name, node);
+    }
+
+    // GENERAZIONE ARCHI E CONNESSI
+    const edges = [];
+    const edgeSet = new Set();
+
+    function addEdge(source, target, weight = 1) {
+        if (!source || !target || source.id === target.id) return;
+        const key = source.id < target.id ? `${source.id}-${target.id}` : `${target.id}-${source.id}`;
+        if (!edgeSet.has(key)) {
+            edgeSet.add(key);
+            const edge = { source, target, weight };
+            edges.push(edge);
+            source.connections.push(target);
+            target.connections.push(source);
+        }
+    }
+
+    // Connetti archi definiti nei seed
+    SEED_NODES.forEach(d => {
+        const src = nodeMap.get(d.name);
+        if (d.connections) {
+            d.connections.forEach(targetName => {
+                const tgt = nodeMap.get(targetName);
+                if (tgt) addEdge(src, tgt, 2.2);
+            });
+        }
+    });
+
+    // Connessioni dinamiche per il grafo generale
+    const centerHub = nodes[0]; // Lombardia - Capitale Globale del Make-Up
+    const cremaNode = nodeMap.get("Polo della Cosmesi (Crema)");
+    const milanoNode = nodeMap.get("Milano Beauty Hub");
+    const intercosNode = nodeMap.get("Intercos Group");
+    const lumsonNode = nodeMap.get("Lumson Packaging");
+
+    for (let i = 1; i < nodes.length; i++) {
+        const nodeA = nodes[i];
+        
+        // Link all'hub centrale
+        if (Math.random() < 0.45) {
+            addEdge(nodeA, centerHub, 1.5);
+        }
+
+        // Link ai sotto-hub di categoria
+        if (nodeA.category === "HUB_MILANO_CREMA" && cremaNode && Math.random() < 0.5) {
+            addEdge(nodeA, cremaNode, 1.3);
+        }
+        if (nodeA.category === "MAKEUP_CONTRACT" && intercosNode && Math.random() < 0.5) {
+            addEdge(nodeA, intercosNode, 1.3);
+        }
+        if (nodeA.category === "PACKAGING_DISPENSING" && lumsonNode && Math.random() < 0.5) {
+            addEdge(nodeA, lumsonNode, 1.3);
+        }
+        if (nodeA.category === "BRANDS_MAISON" && milanoNode && Math.random() < 0.5) {
+            addEdge(nodeA, milanoNode, 1.3);
+        }
+
+        // Connetti nodi della stessa categoria
+        const extraConnections = Math.floor(Math.random() * 2) + 1;
+        for (let k = 0; k < extraConnections; k++) {
+            const targetIdx = Math.floor(Math.random() * nodes.length);
+            const nodeB = nodes[targetIdx];
+            if (nodeA.category === nodeB.category && nodeA.id !== nodeB.id) {
+                addEdge(nodeA, nodeB, 0.75);
+            }
+        }
+    }
+
+    return { nodes, edges };
+}
+
+// --- ENGINE CANVAS & FISICA DINAMICA ---
+const canvas = document.getElementById('networkCanvas');
+const ctx = canvas.getContext('2d');
+
+let width, height;
+let graphData = generateLombardiaDataset();
+let nodes = graphData.nodes;
+let edges = graphData.edges;
+
+let transform = { x: 0, y: 0, scale: 1 };
+let isDragging = false;
+let dragStart = { x: 0, y: 0 };
+let hoveredNode = null;
+let selectedNode = null;
+let draggedNode = null;
+
+let searchQuery = "";
+let selectedCategory = "ALL";
+let currentLayout = "radial";
+
+// CONTROLLO SIMULAZIONE E FISICA
+let isSimulating = true;
+let simFrames = 0;
+const MAX_SIM_FRAMES = 360;
+let totalKineticEnergy = 100;
+
+let repulsionStrength = 260;
+const damping = 0.85;
+const springLength = 85;
+const springStiffness = 0.035;
+
+document.getElementById('stat-nodes').innerText = nodes.length;
+document.getElementById('stat-edges').innerText = edges.length;
+
+function resizeCanvas() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+    if (transform.x === 0 && transform.y === 0) {
+        transform.x = width / 2;
+        transform.y = height / 2;
+    }
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// --- LAYOUTS ALTERNATIVI ---
+function computeLayoutTargets(layout) {
+    if (layout === 'radial') {
+        nodes.forEach(n => {
+            if (n.id === 1) { // Lombardia Hub al centro
+                n.targetX = 0;
+                n.targetY = 0;
+            } else {
+                const ring = n.relevance;
+                const angle = (n.id % 32) * (Math.PI * 2 / 32) + (n.relevance * 0.2);
+                const radius = 120 + ring * 130 + ((n.id % 8) * 18);
+                n.targetX = Math.cos(angle) * radius;
+                n.targetY = Math.sin(angle) * radius;
+            }
+        });
+    } else if (layout === 'cluster') {
+        const catKeys = Object.keys(CATEGORIES);
+        const cols = 3;
+        const spacingX = 490;
+        const spacingY = 390;
+
+        catKeys.forEach((cat, idx) => {
+            const cx = ((idx % cols) - 1) * spacingX;
+            const cy = (Math.floor(idx / cols) - 0.5) * spacingY;
+            const catNodes = nodes.filter(n => n.category === cat);
+
+            catNodes.forEach((n, i) => {
+                const angle = i * 0.45;
+                const r = 25 + Math.sqrt(i) * 22;
+                n.targetX = cx + Math.cos(angle) * r;
+                n.targetY = cy + Math.sin(angle) * r;
+            });
+        });
+    } else if (layout === 'circular') {
+        const total = nodes.length;
+        const radius = 640;
+        const sorted = nodes.slice().sort((a, b) => a.category.localeCompare(b.category));
+        
+        sorted.forEach((n, i) => {
+            const angle = (i / total) * Math.PI * 2;
+            n.targetX = Math.cos(angle) * radius;
+            n.targetY = Math.sin(angle) * radius;
+        });
+    }
+}
+
+// Inizializza il layout radiale di default
+computeLayoutTargets('radial');
+
+function changeLayout(newLayout) {
+    currentLayout = newLayout;
+    computeLayoutTargets(newLayout);
+    document.getElementById('repulsionControl').style.display = newLayout === 'force' ? 'block' : 'none';
+    wakeSimulation();
+}
+
+// --- FISICA ---
+function wakeSimulation() {
+    isSimulating = true;
+    simFrames = 0;
+    updateSimUI(true);
+}
+
+function toggleSimulation() {
+    isSimulating = !isSimulating;
+    if (isSimulating) simFrames = 0;
+    updateSimUI(isSimulating);
+}
+
+function updateSimUI(active) {
+    const dot = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    const btn = document.getElementById('toggleSimBtn');
+
+    if (active) {
+        dot.classList.remove('paused');
+        text.innerText = "Simulazione Attiva";
+        btn.innerText = "Pausa";
+    } else {
+        dot.classList.add('paused');
+        text.innerText = "Rete Stabilizzata";
+        btn.innerText = "Riprendi";
+    }
+}
+
+function updatePhysics() {
+    if (!isSimulating) return;
+
+    if (currentLayout === 'force') {
+        totalKineticEnergy = 0;
+
+        for (let i = 0; i < nodes.length; i++) {
+            const n1 = nodes[i];
+            for (let j = i + 1; j < nodes.length; j++) {
+                const n2 = nodes[j];
+                let dx = n2.x - n1.x;
+                let dy = n2.y - n1.y;
+                let distSq = dx * dx + dy * dy + 0.1;
+                let dist = Math.sqrt(distSq);
+
+                if (dist < 420) {
+                    let force = (repulsionStrength * 10) / distSq;
+                    let fx = (dx / dist) * force;
+                    let fy = (dy / dist) * force;
+
+                    n1.vx -= fx;
+                    n1.vy -= fy;
+                    n2.vx += fx;
+                    n2.vy += fy;
+                }
+            }
+        }
+
+        for (let i = 0; i < edges.length; i++) {
+            const edge = edges[i];
+            let dx = edge.target.x - edge.source.x;
+            let dy = edge.target.y - edge.source.y;
+            let dist = Math.sqrt(dx * dx + dy * dy) + 0.1;
+            let force = (dist - springLength) * springStiffness * edge.weight;
+
+            let fx = (dx / dist) * force;
+            let fy = (dy / dist) * force;
+
+            edge.source.vx += fx;
+            edge.source.vy += fy;
+            edge.target.vx -= fx;
+            edge.target.vy -= fy;
+        }
+
+        for (let i = 0; i < nodes.length; i++) {
+            const n = nodes[i];
+            if (n === draggedNode) continue;
+
+            n.vx -= n.x * 0.0004;
+            n.vy -= n.y * 0.0004;
+
+            n.vx *= damping;
+            n.vy *= damping;
+
+            n.x += n.vx;
+            n.y += n.vy;
+
+            totalKineticEnergy += Math.abs(n.vx) + Math.abs(n.vy);
+        }
+
+        simFrames++;
+        if (totalKineticEnergy < 0.8 || simFrames > MAX_SIM_FRAMES) {
+            isSimulating = false;
+            updateSimUI(false);
+        }
+    } else {
+        let maxMovement = 0;
+        nodes.forEach(n => {
+            if (n === draggedNode) return;
+            let dx = n.targetX - n.x;
+            let dy = n.targetY - n.y;
+            n.x += dx * 0.08;
+            n.y += dy * 0.08;
+
+            maxMovement += Math.abs(dx) + Math.abs(dy);
+        });
+
+        simFrames++;
+        if (maxMovement < 0.5 || simFrames > 180) {
+            isSimulating = false;
+            updateSimUI(false);
+        }
+    }
+}
+
+let lastTime = performance.now();
+let frameCount = 0;
+
+function render() {
+    const now = performance.now();
+    frameCount++;
+    if (now - lastTime >= 1000) {
+        document.getElementById('stat-fps').innerText = frameCount;
+        frameCount = 0;
+        lastTime = now;
+    }
+
+    updatePhysics();
+
+    ctx.save();
+    ctx.fillStyle = '#06080d';
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.translate(transform.x, transform.y);
+    ctx.scale(transform.scale, transform.scale);
+
+    const isFilterActive = selectedCategory !== "ALL" || searchQuery !== "";
+
+    // Archi
+    for (let i = 0; i < edges.length; i++) {
+        const edge = edges[i];
+        const isHighlight = (hoveredNode || selectedNode) && 
+            (edge.source === hoveredNode || edge.target === hoveredNode || edge.source === selectedNode || edge.target === selectedNode);
+        
+        ctx.beginPath();
+        ctx.moveTo(edge.source.x, edge.source.y);
+        ctx.lineTo(edge.target.x, edge.target.y);
+
+        if (isHighlight) {
+            ctx.strokeStyle = '#ec4899';
+            ctx.lineWidth = 2.4;
+        } else {
+            ctx.strokeStyle = isFilterActive ? 'rgba(30, 41, 59, 0.15)' : 'rgba(51, 65, 85, 0.28)';
+            ctx.lineWidth = 0.6;
+        }
+        ctx.stroke();
+    }
+
+    // Nodi
+    for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i];
+        const catColor = CATEGORIES[n.category]?.color || '#94a3b8';
+        
+        const matchesCategory = (selectedCategory === "ALL" || n.category === selectedCategory);
+        const matchesSearch = searchQuery === "" || 
+            n.name.toLowerCase().includes(searchQuery) || 
+            n.sub.toLowerCase().includes(searchQuery) || 
+            n.details.toLowerCase().includes(searchQuery);
+
+        const isMatch = matchesCategory && matchesSearch;
+        const isSelected = n === selectedNode;
+        const isHovered = n === hoveredNode;
+
+        ctx.save();
+        
+        if (isFilterActive && !isMatch && !isSelected && !isHovered) {
+            ctx.globalAlpha = 0.12;
+        }
+
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, isSelected || isHovered ? n.radius + 4 : n.radius, 0, Math.PI * 2);
+
+        ctx.fillStyle = isFilterActive && isMatch ? '#ffffff' : catColor;
+        ctx.fill();
+
+        if (isSelected || isHovered || (isFilterActive && isMatch)) {
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+        }
+
+        if (transform.scale > 0.75 || n.relevance <= 2 || isHovered || isSelected || (isFilterActive && isMatch)) {
+            ctx.fillStyle = isSelected || isHovered ? '#ffffff' : '#e2e8f0';
+            ctx.font = `${Math.max(10 / transform.scale, 8)}px -apple-system, sans-serif`;
+            ctx.fillText(`${n.name}`, n.x + n.radius + 5, n.y + 3);
+        }
+
+        ctx.restore();
+    }
+
+    ctx.restore();
+    requestAnimationFrame(render);
+}
+
+function getCanvasCoords(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: (e.clientX - rect.left - transform.x) / transform.scale,
+        y: (e.clientY - rect.top - transform.y) / transform.scale
+    };
+}
+
+function findNodeAt(coords) {
+    for (let i = nodes.length - 1; i >= 0; i--) {
+        const n = nodes[i];
+        const dx = n.x - coords.x;
+        const dy = n.y - coords.y;
+        if (dx * dx + dy * dy <= (n.radius + 6) * (n.radius + 6)) {
+            return n;
+        }
+    }
+    return null;
+}
+
+// EVENTI MOUSE
+canvas.addEventListener('mousedown', (e) => {
+    if (e.button === 2) return;
+    closeWorkModal();
+
+    const coords = getCanvasCoords(e);
+    const node = findNodeAt(coords);
+
+    if (node) {
+        draggedNode = node;
+        selectedNode = node;
+        updateInfoCard(node);
+        wakeSimulation();
+    } else {
+        isDragging = true;
+        dragStart = { x: e.clientX - transform.x, y: e.clientY - transform.y };
+    }
+});
+
+canvas.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    const coords = getCanvasCoords(e);
+    const node = findNodeAt(coords);
+
+    if (node) {
+        selectedNode = node;
+        openWorkModal(node, e.clientX, e.clientY);
+    } else {
+        closeWorkModal();
+    }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+    const coords = getCanvasCoords(e);
+
+    if (draggedNode) {
+        draggedNode.x = coords.x;
+        draggedNode.y = coords.y;
+        draggedNode.vx = 0;
+        draggedNode.vy = 0;
+        wakeSimulation();
+    } else if (isDragging) {
+        transform.x = e.clientX - dragStart.x;
+        transform.y = e.clientY - dragStart.y;
+    } else {
+        hoveredNode = findNodeAt(coords);
+    }
+});
+
+window.addEventListener('mouseup', () => {
+    isDragging = false;
+    draggedNode = null;
+});
+
+canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const zoomFactor = 1.1;
+    const mouseX = e.clientX;
+    const mouseY = e.clientY;
+
+    let newScale = e.deltaY < 0 ? transform.scale * zoomFactor : transform.scale / zoomFactor;
+    newScale = Math.max(0.18, Math.min(newScale, 4.5));
+
+    transform.x = mouseX - (mouseX - transform.x) * (newScale / transform.scale);
+    transform.y = mouseY - (mouseY - transform.y) * (newScale / transform.scale);
+    transform.scale = newScale;
+}, { passive: false });
+
+// CONTROLLI
+document.getElementById('categorySelect').addEventListener('change', (e) => { selectedCategory = e.target.value; wakeSimulation(); });
+document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value.toLowerCase().trim(); wakeSimulation(); });
+document.getElementById('repulsionSlider').addEventListener('input', (e) => { repulsionStrength = parseFloat(e.target.value); wakeSimulation(); });
+
+function updateInfoCard(node) {
+    const card = document.getElementById('info-card');
+    if (!node) {
+        card.style.display = 'none';
+        return;
+    }
+    
+    const catObj = CATEGORIES[node.category] || { name: 'Nodo', color: '#ec4899' };
+    
+    document.getElementById('card-title').innerText = node.name;
+    const badge = document.getElementById('card-badge');
+    badge.innerText = catObj.name;
+    badge.style.backgroundColor = catObj.color;
+    badge.style.color = '#020617';
+
+    document.getElementById('card-meta').innerText = `💄 ${node.sub}`;
+    
+    const partnersList = node.connections.map(c => `• ${c.name}`).slice(0, 6).join('<br>');
+    
+    document.getElementById('card-details').innerHTML = `
+        <strong>Ruolo nell'Ecosistema Lombardo:</strong><br>${node.details}
+    `;
+    
+    document.getElementById('card-partners').innerHTML = `
+        <strong>Connessioni di Filiera & Polo:</strong><br>${partnersList || 'Nessun collegamento diretto'}
+    `;
+    
+    card.style.display = 'block';
+}
+
+function openWorkModal(node, mouseX, mouseY) {
+    const modal = document.getElementById('work-modal');
+    
+    document.getElementById('modal-node-name').innerText = node.name;
+    document.getElementById('modal-node-meta').innerText = `${CATEGORIES[node.category]?.name} • ${node.sub}`;
+    document.getElementById('modal-node-title').innerText = node.details;
+    
+    const searchQuery = encodeURIComponent(`Cosmetica Lombarda Polo della Cosmesi Crema Milano ${node.name} ${node.sub}`);
+    const searchUrl = `https://www.google.com/search?q=${searchQuery}`;
+    
+    const linkBtn = document.getElementById('modal-web-link');
+    linkBtn.href = searchUrl;
+
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    let posX = mouseX + 10;
+    let posY = mouseY + 10;
+
+    if (posX + 340 > windowWidth) posX = mouseX - 340;
+    if (posY + 240 > windowHeight) posY = mouseY - 240;
+
+    modal.style.left = `${Math.max(10, posX)}px`;
+    modal.style.top = `${Math.max(10, posY)}px`;
+    modal.style.display = 'block';
+}
+
+function closeWorkModal() {
+    document.getElementById('work-modal').style.display = 'none';
+}
+
+// Start
+requestAnimationFrame(render);
+</script>
+</body>
+</html>

@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Ecosistema Destinazione Jassa (Calabria)</title>
+    <style>
+        :root {
+            --bg-dark: #06120e;
+            --panel-bg: rgba(10, 26, 20, 0.94);
+            --panel-border: rgba(16, 185, 129, 0.28);
+            --accent-green: #10b981;
+            --accent-cyan: #0ea5e9;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --accent-purple: #8b5cf6;
+            --accent-lime: #84cc16;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            font-weight: 800;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 14px rgba(16, 185, 129, 0.45);
+        }
+
+        h1 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .kpi-container {
+            display: flex;
+            gap: 12px;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--panel-border);
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        .kpi-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .workspace {
+            display: flex;
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 55px);
+            overflow: hidden;
+        }
+
+        #network-container {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            cursor: grab;
+            background: radial-gradient(circle at center, #0f2b20 0%, #06120e 100%);
+        }
+
+        #network-container:active {
+            cursor: grabbing;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 5;
+            width: 340px;
+        }
+
+        .control-group {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .view-switcher {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+
+        .btn-view {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-view:hover {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--accent-green);
+        }
+
+        .btn-view.active {
+            background: var(--accent-green);
+            color: #000;
+            font-weight: 700;
+            border-color: var(--accent-green);
+        }
+
+        .search-box {
+            background: rgba(6, 18, 14, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            font-size: 0.78rem;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-green);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .tag-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--panel-border);
+            color: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.68rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-btn.active, .tag-btn:hover {
+            color: #fff;
+            border-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.2);
+        }
+
+        .detail-window {
+            width: 380px;
+            height: 100%;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 8;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.6);
+            flex-shrink: 0;
+        }
+
+        .detail-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .category-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .entity-title {
+            font-size: 1.15rem;
+            margin-bottom: 2px;
+            color: #fff;
+        }
+
+        .entity-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .detail-body {
+            padding: 14px 18px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .info-card h4 {
+            font-size: 0.68rem;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-card p {
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: #cbd5e1;
+        }
+
+        .connected-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .conn-chip {
+            background: rgba(255,255,255,0.08);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .conn-chip:hover {
+            background: rgba(16, 185, 129, 0.25);
+            border-color: var(--accent-green);
+            color: #fff;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.68rem;
+            display: flex;
+            gap: 12px;
+            backdrop-filter: blur(8px);
+            z-index: 5;
+            flex-wrap: wrap;
+            max-width: 72%;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace { flex-direction: column; }
+            .detail-window { width: 100%; height: 38%; }
+            .kpi-container { display: none; }
+            .controls-overlay { width: calc(100% - 24px); }
+            .legend { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-group">
+            <span class="logo-badge">DESTINAZIONE JASSA</span>
+            <h1>Ecosistema Turistico Fiumara Jassa, Sersale & Presila Catanzarese</h1>
+        </div>
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-value">Fiumara Jassa</div>
+                <div class="kpi-label">Canyon & Cascate</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">Sersale & Presila</div>
+                <div class="kpi-label">Borghi & Valli Cupe</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">Turismo Verde</div>
+                <div class="kpi-label">Trekking & Canyoning</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="controls-overlay">
+            <div class="control-group">
+                <div class="control-label">Modalità Visualizzazione Rete</div>
+                <div class="view-switcher" id="viewSwitcher">
+                    <button class="btn-view active" data-view="hub">🌐 Hub Centrale</button>
+                    <button class="btn-view" data-view="force">🌀 Fisica Repulsiva</button>
+                    <button class="btn-view" data-view="radial">⭕ Concentrica</button>
+                    <button class="btn-view" data-view="grid">📊 Per Categoria</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">Filtra e Cerca Attori Territoriali</div>
+                <input type="text" id="searchInput" class="search-box" placeholder="Cerca Jassa, Sersale, Valli Cupe, Canyon, Trekking, B&B...">
+                <div class="filter-tags" id="filterContainer">
+                    <button class="tag-btn active" data-cat="all">Tutti</button>
+                    <button class="tag-btn" data-cat="hub">Hub Destinazione</button>
+                    <button class="tag-btn" data-cat="nature">Natura & Fiume</button>
+                    <button class="tag-btn" data-cat="outdoor">Outdoor & Sport</button>
+                    <button class="tag-btn" data-cat="culture">Borghi & Enti</button>
+                    <button class="tag-btn" data-cat="food">Gusto & Tipicità</button>
+                    <button class="tag-btn" data-cat="hospitality">Ospitalità & Guide</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="network-container">
+            <canvas id="networkCanvas"></canvas>
+
+            <div class="legend">
+                <div class="legend-item"><span class="legend-color" style="background:#10b981;"></span> Hub Destinazione</div>
+                <div class="legend-item"><span class="legend-color" style="background:#84cc16;"></span> Fiumara Jassa & Riserva Valli Cupe</div>
+                <div class="legend-item"><span class="legend-color" style="background:#0ea5e9;"></span> Outdoor & Canyoning</div>
+                <div class="legend-item"><span class="legend-color" style="background:#f59e0b;"></span> Sersale & Borghi Presila</div>
+                <div class="legend-item"><span class="legend-color" style="background:#f43f5e;"></span> Enogastronomia Calabrese</div>
+                <div class="legend-item"><span class="legend-color" style="background:#8b5cf6;"></span> Accoglienza & Guide GAE</div>
+            </div>
+        </div>
+
+        <aside class="detail-window">
+            <div class="detail-header">
+                <span class="category-pill" id="detCategory">HUB TERRITORIALE</span>
+                <h2 class="entity-title" id="detTitle">Destinazione Jassa</h2>
+                <p class="entity-subtitle" id="detSubtitle">Promozione Turistica Sostenibile - Presila Catanzarese</p>
+            </div>
+            <div class="detail-body">
+                <div class="info-card">
+                    <h4>Ruolo nell'Ecosistema</h4>
+                    <p id="detRole">Piattaforma di promozione territoriale focalizzata sul bacino idrografico della Fiumara Jassa, nel territorio di Sersale e della Presila Catanzarese in Calabria.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Attività & Attrazioni Chiave</h4>
+                    <p id="detDesc">Promozione di itinerari escursionistici lungo le gole del fiume Jassa, percorsi di canyoning e torrentismo, valorizzazione delle cascate, ricettività nei borghi presilani e prodotti tipici della Sila Piccola.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Nodi Collegati</h4>
+                    <div class="connected-list" id="detConns"></div>
+                </div>
+                <a id="detLink" href="https://destinazionejassa.it/" target="_blank" class="action-btn" style="display:block; text-align:center; background:var(--accent-green); color:#000; font-weight:700; padding:9px; border-radius:6px; text-decoration:none; margin-top:auto; font-size:0.8rem; box-shadow: 0 0 10px rgba(16,185,129,0.3);">Visita Portale Jassa</a>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // DATASET ATTORI ECOSISTEMA DESTINAZIONE JASSA (CALABRIA)
+        const nodes = [
+            // HUB CENTRALE
+            { id: 'jassa_hub', label: 'Destinazione Jassa', cat: 'hub', color: '#10b981', radius: 25,
+              sub: 'Hub Turistico della Presila Catanzarese',
+              desc: 'Iniziativa di promozione del patrimonio naturale e paesaggistico legato al Fiume/Fiumara Jassa e ai comuni della Presila in Calabria.',
+              role: 'Coordinamento dell\'offerta turistica sostenibile, itinerari outdoor, accoglienza rurale e valorizzazione del territorio.',
+              url: 'https://destinazionejassa.it/' },
+
+            // NATURA & FIUME JASSA
+            { id: 'fiumara_jassa', label: 'Fiumara Jassa', cat: 'nature', color: '#84cc16', radius: 23,
+              sub: 'Corso d\'acqua & Gole Fluviali',
+              desc: 'Fiume caratteristico della Presila Catanzarese che scava suggestive gole, forre e cascate naturali nel territorio di Sersale.',
+              role: 'Attrazione naturalistica principale per escursioni fluviali, torrentismo e biodiversità della macchia mediterranea-silana.',
+              url: 'https://destinazionejassa.it/' },
+
+            { id: 'valli_cupe', label: 'Riserva Valli Cupe', cat: 'nature', color: '#84cc16', radius: 22,
+              sub: 'Riserva Naturale Regionale',
+              desc: 'Area protetta calabrese celebre per i canyon mozzafiato, le cascate spettacolari e gli alberi secolari nei pressi del Jassa.',
+              role: 'Tutela ambientale, turismo ecologico, educazione alla biodiversità e percorsi naturalistici protetti.',
+              url: 'https://destinazionejassa.it/' },
+
+            { id: 'cascate_jassa', label: 'Cascate del Jassa & Campanaro', cat: 'nature', color: '#84cc16', radius: 19,
+              sub: 'Salti d\'Acqua & Piscine Naturali',
+              desc: 'Cascate e conche d\'acqua cristallina formate lungo il percorso del fiume Jassa e dei suoi affluenti presilani.',
+              role: 'Mete preferite per il trekking estivo, la fotografia naturalistica e il refrigerio escursionistico.',
+              url: 'https://destinazionejassa.it/' },
+
+            // OUTDOOR & SPORT
+            { id: 'canyoning_jassa', label: 'Canyoning & Torrentismo', cat: 'outdoor', color: '#0ea5e9', radius: 20,
+              sub: 'Sport Acquatici in Gola',
+              desc: 'Attività avventurosa guidata lungo il corso del torrente Jassa tra calate in corda, scivoli naturali e tuffi.',
+              role: 'Attrazione per turismo attivo ed esperienziale ad alto impatto emozionale in piena sicurezza.',
+              url: 'https://destinazionejassa.it/' },
+
+            { id: 'sentieri_presila', label: 'Sentieri Trekking & MTB', cat: 'outdoor', color: '#0ea5e9', radius: 20,
+              sub: 'Rete Escursionistica Presilana',
+              desc: 'Mappa di percorsi che collegano il fiume Jassa con le vette della Sila Piccola e i centri abitati della Presila.',
+              role: 'Mappatura GPS, escursionismo a piedi, e-bike e trail running tra boschi di castagni e pini larici.',
+              url: 'https://destinazionejassa.it/' },
+
+            // BORGHI & CULTURA
+            { id: 'comune_sersale', label: 'Comune di Sersale', cat: 'culture', color: '#f59e0b', radius: 22,
+              sub: 'Città delle Valli Cupe & del Jassa',
+              desc: 'Borgo della provincia di Catanzaro porta d\'accesso principale alle valli del Jassa e alla Riserva Valli Cupe.',
+              role: 'Istituzione locale, promozione del centro storico, supporto alla ricettività e agli eventi culturali.',
+              url: 'https://destinazionejassa.it/' },
+
+            { id: 'borghi_presila', label: 'Borghi della Presila (Zagarise, Cerva)', cat: 'culture', color: '#f59e0b', radius: 19,
+              sub: 'Centri Storici & Tradizioni',
+              desc: 'Comuni limitrofi che condividono il patrimonio storico, l\'architettura rurale e le tradizioni della fascia presilana.',
+              role: 'Ospitalità nei centri storici, musei contadini e valorizzazione dell\'artigianato tipico calabrese.',
+              url: 'https://destinazionejassa.it/' },
+
+            // GUSTO & TIPICITÀ
+            { id: 'enogastronomia_presila', label: 'Gusto & Tipicità Calabresi', cat: 'food', color: '#f43f5e', radius: 21,
+              sub: 'Prodotti Tipici della Presila',
+              desc: 'Eccellenze gastronomiche locali: Olio EVO di Carolea, pecorino presilano, salumi tradizionali, castagne e miele.',
+              role: 'Valorizzazione della filiera corta, ristorazione tipica ed esperienze del gusto per i viaggiatori.',
+              url: 'https://destinazionejassa.it/' },
+
+            // OSPITALITÀ & GUIDE
+            { id: 'guide_gae', label: 'Guide Ambientali GAE', cat: 'hospitality', color: '#8b5cf6', radius: 20,
+              sub: 'Guide Ufficiali & Accompagnatori',
+              desc: 'Professionisti abilitati del territorio che accompagnano turisti ed escursionisti lungo il fiume Jassa.',
+              role: 'Accompagnamento in sicurezza, interpretazione ambientale e racconto della storia naturalistica locale.',
+              url: 'https://destinazionejassa.it/' },
+
+            { id: 'ricettivita_agriturismi', label: 'Agriturismi & B&B Presila', cat: 'hospitality', color: '#8b5cf6', radius: 20,
+              sub: 'Accoglienza Rurale & Sostenibile',
+              desc: 'Rete di strutture ricettive locali, B&B e agriturismi immersi nella natura presilana.',
+              role: 'Pernottamento, colazioni con prodotti locali e supporto logistico ai visitatori del Fiume Jassa.',
+              url: 'https://destinazionejassa.it/' }
+        ];
+
+        // RELAZIONI (LINK) NELL'ECOSISTEMA
+        const links = [
+            // Hub centrale <-> Pilastri principali
+            { source: 'jassa_hub', target: 'fiumara_jassa' },
+            { source: 'jassa_hub', target: 'valli_cupe' },
+            { source: 'jassa_hub', target: 'comune_sersale' },
+            { source: 'jassa_hub', target: 'canyoning_jassa' },
+            { source: 'jassa_hub', target: 'sentieri_presila' },
+            { source: 'jassa_hub', target: 'enogastronomia_presila' },
+            { source: 'jassa_hub', target: 'ricettivita_agriturismi' },
+
+            // Fiumara Jassa & Natura
+            { source: 'fiumara_jassa', target: 'valli_cupe' },
+            { source: 'fiumara_jassa', target: 'cascate_jassa' },
+            { source: 'fiumara_jassa', target: 'canyoning_jassa' },
+            { source: 'fiumara_jassa', target: 'guide_gae' },
+
+            // Sersale & Borghi
+            { source: 'comune_sersale', target: 'valli_cupe' },
+            { source: 'comune_sersale', target: 'borghi_presila' },
+            { source: 'comune_sersale', target: 'ricettivita_agriturismi' },
+
+            // Outdoor, Ospitalità & Gusto
+            { source: 'sentieri_presila', target: 'guide_gae' },
+            { source: 'canyoning_jassa', target: 'guide_gae' },
+            { source: 'enogastronomia_presila', target: 'ricettivita_agriturismi' },
+            { source: 'enogastronomia_presila', target: 'borghi_presila' }
+        ];
+
+        // ENGINE CANVAS & SIMULAZIONE GRAFO
+        const container = document.getElementById('network-container');
+        const canvas = document.getElementById('networkCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = 0;
+        let height = 0;
+        let selectedNode = nodes[0];
+        let hoveredNode = null;
+        let draggedNode = null;
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let currentLayout = 'hub';
+        let initialized = false;
+
+        nodes.forEach(n => {
+            n.x = 0; n.y = 0;
+            n.tx = 0; n.ty = 0;
+            n.vx = 0; n.vy = 0;
+        });
+
+        function computeTargetPositions() {
+            const padX = Math.max(100, Math.min(width * 0.12, 160));
+            const padY = Math.max(90, Math.min(height * 0.14, 130));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'hub') {
+                const hub = nodes.find(n => n.id === 'jassa_hub');
+                hub.tx = cx;
+                hub.ty = cy;
+
+                const categories = ['nature', 'outdoor', 'culture', 'food', 'hospitality'];
+                const numCats = categories.length;
+
+                categories.forEach((catKey, cIdx) => {
+                    const angleCat = (cIdx / numCats) * Math.PI * 2 - Math.PI / 2;
+                    const catRadius = Math.min(width, height) * 0.32;
+                    const catNodes = nodes.filter(n => n.cat === catKey);
+
+                    catNodes.forEach((node, nIdx) => {
+                        const spreadAngle = 0.7;
+                        const angleNode = angleCat + (nIdx - (catNodes.length - 1) / 2) * (spreadAngle / Math.max(1, catNodes.length));
+                        node.tx = cx + Math.cos(angleNode) * catRadius;
+                        node.ty = cy + Math.sin(angleNode) * catRadius;
+
+                        node.tx = Math.max(minX, Math.min(maxX, node.tx));
+                        node.ty = Math.max(minY, Math.min(maxY, node.ty));
+                    });
+                });
+            }
+            else if (currentLayout === 'radial') {
+                const hubNode = nodes.find(n => n.id === 'jassa_hub');
+                hubNode.tx = cx;
+                hubNode.ty = cy;
+
+                const innerNodes = nodes.filter(n => n.cat === 'nature' || n.id === 'comune_sersale');
+                const outerNodes = nodes.filter(n => n.id !== 'jassa_hub' && !innerNodes.includes(n));
+
+                const rInner = Math.min(maxX - minX, maxY - minY) * 0.22;
+                innerNodes.forEach((n, idx) => {
+                    const angle = (idx / innerNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rInner;
+                    n.ty = cy + Math.sin(angle) * rInner;
+                });
+
+                const rOuter = Math.min(maxX - minX, maxY - minY) * 0.42;
+                outerNodes.forEach((n, idx) => {
+                    const angle = (idx / outerNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rOuter;
+                    n.ty = cy + Math.sin(angle) * rOuter;
+                });
+            }
+            else if (currentLayout === 'grid') {
+                const cats = [
+                    { cat: 'hub', label: 'HUB DESTINAZIONE' },
+                    { cat: 'nature', label: 'NATURA & FIUME' },
+                    { cat: 'outdoor', label: 'OUTDOOR & SPORT' },
+                    { cat: 'culture', label: 'BORGHI & ENTI' },
+                    { cat: 'food', label: 'GUSTO & TIPICITÀ' },
+                    { cat: 'hospitality', label: 'OSPITALITÀ & GUIDE' }
+                ];
+                const colW = (maxX - minX) / cats.length;
+
+                cats.forEach((cObj, cIdx) => {
+                    const catNodes = nodes.filter(n => n.cat === cObj.cat);
+                    const x = minX + colW * cIdx + colW / 2;
+                    const rowH = (maxY - minY) / (catNodes.length + 1);
+
+                    catNodes.forEach((node, rIdx) => {
+                        node.tx = x;
+                        node.ty = minY + rowH * (rIdx + 1);
+                    });
+                });
+            }
+            else { // Force layout
+                const hub = nodes.find(n => n.id === 'jassa_hub');
+                hub.tx = cx;
+                hub.ty = cy;
+
+                const others = nodes.filter(n => n.id !== 'jassa_hub');
+                others.forEach((node, i) => {
+                    const angle = (i / others.length) * Math.PI * 2;
+                    const r = Math.min(width, height) * 0.32;
+                    node.tx = cx + Math.cos(angle) * r;
+                    node.ty = cy + Math.sin(angle) * r;
+                });
+            }
+        }
+
+        function resize() {
+            width = container.clientWidth;
+            height = container.clientHeight;
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+
+            if (width > 0 && height > 0) {
+                computeTargetPositions();
+                if (!initialized) {
+                    nodes.forEach(n => {
+                        n.x = n.tx;
+                        n.y = n.ty;
+                    });
+                    selectNode(nodes[0]);
+                    initialized = true;
+                }
+            }
+        }
+
+        const resizeObserver = new ResizeObserver(() => resize());
+        resizeObserver.observe(container);
+
+        function updatePositions() {
+            if (!initialized) return;
+
+            const padX = Math.max(90, Math.min(width * 0.1, 140));
+            const padY = Math.max(80, Math.min(height * 0.12, 120));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'force') {
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        let n1 = nodes[i];
+                        let n2 = nodes[j];
+                        let dx = n2.x - n1.x;
+                        let dy = n2.y - n1.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        let minDist = n1.radius + n2.radius + 42;
+
+                        let force = (minDist * minDist * 4.5) / (dist * dist);
+                        if (dist < minDist) {
+                            force += (minDist - dist) * 0.2;
+                        }
+
+                        let fx = (dx / dist) * force;
+                        let fy = (dy / dist) * force;
+
+                        n1.vx -= fx;
+                        n1.vy -= fy;
+                        n2.vx += fx;
+                        n2.vy += fy;
+                    }
+                }
+
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    let dx = target.x - source.x;
+                    let dy = target.y - source.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    let targetDist = 135;
+                    let springForce = (dist - targetDist) * 0.004;
+
+                    source.vx += dx * springForce;
+                    source.vy += dy * springForce;
+                    target.vx -= dx * springForce;
+                    target.vy -= dy * springForce;
+                });
+
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+
+                    let dx = cx - node.x;
+                    let dy = cy - node.y;
+                    node.vx += dx * 0.0006;
+                    node.vy += dy * 0.0006;
+
+                    node.vx *= 0.82;
+                    node.vy *= 0.82;
+
+                    node.x += node.vx;
+                    node.y += node.vy;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            } else {
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+                    node.x += (node.tx - node.x) * 0.12;
+                    node.y += (node.ty - node.y) * 0.12;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            }
+        }
+
+        function render() {
+            updatePositions();
+            ctx.clearRect(0, 0, width, height);
+
+            if (initialized) {
+                if (currentLayout === 'grid') {
+                    const cats = [
+                        { label: 'HUB DESTINAZIONE', color: '#10b981', x: width * 0.08 },
+                        { label: 'NATURA & FIUME', color: '#84cc16', x: width * 0.24 },
+                        { label: 'OUTDOOR & SPORT', color: '#0ea5e9', x: width * 0.40 },
+                        { label: 'BORGHI & ENTI', color: '#f59e0b', x: width * 0.58 },
+                        { label: 'GUSTO & TIPICITÀ', color: '#f43f5e', x: width * 0.76 },
+                        { label: 'OSPITALITÀ & GUIDE', color: '#8b5cf6', x: width * 0.92 }
+                    ];
+
+                    cats.forEach(c => {
+                        ctx.fillStyle = c.color;
+                        ctx.font = 'bold 9px Segoe UI, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(c.label, c.x, 32);
+
+                        ctx.beginPath();
+                        ctx.moveTo(c.x - 25, 40);
+                        ctx.lineTo(c.x + 25, 40);
+                        ctx.strokeStyle = c.color + '55';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    });
+                }
+
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    const isVisible = checkVisibility(source) && checkVisibility(target);
+                    const isHighlighted = selectedNode && (source.id === selectedNode.id || target.id === selectedNode.id);
+
+                    ctx.beginPath();
+                    ctx.moveTo(source.x, source.y);
+                    ctx.lineTo(target.x, target.y);
+                    ctx.strokeStyle = isHighlighted ? '#10b981' : (isVisible ? 'rgba(255, 255, 255, 0.14)' : 'rgba(255, 255, 255, 0.02)');
+                    ctx.lineWidth = isHighlighted ? 2.5 : 1;
+                    ctx.stroke();
+                });
+
+                nodes.forEach(node => {
+                    const isVisible = checkVisibility(node);
+                    const isSelected = selectedNode && selectedNode.id === node.id;
+                    const isHovered = hoveredNode && hoveredNode.id === node.id;
+
+                    ctx.save();
+                    ctx.translate(node.x, node.y);
+
+                    if (isSelected || isHovered) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, node.radius + 7, 0, Math.PI * 2);
+                        ctx.fillStyle = isSelected ? 'rgba(16, 185, 129, 0.35)' : 'rgba(255, 255, 255, 0.12)';
+                        ctx.fill();
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = isVisible ? node.color : '#334155';
+                    ctx.globalAlpha = isVisible ? 1.0 : 0.2;
+                    ctx.fill();
+
+                    ctx.lineWidth = isSelected ? 3 : 1.2;
+                    ctx.strokeStyle = isSelected ? '#ffffff' : 'rgba(0,0,0,0.5)';
+                    ctx.stroke();
+
+                    ctx.fillStyle = isVisible ? '#f8fafc' : '#64748b';
+                    ctx.font = (node.cat === 'hub' ? 'bold 11px' : '10px') + ' Segoe UI, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(node.label, 0, node.radius + 13);
+
+                    ctx.restore();
+                });
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        function checkVisibility(node) {
+            const matchesCat = currentFilter === 'all' || node.cat === currentFilter;
+            const matchesSearch = searchQuery === '' || 
+                node.label.toLowerCase().includes(searchQuery) || 
+                node.sub.toLowerCase().includes(searchQuery);
+            return matchesCat && matchesSearch;
+        }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function findNodeAt(pos) {
+            return nodes.find(node => {
+                let dx = node.x - pos.x;
+                let dy = node.y - pos.y;
+                return Math.sqrt(dx * dx + dy * dy) <= node.radius + 6;
+            });
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getPos(e);
+            if (draggedNode) {
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            } else {
+                hoveredNode = findNodeAt(pos);
+                canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
+            }
+        });
+
+        window.addEventListener('mouseup', () => { draggedNode = null; });
+
+        canvas.addEventListener('touchstart', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            if (draggedNode) {
+                const pos = getPos(e);
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            }
+        });
+        canvas.addEventListener('touchend', () => { draggedNode = null; });
+
+        function selectNode(node) {
+            selectedNode = node;
+
+            document.getElementById('detTitle').innerText = node.label;
+            document.getElementById('detSubtitle').innerText = node.sub;
+            document.getElementById('detDesc').innerText = node.desc;
+            document.getElementById('detRole').innerText = node.role;
+
+            const linkBtn = document.getElementById('detLink');
+            if (node.url && node.url !== '#') {
+                linkBtn.href = node.url;
+                linkBtn.style.display = 'block';
+            } else {
+                linkBtn.style.display = 'none';
+            }
+
+            const catNames = {
+                'hub': 'Hub Destinazione Jassa',
+                'nature': 'Fiumara Jassa & Riserva Valli Cupe',
+                'outdoor': 'Outdoor, Trekking & Canyoning',
+                'culture': 'Comune di Sersale & Borghi Presilani',
+                'food': 'Enogastronomia & Tipicità Presilane',
+                'hospitality': 'Accoglienza, Agriturismi & Guide GAE'
+            };
+            const catBadge = document.getElementById('detCategory');
+            catBadge.innerText = catNames[node.cat] || node.cat;
+            catBadge.style.color = node.color;
+            catBadge.style.background = node.color + '22';
+
+            const connsContainer = document.getElementById('detConns');
+            connsContainer.innerHTML = '';
+
+            const connectedLinks = links.filter(l => l.source === node.id || l.target === node.id);
+            connectedLinks.forEach(l => {
+                const otherId = l.source === node.id ? l.target : l.source;
+                const targetNode = nodes.find(n => n.id === otherId);
+                if (targetNode) {
+                    const chip = document.createElement('span');
+                    chip.className = 'conn-chip';
+                    chip.innerText = targetNode.label;
+                    chip.onclick = () => selectNode(targetNode);
+                    connsContainer.appendChild(chip);
+                }
+            });
+        }
+
+        document.getElementById('viewSwitcher').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-view');
+            if (btn) {
+                document.querySelectorAll('.btn-view').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLayout = btn.dataset.view;
+                computeTargetPositions();
+            }
+        });
+
+        document.getElementById('filterContainer').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.cat;
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+        });
+
+        render();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Ecosistema Sustainable Fashion Innovation Society (SFI)</title>
+    <style>
+        :root {
+            --bg-dark: #06090e;
+            --panel-bg: rgba(13, 20, 28, 0.94);
+            --panel-border: rgba(16, 185, 129, 0.2);
+            --accent-green: #10b981;
+            --accent-emerald: #059669;
+            --accent-teal: #0d9488;
+            --accent-cyan: #06b6d4;
+            --accent-blue: #3b82f6;
+            --accent-purple: #a855f7;
+            --accent-pink: #ec4899;
+            --accent-gold: #f59e0b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-badge {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: #fff;
+            font-weight: 800;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+        }
+
+        h1 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .kpi-container {
+            display: flex;
+            gap: 12px;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--panel-border);
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
+        .kpi-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .workspace {
+            display: flex;
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 55px);
+            overflow: hidden;
+        }
+
+        #network-container {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            cursor: grab;
+            background: radial-gradient(circle at center, #0c1520 0%, #06090e 100%);
+        }
+
+        #network-container:active {
+            cursor: grabbing;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls-overlay {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 5;
+            width: 330px;
+        }
+
+        .control-group {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .view-switcher {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 5px;
+        }
+
+        .btn-view {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-view:hover {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--accent-green);
+        }
+
+        .btn-view.active {
+            background: var(--accent-green);
+            color: #000;
+            font-weight: 700;
+            border-color: var(--accent-green);
+        }
+
+        .search-box {
+            background: rgba(6, 9, 14, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            width: 100%;
+            outline: none;
+            font-size: 0.78rem;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent-green);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .tag-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--panel-border);
+            color: var(--text-muted);
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.68rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tag-btn.active, .tag-btn:hover {
+            color: #fff;
+            border-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.2);
+        }
+
+        .detail-window {
+            width: 370px;
+            height: 100%;
+            background: var(--panel-bg);
+            border-left: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            z-index: 8;
+            box-shadow: -5px 0 25px rgba(0,0,0,0.6);
+            flex-shrink: 0;
+        }
+
+        .detail-header {
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--panel-border);
+        }
+
+        .category-pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .entity-title {
+            font-size: 1.15rem;
+            margin-bottom: 2px;
+            color: #fff;
+        }
+
+        .entity-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .detail-body {
+            padding: 14px 18px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .info-card h4 {
+            font-size: 0.68rem;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-card p {
+            font-size: 0.78rem;
+            line-height: 1.4;
+            color: #cbd5e1;
+        }
+
+        .connected-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 4px;
+        }
+
+        .conn-chip {
+            background: rgba(255,255,255,0.08);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .conn-chip:hover {
+            background: rgba(16, 185, 129, 0.25);
+            border-color: var(--accent-green);
+            color: #fff;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.68rem;
+            display: flex;
+            gap: 12px;
+            backdrop-filter: blur(8px);
+            z-index: 5;
+            flex-wrap: wrap;
+            max-width: 72%;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace { flex-direction: column; }
+            .detail-window { width: 100%; height: 38%; }
+            .kpi-container { display: none; }
+            .controls-overlay { width: calc(100% - 24px); }
+            .legend { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-group">
+            <span class="logo-badge">SFI SOCIETY</span>
+            <h1>Ecosistema Sustainable Fashion Innovation Society</h1>
+        </div>
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <div class="kpi-value">Phygital Summit</div>
+                <div class="kpi-label">Summit Event Flagship</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">300+ Partner</div>
+                <div class="kpi-label">Brand & Supply Chain</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-value">EU ESG Standard</div>
+                <div class="kpi-label">Transizione Ecologica</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="controls-overlay">
+            <div class="control-group">
+                <div class="control-label">Modalità di Visualizzazione Rete</div>
+                <div class="view-switcher" id="viewSwitcher">
+                    <button class="btn-view active" data-view="hub">🌿 Hub SFI</button>
+                    <button class="btn-view" data-view="force">🌀 Fisica Repulsiva</button>
+                    <button class="btn-view" data-view="radial">⭕ Concentrica</button>
+                    <button class="btn-view" data-view="grid">📊 Per Categoria</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <div class="control-label">Filtra e Cerca Attori SFI</div>
+                <input type="text" id="searchInput" class="search-box" placeholder="Cerca brand, filiera, istituzione, tech...">
+                <div class="filter-tags" id="filterContainer">
+                    <button class="tag-btn active" data-cat="all">Tutti</button>
+                    <button class="tag-btn" data-cat="hub">Hub SFI</button>
+                    <button class="tag-btn" data-cat="brand">Brand & Lusso</button>
+                    <button class="tag-btn" data-cat="supply">Filiera & Materiali</button>
+                    <button class="tag-btn" data-cat="gov">Istituzioni & Policy</button>
+                    <button class="tag-btn" data-cat="uni">Università & R&S</button>
+                    <button class="tag-btn" data-cat="cert">Certificazione & ESG</button>
+                    <button class="tag-btn" data-cat="tech">Circolarità & Tech</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="network-container">
+            <canvas id="networkCanvas"></canvas>
+
+            <div class="legend">
+                <div class="legend-item"><span class="legend-color" style="background:#10b981;"></span> Hub SFI Society</div>
+                <div class="legend-item"><span class="legend-color" style="background:#ec4899;"></span> Brand & Lusso</div>
+                <div class="legend-item"><span class="legend-color" style="background:#0d9488;"></span> Filiera & Materiali Bio</div>
+                <div class="legend-item"><span class="legend-color" style="background:#f59e0b;"></span> Istituzioni & Governi</div>
+                <div class="legend-item"><span class="legend-color" style="background:#3b82f6;"></span> Università & Centri R&S</div>
+                <div class="legend-item"><span class="legend-color" style="background:#06b6d4;"></span> Certificazioni & ESG</div>
+                <div class="legend-item"><span class="legend-color" style="background:#a855f7;"></span> Circolarità & Passaporto Digitale</div>
+            </div>
+        </div>
+
+        <aside class="detail-window">
+            <div class="detail-header">
+                <span class="category-pill" id="detCategory">HUB NAZIONALE</span>
+                <h2 class="entity-title" id="detTitle">SFI Society</h2>
+                <p class="entity-subtitle" id="detSubtitle">Sustainable Fashion Innovation Society</p>
+            </div>
+            <div class="detail-body">
+                <div class="info-card">
+                    <h4>Ruolo nell'Ecosistema</h4>
+                    <p id="detRole">Piattaforma di incontro e think-tank di riferimento per guidare la transizione ecologica, l'innovazione tecnologica e l'adeguamento ESG nel settore Fashion & Luxury.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Iniziative & Progetti Chiave</h4>
+                    <p id="detDesc">Organizzatore della Phygital Sustainability Expo a Roma, promotore dell'innovazione nei filati green, della decarbonizzazione della filiera e della tracciabilità digitale.</p>
+                </div>
+                <div class="info-card">
+                    <h4>Soggetti Direttamente Connessi</h4>
+                    <div class="connected-list" id="detConns"></div>
+                </div>
+                <a id="detLink" href="https://sustainablefashioninnovation.org/" target="_blank" class="action-btn" style="display:block; text-align:center; background:var(--accent-green); color:#000; font-weight:700; padding:9px; border-radius:6px; text-decoration:none; margin-top:auto; font-size:0.8rem;">Visita Sito SFI Society</a>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // DATASET DEGLI ATTORI DELL'ECOSISTEMA SFI SOCIETY
+        const nodes = [
+            // HUB CENTRALE SFI & SUMMIT
+            { id: 'sfi_hub', label: 'SFI Society', cat: 'hub', color: '#10b981', radius: 24,
+              sub: 'Sustainable Fashion Innovation Society', 
+              desc: 'Network no-profit dedicato all\'accelerazione della transizione ecologica, circolare e digitale dell\'industria della moda e del lusso.', 
+              role: 'Coordinamento stakeholders, promozione politiche ESG, networking e trasferimento tecnologico sostenibile.',
+              url: 'https://sustainablefashioninnovation.org/' },
+
+            { id: 'sfi_summit', label: 'Phygital Sustainability Expo', cat: 'hub', color: '#10b981', radius: 20,
+              sub: 'Flagship Event a Roma (IATI)', desc: 'L\'evento espositivo unico incentrato esclusivamente sulla transizione ecologica dei brand di moda e manifattura tessile.', role: 'Showcase di innovazioni tessili, sfilate sostenibili e tavoli istituzionali.', url: 'https://sustainablefashioninnovation.org/' },
+
+            // ISTITUZIONI & POLITICHE
+            { id: 'mase', label: 'MASE', cat: 'gov', color: '#f59e0b', radius: 18,
+              sub: 'Min. Ambiente e Sicurezza Energetica', desc: 'Ministero di riferimento per la normativa sull\'Economia Circolare e la Responsabilità Estesa del Produttore (EPR tessile).', role: 'Inquadramento normativo, regolamentazione riciclo e incentivi decarbonizzazione.', url: 'https://www.mase.gov.it/' },
+
+            { id: 'mimit', label: 'MIMIT', cat: 'gov', color: '#f59e0b', radius: 17,
+              sub: 'Ministero Imprese e Made in Italy', desc: 'Ministero competente per il sostegno finanziario alla Transizione 5.0 e tutela del settore manifatturiero italiano.', role: 'Finanziamento dell\'innovazione industriale e valorizzazione delle filiere Made in Italy.', url: 'https://www.mimit.gov.it/' },
+
+            { id: 'ice_agency', label: 'ICE Agenzia', cat: 'gov', color: '#f59e0b', radius: 16,
+              sub: 'Agenzia per la promozione all\'estero', desc: 'Ente per la promozione del Made in Italy e dell\'innovazione della moda sostenibile sui mercati globali.', role: 'Internazionalizzazione e supporto export sostenibile.', url: 'https://www.ice.it/' },
+
+            // BRAND & LUSSO
+            { id: 'gucci_kering', label: 'Gucci & Kering Group', cat: 'brand', color: '#ec4899', radius: 18,
+              sub: 'Pioniere ESG & EP&L (Environmental P&L)', desc: 'Gruppo leader del lusso mondiale impegnato nella riduzione dell\'impronta di carbonio e materiali rigenerativi.', role: 'Definizione di standard di fornitura rigidi e adozione di materiali bio-based.', url: 'https://www.kering.com/' },
+
+            { id: 'otb_group', label: 'OTB Group', cat: 'brand', color: '#ec4899', radius: 17,
+              sub: 'Diesel, Maison Margiela, Marni', desc: 'Gruppo di moda internazionale attivo nel riciclo del denim e nella tracciabilità via blockchain dei prodotti.', role: 'Economia circolare del denim, rigenerazione capi e Passaporto Digitale.', url: 'https://www.otb.net/' },
+
+            { id: 'armani', label: 'Giorgio Armani', cat: 'brand', color: '#ec4899', radius: 17,
+              sub: 'Alta Moda & Moda Responsabile', desc: 'Casa di moda iconica impegnata nell\'uso di cotone biologico, trattamenti a basso consumo d\'acqua e tracciabilità.', role: 'Integrazione del design circolare nelle collezioni luxury.', url: 'https://www.armani.com/' },
+
+            { id: 'stella_mc', label: 'Stella McCartney', cat: 'brand', color: '#ec4899', radius: 16,
+              sub: 'Cruelty-Free & Materiali Bio-Ispeirativi', desc: 'Brand globale all\'avanguardia nell\'eliminazione di pelle e pellicce animali, promotore di micelio e tessuti alternativi.', role: 'Pionierismo nei biomateriali e moda priva di derivati animali.', url: 'https://www.stellamccartney.com/' },
+
+            // FILIERA & MATERIALI BIO
+            { id: 'aquafil', label: 'Aquafil (Econyl®)', cat: 'supply', color: '#0d9488', radius: 18,
+              sub: 'Nylon Rigenerato al 100%', desc: 'Azienda leader globale nella produzione di Econyl® ricavato da reti da pesca abbandonate e scarti di moquette.', role: 'Riciclo chimico del nylon per filati infinitamente rigenerabili.', url: 'https://www.econyl.com/' },
+
+            { id: 'fulgar', label: 'Fulgar', cat: 'supply', color: '#0d9488', radius: 16,
+              sub: 'Filati Sintetici Innovativi & EVO®', desc: 'Produttore italiano di filati ecologici, inclusi biopolimeri derivati da semi di ricino.', role: 'Sviluppo di poliammidi bio-based a basso impatto idrico e carbonico.', url: 'https://www.fulgar.com/' },
+
+            { id: 'candiani', label: 'Candiani Denim', cat: 'supply', color: '#0d9488', radius: 17,
+              sub: 'Il Tessile Denim più Green del Mondo', desc: 'Tessitura storica famosa per l\'invenzione di Coreva™, il primo denim elasticizzato biodegradabile e compostabile.', role: 'Innovazione circolare nel tessuto jeans e chimica verde applicata.', url: 'https://www.candianidenim.it/' },
+
+            { id: 'albini', label: 'Albini Group', cat: 'supply', color: '#0d9488', radius: 16,
+              sub: 'Tessuti per Camiceria Sostenibili', desc: 'Leader europeo per i tessuti di alta gamma con tracciabilità garantita dal campo al tessuto.', role: 'Cotone organico, tracciabile e tinture naturali a risparmio energetico.', url: 'https://www.albinigroup.com/' },
+
+            // UNIVERSITÀ & RICERCA
+            { id: 'polimi', label: 'Politecnico di Milano', cat: 'uni', color: '#3b82f6', radius: 17,
+              sub: 'Design della Moda & Ingegneria dei Materiali', desc: 'Centro accademico di punta per lo studio del Life Cycle Assessment (LCA) e del design circolare nel tessile.', role: 'R&S sui materiali sostenibili, eco-design e analisi degli impatti ambientali.', url: 'https://www.polimi.it/' },
+
+            { id: 'sapienza', label: 'Sapienza Università di Roma', cat: 'uni', color: '#3b82f6', radius: 16,
+              sub: 'Dipartimento di Pianificazione, Design, Tecnologia', desc: 'Ateneo partner istituzionale per la ricerca sul patrimonio culturale della moda e sostenibilità.', role: 'Formazione specialistica, ricerca sul design sostenibile e supporto al Summit.', url: 'https://www.uniroma1.it/' },
+
+            { id: 'enea', label: 'ENEA', cat: 'uni', color: '#3b82f6', radius: 16,
+              sub: 'Agenzia Nazionale Tecnologie & Sviluppo Sostenibile', desc: 'Ente di ricerca pubblico focalizzato sull\'efficienza energetica, simbiosi industriale e riciclo tessile.', role: 'Econormative, symbiosis industriale e tecnologie per il recupero delle fibre.', url: 'https://www.enea.it/' },
+
+            // CERTIFICAZIONI & ESG
+            { id: 'icea', label: 'ICEA & GOTS', cat: 'cert', color: '#06b6d4', radius: 17,
+              sub: 'Istituto Certificazione Etica e Ambientale', desc: 'Organismo di controllo e certificazione dei tessili biologici e sostenibili (Global Organic Textile Standard).', role: 'Verifica della tracciabilità biologica e standard sociali lungo la filiera.', url: 'https://icea.bio/' },
+
+            { id: 'cradle', label: 'Cradle to Cradle (C2C)', cat: 'cert', color: '#06b6d4', radius: 16,
+              sub: 'Certificazione Prodotto Circolare', desc: 'Standard globale per prodotti riciclabili, sicuri per la salute umana e realizzati in modo responsabile.', role: 'Valutazione della tossicità dei materiali e della rigenerabilità circolare.', url: 'https://www.c2ccertified.org/' },
+
+            { id: 'zdhc', label: 'ZDHC Foundation', cat: 'cert', color: '#06b6d4', radius: 16,
+              sub: 'Zero Discharge of Hazardous Chemicals', desc: 'Iniziativa globale per eliminare le sostanze chimiche pericolose dall\'industria tessile e calzaturiera.', role: 'Standard per la gestione dei bagni chimici e depurazione degli scarichi.', url: 'https://www.roadmaptozero.com/' },
+
+            // CIRCOLARITÀ & TECH / DPP
+            { id: 'dpp_tech', label: 'Passaporto Digitale (DPP)', cat: 'tech', color: '#a855f7', radius: 17,
+              sub: 'Blockchain & Tracciabilità (Temera/Certilogo)', desc: 'Soluzioni tecnologiche per soddisfare i requisiti della direttiva europea sul Digital Product Passport.', role: 'Tracciabilità dei dati di sostenibilità, trasparenza per il consumatore e anticontraffazione.', url: 'https://sustainablefashioninnovation.org/' },
+
+            { id: 'humana', label: 'Humana People to People', cat: 'tech', color: '#a855f7', radius: 16,
+              sub: 'Raccolta & Selezione Usato Tessile', desc: 'Organizzazione leader per la gestione della raccolta differenziata degli abiti usati e preparazione al riciclo.', role: 'Selezione post-consumo, riuso e avvio a riciclo fibra-a-fibra.', url: 'https://www.humanaitalia.org/' }
+        ];
+
+        // RELAZIONI (LINK) TRA GLI ATTORI
+        const links = [
+            // SFI Hub e Summit
+            { source: 'sfi_hub', target: 'sfi_summit' },
+
+            // SFI e Istituzioni
+            { source: 'sfi_hub', target: 'mase' },
+            { source: 'sfi_hub', target: 'mimit' },
+            { source: 'sfi_hub', target: 'ice_agency' },
+            { source: 'sfi_summit', target: 'mase' },
+
+            // SFI e Brand
+            { source: 'sfi_hub', target: 'gucci_kering' },
+            { source: 'sfi_hub', target: 'otb_group' },
+            { source: 'sfi_hub', target: 'armani' },
+            { source: 'sfi_hub', target: 'stella_mc' },
+
+            // SFI e Filiera Sostenibile
+            { source: 'sfi_hub', target: 'aquafil' },
+            { source: 'sfi_hub', target: 'fulgar' },
+            { source: 'sfi_hub', target: 'candiani' },
+            { source: 'sfi_hub', target: 'albini' },
+
+            // SFI e Università / R&S
+            { source: 'sfi_hub', target: 'polimi' },
+            { source: 'sfi_hub', target: 'sapienza' },
+            { source: 'sfi_hub', target: 'enea' },
+
+            // SFI e Certificazioni / ESG / Tech
+            { source: 'sfi_hub', target: 'icea' },
+            { source: 'sfi_hub', target: 'cradle' },
+            { source: 'sfi_hub', target: 'zdhc' },
+            { source: 'sfi_hub', target: 'dpp_tech' },
+            { source: 'sfi_hub', target: 'humana' },
+
+            // Inter-connessioni di filiera (Brand - Supply - Certificazioni)
+            { source: 'gucci_kering', target: 'aquafil' },
+            { source: 'otb_group', target: 'candiani' },
+            { source: 'otb_group', target: 'dpp_tech' },
+            { source: 'armani', target: 'albini' },
+            { source: 'stella_mc', target: 'cradle' },
+            { source: 'candiani', target: 'zdhc' },
+            { source: 'albini', target: 'icea' },
+            { source: 'fulgar', target: 'aquafil' },
+            { source: 'polimi', target: 'enea' },
+            { source: 'mase', target: 'humana' }
+        ];
+
+        // CANVAS ENGINE
+        const container = document.getElementById('network-container');
+        const canvas = document.getElementById('networkCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width = 0;
+        let height = 0;
+        let selectedNode = nodes[0];
+        let hoveredNode = null;
+        let draggedNode = null;
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let currentLayout = 'hub';
+        let initialized = false;
+
+        nodes.forEach(n => {
+            n.x = 0; n.y = 0;
+            n.tx = 0; n.ty = 0;
+            n.vx = 0; n.vy = 0;
+        });
+
+        function computeTargetPositions() {
+            const padX = Math.max(100, Math.min(width * 0.12, 160));
+            const padY = Math.max(90, Math.min(height * 0.14, 130));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'hub') {
+                const hub = nodes.find(n => n.id === 'sfi_hub');
+                hub.tx = cx;
+                hub.ty = cy;
+
+                const categories = ['brand', 'supply', 'gov', 'uni', 'cert', 'tech'];
+                const numCats = categories.length;
+
+                categories.forEach((catKey, cIdx) => {
+                    const angleCat = (cIdx / numCats) * Math.PI * 2 - Math.PI / 2;
+                    const catRadius = Math.min(width, height) * 0.32;
+                    const catNodes = nodes.filter(n => n.cat === catKey);
+
+                    catNodes.forEach((node, nIdx) => {
+                        const spreadAngle = 0.52;
+                        const angleNode = angleCat + (nIdx - (catNodes.length - 1) / 2) * (spreadAngle / Math.max(1, catNodes.length));
+                        node.tx = cx + Math.cos(angleNode) * catRadius;
+                        node.ty = cy + Math.sin(angleNode) * catRadius;
+
+                        node.tx = Math.max(minX, Math.min(maxX, node.tx));
+                        node.ty = Math.max(minY, Math.min(maxY, node.ty));
+                    });
+                });
+
+                const summit = nodes.find(n => n.id === 'sfi_summit');
+                if (summit) {
+                    summit.tx = cx;
+                    summit.ty = cy - 85;
+                }
+            }
+            else if (currentLayout === 'radial') {
+                const hubNode = nodes.find(n => n.id === 'sfi_hub');
+                hubNode.tx = cx;
+                hubNode.ty = cy;
+
+                const innerNodes = nodes.filter(n => ['sfi_summit', 'mase', 'mimit', 'gucci_kering', 'aquafil', 'polimi', 'icea'].includes(n.id));
+                const outerNodes = nodes.filter(n => n.id !== 'sfi_hub' && !innerNodes.includes(n));
+
+                const rInner = Math.min(maxX - minX, maxY - minY) * 0.22;
+                innerNodes.forEach((n, idx) => {
+                    const angle = (idx / innerNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rInner;
+                    n.ty = cy + Math.sin(angle) * rInner;
+                });
+
+                const rOuter = Math.min(maxX - minX, maxY - minY) * 0.42;
+                outerNodes.forEach((n, idx) => {
+                    const angle = (idx / outerNodes.length) * Math.PI * 2 - Math.PI / 2;
+                    n.tx = cx + Math.cos(angle) * rOuter;
+                    n.ty = cy + Math.sin(angle) * rOuter;
+                });
+            }
+            else if (currentLayout === 'grid') {
+                const cats = [
+                    { cat: 'hub', label: 'HUB SFI' },
+                    { cat: 'brand', label: 'BRAND & LUSSO' },
+                    { cat: 'supply', label: 'FILIERA BIO' },
+                    { cat: 'gov', label: 'ISTITUZIONI' },
+                    { cat: 'uni', label: 'UNIVERSITÀ' },
+                    { cat: 'cert', label: 'CERTIFICAZIONE' },
+                    { cat: 'tech', label: 'CIRCOLARITÀ/TECH' }
+                ];
+                const colW = (maxX - minX) / cats.length;
+
+                cats.forEach((cObj, cIdx) => {
+                    const catNodes = nodes.filter(n => n.cat === cObj.cat);
+                    const x = minX + colW * cIdx + colW / 2;
+                    const rowH = (maxY - minY) / (catNodes.length + 1);
+
+                    catNodes.forEach((node, rIdx) => {
+                        node.tx = x;
+                        node.ty = minY + rowH * (rIdx + 1);
+                    });
+                });
+            }
+            else {
+                const hub = nodes.find(n => n.id === 'sfi_hub');
+                hub.tx = cx;
+                hub.ty = cy;
+
+                const others = nodes.filter(n => n.id !== 'sfi_hub');
+                others.forEach((node, i) => {
+                    const angle = (i / others.length) * Math.PI * 2;
+                    const r = Math.min(width, height) * 0.32;
+                    node.tx = cx + Math.cos(angle) * r;
+                    node.ty = cy + Math.sin(angle) * r;
+                });
+            }
+        }
+
+        function resize() {
+            width = container.clientWidth;
+            height = container.clientHeight;
+
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.scale(dpr, dpr);
+
+            if (width > 0 && height > 0) {
+                computeTargetPositions();
+                if (!initialized) {
+                    nodes.forEach(n => {
+                        n.x = n.tx;
+                        n.y = n.ty;
+                    });
+                    selectNode(nodes[0]);
+                    initialized = true;
+                }
+            }
+        }
+
+        const resizeObserver = new ResizeObserver(() => resize());
+        resizeObserver.observe(container);
+
+        function updatePositions() {
+            if (!initialized) return;
+
+            const padX = Math.max(90, Math.min(width * 0.1, 140));
+            const padY = Math.max(80, Math.min(height * 0.12, 120));
+            const minX = padX;
+            const maxX = width - padX;
+            const minY = padY;
+            const maxY = height - padY;
+            const cx = width / 2;
+            const cy = height / 2;
+
+            if (currentLayout === 'force') {
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        let n1 = nodes[i];
+                        let n2 = nodes[j];
+                        let dx = n2.x - n1.x;
+                        let dy = n2.y - n1.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                        let minDist = n1.radius + n2.radius + 38;
+
+                        let force = (minDist * minDist * 4.5) / (dist * dist);
+                        if (dist < minDist) {
+                            force += (minDist - dist) * 0.2;
+                        }
+
+                        let fx = (dx / dist) * force;
+                        let fy = (dy / dist) * force;
+
+                        n1.vx -= fx;
+                        n1.vy -= fy;
+                        n2.vx += fx;
+                        n2.vy += fy;
+                    }
+                }
+
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    let dx = target.x - source.x;
+                    let dy = target.y - source.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+                    let targetDist = 130;
+                    let springForce = (dist - targetDist) * 0.004;
+
+                    source.vx += dx * springForce;
+                    source.vy += dy * springForce;
+                    target.vx -= dx * springForce;
+                    target.vy -= dy * springForce;
+                });
+
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+
+                    let dx = cx - node.x;
+                    let dy = cy - node.y;
+                    node.vx += dx * 0.0006;
+                    node.vy += dy * 0.0006;
+
+                    node.vx *= 0.82;
+                    node.vy *= 0.82;
+
+                    node.x += node.vx;
+                    node.y += node.vy;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            } else {
+                nodes.forEach(node => {
+                    if (node === draggedNode) return;
+                    node.x += (node.tx - node.x) * 0.12;
+                    node.y += (node.ty - node.y) * 0.12;
+
+                    node.x = Math.max(minX, Math.min(maxX, node.x));
+                    node.y = Math.max(minY, Math.min(maxY, node.y));
+                });
+            }
+        }
+
+        function render() {
+            updatePositions();
+            ctx.clearRect(0, 0, width, height);
+
+            if (initialized) {
+                if (currentLayout === 'grid') {
+                    const cats = [
+                        { label: 'HUB SFI', color: '#10b981', x: width * 0.08 },
+                        { label: 'BRAND/LUSSO', color: '#ec4899', x: width * 0.22 },
+                        { label: 'FILIERA BIO', color: '#0d9488', x: width * 0.36 },
+                        { label: 'ISTITUZIONI', color: '#f59e0b', x: width * 0.50 },
+                        { label: 'UNIVERSITÀ', color: '#3b82f6', x: width * 0.64 },
+                        { label: 'CERTIFICAZIONE', color: '#06b6d4', x: width * 0.78 },
+                        { label: 'CIRCOLARITÀ/TECH', color: '#a855f7', x: width * 0.92 }
+                    ];
+
+                    cats.forEach(c => {
+                        ctx.fillStyle = c.color;
+                        ctx.font = 'bold 10px Segoe UI, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(c.label, c.x, 32);
+
+                        ctx.beginPath();
+                        ctx.moveTo(c.x - 30, 40);
+                        ctx.lineTo(c.x + 30, 40);
+                        ctx.strokeStyle = c.color + '55';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    });
+                }
+
+                links.forEach(link => {
+                    const source = nodes.find(n => n.id === link.source);
+                    const target = nodes.find(n => n.id === link.target);
+                    if (!source || !target) return;
+
+                    const isVisible = checkVisibility(source) && checkVisibility(target);
+                    const isHighlighted = selectedNode && (source.id === selectedNode.id || target.id === selectedNode.id);
+
+                    ctx.beginPath();
+                    ctx.moveTo(source.x, source.y);
+                    ctx.lineTo(target.x, target.y);
+                    ctx.strokeStyle = isHighlighted ? '#10b981' : (isVisible ? 'rgba(255, 255, 255, 0.14)' : 'rgba(255, 255, 255, 0.02)');
+                    ctx.lineWidth = isHighlighted ? 2.5 : 1;
+                    ctx.stroke();
+                });
+
+                nodes.forEach(node => {
+                    const isVisible = checkVisibility(node);
+                    const isSelected = selectedNode && selectedNode.id === node.id;
+                    const isHovered = hoveredNode && hoveredNode.id === node.id;
+
+                    ctx.save();
+                    ctx.translate(node.x, node.y);
+
+                    if (isSelected || isHovered) {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, node.radius + 7, 0, Math.PI * 2);
+                        ctx.fillStyle = isSelected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(255, 255, 255, 0.12)';
+                        ctx.fill();
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(0, 0, node.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = isVisible ? node.color : '#334155';
+                    ctx.globalAlpha = isVisible ? 1.0 : 0.2;
+                    ctx.fill();
+
+                    ctx.lineWidth = isSelected ? 3 : 1.2;
+                    ctx.strokeStyle = isSelected ? '#ffffff' : 'rgba(0,0,0,0.5)';
+                    ctx.stroke();
+
+                    ctx.fillStyle = isVisible ? '#f8fafc' : '#64748b';
+                    ctx.font = (node.cat === 'hub' ? 'bold 11px' : '10px') + ' Segoe UI, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(node.label, 0, node.radius + 13);
+
+                    ctx.restore();
+                });
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        function checkVisibility(node) {
+            const matchesCat = currentFilter === 'all' || node.cat === currentFilter;
+            const matchesSearch = searchQuery === '' || 
+                node.label.toLowerCase().includes(searchQuery) || 
+                node.sub.toLowerCase().includes(searchQuery);
+            return matchesCat && matchesSearch;
+        }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function findNodeAt(pos) {
+            return nodes.find(node => {
+                let dx = node.x - pos.x;
+                let dy = node.y - pos.y;
+                return Math.sqrt(dx * dx + dy * dy) <= node.radius + 6;
+            });
+        }
+
+        canvas.addEventListener('mousedown', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const pos = getPos(e);
+            if (draggedNode) {
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            } else {
+                hoveredNode = findNodeAt(pos);
+                canvas.style.cursor = hoveredNode ? 'pointer' : 'grab';
+            }
+        });
+
+        window.addEventListener('mouseup', () => { draggedNode = null; });
+
+        canvas.addEventListener('touchstart', (e) => {
+            const pos = getPos(e);
+            const node = findNodeAt(pos);
+            if (node) {
+                draggedNode = node;
+                selectNode(node);
+            }
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            if (draggedNode) {
+                const pos = getPos(e);
+                draggedNode.x = pos.x;
+                draggedNode.y = pos.y;
+                draggedNode.tx = pos.x;
+                draggedNode.ty = pos.y;
+            }
+        });
+        canvas.addEventListener('touchend', () => { draggedNode = null; });
+
+        function selectNode(node) {
+            selectedNode = node;
+
+            document.getElementById('detTitle').innerText = node.label;
+            document.getElementById('detSubtitle').innerText = node.sub;
+            document.getElementById('detDesc').innerText = node.desc;
+            document.getElementById('detRole').innerText = node.role;
+
+            const linkBtn = document.getElementById('detLink');
+            if (node.url && node.url !== '#') {
+                linkBtn.href = node.url;
+                linkBtn.style.display = 'block';
+            } else {
+                linkBtn.style.display = 'none';
+            }
+
+            const catNames = {
+                'hub': 'Hub SFI Society',
+                'brand': 'Brand & Lusso',
+                'supply': 'Filiera Tessile & Materiali Bio',
+                'gov': 'Istituzioni & Governi',
+                'uni': 'Università & Centri R&S',
+                'cert': 'Certificazione & ESG',
+                'tech': 'Circolarità & Passaporto Digitale'
+            };
+            const catBadge = document.getElementById('detCategory');
+            catBadge.innerText = catNames[node.cat] || node.cat;
+            catBadge.style.color = node.color;
+            catBadge.style.background = node.color + '22';
+
+            const connsContainer = document.getElementById('detConns');
+            connsContainer.innerHTML = '';
+
+            const connectedLinks = links.filter(l => l.source === node.id || l.target === node.id);
+            connectedLinks.forEach(l => {
+                const otherId = l.source === node.id ? l.target : l.source;
+                const targetNode = nodes.find(n => n.id === otherId);
+                if (targetNode) {
+                    const chip = document.createElement('span');
+                    chip.className = 'conn-chip';
+                    chip.innerText = targetNode.label;
+                    chip.onclick = () => selectNode(targetNode);
+                    connsContainer.appendChild(chip);
+                }
+            });
+        }
+
+        document.getElementById('viewSwitcher').addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-view');
+            if (btn) {
+                document.querySelectorAll('.btn-view').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLayout = btn.dataset.view;
+                computeTargetPositions();
+            }
+        });
+
+        document.getElementById('filterContainer').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                currentFilter = e.target.dataset.cat;
+            }
+        });
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+        });
+
+        render();
+    </script>
+</body>
+</html>
