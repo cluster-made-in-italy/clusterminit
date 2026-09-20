@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="it" class="h-full bg-slate-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEMANTEC // Simulatore Rete Semantica Prodotti 2025-2026</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              dark: '#0f172a',
+              card: '#1e293b',
+              border: '#334155',
+              cyan: '#38bdf8',
+              purple: '#a855f7',
+              emerald: '#34d399',
+              rose: '#f43f5e',
+              amber: '#fbbf24'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- SheetJS (XLSX parsing) -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  
+  <!-- Vis.js Network -->
+  <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+  <style>
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #38bdf8; }
+
+    #network-canvas {
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+    }
+
+    .glass-panel {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .glow-cyan { box-shadow: 0 0 15px rgba(56, 189, 248, 0.25); }
+    .glow-purple { box-shadow: 0 0 15px rgba(168, 85, 247, 0.25); }
+
+    /* Custom range slider styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: #334155;
+      border-radius: 4px;
+      height: 6px;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+    }
+  </style>
+</head>
+<body class="h-full font-sans text-slate-100 flex flex-col overflow-hidden bg-slate-900">
+
+  <!-- Top Header Navigation -->
+  <header class="bg-slate-900/90 border-b border-slate-800 px-6 py-3 flex flex-wrap items-center justify-between z-30 shrink-0">
+    <div class="flex items-center space-x-4">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-cyan-500/20">
+        <i class="fa-solid fa-diagram-project"></i>
+      </div>
+      <div>
+        <h1 class="text-lg font-bold text-white tracking-wide flex items-center gap-2">
+          SEMANTEC <span class="text-xs px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">v2.5</span>
+        </h1>
+        <p class="text-xs text-slate-400">Rete Semantica Prodotti Catalogo 2025–2026</p>
+      </div>
+    </div>
+
+    <!-- Central Navigation Tabs -->
+    <nav class="flex items-center space-x-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700/60 my-2 sm:my-0">
+      <button onclick="switchTab('network')" id="tab-btn-network" class="tab-btn active px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition bg-cyan-500 text-slate-900 shadow">
+        <i class="fa-solid fa-circle-nodes"></i> Grafo Rete
+      </button>
+      <button onclick="switchTab('analytics')" id="tab-btn-analytics" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition text-slate-400 hover:text-white">
+        <i class="fa-solid fa-chart-pie"></i> Hub & Analytics
+      </button>
+      <button onclick="switchTab('table')" id="tab-btn-table" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition text-slate-400 hover:text-white">
+        <i class="fa-solid fa-table-list"></i> Tabella Prodotti
+      </button>
+      <button onclick="switchTab('upload')" id="tab-btn-upload" class="tab-btn px-4 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition text-slate-400 hover:text-white">
+        <i class="fa-solid fa-file-excel"></i> Carica Excel
+      </button>
+    </nav>
+
+    <!-- Header Stats Badges -->
+    <div class="hidden lg:flex items-center space-x-6 text-xs">
+      <div class="text-right">
+        <span class="text-slate-400 block text-[10px] uppercase tracking-wider">Prodotti Totali</span>
+        <span id="metric-nodes" class="text-cyan-400 font-bold text-sm">70</span>
+      </div>
+      <div class="text-right border-l border-slate-800 pl-6">
+        <span class="text-slate-400 block text-[10px] uppercase tracking-wider">Archi Semantici</span>
+        <span id="metric-edges" class="text-purple-400 font-bold text-sm">0</span>
+      </div>
+      <div class="text-right border-l border-slate-800 pl-6">
+        <span class="text-slate-400 block text-[10px] uppercase tracking-wider">Collezioni</span>
+        <span id="metric-collections" class="text-emerald-400 font-bold text-sm">12</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <div class="flex-grow flex relative overflow-hidden">
+
+    <!-- VIEW 1: NETWORK GRAPH SIMULATOR -->
+    <div id="view-network" class="w-full h-full flex relative">
+      
+      <!-- Left Control Sidebar -->
+      <aside class="w-80 glass-panel border-r border-slate-800 flex flex-col z-20 shrink-0">
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-cyan-400"></i> Filtri & Parametri
+          </h2>
+          <button onclick="resetFilters()" class="text-[11px] text-cyan-400 hover:text-cyan-300 transition">
+            Ripristina
+          </button>
+        </div>
+
+        <div class="p-4 overflow-y-auto space-y-5 flex-grow text-xs">
+          
+          <!-- Similarity Threshold Slider -->
+          <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 space-y-2">
+            <div class="flex justify-between items-center">
+              <label class="font-semibold text-slate-200">Soglia Similarità Semantica</label>
+              <span id="threshold-val" class="font-mono text-cyan-400 font-bold text-xs bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/30">0.25</span>
+            </div>
+            <input type="range" id="threshold-slider" min="0.15" max="0.70" step="0.01" value="0.25" class="w-full cursor-pointer">
+            <div class="flex justify-between text-[10px] text-slate-400">
+              <span>Più Archi (0.15)</span>
+              <span>Solo Forti (0.70)</span>
+            </div>
+          </div>
+
+          <!-- Color Mode Selector -->
+          <div class="space-y-2">
+            <label class="font-semibold text-slate-300 block">Colorazione Nodi</label>
+            <div class="grid grid-cols-2 gap-1.5 p-1 bg-slate-800/80 rounded-lg border border-slate-700/50">
+              <button onclick="setColorMode('collection')" id="col-mode-collection" class="color-mode-btn active py-1.5 rounded text-[11px] font-medium bg-cyan-500 text-slate-900 shadow">
+                Per Collezione
+              </button>
+              <button onclick="setColorMode('type')" id="col-mode-type" class="color-mode-btn py-1.5 rounded text-[11px] font-medium text-slate-400 hover:text-white">
+                Per Tipologia
+              </button>
+            </div>
+          </div>
+
+          <!-- Dropdown Filter: Collezione -->
+          <div class="space-y-1">
+            <label class="font-semibold text-slate-300 block">Filtra per Collezione</label>
+            <select id="filter-collection" onchange="applyFilters()" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="ALL">Tutte le Collezioni</option>
+            </select>
+          </div>
+
+          <!-- Dropdown Filter: Tipologia -->
+          <div class="space-y-1">
+            <label class="font-semibold text-slate-300 block">Filtra per Tipologia Prodotto</label>
+            <select id="filter-type" onchange="applyFilters()" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="ALL">Tutte le Tipologie</option>
+            </select>
+          </div>
+
+          <!-- Dropdown Filter: Materiale -->
+          <div class="space-y-1">
+            <label class="font-semibold text-slate-300 block">Filtra per Materiale</label>
+            <select id="filter-material" onchange="applyFilters()" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-cyan-500">
+              <option value="ALL">Tutti i Materiali</option>
+            </select>
+          </div>
+
+          <!-- Search Bar -->
+          <div class="space-y-1">
+            <label class="font-semibold text-slate-300 block">Ricerca Testuale Live</label>
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500"></i>
+              <input type="text" id="search-input" oninput="handleSearch()" placeholder="Codice, nome o parola chiave..." class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500">
+            </div>
+          </div>
+
+          <!-- Physics Controls -->
+          <div class="pt-2 border-t border-slate-800 space-y-2">
+            <button onclick="togglePhysics()" id="physics-btn" class="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-300 font-medium flex items-center justify-center gap-2 transition">
+              <i class="fa-solid fa-pause text-amber-400"></i> Metti in Pausa Fisica
+            </button>
+            <button onclick="fitNetworkView()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-slate-300 font-medium flex items-center justify-center gap-2 transition">
+              <i class="fa-solid fa-expand text-cyan-400"></i> Centra Intera Rete
+            </button>
+          </div>
+
+        </div>
+      </aside>
+
+      <!-- Center Network Canvas -->
+      <main class="flex-grow relative h-full">
+        <div id="network-canvas"></div>
+
+        <!-- Floating Legend -->
+        <div class="absolute bottom-4 left-4 glass-panel p-3 rounded-xl border border-slate-800 max-w-xs z-10 text-[11px] hidden sm:block">
+          <h4 class="font-bold text-slate-300 uppercase tracking-wider text-[10px] mb-2">Legenda Colori</h4>
+          <div id="legend-container" class="grid grid-cols-2 gap-x-3 gap-y-1 max-h-36 overflow-y-auto pr-1">
+            <!-- Dynamic Legend Items -->
+          </div>
+        </div>
+
+        <!-- Network Helper Toast -->
+        <div id="network-toast" class="absolute top-4 left-1/2 -translate-x-1/2 glass-panel px-4 py-2 rounded-full border border-slate-700 text-xs text-slate-300 flex items-center gap-2 shadow-2xl z-10 pointer-events-none transition-all duration-300 opacity-90">
+          <i class="fa-solid fa-circle-info text-cyan-400"></i>
+          <span>Clicca su un nodo per isolare la sua rete semantica e aprirne la scheda.</span>
+        </div>
+      </main>
+
+      <!-- Right Detail Slide-over Panel -->
+      <aside id="detail-drawer" class="w-96 glass-panel border-l border-slate-800 h-full flex flex-col z-20 shrink-0 transform translate-x-full transition-transform duration-300 absolute right-0 top-0 shadow-2xl">
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+          <div class="flex items-center space-x-2">
+            <span id="detail-code-badge" class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-mono font-bold text-xs border border-cyan-500/30">#----</span>
+            <span id="detail-type-badge" class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 font-bold text-xs border border-purple-500/30">Tipologia</span>
+          </div>
+          <button onclick="closeDetailDrawer()" class="text-slate-400 hover:text-white p-1 transition">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="p-5 overflow-y-auto space-y-5 text-xs flex-grow">
+          <!-- Title and Collection -->
+          <div>
+            <h2 id="detail-title" class="text-lg font-bold text-white leading-tight">Nome Prodotto</h2>
+            <p id="detail-collection" class="text-cyan-400 font-semibold mt-1">Collezione / Categoria</p>
+          </div>
+
+          <!-- Price & Material Badges -->
+          <div class="grid grid-cols-2 gap-2 p-3 bg-slate-800/80 rounded-xl border border-slate-700/60">
+            <div>
+              <span class="text-[10px] text-slate-400 block uppercase">Prezzo Indicativo</span>
+              <span id="detail-price" class="text-sm font-bold text-emerald-400">€ 0.00</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block uppercase">Materiale</span>
+              <span id="detail-material" class="text-xs font-semibold text-slate-200">Argento 925</span>
+            </div>
+            <div class="col-span-2 border-t border-slate-700/50 pt-2 mt-1">
+              <span class="text-[10px] text-slate-400 block uppercase">Pietre / Incastoni</span>
+              <span id="detail-stones" class="text-xs text-amber-300 font-medium">Nessuna</span>
+            </div>
+          </div>
+
+          <!-- Descriptions -->
+          <div class="space-y-3">
+            <div>
+              <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Descrizione Breve</h4>
+              <p id="detail-desc-short" class="text-slate-300 leading-relaxed italic bg-slate-800/40 p-2.5 rounded-lg border border-slate-800">...</p>
+            </div>
+            <div>
+              <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Descrizione Lunga Completa</h4>
+              <p id="detail-desc-long" class="text-slate-300 leading-relaxed bg-slate-800/40 p-2.5 rounded-lg border border-slate-800">...</p>
+            </div>
+          </div>
+
+          <!-- Top Related Products (Semantic Neighbors) -->
+          <div class="border-t border-slate-800 pt-4 space-y-3">
+            <h3 class="font-bold text-slate-200 uppercase tracking-wider text-[11px] flex items-center justify-between">
+              <span>Vicini Semantici Correlati</span>
+              <i class="fa-solid fa-link text-purple-400"></i>
+            </h3>
+
+            <div id="related-products-list" class="space-y-2">
+              <!-- Dynamically populated related items -->
+            </div>
+          </div>
+        </div>
+      </aside>
+
+    </div>
+
+    <!-- VIEW 2: ANALYTICS & HUB DASHBOARD -->
+    <div id="view-analytics" class="w-full h-full p-6 overflow-y-auto hidden space-y-6">
+      
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-chart-network text-cyan-400"></i> Analytics della Rete & Hub Semantici
+          </h2>
+          <p class="text-xs text-slate-400">Identificazione dei prodotti con maggior centralità semantica e densità di relazione.</p>
+        </div>
+      </div>
+
+      <!-- Grid Layout for Analytics -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Semantic Hubs Leaderboard -->
+        <div class="lg:col-span-1 glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-crown text-amber-400"></i> Top Hubs Semantici (Centralità)
+          </h3>
+          <p class="text-xs text-slate-400">Prodotti con il maggior numero di connessioni semantiche sopra la soglia impostata.</p>
+          
+          <div id="hubs-leaderboard" class="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+            <!-- Dynamic Hub List -->
+          </div>
+        </div>
+
+        <!-- Collection Statistics Grid -->
+        <div class="lg:col-span-2 space-y-6">
+          <div class="glass-panel p-5 rounded-2xl border border-slate-800 space-y-4">
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-layer-group text-purple-400"></i> Statistiche per Collezione
+            </h3>
+            
+            <div id="collections-stats-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[500px] overflow-y-auto pr-1">
+              <!-- Dynamic Collection Cards -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VIEW 3: FULL DATA TABLE -->
+    <div id="view-table" class="w-full h-full p-6 overflow-y-auto hidden flex flex-col space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4 shrink-0">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-table text-emerald-400"></i> Catalogo Prodotti Integrale
+          </h2>
+          <p class="text-xs text-slate-400">Vista tabellare filtrabile dei 70 prodotti pre-caricati con esportazione dati.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="exportCSV()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-semibold text-slate-200 flex items-center gap-2 transition">
+            <i class="fa-solid fa-file-csv text-emerald-400"></i> Esporta CSV
+          </button>
+          <button onclick="exportJSON()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-semibold text-slate-200 flex items-center gap-2 transition">
+            <i class="fa-solid fa-file-code text-cyan-400"></i> Esporta JSON
+          </button>
+        </div>
+      </div>
+
+      <!-- Table Container -->
+      <div class="glass-panel rounded-xl border border-slate-800 overflow-hidden flex-grow flex flex-col">
+        <div class="overflow-x-auto overflow-y-auto flex-grow">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-900/90 text-slate-400 uppercase tracking-wider border-b border-slate-800 sticky top-0 font-semibold">
+              <tr>
+                <th class="p-3">Codice</th>
+                <th class="p-3">Nome / Descrizione</th>
+                <th class="p-3">Collezione</th>
+                <th class="p-3">Tipologia</th>
+                <th class="p-3">Materiale</th>
+                <th class="p-3">Pietre</th>
+                <th class="p-3 text-right">Prezzo (€)</th>
+                <th class="p-3 text-center">Azione</th>
+              </tr>
+            </thead>
+            <tbody id="product-table-body" class="divide-y divide-slate-800/60">
+              <!-- Dynamic Rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: EXCEL UPLOAD & RE-CALCULATION -->
+    <div id="view-upload" class="w-full h-full p-6 overflow-y-auto hidden flex flex-col items-center justify-center">
+      <div class="max-w-xl w-full glass-panel p-8 rounded-2xl border border-slate-800 text-center space-y-6">
+        <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-2xl mx-auto shadow-xl">
+          <i class="fa-solid fa-file-excel"></i>
+        </div>
+
+        <div>
+          <h2 class="text-xl font-bold text-white">Carica Nuovo File Excel (.xlsx)</h2>
+          <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+            Importa una nuova tabella di prodotti. Il motore JavaScript calcolerà istantaneamente i vettori TF-IDF e le similarità semantiche per generare un nuovo grafo di rete.
+          </p>
+        </div>
+
+        <!-- File Upload Zone -->
+        <div id="drop-zone" onclick="document.getElementById('excel-file-input').click()" class="border-2 border-dashed border-slate-700 hover:border-cyan-500/60 bg-slate-800/40 rounded-xl p-8 cursor-pointer transition flex flex-col items-center space-y-3">
+          <i class="fa-solid fa-cloud-arrow-up text-3xl text-slate-500"></i>
+          <span class="text-xs font-semibold text-slate-300">Trascina qui il tuo file Excel o clicca per sfogliare</span>
+          <span class="text-[10px] text-slate-500">Supporta formati .XLSX, .XLS, .CSV</span>
+          <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleExcelUpload(event)">
+        </div>
+
+        <!-- Notification Toast Box -->
+        <div id="upload-status" class="hidden p-3 rounded-lg text-xs font-semibold"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="app-toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 glass-panel px-4 py-3 rounded-xl border border-slate-700 text-xs text-slate-200 flex items-center gap-3 shadow-2xl">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+    <span id="toast-message">Messaggio di notifica</span>
+  </div>
+
+  <!-- SCRIPTING LOGIC -->
+  <script>
+    
+    // Complete 70 Official Products Dataset extracted from Excel File
+    const RAW_PRODUCT_DATASET = [
+      { code: "27925", name: "ciondolo Ninfea Aperta", collection: "Ninfea aperta", type: "ciondolo", price: 85, material: "Argento 925", stones: "Triplete semi preziose", descShort: "Ciondolo in argento 925 raffigurante una ninfea aperta con incastonatura centrali in triplete semi-preziose.", descLong: "Elegante ciondolo lavorato a mano in argento 925 della collezione Ninfea Aperta. Presenta una pietra centrale triplete sfaccettata montata su castone intagliato che riproduce i petali schiusi di una ninfea d'acqua." },
+      { code: "27926", name: "anello Ninfea Aperta", collection: "Ninfea aperta", type: "anello", price: 95, material: "Argento 925", stones: "Triplete semi preziose", descShort: "Anello in argento 925 con gemma in triplete sfaccettata e gambo lavorato a petali.", descLong: "Anello della linea Ninfea Aperta realizzato in argento 925 finitura lucida. Il design avvolgente cinge una gemma in triplete di quarzo e madreperla con riflessi cangianti." },
+      { code: "27927", name: "orecchini Ninfea Aperta piccoli", collection: "Ninfea aperta", type: "orecchini", price: 75, material: "Argento 925", stones: "Triplete semi preziose", descShort: "Orecchini a lobo con motivo ninfea schiusa e pietra cabochon in triplete.", descLong: "Orecchini a lobo leggeri e luminosi della collezione Ninfea Aperta in argento 925 con triplete sfaccettata d'ispirazione floreale." },
+      { code: "27928", name: "orecchini Ninfea Aperta grandi", collection: "Ninfea aperta", type: "orecchini", price: 110, material: "Argento 925", stones: "Triplete semi preziose", descShort: "Orecchini pendenti in argento 925 con elementi ninfea e gemme triplete.", descLong: "Orecchini pendenti scenografici della linea Ninfea Aperta. I petali in argento 925 micro-sbalzato incastonano gemme triplete brillanti." },
+      { code: "27929", name: "bracciale Ninfea Aperta", collection: "Ninfea aperta", type: "bracciale", price: 145, material: "Argento 925", stones: "Triplete semi preziose", descShort: "Bracciale a catena con elemento centrale Ninfea Aperta e pietre triplete.", descLong: "Bracciale finemente lavorato in argento 925 caratterizzato dal centrale Ninfea Aperta arricchito da gemme triplete dai toni azzurro e rosa." },
+      { code: "27930", name: "ciondolo Ninfea Chiusa", collection: "Ninfea chiusa", type: "ciondolo", price: 85, material: "Argento 925", stones: "Triplete semi preziose", descShort: "Ciondolo a bocciolo di ninfea in argento 925 avvolgente con pietra triplete.", descLong: "Ciondolo della collezione Ninfea Chiusa in argento 925 con forma a bocciolo protettivo che racchiude una triplete cangiante." },
+      { code: "27931", name: "anello Ninfea Chiusa", collection: "Ninfea chiusa", type: "anello", price: 95, material: "Argento 925", stones: "Triplete semi preziose", descShort: "Anello scultoreo in argento 925 raffigurante il bocciolo di ninfea.", descLong: "Anello fascia alta in argento 925 lucido e brunito. La forma a bocciolo di ninfea integra una gemma triplete sfaccettata." },
+      { code: "27932", name: "orecchini Ninfea Chiusa", collection: "Ninfea chiusa", type: "orecchini", price: 80, material: "Argento 925", stones: "Triplete semi preziose", descShort: "Orecchini a goccia bocciolo di ninfea in argento 925 con triplete.", descLong: "Orecchini con monachella e pendente a forma di bocciolo di ninfea chiusa in argento 925 con pietra triplete incastonata." },
+      { code: "27933", name: "bracciale Ninfea Chiusa", collection: "Ninfea chiusa", type: "bracciale", price: 140, material: "Argento 925", stones: "Triplete semi preziose", descShort: "Bracciale rigido in argento 925 con castone bocciolo e gemme triplete.", descLong: "Bracciale rigido apribile con finitura satinata e lucida in argento 925 arricchito da elementi Ninfea Chiusa con triplete semi-preziose." },
+      { code: "27935", name: "ciondolo Magna Grecia classico", collection: "Magna Grecia", type: "ciondolo", price: 120, material: "Argento 925", stones: "Triplete semi preziose", descShort: "Ciondolo della linea Magna Grecia con decori dell'antica tradizione orfana.", descLong: "Ciondolo in argento 925 ispirato alle decorazioni dell'arte magnogreca, con greche incise e gemma centrale triplete semi-preziosa." },
+      { code: "27936", name: "anello Magna Grecia solitario", collection: "Magna Grecia", type: "anello", price: 105, material: "Argento 925", stones: "Triplete semi preziose", descShort: "Anello solitario con castone inciso a rilievo stile Magna Grecia.", descLong: "Anello in argento 925 con montatura sbalzata a mano richiamante l'architettura classica greca e pietra triplete." },
+      { code: "27937", name: "orecchini Magna Grecia pendenti", collection: "Magna Grecia", type: "orecchini", price: 130, material: "Argento 925", stones: "Triplete semi preziose", descShort: "Orecchini pendenti importanti con fregi ellenici in argento 925 e triplete.", descLong: "Orecchini pendenti ad archetto in argento 925 brunito con motivi sbalzati d'ispirazione greca e gemme triplete sfaccettate." },
+      { code: "27938", name: "bracciale Magna Grecia rigido", collection: "Magna Grecia", type: "bracciale", price: 195, material: "Argento 925", stones: "Triplete semi preziose", descShort: "Bracciale rigido con motivo a meandro greco in argento 925 e pietre.", descLong: "Bracciale rigido di alto artigianato in argento 925 con decori a meandro incisi e castoni con pietre triplete semi-preziose." },
+      { code: "27939", name: "orecchini Magna Grecia a lobo", collection: "Magna Grecia", type: "orecchini", price: 70, material: "Argento 925", stones: "Triplete semi preziose", descShort: "Orecchini a lobo compatti con intagli classici Magna Grecia e pietre.", descLong: "Orecchini a bottone in argento 925 con finitura brunita e pietra centrale triplete incastonata con griffe decorate." },
+      { code: "35133", name: "ciondolo Paste Vitree multicolore", collection: "Paste Vitree", type: "ciondolo", price: 115, material: "Argento 925", stones: "Triplete semi preziose, pasta vitrea e perle", descShort: "Ciondolo policromo in argento 925 con paste vitree, perle e triplete.", descLong: "Ciondolo scenografico che unisce la tradizione delle paste vitree colorate, perle scaramazze di fiume e castoni in triplete semi-preziosa su argento 925." },
+      { code: "35134", name: "pendente Paste Vitree con perla", collection: "Paste Vitree", type: "pendente", price: 125, material: "Argento 925", stones: "Triplete semi preziose, pasta vitrea e perle", descShort: "Pendente in argento 925 con elemento pasta vitrea azzurra e perla pendente.", descLong: "Pendente raffinato realizzato in argento 925 con castone per pasta vitrea lavorata a mano e perla coltivata a goccia finale." },
+      { code: "35136", name: "anello Paste Vitree cabochon", collection: "Paste Vitree", type: "anello", price: 110, material: "Argento 925", stones: "Triplete semi preziose, pasta vitrea e perle", descShort: "Anello con cabochon in pasta vitrea arricchito da perle e triplete.", descLong: "Anello in argento 925 con grande cabochon in pasta vitrea centrale circondato da micro-perle e dettagli in triplete." },
+      { code: "35132", name: "orecchini Paste Vitree goccia", collection: "Paste Vitree", type: "orecchini", price: 100, material: "Argento 925", stones: "Triplete semi preziose, pasta vitrea e perle", descShort: "Orecchini a goccia in pasta vitrea colorata e perle su argento 925.", descLong: "Orecchini pendenti leggeri ed eleganti con elementi in pasta vitrea sagomata a goccia, accentuati da perle di fiume e argento 925." },
+      { code: "35135", name: "bracciale Paste Vitree charms", collection: "Paste Vitree", type: "bracciale", price: 165, material: "Argento 925", stones: "Triplete semi preziose, pasta vitrea e perle", descShort: "Bracciale charms con elementi in pasta vitrea, perle e gemme.", descLong: "Bracciale a maglia rolo in argento 925 arricchito da ciondoli charms in pasta vitrea colorata, perle barocche e triplete." },
+      { code: "35138", name: "ciondolo Paste Vitree ovale", collection: "Paste Vitree", type: "ciondolo", price: 90, material: "Argento 925", stones: "Triplete semi preziose, pasta vitrea", descShort: "Ciondolo ovale con intarsio in pasta vitrea e castone in argento 925.", descLong: "Ciondolo ovale minimalista ed elegante in argento 925 con pietra in pasta vitrea sfaccettata e inserti in triplete." },
+      { code: "35139", name: "ciondolo Paste Vitree quadrato", collection: "Paste Vitree", type: "ciondolo", price: 90, material: "Argento 925", stones: "Triplete semi preziose, pasta vitrea", descShort: "Ciondolo a forma quadrata in pasta vitrea e montatura argento 925.", descLong: "Ciondolo dalla geometria pulita in argento 925 con montatura quadrata che accoglie una pasta vitrea colorata e triplete." },
+      { code: "35131", name: "pendente Paste Vitree Oro e Perle", collection: "Paste Vitree", type: "pendente", price: 185, material: "Argento 925 e oro 9 kt", stones: "pasta vitrea e perle", descShort: "Pendente di pregio in argento 925 e dettagli oro 9kt con pasta vitrea e perle.", descLong: "Pendente esclusivo realizzato in argento 925 con castoni in oro 9kt, impreziosito da un elemento in pasta vitrea mediterranea e perla coltiva." },
+      { code: "35128", name: "orecchini Paste Vitree bicolore", collection: "Paste Vitree", type: "orecchini", price: 160, material: "Argento 925 e oro 9 kt", stones: "pasta vitrea e perle", descShort: "Orecchini bicolore argento/oro 9kt con gemme in pasta vitrea e perle.", descLong: "Orecchini di alta manifattura con combinazione di argento 925 e castoni in oro 9kt che sorreggono pasta vitrea e perle naturali." },
+      { code: "35129", name: "anello Paste Vitree finitura Oro", collection: "Paste Vitree", type: "anello", price: 150, material: "Argento 925 e oro 9 kt", stones: "pasta vitrea", descShort: "Anello con dettagli in oro 9kt e pietra centrale in pasta vitrea.", descLong: "Anello bicolore in argento 925 arricchito da una corona in oro 9kt attorno alla pietra centrale in pasta vitrea lavorata." },
+      { code: "35130", name: "bracciale Paste Vitree maglia Oro", collection: "Paste Vitree", type: "bracciale", price: 210, material: "Argento 925 e oro 9 kt", stones: "paste vitree", descShort: "Bracciale maglia d'argento 925 con inserti oro 9kt e paste vitree.", descLong: "Bracciale di lusso in argento 925 con maglie cesellate, dettagli in oro 9kt e castoni multipli con paste vitree colorate." },
+      { code: "27951", name: "orecchini Perle di Fiume", collection: "Perle", type: "orecchini", price: 65, material: "Argento 925", stones: "perle", descShort: "Orecchini pendenti classici con perle coltivate di fiume e argento 925.", descLong: "Orecchini eleganti in argento 925 con monachella lavorata e perle coltivate di fiume sferiche di prima scelta." },
+      { code: "27952", name: "orecchini Perle Barocche", collection: "Perle", type: "orecchini", price: 85, material: "Argento 925", stones: "perle", descShort: "Orecchini pendenti con grandi perle barocche scaramazze naturali.", descLong: "Orecchini dal fascino unico in argento 925 con montatura sbalzata che valorizza la forma irregolare e unica delle perle barocche." },
+      { code: "27953", name: "orecchini Perle a goccia", collection: "Perle", type: "orecchini", price: 75, material: "Argento 925", stones: "perle", descShort: "Orecchini raffinati a goccia con perle e castone intagliato in argento 925.", descLong: "Orecchini pendenti in argento 925 con castone floreale e lucida perla di fiume a goccia dall'oriente brillante." },
+      { code: "27954", name: "orecchini Perle e Filigrana", collection: "Perle", type: "orecchini", price: 95, material: "Argento 925", stones: "perle", descShort: "Orecchini in filigrana d'argento 925 impreziositi da perle naturali.", descLong: "Orecchini artigianali lavorati in filigrana d'argento 925 traforata con perla centrale coltivata." },
+      { code: "35140", name: "ciondolo Maschera Apotropaica", collection: "Maschere", type: "ciondolo", price: 95, material: "argento 925", stones: "Nessuna", descShort: "Ciondolo scultoreo raffigurante la maschera apotropaica magno-greca in argento 925.", descLong: "Ciondolo simbolo di protezione e fortuna realizzato in argento 925 brunito con incisioni dettagliate della maschera apotropaica di tradizione calabrese e greca." },
+      { code: "35141", name: "ciondolo Moneta Antica Magna Grecia", collection: "Monete", type: "ciondolo", price: 105, material: "Argento 925", stones: "Nessuna", descShort: "Ciondolo moneta riproduzione di statere greca in argento 925 con bordo cesellato.", descLong: "Ciondolo di grande carattere in argento 925 che riproduce fedelmente una moneta antica della Magna Grecia con profilo della dea Atena e bordo brunito." },
+      { code: "27955", name: "anello Tempora Solare", collection: "Tempora", type: "anello", price: 80, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Anello motivo tempora e sole in argento 925 con pavé di cubic zirconia.", descLong: "Anello della linea Tempora in argento 925 con incisioni del sole e stelle arricchito da un pavé di cubic zirconia trasparenti." },
+      { code: "27956", name: "anello Tempora solitario Zirconi", collection: "Tempora", type: "anello", price: 70, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Anello solitario in argento 925 con cubic zirconia taglio brillante.", descLong: "Anello solitario dal design moderno e pulito della collezione Tempora con punto luce in cubic zirconia incassato a griffe." },
+      { code: "27957", name: "anello Tempora fregio geometrico", collection: "Tempora", type: "anello", price: 85, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Anello fascia in argento 925 con fregi geometrici e cubic zirconia.", descLong: "Anello a fascia in argento 925 impreziosito da motivi geometrici incisi e file di cubic zirconia lucenti." },
+      { code: "27958", name: "anello Tempora fascia lavorata", collection: "Tempora", type: "anello", price: 90, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Anello fascia alta in argento 925 brunito e brillantini zirconi.", descLong: "Anello fascia importante della collezione Tempora, realizzato in argento 925 con finitura satinata e zirconi incastonati a mano." },
+      { code: "27959", name: "orecchini Tempora cerchio Zirconi", collection: "Tempora", type: "orecchini", price: 75, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Orecchini a cerchio in argento 925 con zirconi incassati a micro-pave.", descLong: "Orecchini a cerchietto in argento 925 con fila di cubic zirconia brillanti sul profilo frontale." },
+      { code: "27960", name: "orecchini Tempora pendenti Cristallo", collection: "Tempora", type: "orecchini", price: 95, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Orecchini pendenti Tempora con zirconi taglio goccia e argento 925.", descLong: "Orecchini pendenti di gran luce in argento 925 con pendenti in cubic zirconia sfaccettati a goccia." },
+      { code: "27961", name: "orecchini Tempora lobo Stella", collection: "Tempora", type: "orecchini", price: 55, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Orecchini a lobo stella in argento 925 con zirconi incastonati.", descLong: "Orecchini a lobo sformati a stella otto punte della linea Tempora con zircone centrali brillante." },
+      { code: "27962", name: "orecchini Tempora goccia luminosa", collection: "Tempora", type: "orecchini", price: 85, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Orecchini a goccia in argento 925 ricoperti di zirconi cubic zirconia.", descLong: "Orecchini pendenti a goccia ricchi di riflessi grazie al pavé di cubic zirconia su struttura in argento 925." },
+      { code: "27963", name: "ciondolo Tempora Astro", collection: "Tempora", type: "ciondolo", price: 75, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Ciondolo astrolabio astro in argento 925 con zirconi bianchi.", descLong: "Ciondolo circolare raffigurante le orbite astri e costellazioni della linea Tempora in argento 925 e zirconi." },
+      { code: "27964", name: "ciondolo Tempora Rosa dei Venti", collection: "Tempora", type: "ciondolo", price: 80, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Ciondolo rosa dei venti in argento 925 con punto luce in zirconi.", descLong: "Ciondolo rosa dei venti intagliato con precisione in argento 925 e cubic zirconia centrale." },
+      { code: "27965", name: "ciondolo Tempora Sole Antico", collection: "Tempora", type: "ciondolo", price: 85, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Ciondolo con motivo sole splendente in argento 925 e zirconi.", descLong: "Ciondolo sole radioso della collezione Tempora con raggi sbalzati in argento 925 e pietra cubic zirconia." },
+      { code: "27966", name: "ciondolo Tempora Luna Intagliata", collection: "Tempora", type: "ciondolo", price: 75, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Ciondolo mezzaluna in argento 925 con micro-pave di cubic zirconia.", descLong: "Ciondolo a forma di crescente di luna ricamato in argento 925 con pavé di zirconi luminosi." },
+      { code: "27967", name: "collana Tempora Elegance", collection: "Tempora", type: "collana", price: 135, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Collana girocollo in argento 925 con ciondolo Tempora e zirconi.", descLong: "Collana sofisticata in argento 925 con catena veneziana e ciondolo circolare della linea Tempora tempestato di cubic zirconia." },
+      { code: "27968", name: "bracciale Tempora maglie e Zirconi", collection: "Tempora", type: "bracciale", price: 120, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Bracciale a maglie in argento 925 con elementi zirconi e chiusura a moschettone.", descLong: "Bracciale moderno in argento 925 alternato da maglie stilizzate e castoni con cubic zirconia taglio brillante." },
+      { code: "27977", name: "collana Iride Arcobaleno", collection: "Iride", type: "collana", price: 155, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Collana girocollo Iride in argento 925 con zirconi sfumati.", descLong: "Collana della collezione Iride con sequenza di cubic zirconia incastonati in un gradiente di luce e colore su argento 925." },
+      { code: "27978", name: "bracciale Iride multi-pavé", collection: "Iride", type: "bracciale", price: 140, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Bracciale tennis rivisitato in argento 925 con pavé di zirconi Iride.", descLong: "Bracciale tipo tennis in argento 925 con castoni snodati contenenti cubic zirconia ad altissima rifrazione." },
+      { code: "27979", name: "collana Iride Solitaire Zirconi", collection: "Iride", type: "collana", price: 110, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Collana con punto luce solitario Iride in argento 925.", descLong: "Collana punto luce classica ma distintiva della linea Iride con gemma cubic zirconia taglio brillante su argento 925." },
+      { code: "27980", name: "orecchini Iride cerchi Pavé", collection: "Iride", type: "orecchini", price: 95, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Orecchini a cerchio ricoperti di cubic zirconia pavé brillante.", descLong: "Orecchini a cerchio in argento 925 totalmente ricoperti da pavé di cubic zirconia della serie Iride." },
+      { code: "27981rovi", name: "orecchini Iride intreccio Rovi", collection: "Iride", type: "orecchini", price: 105, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Orecchini intreccio rovi d'argento 925 impreziositi da zirconi.", descLong: "Orecchini scultorei raffiguranti un intreccio botanico di rovi in argento 925 con micro-zirconi incastonati della collezione Iride." },
+      { code: "27982", name: "collana Trottole Playful", collection: "Trottole", type: "collana", price: 165, material: "Argento 925", stones: "Cubic Zirconia, perle", descShort: "Collana con ciondolo dinamico girevole Trottole con perle e zirconi.", descLong: "Collana ludica ed elegante con ciondolo a forma di trottola girevole in argento 925, impreziosito da cubic zirconia e micro perle naturali." },
+      { code: "27972", name: "collana Perle Naturali Elegance", collection: "Perle", type: "collana", price: 180, material: "Argento 925", stones: "Perle", descShort: "Filo di perle naturali di fiume con fermatura in argento 925 lavorata.", descLong: "Classica ed intramontabile collana filo di perle coltivate di fiume con fermatura di sicurezza finemente incisa in argento 925." },
+      { code: "27973", name: "collana Perle Cascata", collection: "Perle", type: "collana", price: 220, material: "Argento 925", stones: "Perle", descShort: "Collana a più fili di perle coltivate e componenti in argento 925.", descLong: "Collana scenografica a cascata multi-filo di perle di fiume di varie dimensioni con chiusura d'arte in argento 925." },
+      { code: "27984", name: "collana Perle e Intrecci Argento", collection: "Perle", type: "collana", price: 160, material: "Argento 925", stones: "Perle", descShort: "Collana con elementi d'argento 925 alternati a perle naturali.", descLong: "Collana dal design contemporaneo in argento 925 con catena lavorata alternata a moduli con perle barocche." },
+      { code: "27985", name: "bracciale Perle e Catena", collection: "Perle", type: "bracciale", price: 110, material: "Argento 925", stones: "Perle", descShort: "Bracciale combinato catena argento 925 e perle scaramazze.", descLong: "Bracciale giovanile che unisce una catena a maglie grumetta in argento 925 con perle di fiume irregolari." },
+      { code: "27986", name: "bracciale Perle multi-filo", collection: "Perle", type: "bracciale", price: 130, material: "Argento 925", stones: "Perle", descShort: "Bracciale a tre fili di perle coltivate con barra in argento 925.", descLong: "Bracciale a tre fili di perle sferiche coltivate con distanziatori e moschettone in argento 925." },
+      { code: "27987", name: "bracciale Perle Barocche Charm", collection: "Perle", type: "bracciale", price: 125, material: "Argento 925", stones: "Perle", descShort: "Bracciale con perle barocche pendenti e charms d'argento 925.", descLong: "Bracciale in argento 925 arricchito da ciondoli e perle barocche scaramazze singolarmente montate." },
+      { code: "27988", name: "orecchini Perle e Castone", collection: "Perle", type: "orecchini", price: 70, material: "Argento 925", stones: "Perle", descShort: "Orecchini a lobo con perla centrale e castone decorato in argento 925.", descLong: "Orecchini a bottone in argento 925 con castone brunito che abbraccia una lucida perla di fiume sferica." },
+      { code: "27989", name: "orecchini Perle Chandelier", collection: "Perle", type: "orecchini", price: 140, material: "Argento 925", stones: "Perle", descShort: "Orecchini pendenti stile chandelier con perle naturali e argento 925.", descLong: "Orecchini importanti chandelier in argento 925 con cascata articolata di perline di fiume brillanti." },
+      { code: "27990", name: "orecchini Perle punto luce", collection: "Perle", type: "orecchini", price: 50, material: "Argento 925", stones: "Perle", descShort: "Orecchini a lobo essenziali con perla coltivata e perno argento 925.", descLong: "Orecchini minimalisti ed eleganti a lobo con perla di fiume sferica montata su perno in argento 925." },
+      { code: "27991", name: "orecchini Perle e Filigrana Sarda", collection: "Perle", type: "orecchini", price: 115, material: "Argento 925", stones: "Perle", descShort: "Orecchini in filigrana di tradizione con perla coltivata pendente.", descLong: "Orecchini pendenti finemente lavorati in filigrana d'argento 925 a nido d'ape con perla finale." },
+      { code: "27992", name: "collana Perle Girocollo classico", collection: "Perle", type: "collana", price: 170, material: "Argento 925", stones: "Perle", descShort: "Girocollo classico di perle selezionate di fiume e chiusura argento.", descLong: "Girocollo elegante di perle di fiume di calibro regolare con chiusura a scomparsa in argento 925." },
+      { code: "27993", name: "pendente Perle e Argento sbalzato", collection: "Perle", type: "pendente", price: 105, material: "Argento 925", stones: "Perle", descShort: "Pendente artistico in argento 925 sbalzato a mano con perla barocca.", descLong: "Pendente dal carattere scultoreo in argento 925 cesellato a mano con perla barocca pendente di grande fascino." },
+      { code: "32405", name: "bracciale Zodiaco Costellazioni", collection: "Zodiaco", type: "bracciale", price: 115, material: "Argento 925", stones: "Cubic Zirconia", descShort: "Bracciale con piastrine zodiaco e punti luce cubic zirconia su argento 925.", descLong: "Bracciale della linea Zodiaco in argento 925 con medaglioni incisi rappresentanti le costellazioni astri e zirconi incastonati." },
+      { code: "32406", name: "bracciale Heroes Leather & Silver", collection: "Heroes", type: "bracciale", price: 95, material: "Argento 925, acciaio", stones: "Nessuna", descShort: "Bracciale maschile con cordone intrecciato e piastra argento/acciaio.", descLong: "Bracciale dal carattere forte della linea Heroes in acciaio e dettagli in argento 925 brunito, ideale per l'uomo contemporaneo." },
+      { code: "32407", name: "bracciale Heroes canna di fucile", collection: "Heroes", type: "bracciale", price: 100, material: "Argento 925, acciaio", stones: "Nessuna", descShort: "Bracciale maschile finitura canna di fucile e elementi argento 925.", descLong: "Bracciale mascolino Heroes con trattamento canna di fucile e inserti incisi in argento 925." },
+      { code: "32408", name: "bracciale Heroes intreccio urbano", collection: "Heroes", type: "bracciale", price: 85, material: "Argento 925, acciaio", stones: "Nessuna", descShort: "Bracciale a maglia milanese acciaio e chiusura argento 925.", descLong: "Bracciale stile urban della linea Heroes con maglia in acciaio inossidabile e chiusura di sicurezza in argento 925." },
+      { code: "32414", name: "bracciale Heroes piastra e maglia", collection: "Heroes", type: "bracciale", price: 110, material: "Argento 925, acciaio", stones: "Nessuna", descShort: "Bracciale con piastra centrale personalizzabile argento e maglia grumetta.", descLong: "Bracciale maschile iconico della collezione Heroes con piastra in argento 925 satinato e catena grumetta in acciaio massiccio." },
+      { code: "32416", name: "bracciale Heroes Black Steel", collection: "Heroes", type: "bracciale", price: 90, material: "Argento 925, acciaio", stones: "Nessuna", descShort: "Bracciale acciaio nero PVD con dettagli lavorati argento 925.", descLong: "Bracciale audace con maglie in acciaio con finitura PVD nera e distanziatori incisi in argento 925." },
+      { code: "32417", name: "bracciale Heroes Minimal Silver", collection: "Heroes", type: "bracciale", price: 105, material: "Argento 925, acciaio", stones: "Nessuna", descShort: "Bracciale minimalista rigido in argento 925 e anima in acciaio.", descLong: "Bracciale rigido dal design pulito e contemporaneo in argento 925 lucido con snodo di chiusura in acciaio inossidabile." }
+    ];
+
+    // Color Palettes
+    const COLLECTION_COLORS = {
+      "Ninfea aperta": "#38bdf8",
+      "Ninfea chiusa": "#a855f7",
+      "Magna Grecia": "#34d399",
+      "Paste Vitree": "#fbbf24",
+      "Perle": "#f43f5e",
+      "Maschere": "#ef4444",
+      "Monete": "#eab308",
+      "Tempora": "#818cf8",
+      "Iride": "#2dd4bf",
+      "Trottole": "#f472b6",
+      "Heroes": "#fb923c",
+      "Zodiaco": "#c084fc",
+      "DEFAULT": "#94a3b8"
+    };
+
+    const TYPE_COLORS = {
+      "anello": "#a855f7",
+      "bracciale": "#fbbf24",
+      "ciondolo": "#38bdf8",
+      "orecchini": "#34d399",
+      "collana": "#f43f5e",
+      "pendente": "#818cf8",
+      "DEFAULT": "#94a3b8"
+    };
+
+    // Italian Stopwords
+    const STOPWORDS = new Set([
+      "a", "al", "ai", "agli", "alla", "alle", "con", "col", "da", "dal", "dai", "dalla", "dalle",
+      "di", "del", "dei", "degli", "della", "delle", "in", "nel", "nei", "negli", "nella", "nelle",
+      "su", "sul", "sui", "sugli", "sulla", "sulle", "per", "tra", "fra", "il", "lo", "la", "i", "gli", "le",
+      "un", "uno", "una", "e", "ed", "o", "od", "ma", "che", "chi", "cui", "non", "si", "ci", "vi", "ne",
+      "questo", "questa", "questi", "queste", "quello", "quella", "quelli", "quelle", "essere", "stato",
+      "con", "senza", "piu", "meno", "molto", "poco", "ogni", "tutti", "tutte", "tutto", "anche", "come"
+    ]);
+
+    // Application State Variables
+    let currentProducts = [...RAW_PRODUCT_DATASET];
+    let similarityEdges = [];
+    let visNodes = new vis.DataSet();
+    let visEdges = new vis.DataSet();
+    let networkInstance = null;
+    
+    let currentThreshold = 0.25;
+    let currentColorMode = 'collection'; // 'collection' or 'type'
+    let selectedNodeId = null;
+    let isPhysicsActive = true;
+
+
+    // Tokenizer & Text Preprocessor
+    function tokenizeText(text) {
+      if (!text) return [];
+      return text.toLowerCase()
+        .replace(/[^a-z0-9àèéìòù]/g, ' ')
+        .split(/\s+/)
+        .filter(w => w.length > 2 && !STOPWORDS.has(w));
+    }
+
+    // Engine TF-IDF & Cosine Similarity Calculator
+    function computeSemanticNetwork(products) {
+      const N = products.length;
+      const docTokens = [];
+      const docTermFreqs = [];
+      const docFreqs = {};
+
+      // Step 1: Compute Term Frequencies and Document Frequencies
+      products.forEach((p, idx) => {
+        const fullText = `${p.name} ${p.collection} ${p.type} ${p.material} ${p.stones} ${p.descShort} ${p.descLong}`;
+        const tokens = tokenizeText(fullText);
+        docTokens.push(tokens);
+
+        const tf = {};
+        const uniqueTokens = new Set(tokens);
+        tokens.forEach(t => {
+          tf[t] = (tf[t] || 0) + 1;
+        });
+        docTermFreqs.push(tf);
+
+        uniqueTokens.forEach(t => {
+          docFreqs[t] = (docFreqs[t] || 0) + 1;
+        });
+      });
+
+      // Step 2: Compute TF-IDF Vectors
+      const tfidfVectors = [];
+      products.forEach((p, idx) => {
+        const vec = {};
+        const tf = docTermFreqs[idx];
+        const totalWords = docTokens[idx].length || 1;
+
+        for (let term in tf) {
+          const tfVal = tf[term] / totalWords;
+          const idfVal = Math.log((N + 1) / ((docFreqs[term] || 0) + 1)) + 1;
+          vec[term] = tfVal * idfVal;
+        }
+        tfidfVectors.push(vec);
+      });
+
+      // Vector Magnitudes
+      const magnitudes = tfidfVectors.map(vec => {
+        let sumSq = 0;
+        for (let term in vec) sumSq += vec[term] * vec[term];
+        return Math.sqrt(sumSq) || 1;
+      });
+
+      // Step 3: Compute Pairwise Cosine Similarity Matrix
+      const edges = [];
+      for (let i = 0; i < N; i++) {
+        for (let j = i + 1; j < N; j++) {
+          const vecA = tfidfVectors[i];
+          const vecB = tfidfVectors[j];
+
+          let dotProduct = 0;
+          const sharedTerms = [];
+
+          for (let term in vecA) {
+            if (vecB[term]) {
+              const score = vecA[term] * vecB[term];
+              dotProduct += score;
+              sharedTerms.push({ term, weight: score });
+            }
+          }
+
+          const similarity = dotProduct / (magnitudes[i] * magnitudes[j]);
+
+          if (similarity > 0.08) { // Keep candidates above minimal noise floor
+            sharedTerms.sort((a, b) => b.weight - a.weight);
+            edges.push({
+              from: products[i].code,
+              to: products[j].code,
+              similarity: parseFloat(similarity.toFixed(3)),
+              sharedKeywords: sharedTerms.slice(0, 5).map(t => t.term)
+            });
+          }
+        }
+      }
+
+      return edges;
+    }
+
+
+    // Build Graph Nodes for Vis.js
+    function generateVisNodes() {
+      return currentProducts.map(p => {
+        const color = currentColorMode === 'collection' 
+          ? (COLLECTION_COLORS[p.collection] || COLLECTION_COLORS.DEFAULT)
+          : (TYPE_COLORS[p.type] || TYPE_COLORS.DEFAULT);
+
+        return {
+          id: p.code,
+          label: `${p.name}\n(#${p.code})`,
+          title: `<b>${p.name}</b><br>Collezione: ${p.collection}<br>Prezzo: €${p.price}`,
+          group: p.collection,
+          color: {
+            background: color,
+            border: '#1e293b',
+            highlight: { background: '#38bdf8', border: '#ffffff' },
+            hover: { background: '#a855f7', border: '#ffffff' }
+          },
+          font: { color: '#f8fafc', face: 'Inter, system-ui, sans-serif', size: 11, strokeWidth: 2, strokeColor: '#0f172a' },
+          borderWidth: 2,
+          shadow: { enabled: true, color: 'rgba(0,0,0,0.5)', size: 8 }
+        };
+      });
+    }
+
+    // Initialize Network Canvas View
+    function initNetworkGraph() {
+      const container = document.getElementById('network-canvas');
+      
+      similarityEdges = computeSemanticNetwork(currentProducts);
+
+      const filteredEdges = similarityEdges
+        .filter(e => e.similarity >= currentThreshold)
+        .map(e => ({
+          from: e.from,
+          to: e.to,
+          value: e.similarity,
+          width: Math.max(1, Math.pow(e.similarity, 2) * 8),
+          color: { color: '#475569', opacity: Math.min(0.8, e.similarity + 0.1) },
+          title: `Similarità: ${(e.similarity * 100).toFixed(1)}%<br>Parole chiave: ${e.sharedKeywords.join(', ')}`
+        }));
+
+      visNodes = new vis.DataSet(generateVisNodes());
+      visEdges = new vis.DataSet(filteredEdges);
+
+      const data = { nodes: visNodes, edges: visEdges };
+
+      const options = {
+        nodes: {
+          shape: 'dot',
+          size: 16
+        },
+        edges: {
+          smooth: { type: 'continuous', roundness: 0.2 }
+        },
+        physics: {
+          solver: 'forceAtlas2Based',
+          forceAtlas2Based: {
+            gravitationalConstant: -35,
+            centralGravity: 0.008,
+            springLength: 90,
+            springConstant: 0.08,
+            damping: 0.4
+          },
+          stabilization: { iterations: 120 }
+        },
+        interaction: {
+          hover: true,
+          tooltipDelay: 150
+        }
+      };
+
+      if (networkInstance) networkInstance.destroy();
+      networkInstance = new vis.Network(container, data, options);
+
+      // Node Selection Listener
+      networkInstance.on("click", function (params) {
+        if (params.nodes.length > 0) {
+          const clickedId = params.nodes[0];
+          highlightSemanticNeighborhood(clickedId);
+          openDetailDrawer(clickedId);
+        } else {
+          resetNetworkHighlight();
+          closeDetailDrawer();
+        }
+      });
+
+      updateMetricsHeader();
+      updateLegend();
+    }
+
+
+    // Highlight Selected Node and Dim Others
+    function highlightSemanticNeighborhood(nodeId) {
+      selectedNodeId = nodeId;
+      const connectedNodeIds = new Set(networkInstance.getConnectedNodes(nodeId));
+      connectedNodeIds.add(nodeId);
+
+      const allNodes = visNodes.get();
+      const updatedNodes = allNodes.map(n => {
+        const isConnected = connectedNodeIds.has(n.id);
+        return {
+          id: n.id,
+          opacity: isConnected ? 1.0 : 0.15,
+          font: { color: isConnected ? '#ffffff' : 'rgba(255,255,255,0.2)' }
+        };
+      });
+
+      visNodes.update(updatedNodes);
+    }
+
+    // Reset Network Highlight
+    function resetNetworkHighlight() {
+      selectedNodeId = null;
+      const allNodes = visNodes.get();
+      const updatedNodes = allNodes.map(n => ({
+        id: n.id,
+        opacity: 1.0,
+        font: { color: '#f8fafc' }
+      }));
+      visNodes.update(updatedNodes);
+    }
+
+    // Slider Threshold Live Change Handler
+    document.getElementById('threshold-slider').addEventListener('input', function(e) {
+      currentThreshold = parseFloat(e.target.value);
+      document.getElementById('threshold-val').textContent = currentThreshold.toFixed(2);
+      
+      // Update Vis.js edges dynamically
+      const filteredEdges = similarityEdges
+        .filter(e => e.similarity >= currentThreshold)
+        .map(e => ({
+          from: e.from,
+          to: e.to,
+          value: e.similarity,
+          width: Math.max(1, Math.pow(e.similarity, 2) * 8),
+          color: { color: '#475569', opacity: Math.min(0.8, e.similarity + 0.1) },
+          title: `Similarità: ${(e.similarity * 100).toFixed(1)}%<br>Parole chiave: ${e.sharedKeywords.join(', ')}`
+        }));
+
+      visEdges.clear();
+      visEdges.add(filteredEdges);
+      updateMetricsHeader();
+      if (selectedNodeId) highlightSemanticNeighborhood(selectedNodeId);
+      renderAnalyticsView();
+    });
+
+    // Color Mode Toggle
+    function setColorMode(mode) {
+      currentColorMode = mode;
+      document.querySelectorAll('.color-mode-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-cyan-500', 'text-slate-900', 'shadow');
+        btn.classList.add('text-slate-400');
+      });
+      const activeBtn = document.getElementById(`col-mode-${mode}`);
+      activeBtn.classList.add('active', 'bg-cyan-500', 'text-slate-900', 'shadow');
+      activeBtn.classList.remove('text-slate-400');
+
+      visNodes.update(generateVisNodes());
+      updateLegend();
+    }
+
+    // Apply Dropdown Filters
+    function applyFilters() {
+      const collectionVal = document.getElementById('filter-collection').value;
+      const typeVal = document.getElementById('filter-type').value;
+      const materialVal = document.getElementById('filter-material').value;
+
+      const allNodes = visNodes.get();
+      allNodes.forEach(n => {
+        const prod = currentProducts.find(p => p.code === n.id);
+        const matchCol = collectionVal === 'ALL' || prod.collection === collectionVal;
+        const matchType = typeVal === 'ALL' || prod.type === typeVal;
+        const matchMat = materialVal === 'ALL' || prod.material === materialVal;
+
+        const isVisible = matchCol && matchType && matchMat;
+        visNodes.update({ id: n.id, hidden: !isVisible });
+      });
+    }
+
+    // Live Search
+    function handleSearch() {
+      const query = document.getElementById('search-input').value.trim().toLowerCase();
+      if (!query) {
+        applyFilters();
+        return;
+      }
+
+      currentProducts.forEach(p => {
+        const fullText = `${p.code} ${p.name} ${p.collection} ${p.type} ${p.descShort} ${p.descLong}`.toLowerCase();
+        const matches = fullText.includes(query);
+        visNodes.update({ id: p.code, hidden: !matches });
+
+        if (matches && query.length > 3) {
+          networkInstance.focus(p.code, { scale: 1.2, animation: true });
+        }
+      });
+    }
+
+    // Reset Filters
+    function resetFilters() {
+      document.getElementById('threshold-slider').value = 0.25;
+      currentThreshold = 0.25;
+      document.getElementById('threshold-val').textContent = '0.25';
+      document.getElementById('filter-collection').value = 'ALL';
+      document.getElementById('filter-type').value = 'ALL';
+      document.getElementById('filter-material').value = 'ALL';
+      document.getElementById('search-input').value = '';
+      
+      initNetworkGraph();
+      resetNetworkHighlight();
+      showToast("Filtri ripristinati correttamente.");
+    }
+
+    // Toggle Physics
+    function togglePhysics() {
+      isPhysicsActive = !isPhysicsActive;
+      networkInstance.setOptions({ physics: { enabled: isPhysicsActive } });
+      const btn = document.getElementById('physics-btn');
+      btn.innerHTML = isPhysicsActive 
+        ? `<i class="fa-solid fa-pause text-amber-400"></i> Metti in Pausa Fisica`
+        : `<i class="fa-solid fa-play text-emerald-400"></i> Riattiva Fisica Grafo`;
+    }
+
+    function fitNetworkView() {
+      networkInstance.fit({ animation: true });
+    }
+
+
+    // Open Detail Slide-over Panel
+    function openDetailDrawer(code) {
+      const prod = currentProducts.find(p => p.code === code);
+      if (!prod) return;
+
+      document.getElementById('detail-code-badge').textContent = `#${prod.code}`;
+      document.getElementById('detail-type-badge').textContent = prod.type.toUpperCase();
+      document.getElementById('detail-title').textContent = prod.name;
+      document.getElementById('detail-collection').textContent = `Collezione ${prod.collection}`;
+      document.getElementById('detail-price').textContent = `€ ${prod.price.toFixed(2)}`;
+      document.getElementById('detail-material').textContent = prod.material;
+      document.getElementById('detail-stones').textContent = prod.stones;
+      document.getElementById('detail-desc-short').textContent = prod.descShort;
+      document.getElementById('detail-desc-long').textContent = prod.descLong;
+
+      // Render Top Related Products (Semantic Neighbors)
+      const relatedEdges = similarityEdges
+        .filter(e => e.from === code || e.to === code)
+        .map(e => {
+          const otherCode = e.from === code ? e.to : e.from;
+          return {
+            otherCode,
+            similarity: e.similarity,
+            sharedKeywords: e.sharedKeywords
+          };
+        })
+        .sort((a, b) => b.similarity - a.similarity)
+        .slice(0, 6);
+
+      const relatedContainer = document.getElementById('related-products-list');
+      relatedContainer.innerHTML = '';
+
+      if (relatedEdges.length === 0) {
+        relatedContainer.innerHTML = `<p class="text-slate-500 italic text-[11px]">Nessuna correlazione semantica rilevata sopra la soglia corrente.</p>`;
+      } else {
+        relatedEdges.forEach(rel => {
+          const relProd = currentProducts.find(p => p.code === rel.otherCode);
+          if (!relProd) return;
+
+          const pct = (rel.similarity * 100).toFixed(0);
+          const card = document.createElement('div');
+          card.className = 'p-2.5 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 rounded-xl transition cursor-pointer space-y-1.5';
+          card.onclick = () => {
+            networkInstance.focus(relProd.code, { scale: 1.3, animation: true });
+            highlightSemanticNeighborhood(relProd.code);
+            openDetailDrawer(relProd.code);
+          };
+
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-200">${relProd.name} <span class="text-[10px] text-slate-500">(#${relProd.code})</span></span>
+              <span class="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-mono font-bold text-[10px] border border-cyan-500/30">${pct}% SIM</span>
+            </div>
+            <p class="text-[10px] text-slate-400">${relProd.collection} • ${relProd.type}</p>
+            <div class="flex flex-wrap gap-1 pt-1">
+              ${rel.sharedKeywords.map(kw => `<span class="px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-300 text-[9px] border border-purple-500/20">[${kw}]</span>`).join('')}
+            </div>
+          `;
+          relatedContainer.appendChild(card);
+        });
+      }
+
+      document.getElementById('detail-drawer').classList.remove('translate-x-full');
+    }
+
+    function closeDetailDrawer() {
+      document.getElementById('detail-drawer').classList.add('translate-x-full');
+    }
+
+
+    // Render Analytics Dashboard & Semantic Hubs
+    function renderAnalyticsView() {
+      // 1. Calculate Degree Centrality
+      const nodeDegrees = {};
+      currentProducts.forEach(p => nodeDegrees[p.code] = 0);
+
+      similarityEdges.forEach(e => {
+        if (e.similarity >= currentThreshold) {
+          nodeDegrees[e.from] = (nodeDegrees[e.from] || 0) + 1;
+          nodeDegrees[e.to] = (nodeDegrees[e.to] || 0) + 1;
+        }
+      });
+
+      const sortedHubs = currentProducts
+        .map(p => ({ ...p, degree: nodeDegrees[p.code] || 0 }))
+        .sort((a, b) => b.degree - a.degree);
+
+      const hubsContainer = document.getElementById('hubs-leaderboard');
+      hubsContainer.innerHTML = '';
+
+      sortedHubs.slice(0, 10).forEach((hub, rank) => {
+        const card = document.createElement('div');
+        card.className = 'p-3 bg-slate-800/80 rounded-xl border border-slate-700/50 flex items-center justify-between hover:border-cyan-500/50 transition cursor-pointer';
+        card.onclick = () => {
+          switchTab('network');
+          networkInstance.focus(hub.code, { scale: 1.4, animation: true });
+          highlightSemanticNeighborhood(hub.code);
+          openDetailDrawer(hub.code);
+        };
+
+        card.innerHTML = `
+          <div class="flex items-center space-x-3">
+            <span class="w-6 h-6 rounded-full bg-slate-700 flex items-center justify-center font-bold text-xs text-slate-300">${rank + 1}</span>
+            <div>
+              <h4 class="font-bold text-slate-200 text-xs">${hub.name}</h4>
+              <span class="text-[10px] text-cyan-400 font-semibold">${hub.collection}</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="px-2 py-1 rounded bg-purple-500/20 text-purple-300 font-mono font-bold text-xs border border-purple-500/30">${hub.degree} archi</span>
+          </div>
+        `;
+        hubsContainer.appendChild(card);
+      });
+
+      // 2. Collection Stats
+      const collectionsMap = {};
+      currentProducts.forEach(p => {
+        if (!collectionsMap[p.collection]) {
+          collectionsMap[p.collection] = { name: p.collection, count: 0, totalPrice: 0, items: [] };
+        }
+        collectionsMap[p.collection].count++;
+        collectionsMap[p.collection].totalPrice += p.price;
+        collectionsMap[p.collection].items.push(p);
+      });
+
+      const statsContainer = document.getElementById('collections-stats-grid');
+      statsContainer.innerHTML = '';
+
+      Object.values(collectionsMap).forEach(col => {
+        const avgPrice = (col.totalPrice / col.count).toFixed(2);
+        const color = COLLECTION_COLORS[col.name] || COLLECTION_COLORS.DEFAULT;
+
+        const card = document.createElement('div');
+        card.className = 'p-3.5 bg-slate-800/80 rounded-xl border border-slate-700/60 flex flex-col justify-between space-y-2';
+        card.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-700/50 pb-2">
+            <span class="font-bold text-slate-200 flex items-center gap-2 text-xs">
+              <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${color}"></span>
+              ${col.name}
+            </span>
+            <span class="px-2 py-0.5 rounded bg-slate-700 text-slate-300 font-bold text-[10px]">${col.count} Prodotti</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-[11px]">
+            <div>
+              <span class="text-[10px] text-slate-400 block uppercase">Prezzo Medio</span>
+              <span class="font-bold text-emerald-400">€ ${avgPrice}</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block uppercase">Tipologia Prevalente</span>
+              <span class="text-slate-300 font-semibold">${col.items[0].type}</span>
+            </div>
+          </div>
+        `;
+        statsContainer.appendChild(card);
+      });
+    }
+
+    // Populate Filter Dropdowns & Data Table
+    function populateDropdownsAndTable() {
+      const collections = [...new Set(currentProducts.map(p => p.collection))].sort();
+      const types = [...new Set(currentProducts.map(p => p.type))].sort();
+      const materials = [...new Set(currentProducts.map(p => p.material))].sort();
+
+      // Collection Select
+      const colSelect = document.getElementById('filter-collection');
+      colSelect.innerHTML = `<option value="ALL">Tutte le Collezioni (${collections.length})</option>`;
+      collections.forEach(c => {
+        colSelect.innerHTML += `<option value="${c}">${c}</option>`;
+      });
+
+      // Type Select
+      const typeSelect = document.getElementById('filter-type');
+      typeSelect.innerHTML = `<option value="ALL">Tutte le Tipologie (${types.length})</option>`;
+      types.forEach(t => {
+        typeSelect.innerHTML += `<option value="${t}">${t}</option>`;
+      });
+
+      // Material Select
+      const matSelect = document.getElementById('filter-material');
+      matSelect.innerHTML = `<option value="ALL">Tutti i Materiali (${materials.length})</option>`;
+      materials.forEach(m => {
+        matSelect.innerHTML += `<option value="${m}">${m}</option>`;
+      });
+
+      // Populate Data Table
+      const tableBody = document.getElementById('product-table-body');
+      tableBody.innerHTML = '';
+
+      currentProducts.forEach(p => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-slate-800/80 transition';
+        row.innerHTML = `
+          <td class="p-3 font-mono font-bold text-cyan-400">#${p.code}</td>
+          <td class="p-3 font-semibold text-slate-200">${p.name}</td>
+          <td class="p-3 text-slate-300">${p.collection}</td>
+          <td class="p-3 text-slate-300 uppercase text-[10px] font-bold"><span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">${p.type}</span></td>
+          <td class="p-3 text-slate-400">${p.material}</td>
+          <td class="p-3 text-amber-300">${p.stones}</td>
+          <td class="p-3 text-right font-bold text-emerald-400">€ ${p.price.toFixed(2)}</td>
+          <td class="p-3 text-center">
+            <button onclick="focusProductInGraph('${p.code}')" class="px-2.5 py-1 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 rounded border border-cyan-500/30 font-semibold transition flex items-center gap-1 mx-auto text-[11px]">
+              <i class="fa-solid fa-eye"></i> Grafo
+            </button>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    function focusProductInGraph(code) {
+      switchTab('network');
+      networkInstance.focus(code, { scale: 1.4, animation: true });
+      highlightSemanticNeighborhood(code);
+      openDetailDrawer(code);
+    }
+
+    // Header Legend Update
+    function updateLegend() {
+      const container = document.getElementById('legend-container');
+      container.innerHTML = '';
+
+      const itemsMap = currentColorMode === 'collection' ? COLLECTION_COLORS : TYPE_COLORS;
+      for (let key in itemsMap) {
+        if (key === 'DEFAULT') continue;
+        const color = itemsMap[key];
+        const item = document.createElement('div');
+        item.className = 'flex items-center space-x-1.5 truncate';
+        item.innerHTML = `
+          <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background:${color}"></span>
+          <span class="text-slate-300 truncate">${key}</span>
+        `;
+        container.appendChild(item);
+      }
+    }
+
+    function updateMetricsHeader() {
+      document.getElementById('metric-nodes').textContent = currentProducts.length;
+      document.getElementById('metric-edges').textContent = visEdges.length;
+      document.getElementById('metric-collections').textContent = new Set(currentProducts.map(p => p.collection)).size;
+    }
+
+
+    // Re-Upload Excel File Handler (SheetJS)
+    function handleExcelUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const rawRows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+          if (rawRows.length === 0) {
+            showToast("Il file Excel appare vuoto.", "error");
+            return;
+          }
+
+          // Dynamic Column Mapping
+          const newProducts = rawRows.map((row, idx) => {
+            const keys = Object.keys(row);
+            const getVal = (possibleNames) => {
+              const foundKey = keys.find(k => possibleNames.some(p => k.toLowerCase().includes(p.toLowerCase())));
+              return foundKey ? String(row[foundKey]).trim() : "";
+            };
+
+            return {
+              code: getVal(['codice', 'id', 'code']) || `N${1000 + idx}`,
+              name: getVal(['nome', 'prodotto', 'titolo', 'descrizione breve', 'tipologia']) || `Prodotto ${idx + 1}`,
+              collection: getVal(['collezione', 'categoria', 'linea']) || 'Generale',
+              type: getVal(['tipologia', 'tipo', 'categoria']) || 'gioiello',
+              price: parseFloat(getVal(['prezzo', 'price', 'costo'])) || 90.0,
+              material: getVal(['materiale', 'metallo']) || 'Argento 925',
+              stones: getVal(['pietra', 'pietre', 'gemme']) || 'Nessuna',
+              descShort: getVal(['descrizione breve', 'breve', 'note']) || getVal(['nome']),
+              descLong: getVal(['descrizione lunga', 'descrizione', 'dettagli']) || getVal(['nome'])
+            };
+          });
+
+          currentProducts = newProducts;
+          populateDropdownsAndTable();
+          initNetworkGraph();
+          switchTab('network');
+          showToast(`File caricato con successo! Elaborati ${newProducts.length} prodotti.`);
+
+        } catch (err) {
+          console.error(err);
+          showToast("Errore durante la lettura del file Excel.", "error");
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+
+    // Export Helpers
+    function exportCSV() {
+      let csv = "Codice,Nome,Collezione,Tipologia,Materiale,Pietre,Prezzo\n";
+      currentProducts.forEach(p => {
+        csv += `"${p.code}","${p.name}","${p.collection}","${p.type}","${p.material}","${p.stones}",${p.price}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "Rete_Semantica_Prodotti.csv";
+      link.click();
+      showToast("Esportazione CSV completata.");
+    }
+
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentProducts, null, 2));
+      const link = document.createElement("a");
+      link.href = dataStr;
+      link.download = "Rete_Semantica_Prodotti.json";
+      link.click();
+      showToast("Esportazione JSON completata.");
+    }
+
+    // Navigation Tab Switcher
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-cyan-500', 'text-slate-900', 'shadow');
+        btn.classList.add('text-slate-400');
+      });
+
+      document.getElementById(`tab-btn-${tabName}`).classList.add('active', 'bg-cyan-500', 'text-slate-900', 'shadow');
+      document.getElementById(`tab-btn-${tabName}`).classList.remove('text-slate-400');
+
+      document.getElementById('view-network').classList.add('hidden');
+      document.getElementById('view-analytics').classList.add('hidden');
+      document.getElementById('view-table').classList.add('hidden');
+      document.getElementById('view-upload').classList.add('hidden');
+
+      document.getElementById(`view-${tabName}`).classList.remove('hidden');
+
+      if (tabName === 'analytics') {
+        renderAnalyticsView();
+      }
+    }
+
+    // Toast Notification System
+    function showToast(message, type = "success") {
+      const toast = document.getElementById('app-toast');
+      const msgEl = document.getElementById('toast-message');
+      const iconEl = document.getElementById('toast-icon');
+
+      msgEl.textContent = message;
+      if (type === "error") {
+        iconEl.className = "fa-solid fa-triangle-exclamation text-rose-400 text-base";
+      } else {
+        iconEl.className = "fa-solid fa-circle-check text-emerald-400 text-base";
+      }
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
+
+    // Initialize App on Load
+    window.onload = function() {
+      populateDropdownsAndTable();
+      initNetworkGraph();
+    };
+  </script>
+</body>
+</html>

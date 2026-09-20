@@ -1,0 +1,2082 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerardo Sacco — Simulatore RAG & AI Agent Maestra Orafa (13 Collezioni & Tipologie)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #d4af37;
+    --gold-light: #f3e5ab;
+    --gold-dark: #997a15;
+    --royal-blue: #0f1c2e;
+    --royal-blue-light: #182a45;
+    --cream: #fbf9f5;
+    --white: #ffffff;
+    --ink: #1c1c1c;
+    --ink-soft: #555555;
+    --line: #e2d8c3;
+    --ruby: #8b1e2d;
+    --emerald: #1b4d3e;
+    --sapphire: #0f3854;
+    --radius-s: 4px;
+    --radius-m: 10px;
+    --serif: 'Cinzel', Georgia, serif;
+    --sans: 'Montserrat', -apple-system, sans-serif;
+    --shadow: 0 4px 20px rgba(15, 28, 46, 0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:var(--sans);
+    background:var(--cream);
+    color:var(--ink);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 24px;}
+
+  /* HEADER */
+  header.top{
+    background: radial-gradient(120% 140% at 15% -10%, #1f334d 0%, var(--royal-blue) 70%);
+    color:var(--cream);
+    padding:44px 0 34px;
+    border-bottom:3px solid var(--gold);
+    position: relative;
+  }
+  .brand-row{display:flex;align-items:center;gap:12px;margin-bottom:16px;opacity:.9;}
+  .brand-row svg{width:26px;height:26px;color:var(--gold);}
+  .brand-row span{font-family:var(--serif);font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold-light);}
+  header.top h1{
+    font-family:var(--serif);
+    font-weight:700;
+    font-size:clamp(26px,3.8vw,40px);
+    margin:0 0 10px;
+    line-height:1.15;
+    color:var(--gold);
+    letter-spacing:0.02em;
+  }
+  header.top p.lede{
+    max-width:70ch;
+    color:#d0dce8;
+    font-size:15px;
+    margin:0 0 20px;
+    font-weight:300;
+  }
+  .security-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    background:rgba(212,175,55,0.12);
+    border:1px solid rgba(212,175,55,0.4);
+    border-radius:999px;
+    padding:6px 16px;
+    font-size:12.5px;
+    color:var(--gold-light);
+  }
+  .security-badge .dot{
+    width:8px;height:8px;border-radius:50%;background:var(--gold);
+    box-shadow:0 0 0 3px rgba(212,175,55,0.3);
+    animation:pulse 2.4s ease-in-out infinite;
+    flex:none;
+  }
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+  /* CONTROLLI IN ALTO A DESTRA */
+  .top-right-controls {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 1000;
+    flex-wrap: wrap;
+  }
+  #reset-line-btn {
+    background: rgba(212, 175, 55, 0.95);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--gold-light);
+    color: var(--royal-blue);
+    padding: 9px 16px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--sans);
+  }
+  #reset-line-btn:hover { background: #ffffff; transform: translateY(-2px); }
+  #stop-voice-btn {
+    background: rgba(139, 30, 45, 0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid #ff99a8;
+    color: #ffffff;
+    padding: 9px 16px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--sans);
+  }
+  #stop-voice-btn:hover { background: var(--ruby); transform: translateY(-2px); }
+  #info-btn-top-right {
+    background: rgba(15, 28, 46, 0.92);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 9px 16px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--sans);
+  }
+  #info-btn-top-right:hover { background: var(--gold); color: var(--royal-blue); transform: translateY(-2px); }
+
+  /* PROGRESS BAR */
+  .progress-zone{background:var(--cream);border-bottom:1px solid var(--line);}
+  .progress{
+    display:flex;
+    align-items:stretch;
+    max-width:1100px;margin:0 auto;padding:20px 24px 18px;
+    gap:0;
+  }
+  .progress .seg{flex:1;display:flex;flex-direction:column;gap:8px;position:relative;padding-right:14px;}
+  .progress .seg .stem{height:4px;border-radius:3px;background:var(--line);overflow:hidden;}
+  .progress .seg .stem i{display:block;height:100%;width:0%;background:var(--gold);transition:width .5s ease;}
+  .progress .seg.done .stem i{width:100%;}
+  .progress .seg.active .stem i{width:60%;}
+  .progress .seg .label{font-size:11.5px;color:var(--ink-soft);font-weight:500;text-transform:uppercase;letter-spacing:0.04em;}
+  .progress .seg.active .label{color:var(--royal-blue);font-weight:700;}
+  .progress .seg.done .label{color:var(--gold-dark);}
+
+  main{max-width:1100px;margin:0 auto;padding:32px 24px 90px;}
+  .step{display:none;}
+  .step.active{display:block;animation:rise .38s ease both;}
+  @keyframes rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+  h2.step-title{font-family:var(--serif);font-weight:700;font-size:25px;color:var(--royal-blue);margin:0 0 6px;}
+  p.step-sub{color:var(--ink-soft);margin:0 0 20px;max-width:70ch;font-size:14px;}
+
+  /* TAB DI SELEZIONE MODALITÀ (COLLEZIONI vs TIPOLOGIE) */
+  .view-mode-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--line);
+    padding-bottom: 12px;
+  }
+  .tab-btn {
+    background: var(--white);
+    border: 1.5px solid var(--line);
+    border-radius: 30px;
+    padding: 10px 20px;
+    font-family: var(--sans);
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--royal-blue);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tab-btn:hover { border-color: var(--gold); }
+  .tab-btn.active {
+    background: var(--royal-blue);
+    color: var(--gold-light);
+    border-color: var(--gold);
+    box-shadow: 0 4px 12px rgba(15,28,46,0.15);
+  }
+
+  /* GRID 13 COLLEZIONI & TIPOLOGIE */
+  .module-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));gap:18px;}
+  .module-card{
+    text-align:left;
+    background:var(--white);
+    border:1.5px solid var(--line);
+    border-radius:var(--radius-m);
+    padding:0;
+    cursor:pointer;
+    overflow:hidden;
+    transition:all .22s ease;
+    font-family:var(--sans);
+    display:flex;flex-direction:column;
+    box-shadow:var(--shadow);
+  }
+  .module-card:hover{transform:translateY(-3px);border-color:var(--gold);}
+  .module-card.selected{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,175,55,0.3);}
+  .module-card .head{padding:18px 18px 14px;color:var(--white);position:relative;background:linear-gradient(150deg,#1f334d,#0f1c2e);}
+  .module-card .head svg{width:24px;height:24px;margin-bottom:8px;color:var(--gold);}
+  .module-card .head h3{font-family:var(--serif);font-size:16.5px;margin:0 0 3px;font-weight:700;color:var(--gold-light);}
+  .module-card .head .tag{font-size:11px;opacity:.88;letter-spacing:0.04em;text-transform:uppercase;color:#d0dce8;}
+  .module-card .body{padding:14px 18px 18px;color:var(--ink-soft);font-size:13px;flex:1;line-height:1.45;}
+  .module-card .check{
+    position:absolute;top:14px;right:14px;width:22px;height:22px;border-radius:50%;
+    border:1.5px solid rgba(212,175,55,0.6);background:transparent;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .module-card.selected .check{background:var(--gold);border-color:var(--gold);}
+  .module-card.selected .check svg{display:block;}
+  .module-card .check svg{display:none;width:12px;height:12px;color:var(--royal-blue);}
+
+  /* CARD PER TIPOLOGIA */
+  .type-card {
+    background: var(--white);
+    border: 1.5px solid var(--line);
+    border-radius: var(--radius-m);
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .type-card:hover { transform: translateY(-3px); border-color: var(--gold); }
+  .type-card h3 { font-family: var(--serif); color: var(--royal-blue); margin: 0 0 6px; font-size: 18px; }
+  .type-card p { font-size: 13px; color: var(--ink-soft); margin: 0 0 12px; }
+  .type-card .collections-tag { font-size: 11px; font-weight: 600; color: var(--gold-dark); background: var(--gold-light); padding: 4px 10px; border-radius: 999px; display: inline-block; }
+
+  /* FORMS */
+  fieldset{border:none;margin:0;padding:0;}
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px 20px;}
+  @media (max-width:640px){.field-grid{grid-template-columns:1fr;}}
+  .field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+  .field.full{grid-column:1 / -1;}
+  label{font-size:13px;font-weight:600;color:var(--royal-blue);}
+  label .hint{font-weight:400;color:var(--ink-soft);font-size:11.8px;}
+  select, input[type=text], textarea{
+    font-family:var(--sans);
+    font-size:13.8px;
+    padding:10px 12px;
+    border:1.5px solid var(--line);
+    border-radius:var(--radius-s);
+    background:var(--white);
+    color:var(--ink);
+    width:100%;
+    transition: all 0.25s ease;
+  }
+  select:focus, input:focus, textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,175,55,0.2);}
+  textarea{resize:vertical;min-height:75px;}
+
+  .active-field-highlight {
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.35) !important;
+    animation: focusPulse 1.5s infinite alternate;
+  }
+  @keyframes focusPulse {
+    from { box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2); }
+    to { box-shadow: 0 0 0 6px rgba(212, 175, 55, 0.55); }
+  }
+
+  .chip-group{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{
+    padding:7px 13px;border:1.5px solid var(--line);border-radius:999px;
+    font-size:12.5px;cursor:pointer;background:var(--white);color:var(--ink-soft);
+    user-select:none;transition:all .18s ease;
+  }
+  .chip.on{background:var(--gold-light);border-color:var(--gold-dark);color:var(--royal-blue);font-weight:600;}
+
+  .divider{height:1px;background:var(--line);margin:24px 0;}
+
+  /* NAV BUTTONS */
+  .nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:28px;}
+  .btn{
+    font-family:var(--sans);
+    font-size:13.5px;
+    font-weight:600;
+    padding:11px 22px;
+    border-radius:var(--radius-s);
+    border:1.5px solid transparent;
+    cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;
+    transition:all .2s ease;
+  }
+  .btn-primary{background:var(--royal-blue);color:var(--gold-light);border-color:var(--gold);}
+  .btn-primary:hover{background:var(--royal-blue-light);transform:translateY(-1px);}
+  .btn-primary:disabled{background:#b2c0cc;border-color:transparent;color:#ffffff;cursor:not-allowed;transform:none;}
+  .btn-ghost{background:transparent;color:var(--ink-soft);border-color:var(--line);}
+  .btn-ghost:hover{border-color:var(--royal-blue);color:var(--royal-blue);}
+  .btn-dark{background:var(--gold-dark);color:var(--white);}
+  .btn-dark:hover{background:var(--gold);}
+
+  /* STEP 3 OUTPUT SCHEDA TECNICA */
+  .processing-box{
+    display:flex;align-items:center;gap:14px;
+    background:#f4efe6;border:1px solid var(--gold);border-radius:var(--radius-m);
+    padding:16px 20px;margin-bottom:22px;font-size:13.8px;color:var(--royal-blue);font-weight:600;
+  }
+  .spinner{width:18px;height:18px;border-radius:50%;border:2.5px solid #dcd1ba;border-top-color:var(--gold-dark);animation:spin .8s linear infinite;flex:none;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .sheet{
+    background:var(--white);
+    border:1px solid var(--line);
+    border-left:5px solid var(--gold);
+    border-radius:var(--radius-m);
+    padding:26px 26px 20px;
+    box-shadow:var(--shadow);
+  }
+  .sheet .sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px;flex-wrap:wrap;}
+  .sheet .sheet-head h3{font-family:var(--serif);font-size:21px;margin:0 0 4px;color:var(--royal-blue);}
+  .sheet .sheet-head .meta{font-size:12px;color:var(--ink-soft);}
+  .mode-badge{font-size:11px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--gold-light);color:var(--royal-blue);border:1px solid var(--gold);}
+
+  table.formula-table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+  table.formula-table th{
+    text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--royal-blue);
+    font-weight:700;padding:0 10px 8px 0;border-bottom:1.5px solid var(--gold);
+  }
+  table.formula-table td{padding:11px 10px 11px 0;border-bottom:1px solid #f0e9dc;font-size:13.5px;vertical-align:top;}
+  table.formula-table td.num{font-weight:600;color:var(--royal-blue);}
+  table.formula-table tr:last-child td{border-bottom:none;}
+  .code-badge{font-family:monospace;font-size:11.5px;background:#f0e8d8;padding:2px 6px;border-radius:4px;color:var(--royal-blue);font-weight:bold;}
+
+  .param-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:16px 0 8px;}
+  @media (max-width:640px){.param-grid{grid-template-columns:1fr 1fr;}}
+  .param{background:#f8f5ee;border-radius:var(--radius-s);padding:11px 13px;border:1px solid var(--line);}
+  .param .k{font-size:10.8px;color:var(--ink-soft);text-transform:uppercase;margin-bottom:3px;letter-spacing:0.04em;}
+  .param .v{font-size:14px;font-weight:700;font-family:var(--serif);color:var(--royal-blue);}
+
+  .expert-note{
+    background:#fdfaf3;border:1px dashed var(--gold);border-radius:var(--radius-s);
+    padding:13px;font-size:13px;color:#5a4918;margin-top:14px;
+  }
+
+  .rag-sources{
+    margin-top:20px;background:var(--royal-blue);color:#e2ecf5;border-radius:var(--radius-m);
+    padding:18px;
+  }
+  .rag-sources h4{font-family:var(--serif);font-size:14.5px;margin:0 0 10px;color:var(--gold-light);font-weight:600;display:flex;align-items:center;gap:8px;}
+  .rag-source-item{
+    display:grid;grid-template-columns:1fr auto;gap:4px 12px;
+    padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.08);font-size:12.5px;
+  }
+  .rag-source-item:last-child{border-bottom:none;}
+  .rag-source-item .name{color:#ffffff;font-weight:600;}
+  .rag-source-item .inci-src{color:var(--gold-light);font-size:11.5px;}
+
+  /* STEP 4 : HUMAN IN THE LOOP */
+  .hitl{
+    margin-top:28px;border:1.5px solid var(--gold);border-radius:var(--radius-m);
+    padding:22px;background:var(--white);
+  }
+  .hitl .hitl-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .hitl .hitl-head svg{width:20px;height:20px;color:var(--gold-dark);flex:none;}
+  .hitl .hitl-head h3{font-family:var(--serif);font-size:17.5px;margin:0;color:var(--royal-blue);}
+  .hitl p.desc{color:var(--ink-soft);font-size:13px;margin:0 0 18px;}
+  .edit-row{
+    display:flex;align-items:center;gap:14px;padding:9px 0;border-bottom:1px solid #f0e9dc;
+  }
+  .edit-row:last-of-type{border-bottom:none;}
+  .edit-row .lbl{flex:1;font-size:13.5px;color:var(--royal-blue);}
+  .edit-row .lbl small{display:block;color:var(--ink-soft);font-size:11.5px;}
+  .edit-row input[type=number], .edit-row input[type=text], .edit-row select{
+    padding:7px 10px;border:1.5px solid var(--line);border-radius:var(--radius-s);
+    font-size:13px;font-family:var(--sans);
+  }
+  .edit-row input[type=number]{width:90px;text-align:right;}
+  .edit-row input[type=text]{width:180px;}
+
+  .validate-row{display:flex;align-items:center;gap:14px;margin-top:20px;flex-wrap:wrap;}
+  .save-confirm{
+    display:none;align-items:center;gap:8px;color:var(--emerald);font-weight:600;font-size:13px;
+  }
+  .save-confirm.show{display:inline-flex;}
+
+  /* HISTORIC */
+  .history-zone{margin-top:40px;}
+  .history-zone h3{font-family:var(--serif);font-size:18.5px;margin:0 0 4px;color:var(--royal-blue);}
+  .history-zone p.desc{color:var(--ink-soft);font-size:13px;margin:0 0 14px;}
+  .history-list{display:flex;flex-direction:column;gap:10px;}
+  .history-item{
+    display:flex;justify-content:space-between;align-items:center;gap:14px;
+    background:var(--white);border:1px solid var(--line);border-radius:var(--radius-s);
+    padding:12px 15px;font-size:13px;
+  }
+  .history-item .h-mod{
+    font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;
+    background:var(--gold-light);color:var(--royal-blue);text-transform:uppercase;
+  }
+  .history-item .h-desc{flex:1;color:var(--ink-soft);}
+  .history-item .h-time{color:#888;font-size:11.8px;white-space:nowrap;}
+  .history-empty{color:var(--ink-soft);font-size:13px;font-style:italic;padding:12px 0;}
+
+  .kb-counter{
+    display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-soft);
+    background:#f0e8d8;border-radius:999px;padding:5px 13px;
+  }
+  .kb-counter b{color:var(--royal-blue);font-family:var(--serif);font-size:14.5px;}
+
+  footer.foot{border-top:1px solid var(--line);padding:26px 0;margin-top:50px;background:var(--white);}
+  footer.foot .wrap{display:flex;justify-content:space-between;align-items:center;font-size:12.2px;color:var(--ink-soft);flex-wrap:wrap;gap:10px;}
+
+  /* STILI AGENTE MAESTRA ORAFA */
+  .avatar-free-container { 
+    position: fixed; 
+    bottom: 20px; 
+    right: 20px; 
+    z-index: 9999; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: flex-end; 
+    gap: 10px; 
+    font-family: var(--sans);
+  }
+  
+  .avatar-trigger-wrapper { position: relative; display: inline-block; text-align: center; }
+
+  .avatar-trigger { 
+    position: relative;
+    width: 125px; 
+    height: 165px; 
+    cursor: pointer; 
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); 
+    transform-origin: bottom center;
+    animation: idle-float 4s ease-in-out infinite;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 2px solid var(--gold);
+    background: var(--royal-blue);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  }
+
+  .avatar-trigger img#avatar-img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover;
+    object-position: top center;
+    pointer-events: none;
+  }
+
+  .avatar-mouth {
+    position: absolute;
+    top: 45%; 
+    left: 50%;
+    width: 14px;
+    height: 3px;
+    background: #4a1d24;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: height 0.08s ease, width 0.08s ease;
+    opacity: 0.85;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+  }
+
+  @keyframes idle-float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-5px) rotate(0.8deg); }
+  }
+
+  .btn-change-avatar {
+    position: absolute;
+    bottom: 6px; left: 6px;
+    background: var(--gold); color: var(--royal-blue);
+    border: 1px solid var(--royal-blue); border-radius: 50%;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    z-index: 10;
+  }
+
+  .avatar-chat-window { 
+    width: 370px; 
+    height: 480px; 
+    background: rgba(15, 28, 46, 0.96); 
+    border: 1.5px solid var(--gold); 
+    border-radius: 14px; 
+    display: none; 
+    flex-direction: column; 
+    overflow: hidden; 
+    backdrop-filter: blur(10px); 
+    box-shadow: 0 12px 35px rgba(0,0,0,0.6); 
+  }
+  .avatar-chat-window.active { display: flex; }
+  .chat-header { 
+    background: #09121f; 
+    padding: 12px 16px; 
+    font-weight: 600; 
+    color: var(--gold-light); 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+    font-family: var(--serif);
+    letter-spacing: 0.03em;
+  }
+  .chat-header-actions { display: flex; align-items: center; gap: 6px; }
+  .btn-stop-chat {
+    background: var(--ruby); color: #fff; border: none;
+    padding: 4px 9px; border-radius: 12px; font-size: 0.75rem; cursor: pointer; font-weight: 600;
+  }
+  .btn-reset-chat {
+    background: var(--gold); color: var(--royal-blue); border: none;
+    padding: 4px 9px; border-radius: 12px; font-size: 0.75rem; cursor: pointer; font-weight: 700;
+  }
+  .chat-messages { 
+    flex: 1; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; font-size: 0.88rem; 
+  }
+  .msg { padding: 10px 14px; border-radius: 10px; max-width: 85%; line-height: 1.45; word-wrap: break-word; }
+  .ai-msg { background: #182a45; color: #f2f5f8; align-self: flex-start; border: 1px solid rgba(212,175,55,0.3); }
+  .user-msg { background: var(--gold-dark); color: var(--white); align-self: flex-end; }
+  .chat-input-area { display: flex; padding: 10px; background: #09121f; border-top: 1px solid rgba(255,255,255,0.1); gap: 6px; }
+  .chat-input-area input { 
+    flex: 1; background: #182a45; border: 1px solid rgba(212,175,55,0.4); color: #fff; 
+    padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; outline: none;
+  }
+  .btn-chat { background: var(--gold); border: none; color: var(--royal-blue); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 700; }
+  .btn-mic { background: var(--emerald); color: var(--white); }
+  .btn-mic.recording { background: var(--ruby); animation: pulse-mic 1s infinite; }
+  @keyframes pulse-mic { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  /* MODALE COMANDI */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);
+    display: none; justify-content: center; align-items: center; z-index: 10000;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-content {
+    background: var(--royal-blue); border: 1px solid var(--gold); border-radius: 14px;
+    width: 90%; max-width: 560px; max-height: 85vh; overflow-y: auto; padding: 24px; color: #e2e8f0;
+  }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(212, 175, 55, 0.3); padding-bottom: 12px; margin-bottom: 18px; }
+  .modal-header h3 { margin: 0; color: var(--gold); font-size: 1.2rem; font-family: var(--serif); }
+  .cmd-category { margin-bottom: 16px; background: #182a45; padding: 14px; border-radius: 8px; border: 1px solid rgba(212,175,55,0.2); }
+  .cmd-category h4 { margin: 0 0 10px 0; color: var(--gold-light); font-size: 0.95rem; }
+  .cmd-list { list-style: none; padding-left: 0; margin: 0; font-size: 0.88rem; }
+  .cmd-list li { padding: 4px 0; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .cmd-badge { background: var(--royal-blue); border: 1px solid var(--gold); color: var(--gold); padding: 2px 8px; border-radius: 4px; font-family: monospace; font-size: 0.82rem; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<!-- PULSANTI CONTROLLO IN ALTO A DESTRA -->
+<div class="top-right-controls">
+  <button id="reset-line-btn" onclick="resetToStep1()" title="Interrompi e ricomincia con una nuova linea">
+    <span>🔄 Interrompi e Nuova Linea</span>
+  </button>
+  <button id="stop-voice-btn" onclick="stopVoice()">
+    <span>🛑 Stop Voce</span>
+  </button>
+  <button id="info-btn-top-right" onclick="toggleCommandsModal()">
+    <span>📜 Comandi & Guida Maestra</span>
+  </button>
+</div>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand-row">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      <span>Gerardo Sacco — Gioielli dal 1963 · Crotone</span>
+    </div>
+    <h1>Simulatore RAG di Alta Gioielleria</h1>
+    <p class="lede">Esplora il catalogo scegliendo tra le 13 collezioni ufficiali o per tipologia di gioiello (Anelli, Pendenti, Orecchini, Bracciali, Spille). Naviga liberamente anche interagendo in dialogo con la Maestra Orafa.</p>
+    <span class="security-badge"><span class="dot"></span> Layer di Tracciabilità e Brevetti Attivo — Navigazione e RAG Multi-Collezione</span>
+  </div>
+</header>
+
+<div class="progress-zone">
+  <div class="progress" id="progressBar" aria-hidden="true">
+    <div class="seg active" data-step="1"><div class="stem"><i></i></div><div class="label">1 · Selezione Linea / Tipo</div></div>
+    <div class="seg" data-step="2"><div class="stem"><i></i></div><div class="label">2 · Profilazione</div></div>
+    <div class="seg" data-step="3"><div class="stem"><i></i></div><div class="label">3 · Scheda Parure RAG</div></div>
+    <div class="seg" data-step="4"><div class="stem"><i></i></div><div class="label">4 · Certificazione</div></div>
+  </div>
+</div>
+
+<main>
+
+  <!-- STEP 1: SELEZIONE PER COLLEZIONE O PER TIPOLOGIA -->
+  <section class="step active" id="step1">
+    <h2 class="step-title">Come desideri esplorare la Gioielleria Gerardo Sacco?</h2>
+    <p class="step-sub">Puoi scegliere tra le 13 Collezioni oppure sfogliare per Tipologia di Prodotto. Puoi anche chiedere direttamente in chat alla Maestra Orafa!</p>
+
+    <!-- TAB SWITCHER -->
+    <div class="view-mode-tabs">
+      <button class="tab-btn active" id="tab-collezioni" onclick="switchViewMode('collezioni')">
+        💎 Naviga per Collezione (13 Linee)
+      </button>
+      <button class="tab-btn" id="tab-tipologie" onclick="switchViewMode('tipologie')">
+        💍 Naviga per Tipologia di Prodotto
+      </button>
+    </div>
+
+    <!-- SEZIONE 1: 13 COLLEZIONI -->
+    <div id="section-collezioni">
+      <div class="module-grid" role="group" aria-label="Selezione linea gioielleria">
+
+        <!-- 1. REVERSE ORO -->
+        <button class="module-card" data-mod="reverse" type="button">
+          <div class="head">
+            <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/></svg>
+            <h3>1. Reverse Oro</h3>
+            <div class="tag">Anelli & Pendenti Brevettati</div>
+          </div>
+          <div class="body">Anelli e ciondoli con meccanismo rotante brevettato: simboli dei 12 mesi e pavé di pietre stagionali.</div>
+        </button>
+
+        <!-- 2. RICAMI -->
+        <button class="module-card" data-mod="ricami" type="button">
+          <div class="head">
+            <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Z"/></svg>
+            <h3>2. Ricami & Filigrana</h3>
+            <div class="tag">Anelli, Orecchini, Spille, Collane</div>
+          </div>
+          <div class="body">Intrecci d'oro e filigrana d'argento impreziositi da perle scaramazze, agata nera, zaffiri e rubini.</div>
+        </button>
+
+        <!-- 3. CAMMEI -->
+        <button class="module-card" data-mod="cammei" type="button">
+          <div class="head">
+            <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            <h3>3. Cammei & Agata</h3>
+            <div class="tag">Anelli & Orecchini con Cammeo</div>
+          </div>
+          <div class="body">Profili classici incisi a mano su agata azzurra, verde o rossa con montature in argento 925 e oro 18kt.</div>
+        </button>
+
+        <!-- 4. MATTONELLE ORO -->
+        <button class="module-card" data-mod="mattonelle_oro" type="button">
+          <div class="head">
+            <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/></svg>
+            <h3>4. Mattonelle Oro</h3>
+            <div class="tag">Anelli, Pendenti, Bracciali</div>
+          </div>
+          <div class="body">Geometrie in oro 18kt e smalti policromi ispirati ai rivestimenti storici dell'architettura mediterranea.</div>
+        </button>
+
+        <!-- 5. SCRIGNO -->
+        <button class="module-card" data-mod="scrigno" type="button">
+          <div class="head">
+            <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <h3>5. Scrigno</h3>
+            <div class="tag">Pendenti, Ciondoli & Lenti</div>
+          </div>
+          <div class="body">Ciondoli e lenti apribili lavorati in oro e argento che racchiudono elementi segreti e pietre d'eccezione.</div>
+        </button>
+
+        <!-- 6. ORECCHINI DUE IN UNO -->
+        <button class="module-card" data-mod="due_in_uno" type="button">
+          <div class="head">
+            <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="9" r="4"/><circle cx="15" cy="15" r="4"/></svg>
+            <h3>6. Orecchini Due in Uno</h3>
+            <div class="tag">Orecchini Modulari Trasformabili</div>
+          </div>
+          <div class="body">Orecchini modulari trasformabili con un gesto: da sobrio punto luce da giorno a sfarzoso pendente da sera.</div>
+        </button>
+
+        <!-- 7. NINFEE -->
+        <button class="module-card" data-mod="ninfee" type="button">
+          <div class="head">
+            <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 14a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg>
+            <h3>7. Ninfee</h3>
+            <div class="tag">Anelli, Spille & Pendenti Botanici</div>
+          </div>
+          <div class="body">Sculture botaniche in oro con smalti cattedrale policromi e perle scaramazze dal fascino magico.</div>
+        </button>
+
+        <!-- 8. MAGNA GRECIA -->
+        <button class="module-card" data-mod="magna_grecia" type="button">
+          <div class="head">
+            <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 10h6M9 14h6M9 18h6"/></svg>
+            <h3>8. Magna Grecia</h3>
+            <div class="tag">Maschere, Pendenti & Anelli</div>
+          </div>
+          <div class="body">Maschere propiziatorie, colonne ed epigrafi della tradizione pitagorica in oro 18kt e argento 925.</div>
+        </button>
+
+        <!-- 9. PASTE VITREE -->
+        <button class="module-card" data-mod="paste_vitree" type="button">
+          <div class="head">
+            <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            <h3>9. Paste Vitree</h3>
+            <div class="tag">Anelli & Pendenti Storici</div>
+          </div>
+          <div class="body">Fusioni in pasta vitrea lavorate secondo antiche formule fenicie e romane, montate su castoni lavorati a mano.</div>
+        </button>
+
+        <!-- 10. MATTONELLE ARGENTO -->
+        <button class="module-card" data-mod="mattonelle_argento" type="button">
+          <div class="head">
+            <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 12h8M12 8v8"/></svg>
+            <h3>10. Mattonelle Argento</h3>
+            <div class="tag">Bracciali Modulari & Anelli</div>
+          </div>
+          <div class="body">Moduli geometrici in argento 925/000 con smalti a freddo nei toni azzurro mare e rosso corallo.</div>
+        </button>
+
+        <!-- 11. PERLE -->
+        <button class="module-card" data-mod="perle" type="button">
+          <div class="head">
+            <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
+            <h3>11. Perle Scaramazze & Mari del Sud</h3>
+            <div class="tag">Girocolli & Orecchini di Perle</div>
+          </div>
+          <div class="body">Selezione di perle barocche scaramazze d'acqua dolce e perle australiane con chiusure e dettagli in oro 18kt.</div>
+        </button>
+
+        <!-- 12. MONETE -->
+        <button class="module-card" data-mod="monete" type="button">
+          <div class="head">
+            <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9 9.5h6M9 14.5h6"/></svg>
+            <h3>12. Monete Magna Grecia</h3>
+            <div class="tag">Pendenti & Anelli Numismatici</div>
+          </div>
+          <div class="body">Riproduzioni fedeli di stateri e tetradrammi antichi incastonati in cornici dorate a tortiglione.</div>
+        </button>
+
+        <!-- 13. MESI & STAGIONI -->
+        <button class="module-card" data-mod="mesi_stagioni" type="button">
+          <div class="head">
+            <div class="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M4 12l5 5L20 6"/></svg></div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+            <h3>13. Mesi, Stagioni & Maschere</h3>
+            <div class="tag">Charms, Bracciali & Amuleti</div>
+          </div>
+          <div class="body">Pendenti, bracciali e charms con maschere apotropaiche e pietre portafortuna legate ai 12 mesi.</div>
+        </button>
+
+      </div>
+    </div>
+
+    <!-- SEZIONE 2: SFOGLIA PER TIPOLOGIA DI PRODOTTO -->
+    <div id="section-tipologie" style="display:none;">
+      <div class="module-grid">
+        
+        <!-- ANELLI -->
+        <div class="type-card" onclick="selectByProductType('anelli')">
+          <div>
+            <h3>💍 Anelli d'Arte</h3>
+            <p>Anelli fasce, solitarie, cammei incisi e i famosi meccanismi rotanti bilaterali brevettati.</p>
+          </div>
+          <span class="collections-tag">Collezioni: Reverse Oro, Ricami, Cammei, Mattonelle Oro, Ninfee, Monete</span>
+        </div>
+
+        <!-- PENDENTI E CIONDOLI -->
+        <div class="type-card" onclick="selectByProductType('pendenti')">
+          <div>
+            <h3>📿 Pendenti, Ciondoli & Lenti</h3>
+            <p>Ciondoli trasformativi, lenti ingrandenti decorate, monete storiche e medaglioni apotropaici.</p>
+          </div>
+          <span class="collections-tag">Collezioni: Scrigno, Reverse Oro, Magna Grecia, Paste Vitree, Monete</span>
+        </div>
+
+        <!-- ORECCHINI -->
+        <div class="type-card" onclick="selectByProductType('orecchini')">
+          <div>
+            <h3>✨ Orecchini Modulari & Pendenti</h3>
+            <p>Orecchini 2 in 1 trasformabili da giorno a gala, punti luce con perle scaramazze e cammei.</p>
+          </div>
+          <span class="collections-tag">Collezioni: Due in Uno, Ricami, Cammei, Ninfee, Perle Scaramazze</span>
+        </div>
+
+        <!-- BRACCIALI -->
+        <div class="type-card" onclick="selectByProductType('bracciali')">
+          <div>
+            <h3>⛓️ Bracciali & Moduli</h3>
+            <p>Bracciali con moduli in oro e argento smaltati a mano, catene con charms propiziatori dei 12 mesi.</p>
+          </div>
+          <span class="collections-tag">Collezioni: Mattonelle Argento, Mattonelle Oro, Mesi & Stagioni</span>
+        </div>
+
+        <!-- SPILLE E CHARMS -->
+        <div class="type-card" onclick="selectByProductType('spille')">
+          <div>
+            <h3>🦋 Spille & Amuleti Charms</h3>
+            <p>Spille botaniche a farfalla o ninfea in filigrana e ciondoli charms con icone apotropaiche.</p>
+          </div>
+          <span class="collections-tag">Collezioni: Ricami, Ninfee, Mesi & Stagioni, Magna Grecia</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <span></span>
+      <button class="btn btn-primary" id="toStep2" disabled type="button">Continua alla profilazione</button>
+    </div>
+  </section>
+
+  <!-- STEP 2: FIELDSET DEDICATI PER TUTTE LE 13 COLLEZIONI -->
+  <section class="step" id="step2">
+    <h2 class="step-title">Questionario di Profilazione Orafa</h2>
+    <p class="step-sub" id="step2Sub">Configura le preferenze per calcolare la parure o la combinazione di gioielli ideale.</p>
+
+    <form id="profileForm">
+
+      <!-- FIELDSET 1: REVERSE -->
+      <fieldset class="field-grid" id="fields-reverse" hidden>
+        <div class="field">
+          <label for="rev-mese">Mese di Nascita o Simbolo</label>
+          <select id="rev-mese">
+            <option value="Gennaio">Gennaio (14286GEN - Agrumi)</option>
+            <option value="Febbraio">Febbraio (14286FED - Maschere)</option>
+            <option value="Marzo">Marzo (14286MAR - Rondini)</option>
+            <option value="Aprile">Aprile (14286APR - Gerbere)</option>
+            <option value="Maggio">Maggio (14286MAG - Rose)</option>
+            <option value="Giugno">Giugno (14286GIU - Spighe)</option>
+            <option value="Luglio">Luglio (14286LUG - Stelle Marine)</option>
+            <option value="Agosto">Agosto (14286AGO - Sole)</option>
+            <option value="Settembre">Settembre (14286SET - Uva)</option>
+            <option value="Ottobre">Ottobre (14286OTT - Castagna)</option>
+            <option value="Novembre">Novembre (14286NOV - Melagrana)</option>
+            <option value="Dicembre">Dicembre (14286DIC - Cristalli di neve)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="rev-stagione">Stagione / Verso del Pavé</label>
+          <select id="rev-stagione">
+            <option value="Primavera">Primavera (Zaffiri Rosa - Oro Rosé)</option>
+            <option value="Estate">Estate (Zaffiri Blu - Oro Bianco)</option>
+            <option value="Autunno">Autunno (Diamanti Brown - Oro Rodiato Nero)</option>
+            <option value="Inverno">Inverno (Rubini - Oro Bianco)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="rev-misura">Misura Anello</label>
+          <select id="rev-misura">
+            <option value="12">Misura 12 (Standard)</option>
+            <option value="10">Misura 10</option>
+            <option value="14">Misura 14</option>
+            <option value="16">Misura 16</option>
+            <option value="18">Misura 18</option>
+            <option value="20">Misura 20</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <!-- FIELDSET 2: RICAMI -->
+      <fieldset class="field-grid" id="fields-ricami" hidden>
+        <div class="field">
+          <label for="ric-pietra">Pietra Preziosa di Riferimento</label>
+          <select id="ric-pietra">
+            <option value="zaffiri">Zaffiri Blu</option>
+            <option value="rubini">Rubini Rossi</option>
+            <option value="smeraldi">Smeraldi Verdi</option>
+            <option value="perle">Perle d'acqua dolce / Scaramazze</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ric-tipologia">Tipologia di Gioiello Guida</label>
+          <select id="ric-tipologia">
+            <option value="anello">Anello in Oro 9kt con perle</option>
+            <option value="orecchini">Orecchini con pendente agata/perla</option>
+            <option value="collana">Collana / Girocollo microperle</option>
+            <option value="spilla">Spilla / Ciondolo Farfalla</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ric-colore-agata">Tonalità Disco in Agata</label>
+          <select id="ric-colore-agata">
+            <option value="Nero (ne)">Nero Profondo (Agata Nera)</option>
+            <option value="Azzurro (az)">Azzurro Mare</option>
+            <option value="Verde (ve)">Verde Smeraldo</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <!-- FIELDSET 3: CAMMEI -->
+      <fieldset class="field-grid" id="fields-cammei" hidden>
+        <div class="field">
+          <label for="cam-colore">Colore Agata Cammeo</label>
+          <select id="cam-colore">
+            <option value="Azzurro (az)">Azzurro Pastello</option>
+            <option value="Verde (ve)">Verde Giada</option>
+            <option value="Rosso (ro)">Rosso Corallo</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="cam-metallo">Lavorazione Metallo</label>
+          <select id="cam-metallo">
+            <option value="Arg 925 e Oro 18kt">Argento 925/000 con fregi in Oro 18kt</option>
+            <option value="Oro 9kt e 18kt">Oro Giallo 9kt e 18kt</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <!-- FIELDSET 4: MATTONELLE ORO -->
+      <fieldset class="field-grid" id="fields-mattonelle_oro" hidden>
+        <div class="field">
+          <label for="mo-smalto">Combinazione Smalti Policromi</label>
+          <select id="mo-smalto">
+            <option value="Blu Cobalto e Rosso">Blu Cobalto e Rosso Mediterraneo</option>
+            <option value="Verde Smeraldo e Oro">Verde Smeraldo e Oro Cattedrale</option>
+            <option value="Nero e Oro">Nero Elegante e Filigrana Dorata</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="mo-tipo">Elemento Guida Parure</label>
+          <select id="mo-tipo">
+            <option value="Anello Mattonella">Anello Fascia Mattonella Oro 18kt</option>
+            <option value="Pendente Mattonella">Ciondolo Pendente Mattonella</option>
+            <option value="Bracciale Moduli">Bracciale a Moduli Smaltati</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <!-- FIELDSET 5: SCRIGNO -->
+      <fieldset class="field-grid" id="fields-scrigno" hidden>
+        <div class="field">
+          <label for="sc-meccanismo">Tipologia Meccanismo Scrigno</label>
+          <select id="sc-meccanismo">
+            <option value="Ciondolo Apribile">Ciondolo Reliquiario Apribile</option>
+            <option value="Lente Incantata">Lente d'Ingrandimento Decorata</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="sc-pietra">Gemma sul Fermaglio</label>
+          <select id="sc-pietra">
+            <option value="Rubino Cabochon">Rubino Cabochon Sanguigno</option>
+            <option value="Zaffiro Blu">Zaffiro Blu Profondo</option>
+            <option value="Smeraldo">Smeraldo Intenso</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <!-- FIELDSET 6: DUE IN UNO -->
+      <fieldset class="field-grid" id="fields-due_in_uno" hidden>
+        <div class="field">
+          <label for="d2-stile">Configurazione d'Uso</label>
+          <select id="d2-stile">
+            <option value="Giorno e Gala">Versione Lobo (Giorno) + Pendente (Gala)</option>
+            <option value="Punto Luce e Perla">Punto Luce Zircone + Perla Scaramazza</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="d2-metallo">Metallo Prezioso</label>
+          <select id="d2-metallo">
+            <option value="Oro 9kt">Oro Giallo 9kt</option>
+            <option value="Oro 18kt">Oro Giallo 18kt Massiccio</option>
+            <option value="Oro Bianco">Oro Bianco 18kt con Diamanti</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <!-- FIELDSET 7: NINFEE -->
+      <fieldset class="field-grid" id="fields-ninfee" hidden>
+        <div class="field">
+          <label for="nin-smalto">Sfumatura Smalti Petali</label>
+          <select id="nin-smalto">
+            <option value="Rosa Tenue e Verde">Rosa Cattedrale e Verde Ninfea</option>
+            <option value="Azzurro sfumato">Azzurro Acqua e Bianco Perla</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="nin-perla">Castone Centrale</label>
+          <select id="nin-perla">
+            <option value="Perla Scaramazza">Perla Scaramazza Irregolare</option>
+            <option value="Pavé Zaffiri">Pavé di Zaffiri Rosa</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <!-- FIELDSET 8: MAGNA GRECIA -->
+      <fieldset class="field-grid" id="fields-magna_grecia" hidden>
+        <div class="field">
+          <label for="mg-simbolo">Simbolo Storico Propiziatorio</label>
+          <select id="mg-simbolo">
+            <option value="Maschera Apotropaica">Maschera Apotropaica di Crotone</option>
+            <option value="Gorgoneion">Gorgoneion Amuletto</option>
+            <option value="Fregio Pitagora">Geometrie e Fregi Pitagorici</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="mg-finitura">Lavorazione e Titolo</label>
+          <select id="mg-finitura">
+            <option value="Argento 925 e Fregi Oro">Argento 925 brunito con fregi Oro 18kt</option>
+            <option value="Oro Giallo 18kt">Oro Giallo 18kt Massiccio</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <!-- FIELDSET 9: PASTE VITREE -->
+      <fieldset class="field-grid" id="fields-paste_vitree" hidden>
+        <div class="field">
+          <label for="pv-colore">Tonalità Pasta Vitrea</label>
+          <select id="pv-colore">
+            <option value="Blu Cobalto Antico">Blu Cobalto Mediterraneo</option>
+            <option value="Verde Ambra Fenicio">Verde Ambra Archeologico</option>
+            <option value="Rosso Rubino">Rosso Rubino Storico</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="pv-castone">Castone e Montatura</label>
+          <select id="pv-castone">
+            <option value="Argento Brunito">Argento 925 Brunito a mano</option>
+            <option value="Oro 9kt Vintage">Oro Giallo 9kt Satinato</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <!-- FIELDSET 10: MATTONELLE ARGENTO -->
+      <fieldset class="field-grid" id="fields-mattonelle_argento" hidden>
+        <div class="field">
+          <label for="ma-decoro">Colore Smalto a Freddo</label>
+          <select id="ma-decoro">
+            <option value="Azzurro Mare">Azzurro Mare Mediterraneo</option>
+            <option value="Rosso Corallo">Rosso Corallo Calabrese</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ma-oggetto">Tipologia Gioiello</label>
+          <select id="ma-oggetto">
+            <option value="Bracciale Moduli">Bracciale a Moduli Snodati</option>
+            <option value="Anello Solitario">Anello Mattonella Solitario</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <!-- FIELDSET 11: PERLE -->
+      <fieldset class="field-grid" id="fields-perle" hidden>
+        <div class="field">
+          <label for="pr-tipo">Selezione Perle</label>
+          <select id="pr-tipo">
+            <option value="Perle Scaramazze Barocche">Perle Scaramazze d'Acqua Dolce Irregolari</option>
+            <option value="Perle Mari del Sud">Perle Mari del Sud Australiane (11-12mm)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="pr-chiusura">Fermaglio e Dettagli</label>
+          <select id="pr-chiusura">
+            <option value="Oro 18kt Filigranato">Chiusura Filigrana in Oro 18kt</option>
+            <option value="Oro 9kt con Zirconi">Fermaglio in Oro 9kt con Zirconi</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <!-- FIELDSET 12: MONETE -->
+      <fieldset class="field-grid" id="fields-monete" hidden>
+        <div class="field">
+          <label for="mon-effigie">Effigie Monetale Antiqua</label>
+          <select id="mon-effigie">
+            <option value="Tripode di Crotone">Statere col Tripode di Crotone (V sec. a.C.)</option>
+            <option value="Testa di Athena">Tetradramma con profilo di Athena</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="mon-cornice">Stile Cornice Castone</label>
+          <select id="mon-cornice">
+            <option value="Tortiglione Dorato">Lavorazione Bordo a Tortiglione</option>
+            <option value="Castone Liscio Massiccio">Castone Liscio in Oro Massiccio</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <!-- FIELDSET 13: MESI & STAGIONI -->
+      <fieldset class="field-grid" id="fields-mesi_stagioni" hidden>
+        <div class="field">
+          <label for="ms-simbolo">Amuletto Portafortuna Mensile</label>
+          <select id="ms-simbolo">
+            <option value="Maschera Apotropaica Mese">Maschera Apotropaica del Mese</option>
+            <option value="Charm Stagionale">Charm Simbolo della Stagione</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ms-pietra">Pietra IDROTERMALE Abbinata</label>
+          <select id="ms-pietra">
+            <option value="Pietra Colore Mese">Pietra Colore Propiziatorio del Mese</option>
+            <option value="Agata Multicolore">Agata Naturale Striata</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <div class="divider"></div>
+
+      <div class="field full">
+        <label>Preferenza Metallo / Titolo <span class="hint">(seleziona per filtrare la parure)</span></label>
+        <div class="chip-group" id="metalChips">
+          <span class="chip on" data-val="Oro 9 kt">Oro 9 kt</span>
+          <span class="chip" data-val="Oro 18 kt">Oro 18 kt</span>
+          <span class="chip" data-val="Argento 925/000">Argento 925/000</span>
+          <span class="chip" data-val="Oro Rosé">Oro Rosé</span>
+        </div>
+      </div>
+
+      <div class="field full expert-comment">
+        <label for="expertNote">Note libere della Maestra Orafa / Desideri della clientela</label>
+        <textarea id="expertNote" placeholder="Es. Regalo di anniversario, incisione personalizzata all'interno dell'anello, predilezione per perle scaramazze dal profilo irregolare..."></textarea>
+      </div>
+    </form>
+
+    <div class="nav-row">
+      <button class="btn btn-ghost" id="backTo1" type="button">Indietro</button>
+      <button class="btn btn-primary" id="toStep3" type="button">Elabora Parure RAG</button>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="step" id="step3">
+    <h2 class="step-title">Generazione Scheda Tecnica Parure</h2>
+    <p class="step-sub">Il motore RAG interroga la base dati del catalogo Gerardo Sacco per comporre una proposta tracciabile e certificata.</p>
+
+    <div class="nav-row" style="margin-top:0;margin-bottom:24px;">
+      <button class="btn btn-ghost" id="backTo2" type="button">Indietro</button>
+      <button class="btn btn-dark" id="generateBtn" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
+        Rianalizza Parure RAG
+      </button>
+    </div>
+
+    <div id="processingBox" class="processing-box" hidden>
+      <div class="spinner"></div>
+      <span id="processingText">Consultazione della base di conoscenza Gerardo Sacco in corso…</span>
+    </div>
+
+    <div id="sheetContainer"></div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <span>Gerardo Sacco — Framework RAG di Formalizzazione dell'Oreficeria d'Arte</span>
+    <span class="kb-counter">Schede create: <b id="kbCounter">0</b> in questa sessione</span>
+  </div>
+</footer>
+
+<!-- AVATAR AGENTE MAESTRA ORAFA -->
+<div class="avatar-free-container">
+  <div class="avatar-chat-window active" id="chat-window">
+    <div class="chat-header">
+      <span>✨ Maestra Orafa — Gerardo Sacco AI</span>
+      <div class="chat-header-actions">
+        <button class="btn-reset-chat" onclick="resetToStep1()" title="Interrompi e seleziona nuova linea">🔄 Nuova Linea</button>
+        <button class="btn-stop-chat" onclick="stopVoice()" title="Ferma la voce">🛑 Stop</button>
+        <button onclick="toggleChat()" style="background:none; border:none; color:#fff; cursor:pointer; font-size: 1rem;">✖</button>
+      </div>
+    </div>
+    
+    <div class="chat-messages" id="chat-messages"></div>
+
+    <div class="chat-input-area">
+      <input type="text" id="user-input" placeholder="Chiedi di una collezione, anelli, ciondoli o rispondi..." onkeypress="handleKeyPress(event)">
+      <button class="btn-chat" onclick="sendMessage()">Invia</button>
+      <button class="btn-chat btn-mic" id="mic-btn" onclick="toggleVoiceRecognition()" title="Parla a voce con la Maestra Orafa">🎙️</button>
+    </div>
+  </div>
+  
+  <div class="avatar-trigger-wrapper">
+    <div class="avatar-trigger" id="avatar-container" onclick="toggleChat()">
+      <img id="avatar-img" 
+           src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80" 
+           alt="Maestra Orafa Gerardo Sacco">
+      <div id="avatar-mouth" class="avatar-mouth"></div>
+    </div>
+    <button class="btn-change-avatar" onclick="document.getElementById('avatar-file-input').click()" title="Cambia foto maestra">📷</button>
+    <input type="file" id="avatar-file-input" accept="image/*" style="display: none;" onchange="changeAvatarImage(event)">
+  </div>
+</div>
+
+<!-- MODALE COMANDI ACCETTATI -->
+<div class="modal-overlay" id="commands-modal" onclick="if(event.target === this) toggleCommandsModal()">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>📜 Comandi Accettati dalla Maestra Orafa</h3>
+      <button onclick="toggleCommandsModal()" style="background:none; border:none; color:#fff; cursor:pointer; font-size: 1.2rem;">✖</button>
+    </div>
+
+    <div class="cmd-category">
+      <h4>🔄 Interruzione & Nuova Linea</h4>
+      <ul class="cmd-list">
+        <li><span class="cmd-badge">interrompi</span> / <span class="cmd-badge">nuova linea</span> / <span class="cmd-badge">ricomincia</span> Cancella il flusso corrente e torna alla scelta iniziale</li>
+      </ul>
+    </div>
+    
+    <div class="cmd-category">
+      <h4>💍 Navigazione per Tipologia Prodotto</h4>
+      <ul class="cmd-list">
+        <li><span class="cmd-badge">anelli</span> / <span class="cmd-badge">pendenti</span> / <span class="cmd-badge">ciondoli</span> / <span class="cmd-badge">orecchini</span> / <span class="cmd-badge">bracciali</span> / <span class="cmd-badge">spille</span></li>
+      </ul>
+    </div>
+
+    <div class="cmd-category">
+      <h4>💎 Navigazione per Collezione (13 Linee)</h4>
+      <ul class="cmd-list">
+        <li><span class="cmd-badge">reverse</span> / <span class="cmd-badge">ricami</span> / <span class="cmd-badge">cammei</span></li>
+        <li><span class="cmd-badge">mattonelle oro</span> / <span class="cmd-badge">scrigno</span> / <span class="cmd-badge">due in uno</span></li>
+        <li><span class="cmd-badge">ninfee</span> / <span class="cmd-badge">magna grecia</span> / <span class="cmd-badge">paste vitree</span></li>
+        <li><span class="cmd-badge">mattonelle argento</span> / <span class="cmd-badge">perle</span> / <span class="cmd-badge">monete</span> / <span class="cmd-badge">mesi</span></li>
+      </ul>
+    </div>
+
+    <div class="cmd-category">
+      <h4>🚶‍♀️ Navigazione del Simulatore</h4>
+      <ul class="cmd-list">
+        <li><span class="cmd-badge">avanti</span> / <span class="cmd-badge">continua</span> Passa alla fase successiva</li>
+        <li><span class="cmd-badge">indietro</span> Torna allo step precedente</li>
+        <li><span class="cmd-badge">valida</span> / <span class="cmd-badge">salva</span> Certifica e registra la scheda tecnica nello storico</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  /* 1. STATO APPLICATIVO */
+  const state = {
+    modulo: null,
+    tipologiaSelezionata: null,
+    risposte: {},
+    metalli: ['Oro 9 kt'],
+    notaEsperto: '',
+    contestoRAG: [],
+    formula: null,
+    modalita: null,
+    storico: []
+  };
+  window.appState = state;
+
+  /* 2. BASE DI CONOSCENZA COMPLETA PER TUTTE LE 13 COLLEZIONI */
+  const KB = {
+    reverse: [
+      { cod: "14286GEN", nome: "Anello Reverse Gennaio - Agrumi", mese: "Gennaio", elemento: "Agrumi", oro: "Oro giallo 9kt", brevetto: "Meccanismo rotante brevettato" },
+      { cod: "14286FED", nome: "Anello Reverse Febbraio - Maschere", mese: "Febbraio", elemento: "Maschere Apotropaiche", oro: "Oro giallo 9kt", brevetto: "Meccanismo rotante brevettato" },
+      { cod: "14286MAR", nome: "Anello Reverse Marzo - Rondini", mese: "Marzo", elemento: "Rondini", oro: "Oro giallo 9kt", brevetto: "Meccanismo rotante brevettato" },
+      { cod: "14286LUG", nome: "Anello Reverse Luglio - Stelle Marine", mese: "Luglio", elemento: "Stelle Marine", oro: "Oro giallo 9kt", brevetto: "Meccanismo rotante brevettato" },
+      { cod: "14286DIC", nome: "Anello Reverse Dicembre - Cristalli di Neve", mese: "Dicembre", elemento: "Cristalli di Neve", oro: "Oro giallo 9kt", brevetto: "Meccanismo rotante brevettato" }
+    ],
+    reverse_stagioni: {
+      "Primavera": { pavé: "Pavé di zaffiri rosa ct. 0.61", base: "Oro Rosé 9kt", mesi: ["Marzo","Aprile","Maggio"] },
+      "Estate": { pavé: "Pavé di zaffiri blu ct. 0.61", base: "Oro Bianco 9kt", mesi: ["Giugno","Luglio","Agosto"] },
+      "Autunno": { pavé: "Pavé di diamanti brown ct. 0.51", base: "Oro Rodiato Nero 9kt", mesi: ["Settembre","Ottobre","Novembre"] },
+      "Inverno": { pavé: "Pavé di rubini ct. 0.63", base: "Oro Bianco 9kt", mesi: ["Dicembre","Gennaio","Febbraio"] }
+    },
+    ricami: [
+      { cod: "14329ne", nome: "Orecchini Ricami Agata Nera e Perle", metallo: "Oro 9kt", pietre: "Disco in agata nera, perle, microperle e zirconia", linea: "Ricami" },
+      { cod: "14328ne", nome: "Anello Ricami Agata Nera e Perle", metallo: "Oro 9kt", pietre: "Agata nera, perla centrale e microperle", linea: "Ricami" },
+      { cod: "13999", nome: "Collana Ricami Gran Galà", metallo: "Oro 18kt", pietre: "Microperle scaramazze alta selezione", linea: "Ricami" }
+    ],
+    cammei: [
+      { cod: "18371az", nome: "Orecchini Cammeo Agata Azzurra", metallo: "Argento 925 e Oro 18kt", pietre: "Zirconi e cammeo inciso su agata azzurra", stile: "Profilo classico" },
+      { cod: "19238az", nome: "Anello Cammeo Agata Azzurra", metallo: "Argento 925 e Oro 18kt", pietre: "Cammeo in agata azzurra e zirconi", stile: "Profilo classico" }
+    ],
+    mattonelle_oro: [
+      { cod: "15101", nome: "Anello Mattonella Oro e Smalti", metallo: "Oro 18kt", smalto: "Blu Cobalto e Rosso", stile: "Motivo Geometrico Calabrese" },
+      { cod: "15102", nome: "Pendente Mattonella Oro", metallo: "Oro 18kt", smalto: "Verde Smeraldo", stile: "Tradizione Crotone" }
+    ],
+    scrigno: [
+      { cod: "16201", nome: "Ciondolo Scrigno dei Segreti", metallo: "Oro 9kt / 18kt", caratteristica: "Meccanismo apribile con custodia interna", pietra: "Rubino / Zaffiro" },
+      { cod: "16202", nome: "Lente Scrigno Incantata", metallo: "Oro 9kt", caratteristica: "Ciondolo lente d'ingrandimento decorata", pietra: "Zirconi e Agata" }
+    ],
+    due_in_uno: [
+      { cod: "17301", nome: "Orecchini Trasformabili Versatili", metallo: "Oro 9kt", caratteristica: "Indossabili come lobo o con pendente staccabile", pietra: "Perle e Zaffiri" },
+      { cod: "17302", nome: "Orecchini Gala Gran Luce 2 in 1", metallo: "Oro 18kt", caratteristica: "Doppia configurazione da giorno e da sera", pietra: "Diamanti e Smeraldi" }
+    ],
+    ninfee: [
+      { cod: "18401", nome: "Anello Ninfea in Fiore", metallo: "Oro Giallo 9kt", smalto: "Smalto cattedrale rosa e verde", pietra: "Perla centrale scaramazza" },
+      { cod: "18402", nome: "Spilla Ciondolo Ninfea Magna", metallo: "Oro 18kt", smalto: "Smalti policromi", pietra: "Zaffiri rosa" }
+    ],
+    magna_grecia: [
+      { cod: "19501", nome: "Collana Maschera Apotropaica", metallo: "Argento 925 dorato e Oro 18kt", motivo: "Maschera propiziatoria di Crotone", pietra: "Gorgoneion con agata" },
+      { cod: "19502", nome: "Anello Fregio Pitagora", metallo: "Oro 18kt", motivo: "Geometrie ed epigrafi magnogreche", pietra: "Spinello nero" }
+    ],
+    paste_vitree: [
+      { cod: "20601", nome: "Pendente Pasta Vitrea Antica", metallo: "Argento 925 brunito", lavorazione: "Vetro fusione artigianale colore cobalto", incassatura: "Castone lavorato a mano" },
+      { cod: "20602", nome: "Anello Vetro Archeologico", metallo: "Oro 9kt", lavorazione: "Pasta vitrea sfaccettata verde ambra", incassatura: "Gabbia dorata" }
+    ],
+    mattonelle_argento: [
+      { cod: "21701", nome: "Bracciale Mattonelle Argento 925", metallo: "Argento 925/000", decoro: "Smalti applicati a freddo", stile: "Mosaico Antico" },
+      { cod: "21702", nome: "Anello Solitario Mattonella", metallo: "Argento 925 dorato", decoro: "Smalto azzurro mediterraneo", stile: "Tradizione Oreficeria" }
+    ],
+    perle: [
+      { cod: "22801", nome: "Girocollo Perle Scaramazze Barocche", metallo: "Chiusura Oro 18kt", perle: "Perle coltivate d'acqua dolce irregolari", filo: "Infilatura a nodi di seta" },
+      { cod: "22802", nome: "Orecchini Perle Mari del Sud", metallo: "Oro Bianco 18kt", perle: "Perle australiane perfette 11-12mm", pietra: "Diamanti ct 0.15" }
+    ],
+    monete: [
+      { cod: "23901", nome: "Pendente Moneta Statere di Crotone", metallo: "Argento 925 con bordo Oro 18kt", moneta: "Riproduzione Tripode di Crotone V sec. a.C.", cornice: "Lavorazione tortiglione" },
+      { cod: "23902", nome: "Anello Moneta Magna Grecia", metallo: "Oro Giallo 18kt", moneta: "Tetradramma con profilo di Athena", cornice: "Castone liscio" }
+    ],
+    mesi_stagioni: [
+      { cod: "24001", nome: "Ciondolo Maschera del Mese", metallo: "Argento 925 e pietre idrotermali", motivo: "Simbolo apotropaico mensile", pietra: "Pietra colore mese" },
+      { cod: "24002", nome: "Bracciale Charms 12 Mesi", metallo: "Argento 925", motivo: "Icone stagionali e maschere portafortuna", pietra: "Agate multicolore" }
+    ]
+  };
+
+  /* 3. ELEMENTI DOM & NAVIGATION */
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  const steps = { 1:$('#step1'), 2:$('#step2'), 3:$('#step3') };
+  const progressSegs = $$('#progressBar .seg');
+
+  window.goToStep = function(n){
+    Object.values(steps).forEach(s=>s.classList.remove('active'));
+    steps[n].classList.add('active');
+    progressSegs.forEach(seg=>{
+      const sn = Number(seg.dataset.step);
+      seg.classList.toggle('done', sn < n);
+      seg.classList.toggle('active', sn === n);
+    });
+    window.scrollTo({top:0, behavior:'smooth'});
+  };
+
+  window.switchViewMode = function(mode){
+    const tabCol = $('#tab-collezioni');
+    const tabTip = $('#tab-tipologie');
+    const secCol = $('#section-collezioni');
+    const secTip = $('#section-tipologie');
+
+    if(mode === 'collezioni'){
+      tabCol.classList.add('active');
+      tabTip.classList.remove('active');
+      secCol.style.display = 'block';
+      secTip.style.display = 'none';
+    } else {
+      tabTip.classList.add('active');
+      tabCol.classList.remove('active');
+      secTip.style.display = 'block';
+      secCol.style.display = 'none';
+    }
+  };
+
+  window.selectByProductType = function(type){
+    state.tipologiaSelezionata = type;
+    const typeNames = {
+      anelli: "Anelli",
+      pendenti: "Pendenti & Ciondoli",
+      orecchini: "Orecchini",
+      bracciali: "Bracciali",
+      spille: "Spille & Charms"
+    };
+
+    // Filtra/evidenzia le collezioni rilevanti
+    const mapping = {
+      anelli: ['reverse', 'ricami', 'cammei', 'mattonelle_oro', 'ninfee', 'monete'],
+      pendenti: ['scrigno', 'reverse', 'magna_grecia', 'paste_vitree', 'monete'],
+      orecchini: ['due_in_uno', 'ricami', 'cammei', 'ninfee', 'perle'],
+      bracciali: ['mattonelle_argento', 'mattonelle_oro', 'mesi_stagioni'],
+      spille: ['ricami', 'ninfee', 'mesi_stagioni']
+    };
+
+    const recommended = mapping[type] || ['reverse'];
+    
+    // Passa alla vista collezioni evidenziando quelle consigliate
+    switchViewMode('collezioni');
+    selectModule(recommended[0]);
+
+    const msg = `Hai scelto la tipologia <strong>${typeNames[type]}</strong>. Ho selezionato per te la collezione <strong>${recommended[0].replace('_', ' ').toUpperCase()}</strong> tra quelle più emblematiche. Puoi confermare o scegliere un'altra linea!`;
+    appendMessage(msg, 'ai-msg');
+    speakText(msg.replace(/<[^>]*>/g, ''));
+  };
+
+  $$('.module-card').forEach(card=>{
+    card.addEventListener('click', ()=>{ window.selectModule(card.dataset.mod); });
+  });
+
+  window.selectModule = function(modName){
+    const card = $$('.module-card').find(c => c.dataset.mod === modName);
+    if(card){
+      $$('.module-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+      state.modulo = modName;
+      $('#toStep2').disabled = false;
+    }
+  };
+
+  $('#toStep2').addEventListener('click', ()=>{ prepareStep2(); goToStep(2); });
+
+  function prepareStep2(){
+    const modules = [
+      'reverse', 'ricami', 'cammei', 'mattonelle_oro', 'scrigno', 'due_in_uno',
+      'ninfee', 'magna_grecia', 'paste_vitree', 'mattonelle_argento', 'perle', 'monete', 'mesi_stagioni'
+    ];
+    modules.forEach(m => {
+      const el = $('#fields-' + m);
+      if(el) el.hidden = (m !== state.modulo);
+    });
+
+    const subs = {
+      reverse: "Mese, simbolo e stagione per comporre il gioiello bilaterale con meccanismo brevettato.",
+      ricami: "Pietre preziose, perle scaramazze e decoro in filigrana d'oro.",
+      cammei: "Colore dell'agata naturale e lega metallica d'incassatura.",
+      mattonelle_oro: "Smalto policromo e geometrie dell'oreficeria in oro 18kt.",
+      scrigno: "Meccanismo apribile, lenti incantate e gemme segrete.",
+      due_in_uno: "Orecchini modulari trasformabili da lobo a gran galà.",
+      ninfee: "Smalti cattedrale e perle scaramazze dal gusto botanico.",
+      magna_grecia: "Maschere apotropaiche, gorgoneion e simboli greci antichi.",
+      paste_vitree: "Vetro a fusione artigianale e castoni d'epoca.",
+      mattonelle_argento: "Moduli in argento 925 e smalti mediterranei.",
+      perle: "Perle barocche scaramazze o perle mari del sud.",
+      monete: "Riproduzione di stateri e tetradrammi magnogreci.",
+      mesi_stagioni: "Amuleti mensili, simboli apotropaici e pietre portafortuna."
+    };
+    $('#step2Sub').textContent = subs[state.modulo] || "Configura le preferenze orafiche.";
+  }
+
+  $$('#metalChips .chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      chip.classList.toggle('on');
+      const val = chip.dataset.val;
+      const idx = state.metalli.indexOf(val);
+      if(chip.classList.contains('on') && idx === -1) state.metalli.push(val);
+      if(!chip.classList.contains('on') && idx !== -1) state.metalli.splice(idx,1);
+    });
+  });
+
+  $('#backTo1').addEventListener('click', ()=>goToStep(1));
+
+  /* DA STEP 2 A STEP 3: AUTOMATICO SENZA SELEZIONI INTERMEDIE */
+  $('#toStep3').addEventListener('click', ()=>{
+    collectAnswers();
+    goToStep(3);
+    runGeneration();
+  });
+
+  function collectAnswers(){
+    state.notaEsperto = $('#expertNote').value.trim();
+    state.risposte = {};
+    if(state.modulo === 'reverse'){
+      state.risposte = { mese: $('#rev-mese').value, stagione: $('#rev-stagione').value, misura: $('#rev-misura').value };
+    } else if(state.modulo === 'ricami'){
+      state.risposte = { pietra: $('#ric-pietra').value, tipologia: $('#ric-tipologia').value, colore_agata: $('#ric-colore-agata').value };
+    } else if(state.modulo === 'cammei'){
+      state.risposte = { colore_agata: $('#cam-colore').value, metallo: $('#cam-metallo').value };
+    } else if(state.modulo === 'mattonelle_oro'){
+      state.risposte = { smalto: $('#mo-smalto').value, tipo: $('#mo-tipo').value };
+    } else if(state.modulo === 'scrigno'){
+      state.risposte = { meccanismo: $('#sc-meccanismo').value, pietra: $('#sc-pietra').value };
+    } else if(state.modulo === 'due_in_uno'){
+      state.risposte = { stile: $('#d2-stile').value, metallo: $('#d2-metallo').value };
+    } else if(state.modulo === 'ninfee'){
+      state.risposte = { smalto: $('#nin-smalto').value, perla: $('#nin-perla').value };
+    } else if(state.modulo === 'magna_grecia'){
+      state.risposte = { simbolo: $('#mg-simbolo').value, finitura: $('#mg-finitura').value };
+    } else if(state.modulo === 'paste_vitree'){
+      state.risposte = { colore: $('#pv-colore').value, castone: $('#pv-castone').value };
+    } else if(state.modulo === 'mattonelle_argento'){
+      state.risposte = { decoro: $('#ma-decoro').value, oggetto: $('#ma-oggetto').value };
+    } else if(state.modulo === 'perle'){
+      state.risposte = { tipo: $('#pr-tipo').value, chiusura: $('#pr-chiusura').value };
+    } else if(state.modulo === 'monete'){
+      state.risposte = { effigie: $('#mon-effigie').value, cornice: $('#mon-cornice').value };
+    } else if(state.modulo === 'mesi_stagioni'){
+      state.risposte = { simbolo: $('#ms-simbolo').value, pietra: $('#ms-pietra').value };
+    }
+  }
+  window.collectAnswers = collectAnswers;
+
+  /* 4. RETRIEVAL & GENERAZIONE RAG */
+  function retrieveContext(){
+    let ctx = KB[state.modulo] || [];
+    if(state.modulo === 'reverse'){
+      const meseSel = state.risposte.mese || "Luglio";
+      const itemMese = KB.reverse.find(i => i.mese && i.mese.toLowerCase() === meseSel.toLowerCase()) || KB.reverse[3];
+      const stagInfo = KB.reverse_stagioni[state.risposte.stagione] || KB.reverse_stagioni["Estate"];
+      ctx = [itemMese, { tipo:"Stagione", ...stagInfo }];
+    }
+    state.contestoRAG = ctx;
+    return ctx;
+  }
+
+  $('#generateBtn').addEventListener('click', window.runGeneration);
+
+  async function runGeneration(){
+    const ctx = retrieveContext();
+    $('#processingBox').hidden = false;
+    $('#sheetContainer').innerHTML = '';
+    $('#generateBtn').disabled = true;
+
+    setTimeout(() => {
+      const result = localFallback(ctx);
+      state.formula = result;
+      state.modalita = 'live';
+
+      $('#processingBox').hidden = true;
+      $('#generateBtn').disabled = false;
+      renderSheet();
+    }, 600);
+  }
+  window.runGeneration = runGeneration;
+
+  function localFallback(ctx){
+    const selectedMetal = (state.metalli && state.metalli.length) ? state.metalli[0] : "Oro 9 kt";
+    
+    if(state.modulo === 'reverse'){
+      const itemMese = ctx[0] || KB.reverse[0];
+      const stag = ctx[1] || KB.reverse_stagioni["Estate"];
+      return {
+        pezzi: [
+          { cod: itemMese.cod, nome: itemMese.nome, descrizione: `Faccia A: Mese di ${itemMese.mese} con simbolo ${itemMese.elemento}. Faccia B: ${stag.pavé}.`, lega: stag.base },
+          { cod: itemMese.cod + "-PEND", nome: `Ciondolo Matching ${itemMese.elemento}`, descrizione: `Ciondolo coordinato con castone per pietre preziose stagionali.`, lega: itemMese.oro }
+        ],
+        brevetto: "SISTEMA ROTANTE BILATERALE GERARDO SACCO (BREVETTO UFFICIALE)",
+        misura_consigliata: state.risposte.misura || "12",
+        note_lavorazione: "Lavorato interamente a mano da maestre orafe nei laboratori Gerardo Sacco a Crotone."
+      };
+    }
+
+    const items = ctx.length ? ctx.slice(0, 3) : [
+      { cod: "10001", nome: `Gioiello ${state.modulo.toUpperCase()}`, metallo: selectedMetal, descrizione: "Elemento artigianale rifinito a mano" }
+    ];
+
+    return {
+      pezzi: items.map(i => ({
+        cod: i.cod || "GS-2026",
+        nome: i.nome || "Gioiello Gerardo Sacco",
+        descrizione: i.descrizione || i.pietre || i.smalto || i.motivo || "Lavorazione orafa artigianale d'alta scuola.",
+        lega: i.metallo || selectedMetal
+      })),
+      note_lavorazione: `Prodotto d'oreficeria artistica realizzato nei laboratori di Crotone. Garanzia di autenticità e origine.`
+    };
+  }
+
+  function formatSelectionSummary(){
+    const r = state.risposte || {};
+    switch(state.modulo) {
+      case 'reverse':
+        return `Mese: ${r.mese || 'Luglio'} | Stagione/Pavé: ${r.stagione || 'Estate'} | Misura: ${r.misura || '12'}`;
+      case 'ricami':
+        return `Pietra: ${r.pietra || 'Zaffiri'} | Tipologia: ${r.tipologia || 'Anello'} | Agata: ${r.colore_agata || 'Nero'}`;
+      case 'cammei':
+        return `Agata: ${r.colore_agata || 'Azzurro'} | Metallo: ${r.metallo || 'Argento 925 e Oro 18kt'}`;
+      case 'mattonelle_oro':
+        return `Smalti: ${r.smalto || 'Blu Cobalto e Rosso'} | Elemento: ${r.tipo || 'Anello Fascia'}`;
+      case 'scrigno':
+        return `Meccanismo: ${r.meccanismo || 'Ciondolo Apribile'} | Pietra: ${r.pietra || 'Rubino Cabochon'}`;
+      case 'due_in_uno':
+        return `Configurazione: ${r.stile || 'Lobo + Pendente'} | Metallo: ${r.metallo || 'Oro 9kt'}`;
+      case 'ninfee':
+        return `Smalto: ${r.smalto || 'Rosa Tenue e Verde'} | Castone: ${r.perla || 'Perla Scaramazza'}`;
+      case 'magna_grecia':
+        return `Simbolo: ${r.simbolo || 'Maschera Apotropaica'} | Finitura: ${r.finitura || 'Argento 925 e Oro'}`;
+      case 'paste_vitree':
+        return `Colore Vetro: ${r.colore || 'Blu Cobalto'} | Castone: ${r.castone || 'Argento Brunito'}`;
+      case 'mattonelle_argento':
+        return `Smalto: ${r.decoro || 'Azzurro Mare'} | Oggetto: ${r.oggetto || 'Bracciale Moduli'}`;
+      case 'perle':
+        return `Perle: ${r.tipo || 'Perle Scaramazze'} | Chiusura: ${r.chiusura || 'Oro 18kt'}`;
+      case 'monete':
+        return `Moneta: ${r.effigie || 'Tripode di Crotone'} | Cornice: ${r.cornice || 'Tortiglione Dorato'}`;
+      case 'mesi_stagioni':
+        return `Amuletto: ${r.simbolo || 'Maschera del Mese'} | Pietra: ${r.pietra || 'Pietra Colore Mese'}`;
+      default:
+        return `Collezione Gerardo Sacco — Metallo: ${(state.metalli && state.metalli[0]) || 'Oro 9 kt'}`;
+    }
+  }
+
+  /* 5. RENDER SCHEDA TECNICA & HITL VALIDATION */
+  function renderSheet(){
+    const c = $('#sheetContainer');
+    const f = state.formula;
+    const modeBadge = '<span class="mode-badge">Scheda Parure Certificata RAG</span>';
+
+    const primaryPiece = (f.pezzi && f.pezzi[0]) ? f.pezzi[0] : {};
+    const primaryCode = primaryPiece.cod || "GS-2026-SEL";
+    const primaryName = primaryPiece.nome || "Selezione Gerardo Sacco";
+
+    const choiceBoxHtml = `
+      <div class="choice-summary-box" style="background: linear-gradient(135deg, #0f1c2e 0%, #182a45 100%); border: 2px solid var(--gold); border-radius: var(--radius-m); padding: 20px 24px; margin-bottom: 24px; box-shadow: var(--shadow);">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px;">
+          <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-light);">
+            ✦ SELEZIONE GUIDA E CODICE ARTICOLO
+          </span>
+          <span class="code-badge" style="font-size: 14px; padding: 4px 12px; background: var(--gold); color: var(--royal-blue); font-weight: 800; border-radius: 4px;">
+            CODICE: ${escapeHtml(primaryCode)}
+          </span>
+        </div>
+        <div style="font-family: var(--serif); font-size: 20px; font-weight: 700; color: #ffffff; margin-bottom: 6px;">
+          ${escapeHtml(primaryName)}
+        </div>
+        <div style="font-size: 13.5px; color: #d0dce8; line-height: 1.5;">
+          <strong>Configurazione Scelta:</strong> ${escapeHtml(formatSelectionSummary())}
+        </div>
+      </div>
+    `;
+
+    let bodyHtml = `
+      ${choiceBoxHtml}
+      <table class="formula-table">
+        <thead><tr><th>Codice</th><th>Gioiello / Componente</th><th>Lega / Titolo</th><th>Descrizione Tecnica</th></tr></thead>
+        <tbody>
+          ${f.pezzi.map(p=>`
+            <tr>
+              <td><span class="code-badge">${escapeHtml(p.cod)}</span></td>
+              <td><strong>${escapeHtml(p.nome)}</strong></td>
+              <td>${escapeHtml(p.lega)}</td>
+              <td>${escapeHtml(p.descrizione)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+      ${f.brevetto ? `<div class="param-grid"><div class="param"><div class="k">Integrità Brevetto</div><div class="v">${escapeHtml(f.brevetto)}</div></div></div>` : ''}
+      <div class="expert-note"><strong>Note della Maestra Orafa:</strong> ${escapeHtml(f.note_lavorazione || 'Certificato di autenticità e origine Crotone.')}</div>
+    `;
+
+    const titles = { 
+      reverse:'Parure Brevettata Reverse Oro', ricami:'Composizione Ricami & Microperle', cammei:'Parure Cammei & Agata Naturale',
+      mattonelle_oro: 'Parure Mattonelle Oro & Smalti', scrigno: 'Composizione Scrigno dei Segreti', due_in_uno: 'Set Orecchini Modulari 2 in 1',
+      ninfee: 'Parure Botanica Ninfee in Fiore', magna_grecia: 'Parure Magna Grecia & Maschere Apotropaiche', paste_vitree: 'Composizione Paste Vitree Storiche',
+      mattonelle_argento: 'Set Mattonelle Argento 925 & Smalti', perle: 'Parure Perle Scaramazze & Mari del Sud', monete: 'Set Numismatico Monete Magna Grecia',
+      mesi_stagioni: 'Composizione Amuleti Mesi & Stagioni'
+    };
+
+    c.innerHTML = `
+      <div class="sheet" data-mod="${state.modulo}">
+        <div class="sheet-head">
+          <div>
+            <h3>${titles[state.modulo] || 'Parure Gerardo Sacco'}</h3>
+            <div class="meta">Certificato generato il ${new Date().toLocaleString('it-IT')}</div>
+          </div>
+          ${modeBadge}
+        </div>
+        ${bodyHtml}
+        <div class="rag-sources">
+          <h4><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Fonti del Catalogo Consultate</h4>
+          ${renderRagSources()}
+        </div>
+      </div>
+      <div class="hitl" id="hitlBox">
+        <div class="hitl-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 12c2.7 0 4.9-2.2 4.9-4.9S14.7 2.2 12 2.2 7.1 4.4 7.1 7.1 9.3 12 12 12Z"/><path d="M3 21c0-4.4 4-7 9-7s9 2.6 9 7"/></svg>
+          <h3>Validazione Orafica (Human-in-the-Loop)</h3>
+        </div>
+        <p class="desc">Personalizza misure anello, lunghezza catena o requisiti d'incisione prima della registrazione finale del certificato.</p>
+        <div id="editRows"></div>
+        <div class="field expert-comment">
+          <label for="hitlNote">Incisione Personalizzata / Note d'Incastonatura</label>
+          <textarea id="hitlNote" placeholder="Es. Incidere all'interno del gambo 'A & M 2026', consegnare con astuccio Gran Galà..."></textarea>
+        </div>
+        <div class="validate-row">
+          <button class="btn btn-primary" id="validateBtn" type="button">Certifica e Salva nello Storico Orafo</button>
+          <span class="save-confirm" id="saveConfirm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 12l5 5L20 6"/></svg>
+            Parure salvata nello storico aziendale
+          </span>
+        </div>
+      </div>
+      <div class="history-zone">
+        <h3>Storico certificazioni della sessione</h3>
+        <p class="desc">Ogni validazione personalizzata affina il database delle combinazioni preferite dai clienti.</p>
+        <div class="history-list" id="historyList"></div>
+      </div>
+    `;
+
+    renderEditRows();
+    renderHistory();
+    $('#validateBtn').addEventListener('click', window.validateAndSave);
+  }
+
+  function renderRagSources(){
+    const ctx = state.contestoRAG;
+    if(!ctx || !ctx.length) return '<div class="rag-source-item"><span class="name">Catalogo Generale Gerardo Sacco 2026</span></div>';
+    return ctx.map(item=>`
+      <div class="rag-source-item">
+        <div>
+          <div class="name">${escapeHtml(item.nome || item.tipo || 'Riferimento Catalogo')}</div>
+          <div class="inci-src">${escapeHtml(item.cod ? 'Codice: '+item.cod : item.pavé || '')}</div>
+        </div>
+        <div class="kind">Catalogo Ufficiale</div>
+      </div>
+    `).join('');
+  }
+
+  function escapeHtml(str){
+    return String(str||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function renderEditRows(){
+    const box = $('#editRows');
+    const f = state.formula;
+    let rows = [
+      `<div class="edit-row">
+        <div class="lbl">Misura Anello Guida<small>Standard da 10 a 20</small></div>
+        <input type="number" min="8" max="24" id="edit-misura" value="${f.misura_consigliata || 12}">
+      </div>`,
+      `<div class="edit-row">
+        <div class="lbl">Lunghezza Catena / Girocollo<small>Centimetri standard</small></div>
+        <select id="edit-catena">
+          <option value="42 cm">42 cm (Girocollo classico)</option>
+          <option value="45 cm">45 cm (Standard)</option>
+          <option value="50 cm">50 cm (Lunga)</option>
+          <option value="60 cm">60 cm (Sautoir con pendente)</option>
+        </select>
+      </div>`
+    ];
+    box.innerHTML = rows.join('');
+  }
+
+  window.validateAndSave = function(){
+    const note = $('#hitlNote').value.trim();
+    const misura = $('#edit-misura') ? $('#edit-misura').value : '12';
+    const descrizione = `${state.modulo.toUpperCase()} — Misura Anello: ${misura} — ${state.formula.pezzi.length} Pezzi Coordinati`;
+    
+    state.storico.unshift({
+      modulo: state.modulo,
+      descrizione,
+      nota: note,
+      timestamp: new Date()
+    });
+    $('#kbCounter').textContent = state.storico.length;
+    renderHistory();
+    const confirmEl = $('#saveConfirm');
+    confirmEl.classList.add('show');
+    clearTimeout(confirmEl._t);
+    confirmEl._t = setTimeout(()=>confirmEl.classList.remove('show'), 3200);
+  };
+
+  function renderHistory(){
+    const list = $('#historyList');
+    if(!list) return;
+    if(!state.storico.length){
+      list.innerHTML = '<div class="history-empty">Nessuna certificazione orafa salvata in questa sessione.</div>';
+      return;
+    }
+    list.innerHTML = state.storico.map(h=>`
+      <div class="history-item">
+        <span class="h-mod">${h.modulo}</span>
+        <span class="h-desc">${escapeHtml(h.descrizione)}${h.nota ? ' — <em>Note: '+escapeHtml(h.nota)+'</em>' : ''}</span>
+        <span class="h-time">${h.timestamp.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})}</span>
+      </div>
+    `).join('');
+  }
+
+  $('#backTo2').addEventListener('click', ()=>goToStep(2));
+
+})();
+</script>
+
+<!-- LOGICA AGENTE VOCALE, DIALOGO INTERATTIVO & NAVIGAZIONE DIALOGO MAESTRA ORAFA -->
+<script>
+  function toggleCommandsModal() {
+    document.getElementById('commands-modal').classList.toggle('active');
+  }
+
+  let selectedFemaleVoice = null;
+  let isSpeaking = false;
+  let recognition = null;
+  let isRecording = false;
+
+  function initFemaleVoice() {
+    if (!('speechSynthesis' in window)) return;
+    const voices = window.speechSynthesis.getVoices();
+    const itVoices = voices.filter(v => v.lang.startsWith('it') || v.lang.startsWith('IT'));
+    if(itVoices.length === 0) return;
+
+    selectedFemaleVoice = itVoices.find(v => /elena|elsa|alice|federica|paola|chiara|silvia|giulia|female|woman/i.test(v.name)) || itVoices[0];
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = initFemaleVoice;
+    initFemaleVoice();
+  }
+
+  window.addEventListener('load', () => {
+    const welcomeMsg = "Benvenuti nel laboratorio Gerardo Sacco. Sono la vostra Maestra Orafa AI. Potete scegliere direttamente tra le nostre 13 collezioni oppure chiedere per tipologia di gioiello come anelli, pendenti, orecchini o spille!";
+    appendMessage(welcomeMsg, 'ai-msg');
+
+    const speakOnFirstClick = () => {
+      speakText(welcomeMsg);
+      window.removeEventListener('click', speakOnFirstClick);
+    };
+    window.addEventListener('click', speakOnFirstClick);
+  });
+
+  function stopVoice() {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    isSpeaking = false;
+    if (recognition && isRecording) {
+      recognition.stop();
+      isRecording = false;
+      const micBtn = document.getElementById('mic-btn');
+      if (micBtn) micBtn.classList.remove('recording');
+    }
+  }
+
+  function speakText(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const cleanText = text.replace(/<[^>]*>/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'it-IT';
+    if (selectedFemaleVoice) {
+      utterance.voice = selectedFemaleVoice;
+    }
+    utterance.rate = 1.0;
+    utterance.pitch = 1.05;
+
+    utterance.onstart = () => { isSpeaking = true; };
+    utterance.onend = () => { isSpeaking = false; };
+    utterance.onerror = () => { isSpeaking = false; };
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function appendMessage(text, className) {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `msg ${className}`;
+    msgDiv.innerHTML = text;
+    container.appendChild(msgDiv);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function toggleChat() {
+    const win = document.getElementById('chat-window');
+    if (win) win.classList.toggle('active');
+  }
+
+  function handleKeyPress(e) {
+    if (e.key === 'Enter') sendMessage();
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('user-input');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+
+    appendMessage(text, 'user-msg');
+    input.value = '';
+
+    processChatMessage(text);
+  }
+
+  /* LOGICA DI COMANDO E NAVIGAZIONE IN DIALOGO */
+  function processChatMessage(rawText) {
+    const text = rawText.toLowerCase().trim();
+
+    // 1. INTERRUZIONE E RESET
+    if (text.includes('interrompi') || text.includes('nuova linea') || text.includes('ricomincia') || text.includes('reset')) {
+      resetToStep1();
+      return;
+    }
+
+    // 2. NAVIGAZIONE STEP
+    if (text === 'avanti' || text === 'continua') {
+      const activeStep = document.querySelector('.step.active').id;
+      if (activeStep === 'step1') {
+        if (window.appState.modulo) {
+          document.getElementById('toStep2').click();
+        } else {
+          const warn = "Scegli prima una collezione o una tipologia di prodotto per continuare!";
+          appendMessage(warn, 'ai-msg');
+          speakText(warn);
+        }
+      } else if (activeStep === 'step2') {
+        document.getElementById('toStep3').click();
+      }
+      return;
+    }
+
+    if (text === 'indietro') {
+      const activeStep = document.querySelector('.step.active').id;
+      if (activeStep === 'step3') window.goToStep(2);
+      else if (activeStep === 'step2') window.goToStep(1);
+      return;
+    }
+
+    // 3. TIPOLOGIE DI PRODOTTO
+    if (text.includes('anell')) {
+      window.selectByProductType('anelli');
+      return;
+    }
+    if (text.includes('pendent') || text.includes('ciondol') || text.includes('collana') || text.includes('collane')) {
+      window.selectByProductType('pendenti');
+      return;
+    }
+    if (text.includes('orecchin')) {
+      window.selectByProductType('orecchini');
+      return;
+    }
+    if (text.includes('braccial')) {
+      window.selectByProductType('bracciali');
+      return;
+    }
+    if (text.includes('spill') || text.includes('charm')) {
+      window.selectByProductType('spille');
+      return;
+    }
+
+    // 4. SELEZIONE TRA LE 13 COLLEZIONI PER NOME
+    const collectionsMap = [
+      { key: 'reverse', match: ['reverse', 'rotante', 'mesi oro'] },
+      { key: 'ricami', match: ['ricami', 'filigrana'] },
+      { key: 'cammei', match: ['cammei', 'cammeo'] },
+      { key: 'mattonelle_oro', match: ['mattonelle oro', 'mattonella oro'] },
+      { key: 'scrigno', match: ['scrigno', 'lente'] },
+      { key: 'due_in_uno', match: ['due in uno', '2 in 1', 'trasformabil'] },
+      { key: 'ninfee', match: ['ninfee', 'ninfea'] },
+      { key: 'magna_grecia', match: ['magna grecia', 'maschera', 'maschere', 'crotone'] },
+      { key: 'paste_vitree', match: ['paste vitree', 'pasta vitrea'] },
+      { key: 'mattonelle_argento', match: ['mattonelle argento', 'mattonella argento'] },
+      { key: 'perle', match: ['perle', 'scaramazze', 'mari del sud'] },
+      { key: 'monete', match: ['monete', 'moneta', 'statere'] },
+      { key: 'mesi_stagioni', match: ['mesi stagioni', 'stagioni', 'amuleti'] }
+    ];
+
+    for (let col of collectionsMap) {
+      if (col.match.some(m => text.includes(m))) {
+        window.switchViewMode('collezioni');
+        window.selectModule(col.key);
+        const reply = `Perfetto! Ho selezionato la collezione <strong>${col.key.replace('_', ' ').toUpperCase()}</strong>. Clicca su 'Continua alla profilazione' oppure dimmi 'Avanti' per procedere!`;
+        appendMessage(reply, 'ai-msg');
+        speakText(reply.replace(/<[^>]*>/g, ''));
+        return;
+      }
+    }
+
+    // 5. VALIDAZIONE O SALVATAGGIO
+    if (text.includes('valida') || text.includes('salva') || text.includes('certifica')) {
+      const activeStep = document.querySelector('.step.active').id;
+      if (activeStep === 'step3' && window.validateAndSave) {
+        window.validateAndSave();
+        const reply = "Certificazione orafa salvata con successo nello storico!";
+        appendMessage(reply, 'ai-msg');
+        speakText(reply);
+        return;
+      }
+    }
+
+    // FALLBACK
+    const fallback = "Puoi indicarmi una delle 13 collezioni (es. Reverse, Ricami, Cammei) oppure una tipologia di prodotto (Anelli, Pendenti, Orecchini, Bracciali, Spille). Come desideri procedere?";
+    appendMessage(fallback, 'ai-msg');
+    speakText(fallback);
+  }
+
+  function resetToStep1() {
+    stopVoice();
+    if (window.appState) {
+      window.appState.modulo = null;
+      window.appState.tipologiaSelezionata = null;
+      window.appState.risposte = {};
+      window.appState.formula = null;
+      window.appState.contestoRAG = [];
+    }
+
+    document.querySelectorAll('.module-card').forEach(c => c.classList.remove('selected'));
+    const toStep2Btn = document.getElementById('toStep2');
+    if (toStep2Btn) toStep2Btn.disabled = true;
+
+    const sheetContainer = document.getElementById('sheetContainer');
+    if (sheetContainer) sheetContainer.innerHTML = '';
+
+    window.goToStep(1);
+
+    const resetMsg = "Operazione interrotta. Ho azzerato la profilazione. Scegli una nuova collezione o una tipologia di prodotto per iniziare!";
+    appendMessage(resetMsg, 'ai-msg');
+    speakText(resetMsg);
+  }
+  window.resetToStep1 = resetToStep1;
+
+  function toggleVoiceRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Il riconoscimento vocale non è supportato dal tuo browser.");
+      return;
+    }
+
+    const micBtn = document.getElementById('mic-btn');
+
+    if (isRecording) {
+      if (recognition) recognition.stop();
+      isRecording = false;
+      if (micBtn) micBtn.classList.remove('recording');
+      return;
+    }
+
+    recognition = new SpeechRecognition();
+    recognition.lang = 'it-IT';
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      isRecording = true;
+      if (micBtn) micBtn.classList.add('recording');
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      appendMessage(transcript, 'user-msg');
+      processChatMessage(transcript);
+    };
+
+    recognition.onerror = () => {
+      isRecording = false;
+      if (micBtn) micBtn.classList.remove('recording');
+    };
+
+    recognition.onend = () => {
+      isRecording = false;
+      if (micBtn) micBtn.classList.remove('recording');
+    };
+
+    recognition.start();
+  }
+
+  function changeAvatarImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        document.getElementById('avatar-img').src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function triggerRandomBodyMovement() {
+    const avatar = document.getElementById('avatar-container');
+    if (!avatar) return;
+    const randomX = (Math.random() - 0.5) * (isSpeaking ? 6 : 2);
+    const randomY = (Math.random() - 0.5) * (isSpeaking ? 4 : 2);
+    avatar.style.transform = `translate(${randomX}px, ${randomY}px)`;
+    setTimeout(triggerRandomBodyMovement, isSpeaking ? 250 : 2000);
+  }
+
+  function triggerLipMovement() {
+    const mouth = document.getElementById('avatar-mouth');
+    if (!mouth) return;
+    if (isSpeaking) {
+      mouth.style.height = `${3 + Math.random() * 5}px`;
+      mouth.style.width = `${12 + Math.random() * 4}px`;
+    } else {
+      mouth.style.height = '2px';
+      mouth.style.width = '14px';
+    }
+    setTimeout(triggerLipMovement, 100);
+  }
+
+  triggerLipMovement();
+  triggerRandomBodyMovement();
+</script>
+
+</body>
+</html>
