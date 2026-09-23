@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M.A.D.E.-AI - Simulatore Agente Formativo & Matching Micro-Moduli</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #f1f5f9;
+            --panel-bg: #ffffff;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --agent-bubble: #f8fafc;
+            --user-bubble: #2563eb;
+            --accent-green: #059669;
+            --accent-purple: #7c3aed;
+            --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; padding: 20px; }
+
+        .app-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        @media (max-width: 900px) {
+            .app-container { grid-template-columns: 1fr; height: auto; }
+        }
+
+        /* PANNELLO SINISTRO - PROFILO AGENTE E STATO */
+        .sidebar {
+            background: var(--panel-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+        }
+
+        .agent-avatar-wrapper {
+            position: relative;
+            width: 130px;
+            height: 130px;
+            margin-bottom: 16px;
+        }
+
+        .agent-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary-light);
+            box-shadow: 0 0 20px rgba(37, 99, 235, 0.25);
+            background-color: #e2e8f0;
+        }
+
+        .status-indicator {
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            width: 18px;
+            height: 18px;
+            background: #10b981;
+            border: 3px solid white;
+            border-radius: 50%;
+        }
+
+        .agent-name { font-size: 1.25rem; font-weight: 800; color: var(--text-main); }
+        .agent-role { font-size: 0.82rem; font-weight: 600; color: var(--primary); text-transform: uppercase; margin-top: 2px; }
+        .agent-desc { font-size: 0.85rem; color: var(--text-muted); margin-top: 10px; line-height: 1.4; }
+
+        .image-upload-box {
+            margin-top: 14px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px dashed var(--border);
+            width: 100%;
+        }
+        .image-upload-box input { display: none; }
+        .image-upload-btn { color: var(--primary); font-weight: 700; cursor: pointer; text-decoration: underline; }
+
+        .progress-box {
+            width: 100%;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: left;
+        }
+        .progress-title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+        .progress-bar-bg { background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 12px; }
+        .progress-bar-fill { background: var(--primary); height: 100%; width: 20%; transition: width 0.4s ease; }
+
+        .summary-badge {
+            background: var(--primary-light);
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--primary);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 6px;
+        }
+
+        /* PANNELLO DESTRO - CHAT E MATCHING */
+        .main-content {
+            background: var(--panel-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-md);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            background: #fafafa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-header h2 { font-size: 1.05rem; font-weight: 700; }
+        .reset-btn { background: transparent; border: none; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .reset-btn:hover { color: #ef4444; }
+
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: #f8fafc;
+        }
+
+        .message { display: flex; gap: 12px; max-width: 85%; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        .message.agent { align-self: flex-start; }
+        .message.user { align-self: flex-end; flex-direction: row-reverse; }
+
+        .msg-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+
+        .msg-bubble {
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        }
+        .message.agent .msg-bubble { background: white; color: var(--text-main); border: 1px solid var(--border); border-top-left-radius: 2px; }
+        .message.user .msg-bubble { background: var(--user-bubble); color: white; border-top-right-radius: 2px; }
+
+        /* OPZIONI RAPIDE / BOTTONI */
+        .quick-options { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .opt-btn {
+            background: white;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .opt-btn:hover { background: var(--primary); color: white; transform: translateY(-1px); }
+
+        .chat-input-area {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            background: white;
+            display: flex;
+            gap: 12px;
+        }
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .chat-input:focus { border-color: var(--primary); }
+        .send-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .send-btn:hover { background: var(--primary-hover); }
+
+        /* SCHEDA RISULTATO MATCHING FINALE */
+        .matching-card {
+            background: white;
+            border: 2px solid var(--accent-green);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 12px;
+            width: 100%;
+        }
+        .matching-header { font-size: 1.1rem; font-weight: 800; color: var(--accent-green); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .matching-sub { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; }
+
+        .matched-module-item {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .mod-title { font-weight: 700; font-size: 0.92rem; color: #166534; }
+        .mod-meta { font-size: 0.78rem; color: #15803d; margin-top: 4px; font-weight: 600; }
+
+        .badge-preview {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            color: white;
+            padding: 16px;
+            border-radius: 10px;
+            margin-top: 14px;
+            text-align: center;
+        }
+        .badge-preview h4 { font-size: 0.95rem; font-weight: 800; color: #38bdf8; }
+        .badge-preview p { font-size: 0.8rem; opacity: 0.9; margin-top: 4px; }
+
+        .btn-download {
+            width: 100%;
+            background: var(--accent-green);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            margin-top: 12px;
+            cursor: pointer;
+        }
+        .btn-download:hover { background: #047857; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- SIDEBAR AGENTE -->
+        <div class="sidebar">
+            <div class="agent-avatar-wrapper">
+                <!-- IMMAGINE AGENTE (Sostituibile con file locale o URL) -->
+                <img id="agent-avatar-img" class="agent-avatar" src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=300" alt="Agente M.A.D.E.-AI">
+                <div class="status-indicator"></div>
+            </div>
+
+            <div class="agent-name">Sofia</div>
+            <div class="agent-role">AI Advisor Formativo M.A.D.E.-AI</div>
+            <div class="agent-desc">Ti guiderò nell'analisi dei tuoi fabbisogni professionali per creare un piano personalizzato basato su micro-moduli certificati da 50h / 2 CFU.</div>
+
+            <div class="image-upload-box">
+                Immagine Agente Personalizzata:<br>
+                <label class="image-upload-btn">
+                    Carica la tua immagine
+                    <input type="file" id="image-input" accept="image/*" onchange="loadCustomImage(event)">
+                </label>
+            </div>
+
+            <div class="progress-box">
+                <div class="progress-title">Avanzamento Intervista</div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progress-fill"></div>
+                </div>
+                <div class="summary-badge">
+                    <span>Target CFU:</span>
+                    <strong id="sidebar-cfu">0 CFU</strong>
+                </div>
+                <div class="summary-badge">
+                    <span>Settore:</span>
+                    <strong id="sidebar-sector">Da definire</strong>
+                </div>
+                <div class="summary-badge">
+                    <span>Livello:</span>
+                    <strong id="sidebar-level">Da definire</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- AREA CHAT E MATCHING -->
+        <div class="main-content">
+            <div class="chat-header">
+                <h2>Dialogo di Diagnosi Formativa & Matching Micro-Moduli</h2>
+                <button class="reset-btn" onclick="resetChat()">🔄 Ricomincia Intervista</button>
+            </div>
+
+            <div class="chat-messages" id="chat-box">
+                <!-- Messaggio iniziale dell'agente generato via JS -->
+            </div>
+
+            <div class="chat-input-area">
+                <input type="text" id="user-input" class="chat-input" placeholder="Scrivi la tua risposta o seleziona un'opzione sopra..." onkeypress="handleKeyPress(event)">
+                <button class="send-btn" onclick="sendUserMessage()">Invia</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DATABASE RAPPRESENTATIVO DEI 264 MICRO-MODULI (88 MODULI X 3 LIVELLI)
+        const microModulesDB = [
+            // AI & DATA SCIENCE
+            { id: "mod_01_basic", name: "Artificial Intelligence & Machine Learning", level: "Basic", category: "AI & Data Science", sector: "Automazione & Robotica", cfu: 2, hours: 50, keywords: ["ai", "machine learning", "dati", "base", "algoritmi"] },
+            { id: "mod_01_intermedio", name: "Artificial Intelligence & Machine Learning", level: "Intermedio", category: "AI & Data Science", sector: "Automazione & Robotica", cfu: 2, hours: 50, keywords: ["ai", "machine learning", "modelli", "python", "intermedio"] },
+            { id: "mod_01_avanzato", name: "Artificial Intelligence & Machine Learning", level: "Avanzato", category: "AI & Data Science", sector: "Automazione & Robotica", cfu: 2, hours: 50, keywords: ["ai", "machine learning", "deep learning", "architetture", "avanzato"] },
+            
+            { id: "mod_02_intermedio", name: "Deep Learning & Computer Vision", level: "Intermedio", category: "AI & Data Science", sector: "Controllo Qualità", cfu: 2, hours: 50, keywords: ["computer vision", "telecamere", "controllo qualita", "immagini"] },
+            { id: "mod_03_basic", name: "Generative AI & Large Language Models", level: "Basic", category: "AI & Data Science", sector: "Servizi & Enterprise", cfu: 2, hours: 50, keywords: ["genai", "chatgpt", "llm", "prompt", "testo"] },
+            { id: "mod_06_intermedio", name: "Predictive Analytics & Time Series", level: "Intermedio", category: "AI & Data Science", sector: "Manifatturiero 4.0", cfu: 2, hours: 50, keywords: ["manutenzione predittiva", "previsioni", "sensori", "pdm"] },
+
+            // ADVANCED MANUFACTURING & ROBOTICS
+            { id: "mod_16_basic", name: "L'accoppiatura di materiali differenti", level: "Basic", category: "Advanced Manufacturing", sector: "Automotive & Meccanica", cfu: 2, hours: 50, keywords: ["accoppiatura", "materiali", "giunzioni", "assemblaggio"] },
+            { id: "mod_18_intermedio", name: "Collaborative Robotics & Cobotics", level: "Intermedio", category: "Advanced Manufacturing", sector: "Automazione & Robotica", cfu: 2, hours: 50, keywords: ["cobot", "robotica collaborativa", "bracci robotici", "sicurezza"] },
+            { id: "mod_20_avanzato", name: "Additive Manufacturing Metalli & Polimeri", level: "Avanzato", category: "Advanced Manufacturing", sector: "Aerospaziale & Meccanica", cfu: 2, hours: 50, keywords: ["stampa 3d", "additive", "metalli", "prototipazione"] },
+
+            // MATERIALS & CHEMISTRY
+            { id: "mod_34_basic", name: "Smart Materials & Polimeri Funzionali", level: "Basic", category: "Materials & Chemistry", sector: "Materiali & Chimica", cfu: 2, hours: 50, keywords: ["materiali intelligenti", "polimeri", "plastica", "chimica"] },
+            { id: "mod_36_intermedio", name: "Materiali Compositi e Fibre di Carbonio", level: "Intermedio", category: "Materials & Chemistry", sector: "Automotive & Meccanica", cfu: 2, hours: 50, keywords: ["compositi", "carbonio", "resine", "leggerezza"] },
+
+            // ELECTRONICS, IOT & CYBERSECURITY
+            { id: "mod_49_basic", name: "IoT & Sensoristica Industriale", level: "Basic", category: "Electronics & IoT", sector: "Elettronica & IoT", cfu: 2, hours: 50, keywords: ["iot", "sensori", "telemetria", "connettivita"] },
+            { id: "mod_50_avanzato", name: "Cybersecurity per l'OT & Industria 4.0", level: "Avanzato", category: "Electronics & IoT", sector: "Elettronica & IoT", cfu: 2, hours: 50, keywords: ["cybersecurity", "sicurezza ot", "firewall", "attacchi"] },
+
+            // SUSTAINABILITY & ENERGY
+            { id: "mod_64_intermedio", name: "Circular Economy & Life Cycle Assessment (LCA)", level: "Intermedio", category: "Sustainability", sector: "Sostenibilità & Energia", cfu: 2, hours: 50, keywords: ["lca", "sostenibilita", "circolare", "ecodesign", "esg"] },
+            { id: "mod_67_basic", name: "Efficienza Energetica Industriale", level: "Basic", category: "Sustainability", sector: "Sostenibilità & Energia", cfu: 2, hours: 50, keywords: ["energia", "efficienza", "consumi", "audit"] },
+
+            // DESIGN & OPERATIONS
+            { id: "mod_76_avanzato", name: "Digital Twin & Simulazione di Processo", level: "Avanzato", category: "Design & Operations", sector: "Manifatturiero 4.0", cfu: 2, hours: 50, keywords: ["digital twin", "gemello digitale", "simulazione", "cad"] },
+            { id: "mod_81_intermedio", name: "Ottimizzazione di Processo & Lean AI", level: "Intermedio", category: "Design & Operations", sector: "Manifatturiero 4.0", cfu: 2, hours: 50, keywords: ["lean", "ottimizzazione", "processi", "kaizen"] }
+        ];
+
+        // STATO DEL DIALOGO
+        let chatState = {
+            step: 0,
+            userRole: "",
+            sector: "",
+            goalKeywords: [],
+            preferredLevel: "",
+            timeCommitment: "",
+            matchedModules: []
+        };
+
+        // DOM ELEMENTS
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+
+        // INIZIALIZZAZIONE
+        document.addEventListener('DOMContentLoaded', () => {
+            initDialogue();
+        });
+
+        function initDialogue() {
+            chatState = { step: 0, userRole: "", sector: "", goalKeywords: [], preferredLevel: "", timeCommitment: "", matchedModules: [] };
+            updateSidebar();
+            chatBox.innerHTML = '';
+            
+            appendAgentMessage("Ciao! Sono <strong>Sofia</strong>, l'Agente AI Advisor di M.A.D.E.-AI 5.0. 🤖<br>Il mio obiettivo è individuare le tue esigenze di aggiornamento professionale e proporti un percorso formativo basato sui nostri <strong>Micro-Moduli da 50 ore / 2 CFU</strong> con rilascio di Open Badge.<br><br>Per iniziare: <strong>Qual è il tuo ruolo professionale attuale o ambito di studio?</strong>", [
+                "Ingegnere / Progettista",
+                "Plant Manager / Responsabile Produzione",
+                "Tecnico / Operatore Specializzato",
+                "Manager / Innovation Manager",
+                "Studente / Neolaureato"
+            ]);
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendUserMessage();
+        }
+
+        function sendUserMessage(customText) {
+            const text = customText || userInput.value.trim();
+            if (!text) return;
+
+            appendUserMessage(text);
+            userInput.value = '';
+
+            // ELABORAZIONE PASSO-PASSO DELL'AGENTE
+            setTimeout(() => {
+                processUserStep(text);
+            }, 600);
+        }
+
+        function processUserStep(text) {
+            const lowerText = text.toLowerCase();
+
+            switch (chatState.step) {
+                case 0:
+                    chatState.userRole = text;
+                    chatState.step = 1;
+                    updateProgress(25);
+                    appendAgentMessage(`Perfetto, il ruolo di <strong>${text}</strong> richiede competenze ad alto impatto.<br><br>In quale <strong>settore industriale</strong> operi principalmente?`, [
+                        "Automazione & Robotica",
+                        "Automotive & Meccanica",
+                        "Controllo Qualità & Visiva",
+                        "Materiali & Chimica",
+                        "Sostenibilità & Energia",
+                        "Elettronica & IoT"
+                    ]);
+                    break;
+
+                case 1:
+                    chatState.sector = text;
+                    document.getElementById('sidebar-sector').innerText = text;
+                    chatState.step = 2;
+                    updateProgress(50);
+                    appendAgentMessage(`Ottimo! Qual è la principale <strong>sfida tecnologica o competenza</strong> che desideri acquisire o potenziare nelle prossime settimane?`, [
+                        "Intelligenza Artificiale & Machine Learning",
+                        "Manutenzione Predittiva & IoT",
+                        "Robotica Collaborativa (Cobot)",
+                        "Sostenibilità, LCA ed Economia Circolare",
+                        "Digital Twin & Simulazione",
+                        "Materiali Intelligenti e Compositi"
+                    ]);
+                    break;
+
+                case 2:
+                    extractKeywords(text);
+                    chatState.step = 3;
+                    updateProgress(75);
+                    appendAgentMessage(`Compreso. Che <strong>livello di approfondimento</strong> ritieni sia più adatto alla tua attuale preparazione sul tema?`, [
+                        "Basic (Fondamenti e concetti base)",
+                        "Intermedio (Progettazione applicata)",
+                        "Avanzato (Padronanza ed architettura complessa)"
+                    ]);
+                    break;
+
+                case 3:
+                    if (lowerText.includes("basic")) chatState.preferredLevel = "Basic";
+                    else if (lowerText.includes("avanzato")) chatState.preferredLevel = "Avanzato";
+                    else chatState.preferredLevel = "Intermedio";
+
+                    document.getElementById('sidebar-level').innerText = chatState.preferredLevel;
+                    chatState.step = 4;
+                    updateProgress(90);
+
+                    appendAgentMessage(`Infine, di quante <strong>ore / crediti CFU</strong> disponi approssimativamente per la tua formazione?`, [
+                        "50 ore (1 Micro-Modulo = 2 CFU)",
+                        "100 ore (2 Micro-Moduli = 4 CFU)",
+                        "150 ore (3 Micro-Moduli = 6 CFU)"
+                    ]);
+                    break;
+
+                case 4:
+                    if (lowerText.includes("150") || lowerText.includes("3")) chatState.timeCommitment = "150h / 6 CFU";
+                    else if (lowerText.includes("100") || lowerText.includes("2")) chatState.timeCommitment = "100h / 4 CFU";
+                    else chatState.timeCommitment = "50h / 2 CFU";
+
+                    document.getElementById('sidebar-cfu').innerText = chatState.timeCommitment.split('/')[1] || "2 CFU";
+                    chatState.step = 5;
+                    updateProgress(100);
+
+                    performMatching();
+                    break;
+
+                default:
+                    appendAgentMessage("Il tuo piano di formazione è stato generato qui sopra! Puoi scaricarne il riepilogo JSON o cliccare su 'Ricomincia Intervista' per analizzare nuove esigenze.");
+                    break;
+            }
+        }
+
+        function extractKeywords(text) {
+            const lower = text.toLowerCase();
+            const keys = [];
+            if (lower.includes("ai") || lower.includes("intelligenza")) keys.push("ai", "machine learning");
+            if (lower.includes("manutenzione") || lower.includes("iot")) keys.push("manutenzione predittiva", "iot");
+            if (lower.includes("robot") || lower.includes("cobot")) keys.push("cobot", "robotica collaborativa");
+            if (lower.includes("sostenibil") || lower.includes("lca")) keys.push("sostenibilita", "lca");
+            if (lower.includes("digital twin") || lower.includes("simula")) keys.push("digital twin", "simulazione");
+            if (lower.includes("materiali") || lower.includes("compositi")) keys.push("materiali", "compositi");
+            
+            if (keys.length === 0) keys.push("ai", "processi", "innovazione");
+            chatState.goalKeywords = keys;
+        }
+
+        // ALGORITMO DI MATCHING
+        function performMatching() {
+            appendAgentMessage("⏳ <em>Sto analizzando il nostro catalogo di 264 Micro-Moduli e incrociando i dati del tuo profilo...</em>");
+
+            setTimeout(() => {
+                let matches = microModulesDB.filter(m => {
+                    const matchSector = m.sector.toLowerCase().includes(chatState.sector.toLowerCase()) || chatState.sector === "Tutti";
+                    const matchLevel = m.level.toLowerCase() === chatState.preferredLevel.toLowerCase();
+                    const matchKw = m.keywords.some(k => chatState.goalKeywords.includes(k));
+                    return matchLevel || matchSector || matchKw;
+                });
+
+                if (matches.length === 0) matches = microModulesDB.slice(0, 2);
+
+                // Limita in base al tempo richiesto
+                let count = 1;
+                if (chatState.timeCommitment.includes("100")) count = 2;
+                if (chatState.timeCommitment.includes("150")) count = 3;
+
+                chatState.matchedModules = matches.slice(0, count);
+
+                renderMatchingCard();
+            }, 800);
+        }
+
+        function renderMatchingCard() {
+            const totalCFU = chatState.matchedModules.length * 2;
+            const totalHours = chatState.matchedModules.length * 50;
+
+            let modulesHtml = chatState.matchedModules.map(m => `
+                <div class="matched-module-item">
+                    <div class="mod-title">📌 ${m.name} (${m.level})</div>
+                    <div class="mod-meta">Categoria: ${m.category} • 50 Ore / 2 CFU • Open Badge Certificato</div>
+                </div>
+            `).join('');
+
+            const cardHtml = `
+                <div class="matching-card">
+                    <div class="matching-header">🎯 Matching Formativo Generato con Successo!</div>
+                    <div class="matching-sub">Sulla base del profilo di <strong>${chatState.userRole}</strong> nel settore <strong>${chatState.sector}</strong>:</div>
+
+                    ${modulesHtml}
+
+                    <div class="badge-preview">
+                        <h4>🏆 Open Badge Micro-Credito Risultante</h4>
+                        <p><strong>Percorso Formativo Personalizzato M.A.D.E.-AI</strong></p>
+                        <p>${totalCFU} ECTS/CFU Totali (${totalHours} Ore complessive)</p>
+                    </div>
+
+                    <button class="btn-download" onclick="downloadPlanJSON()">📥 Scarica Dossier Formativo (JSON)</button>
+                </div>
+            `;
+
+            appendAgentMessage(`Ecco la proposta formativa su misura elaborata per te:<br>${cardHtml}`);
+        }
+
+        // AGGIUNTA MESSAGGI CHAT
+        function appendAgentMessage(htmlText, options = []) {
+            const agentAvatarSrc = document.getElementById('agent-avatar-img').src;
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message agent';
+
+            let optionsHtml = '';
+            if (options.length > 0) {
+                optionsHtml = `<div class="quick-options">` +
+                    options.map(opt => `<button class="opt-btn" onclick="sendUserMessage('${opt}')">${opt}</button>`).join('') +
+                    `</div>`;
+            }
+
+            msgDiv.innerHTML = `
+                <img src="${agentAvatarSrc}" class="msg-avatar" alt="Sofia">
+                <div class="msg-bubble">
+                    ${htmlText}
+                    ${optionsHtml}
+                </div>
+            `;
+
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function appendUserMessage(text) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message user';
+            msgDiv.innerHTML = `
+                <div class="msg-bubble">${escapeHtml(text)}</div>
+            `;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function updateProgress(percent) {
+            document.getElementById('progress-fill').style.width = percent + '%';
+        }
+
+        function updateSidebar() {
+            document.getElementById('sidebar-sector').innerText = chatState.sector || "Da definire";
+            document.getElementById('sidebar-level').innerText = chatState.preferredLevel || "Da definire";
+            document.getElementById('sidebar-cfu').innerText = chatState.timeCommitment ? chatState.timeCommitment.split('/')[1] : "0 CFU";
+            updateProgress(10);
+        }
+
+        function resetChat() {
+            initDialogue();
+        }
+
+        // CARICAMENTO IMMAGINE PERSONALIZZATA AGENTE
+        function loadCustomImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('agent-avatar-img').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // ESPORTAZIONE JSON RISULTATO
+        function downloadPlanJSON() {
+            const dataObj = {
+                data_diagnosi: new Date().toISOString(),
+                agente_advisor: "Sofia - M.A.D.E.-AI Advisor",
+                profilo_utilizzatore: {
+                    ruolo: chatState.userRole,
+                    settore: chatState.sector,
+                    livello_richiesto: chatState.preferredLevel,
+                    target_ore: chatState.timeCommitment
+                },
+                micro_moduli_selezionati: chatState.matchedModules,
+                open_badge: {
+                    titolo: "Open Badge Micro-Crediti M.A.D.E.-AI",
+                    cfu_totali: chatState.matchedModules.length * 2,
+                    ore_totali: chatState.matchedModules.length * 50
+                }
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataObj, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `matching_formativo_${chatState.userRole.replace(/\s+/g, '_')}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>

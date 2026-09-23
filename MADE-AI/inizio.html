@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M.A.D.E.-AI: Micro-credentials & Artificial Intelligence for Digital and Ecological transition</title>
+    <style>
+        :root {
+            --primary-color: #0f4c81;
+            --secondary-color: #1b8a5a;
+            --accent-color: #00b4d8;
+            --bg-color: #f4f7f9;
+            --card-bg: #ffffff;
+            --text-main: #2b2d42;
+            --text-muted: #6c757d;
+            --shadow-sm: 0 4px 6px rgba(0,0,0,0.05);
+            --shadow-md: 0 10px 20px rgba(0,0,0,0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1a2a3a 100%);
+            color: #ffffff;
+            padding: 50px 20px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+        }
+
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .project-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            backdrop-filter: blur(5px);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+
+        p.subtitle {
+            font-size: 1.15rem;
+            opacity: 0.9;
+            max-width: 750px;
+            margin: 0 auto;
+            font-weight: 300;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+            flex: 1;
+            width: 100%;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 35px;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 3px;
+            background: var(--secondary-color);
+            margin: 10px auto 0;
+            border-radius: 2px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-header {
+            margin-bottom: 15px;
+        }
+
+        .card-type {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--secondary-color);
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .card-body {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+            flex-grow: 1;
+        }
+
+        .btn-launch {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary-color);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            gap: 8px;
+        }
+
+        .btn-launch:hover {
+            background-color: var(--secondary-color);
+            box-shadow: 0 4px 10px rgba(27, 138, 90, 0.3);
+        }
+
+        .btn-launch svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        footer {
+            background-color: #ffffff;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.75rem;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <span class="project-badge">Progetto Digitale & Ecologico</span>
+            <h1>M.A.D.E.-AI</h1>
+            <p class="subtitle">Micro-credentials & Artificial Intelligence for Digital and Ecological transition</p>
+        </div>
+    </header>
+
+    <main>
+        <h2 class="section-title">Simulatori e Moduli Didattici</h2>
+        
+        <div class="grid">
+            
+            <!-- Card 1 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-type">Intervista / Modulo A</div>
+                    <h3 class="card-title">Intervista A</h3>
+                </div>
+                <div class="card-body">
+                    Simulatore interattivo dedicato alla prima fase di intervista e valutazione iniziale delle competenze.
+                </div>
+                <a href="a%20intervista.html" class="btn-launch" target="_blank">
+                    Avvia Simulatore
+                    <svg viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+                </a>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-type">Valutazione / Modulo A</div>
+                    <h3 class="card-title">Competenze Finale A</h3>
+                </div>
+                <div class="card-body">
+                    Modulo di verifica e riepilogo finale delle competenze acquisite nel percorso A.
+                </div>
+                <a href="A_competenze%20finale.html" class="btn-launch" target="_blank">
+                    Avvia Simulatore
+                    <svg viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+                </a>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-type">Intervista / Modulo B</div>
+                    <h3 class="card-title">Intervista B</h3>
+                </div>
+                <div class="card-body">
+                    Simulatore di intervista focalizzato sulla seconda fase del profilo di apprendimento.
+                </div>
+                <a href="b%20intervista.html" class="btn-launch" target="_blank">
+                    Avvia Simulatore
+                    <svg viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+                </a>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-type">Tecnologie & Competenze / Modulo B</div>
+                    <h3 class="card-title">Tecnologie & Competenze B</h3>
+                </div>
+                <div class="card-body">
+                    Analisi e simulazione del bilancio competenze tecnologiche relative al livello B.
+                </div>
+                <a href="B_tecnologie%20competenze.html" class="btn-launch" target="_blank">
+                    Avvia Simulatore
+                    <svg viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+                </a>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-type">Tecnologie & Competenze / Modulo C</div>
+                    <h3 class="card-title">Tecnologie & Competenze C</h3>
+                </div>
+                <div class="card-body">
+                    Ambiente di simulazione per la transizione ecologica e competenze avanzate C.
+                </div>
+                <a href="C_tecnologie%20competenze.html" class="btn-launch" target="_blank">
+                    Avvia Simulatore
+                    <svg viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+                </a>
+            </div>
+
+            <!-- Card 6 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-type">Matchmaking / Livello 1</div>
+                    <h3 class="card-title">Matchmaking 1</h3>
+                </div>
+                <div class="card-body">
+                    Algoritmo di abbinamento tra competenze rilevate e micro-credenziali richieste.
+                </div>
+                <a href="matchmaking1.html" class="btn-launch" target="_blank">
+                    Avvia Simulatore
+                    <svg viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+                </a>
+            </div>
+
+            <!-- Card 7 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-type">Matchmaking / Livello 2</div>
+                    <h3 class="card-title">Matchmaking 2</h3>
+                </div>
+                <div class="card-body">
+                    Sistema avanzato di incrocio domanda-offerta per profili ecologici e digitali.
+                </div>
+                <a href="matcthmaking2.html" class="btn-launch" target="_blank">
+                    Avvia Simulatore
+                    <svg viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+                </a>
+            </div>
+
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 M.A.D.E.-AI - Micro-credentials & Artificial Intelligence for Digital and Ecological transition</p>
+    </footer>
+
+</body>
+</html>

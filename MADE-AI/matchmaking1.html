@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Matchmaking & Learning Path Generator - MOVA Enterprise</title>
+    <style>
+        :root {
+            --primary: #c0392b;
+            --primary-hover: #a93226;
+            --secondary: #16a085;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --accent-green: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .header h1 span {
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            margin-top: 6px;
+            font-size: 0.95rem;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 992px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        .dropzone {
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background: #0f172a;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .dropzone:hover {
+            border-color: var(--secondary);
+            background: #162032;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-preset {
+            background-color: #334155;
+            font-size: 0.8rem;
+            padding: 6px 12px;
+            width: auto;
+            margin-bottom: 15px;
+        }
+
+        .btn-preset:hover {
+            background-color: #475569;
+        }
+
+        /* Loading Animation */
+        .loading-state {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border-left-color: var(--secondary);
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Results Display */
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f172a;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .match-score {
+            text-align: right;
+        }
+
+        .score-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--accent-green);
+        }
+
+        .module-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .module-item {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            position: relative;
+        }
+
+        .module-tag {
+            display: inline-block;
+            background: rgba(22, 160, 133, 0.2);
+            color: var(--secondary);
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .module-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .module-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .module-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+        }
+
+        .avatar-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .avatar-img {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 60px 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1><span>MOVA</span> Enterprise AI Matchmaker</h1>
+        <p>Sistema automatico di profilazione fabbisogni industriali e strutturazione percorsi formativi custom</p>
+    </div>
+
+    <div class="container">
+        <!-- Input Form: Esigenze Aziendali -->
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="card-title">1. Input Fabbisogno Formativo</h2>
+                <button type="button" class="btn btn-preset" onclick="loadPreset()">⚡ Carica Esempio</button>
+            </div>
+            
+            <form id="matchForm" onsubmit="runMatchmaker(event)">
+                <div class="form-group">
+                    <label>Settore Industriale</label>
+                    <select id="sector" required>
+                        <option value="">Seleziona Settore...</option>
+                        <option value="Cybersecurity & Defense">Cybersecurity & Difesa</option>
+                        <option value="Financial Services">Servizi Finanziari & Fintech</option>
+                        <option value="Manufacturing 4.0">Manifattura & Industria 4.0</option>
+                        <option value="Healthcare & Bio">Sanità & Biotecnologie</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Ruoli Target da Formare</label>
+                    <input type="text" id="targetRoles" placeholder="es. Security Analysts, SOC Tier 1, DevOps Engineeer" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Competenze / Skill Gap Rilevati (Separa con virgola)</label>
+                    <textarea id="skillsGap" rows="3" placeholder="es. Zero Trust Architecture, Threat Intelligence, Incident Response con AI" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Documentazione Interna / Procedure (File / Policy)</label>
+                    <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                        <span id="fileLabel">📁 Trascina qui le policy aziendali o standard tecnici (.pdf, .docx, .txt)</span>
+                        <input type="file" id="fileInput" style="display: none" onchange="handleFile(this)">
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label>Ore Massimo Formazione</label>
+                        <input type="number" id="maxHours" value="12" min="1" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Livello di Partenza</label>
+                        <select id="entryLevel">
+                            <option value="Base">Base / Neofita</option>
+                            <option value="Intermedio" selected>Intermedio</option>
+                            <option value="Avanzato">Avanzato / Specialistico</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">🤖 Genera Corso Personalizzato</button>
+            </form>
+        </div>
+
+        <!-- Output Display: Risultati Matchmaking -->
+        <div class="card">
+            <h2 class="card-title">2. Percorso Generato dall'IA</h2>
+
+            <div id="emptyState" class="empty-state">
+                <p>⚙️ Inserisci i dati dell'azienda e clicca su "Genera Corso Personalizzato" per attivare l'algoritmo di matchmaking.</p>
+            </div>
+
+            <div id="loadingState" class="loading-state">
+                <div class="spinner"></div>
+                <h3>Analisi del fabbisogno in corso...</h3>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 8px;">
+                    • Estrazione entità e skill gap dal testo<br>
+                    • Incrocio con la tassonomia competenze MOVA<br>
+                    • Generazione automatica dei moduli didattici e assegnazione Tutor AI
+                </p>
+            </div>
+
+            <div id="resultsState" style="display: none;">
+                <div class="result-header">
+                    <div>
+                        <h3 id="resTitle" style="color: #fff; font-size: 1.1rem;">Percorso: Security Operations</h3>
+                        <p id="resSub" style="color: var(--text-muted); font-size: 0.85rem;">Personalizzato per 12 ore complessive</p>
+                    </div>
+                    <div class="match-score">
+                        <div class="score-value" id="resScore">96%</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">Match Fabbisogno</div>
+                    </div>
+                </div>
+
+                <div class="module-list" id="moduleContainer">
+                    <!-- Moduli inseriti dinamicamente via JS -->
+                </div>
+
+                <div class="avatar-box">
+                    <div class="avatar-img" id="avatarIcon">🤖</div>
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: bold;" id="avatarName">Tutor AI Assegnato: Cyra</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);" id="avatarDesc">Agente specializzato in Cybersecurity & Threat Analysis. Calibrato sulle policy aziendali caricate.</div>
+                    </div>
+                </div>
+
+                <button class="btn" style="margin-top: 20px; background-color: var(--secondary);" onclick="alert('Percorso distribuito con successo alla piattaforma LMS aziendale!')">
+                    🚀 Esporta & Distribuisci su MOVA Platform
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loadPreset() {
+            document.getElementById('sector').value = 'Cybersecurity & Defense';
+            document.getElementById('targetRoles').value = 'SOC Analyst Tier 1 & Threat Hunters';
+            document.getElementById('skillsGap').value = 'Identificazione Attacchi Ransomware, Automazione Triage Incidenti, Normativa NIS2';
+            document.getElementById('maxHours').value = '10';
+            document.getElementById('entryLevel').value = 'Intermedio';
+            document.getElementById('fileLabel').innerText = '📄 Documento caricato: Policy_Sicurezza_Interna_2026.pdf';
+        }
+
+        function handleFile(input) {
+            if(input.files && input.files[0]) {
+                document.getElementById('fileLabel').innerText = '📄 Documento caricato: ' + input.files[0].name;
+            }
+        }
+
+        function runMatchmaker(e) {
+            e.preventDefault();
+
+            // Interfaccia UI
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('resultsState').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+
+            // Estrazione Valori
+            const sector = document.getElementById('sector').value;
+            const roles = document.getElementById('targetRoles').value;
+            const skillsRaw = document.getElementById('skillsGap').value;
+            const hours = document.getElementById('maxHours').value;
+            const level = document.getElementById('entryLevel').value;
+
+            const skills = skillsRaw.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+            setTimeout(() => {
+                // Generazione dinamica risultati
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('resultsState').style.display = 'block';
+
+                document.getElementById('resTitle').innerText = `Percorso: Custom ${sector} Training`;
+                document.getElementById('resSub').innerText = `Target: ${roles} | Livello: ${level}`;
+                
+                // Score casuale tra 92 e 98%
+                const matchScore = Math.floor(Math.random() * (98 - 92 + 1)) + 92;
+                document.getElementById('resScore').innerText = `${matchScore}%`;
+
+                // Costruzione Moduli
+                const container = document.getElementById('moduleContainer');
+                container.innerHTML = '';
+
+                // Modulo 1: Fondamenti
+                const m1 = document.createElement('div');
+                m1.className = 'module-item';
+                m1.innerHTML = `
+                    <span class="module-tag">Modulo 1 • Fondamenti & Contesto Aziendale</span>
+                    <div class="module-title">Allineamento Quadro e Normativa</div>
+                    <div class="module-desc">Analisi delle specificità del settore ${sector} e integrazione delle policy interne fornite.</div>
+                    <div class="module-meta">
+                        <span>📖 3 Unità</span>
+                        <span>⏱️ ${Math.round(hours * 0.25)} ore</span>
+                        <span>🤖 Quiz Interattivo AI</span>
+                    </div>
+                `;
+                container.appendChild(m1);
+
+                // Moduli basati sulle skill inserite
+                skills.forEach((skill, index) => {
+                    const mod = document.createElement('div');
+                    mod.className = 'module-item';
+                    mod.innerHTML = `
+                        <span class="module-tag">Modulo ${index + 2} • Gap Focus</span>
+                        <div class="module-title">${skill}</div>
+                        <div class="module-desc">Percorso pratico con casi studio e simulazioni interattive mirate a colmare il gap in ${skill}.</div>
+                        <div class="module-meta">
+                            <span>📖 4 Unità</span>
+                            <span>⏱️ ${Math.round((hours * 0.75) / skills.length)} ore</span>
+                            <span>💬 Assistenza Agent dedicato</span>
+                        </div>
+                    `;
+                    container.appendChild(mod);
+                });
+
+                // Personalizzazione Avatar
+                if(sector.includes('Cybersecurity')) {
+                    document.getElementById('avatarIcon').innerText = '🛡️';
+                    document.getElementById('avatarName').innerText = 'Tutor AI Assegnato: Cyra (Cyber Sec Specialist)';
+                } else if(sector.includes('Financial')) {
+                    document.getElementById('avatarIcon').innerText = '📊';
+                    document.getElementById('avatarName').innerText = 'Tutor AI Assegnato: Aurelius (Fintech & Compliance)';
+                } else {
+                    document.getElementById('avatarIcon').innerText = '⚙️';
+                    document.getElementById('avatarName').innerText = 'Tutor AI Assegnato: Nova (AI & Systems Engine)';
+                }
+
+            }, 1800); // Simulazione ritardo IA
+        }
+    </script>
+</body>
+</html>

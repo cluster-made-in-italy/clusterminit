@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore M.A.D.E.-AI 5.0 - 88 Moduli & 264 Micro-Moduli Open Badge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --panel-bg: #ffffff;
+            --panel-border: #e2e8f0;
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-hover: #1d4ed8;
+            --accent-green: #059669;
+            --accent-green-bg: #ecfdf5;
+            --accent-amber: #d97706;
+            --accent-amber-bg: #fffbeb;
+            --accent-purple: #7c3aed;
+            --accent-purple-bg: #f5f3ff;
+
+            /* LIVELLI MICRO-MODULI */
+            --level-basic: #0d9488;
+            --level-basic-bg: #ccfbf1;
+            --level-intermedio: #d97706;
+            --level-intermedio-bg: #fef3c7;
+            --level-avanzato: #7c3aed;
+            --level-avanzato-bg: #f3e8ff;
+
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #cbd5e1;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
+            --shadow-md: 0 10px 25px -5px rgba(0,0,0,0.08);
+            --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.2);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 40px; line-height: 1.5; }
+
+        /* HEADER & NAVIGATION */
+        header { 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+            color: white; 
+            padding: 20px 24px; 
+            box-shadow: var(--shadow-md);
+            border-bottom: 4px solid var(--primary);
+        }
+        .header-content { max-width: 1440px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+        .header-title h1 { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .header-title h1 span.badge-tag { background: var(--primary); color: white; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
+        .header-title p { color: #94a3b8; font-size: 0.88rem; margin-top: 4px; }
+
+        /* NAV TABS */
+        .nav-tabs { display: flex; gap: 6px; background: rgba(255, 255, 255, 0.1); padding: 6px; border-radius: 12px; backdrop-filter: blur(8px); flex-wrap: wrap; }
+        .tab-btn { 
+            background: transparent; 
+            border: none; 
+            color: #cbd5e1; 
+            padding: 9px 13px; 
+            font-size: 0.82rem; 
+            font-weight: 600; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tab-btn:hover { color: white; background: rgba(255, 255, 255, 0.08); }
+        .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
+
+        /* LAYOUT CONTAINER */
+        .main-container { max-width: 1440px; margin: 24px auto 0 auto; padding: 0 24px; }
+        .page-view { display: none; }
+        .page-view.active { display: block; }
+
+        /* PANELS & CONTROLS */
+        .panel { background: var(--panel-bg); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--panel-border); }
+        .panel-header { font-size: 1.15rem; font-weight: 700; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+        
+        .controls { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .search-box, .filter-select { padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; outline: none; transition: border 0.2s; background: #f8fafc; }
+        .search-box:focus, .filter-select:focus { border-color: var(--primary); background: white; }
+        .search-box { flex: 1; min-width: 220px; }
+
+        /* DASHBOARD SUMMARY (PAGE 1) */
+        .dash-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .dash-stat-card { background: white; padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--panel-border); text-align: center; box-shadow: var(--shadow-sm); }
+        .dash-stat-number { font-size: 2rem; font-weight: 800; color: var(--primary); line-height: 1.1; }
+        .dash-stat-label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 4px; }
+
+        .modules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
+        .base-module-card {
+            background: white;
+            border: 1px solid var(--panel-border);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+        .base-module-card:hover { transform: translateY(-3px); border-color: var(--primary); box-shadow: var(--shadow-md); }
+        .module-code { font-size: 0.72rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .module-title { font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 8px; line-height: 1.3; }
+        .module-cat { display: inline-block; font-size: 0.72rem; font-weight: 700; background: var(--primary-light); color: var(--primary); padding: 3px 8px; border-radius: 4px; margin-bottom: 12px; width: fit-content; }
+        .module-levels-bar { display: flex; gap: 4px; margin-top: 10px; margin-bottom: 14px; }
+        .micro-level-pill { flex: 1; text-align: center; font-size: 0.68rem; font-weight: 800; padding: 4px 0; border-radius: 4px; text-transform: uppercase; }
+        .micro-level-pill.basic { background: var(--level-basic-bg); color: var(--level-basic); }
+        .micro-level-pill.intermedio { background: var(--level-intermedio-bg); color: var(--level-intermedio); }
+        .micro-level-pill.avanzato { background: var(--level-avanzato-bg); color: var(--level-avanzato); }
+
+        /* SIMULATOR GRID (PAGE 2) */
+        .simulator-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        @media (max-width: 1024px) { .simulator-grid { grid-template-columns: 1fr; } }
+
+        .tech-list { max-height: 620px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 6px; }
+        .tech-list::-webkit-scrollbar { width: 6px; }
+        .tech-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        .tech-card { 
+            padding: 14px 18px; 
+            border: 1px solid var(--border); 
+            border-radius: var(--radius-md); 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: white; 
+            gap: 12px;
+        }
+        .tech-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+        .tech-card.selected { border-color: var(--primary); background: var(--primary-light); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
+        
+        .tech-card-info { flex: 1; }
+        .tech-card-info h4 { font-size: 0.92rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .tech-card-info p { font-size: 0.78rem; color: var(--text-muted); }
+
+        /* LEVEL PILLS */
+        .level-pill {
+            display: inline-block;
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .level-pill.basic { background: var(--level-basic-bg); color: var(--level-basic); border: 1px solid #99f6e4; }
+        .level-pill.intermedio { background: var(--level-intermedio-bg); color: var(--level-intermedio); border: 1px solid #fde68a; }
+        .level-pill.avanzato { background: var(--level-avanzato-bg); color: var(--level-avanzato); border: 1px solid #ddd6fe; }
+        
+        .tech-card-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+        .tech-badge-cfu { background: #e0e7ff; color: #3730a3; font-weight: 700; font-size: 0.72rem; padding: 4px 8px; border-radius: 20px; white-space: nowrap; }
+
+        /* STATS & TAGS */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .stat-box { background: #f8fafc; padding: 12px 8px; border-radius: var(--radius-md); border: 1px solid var(--panel-border); text-align: center; }
+        .stat-number { font-size: 1.4rem; font-weight: 800; color: var(--primary); }
+        .stat-label { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+
+        .section-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; margin: 16px 0 8px 0; }
+        .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; max-height: 100px; overflow-y: auto; padding-right: 4px; }
+        .tag { font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+        .tag.skill { background: var(--accent-green-bg); color: var(--accent-green); border: 1px solid #a7f3d0; }
+        .tag.sector { background: var(--accent-amber-bg); color: var(--accent-amber); border: 1px solid #fde68a; }
+
+        /* BADGE PREVIEW */
+        .badge-preview-card {
+            border: 2px dashed #3b82f6;
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+            text-align: center;
+            margin-top: 16px;
+        }
+        .badge-shield {
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 8px auto;
+            background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 800;
+            box-shadow: var(--shadow-glow);
+        }
+        .badge-title { font-size: 1rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+        .badge-cfu-pill { display: inline-block; background: var(--accent-green); color: white; font-size: 0.78rem; font-weight: 700; padding: 3px 12px; border-radius: 20px; margin-bottom: 8px; }
+        .badge-desc { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; }
+
+        .selected-modules-quicklinks {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .btn-primary { 
+            width: 100%; 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 12px; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            font-size: 0.9rem; 
+            cursor: pointer; 
+            margin-top: 12px; 
+            transition: all 0.2s; 
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+        .btn-success {
+            background: var(--accent-green);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+        .btn-success:hover { background: #047857; }
+
+        /* BUTTONS & LINKS */
+        .cross-link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #f1f5f9;
+            color: var(--primary);
+            font-size: 0.78rem;
+            font-weight: 700;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            width: fit-content;
+        }
+        .cross-link-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        
+        .cross-link-btn.btn-syl { background: var(--accent-purple-bg); color: var(--accent-purple); border-color: #ddd6fe; }
+        .cross-link-btn.btn-syl:hover { background: var(--accent-purple); color: white; border-color: var(--accent-purple); }
+
+        .cross-link-btn.btn-json { background: var(--accent-green-bg); color: var(--accent-green); border-color: #a7f3d0; }
+        .cross-link-btn.btn-json:hover { background: var(--accent-green); color: white; border-color: var(--accent-green); }
+
+        /* GRIDS PAGE 3, 4, 5 */
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 18px; margin-top: 10px; }
+        
+        .matrix-card, .tech-glossary-card, .syllabus-card { 
+            background: white; 
+            border: 1px solid var(--panel-border); 
+            border-radius: var(--radius-md); 
+            padding: 20px; 
+            box-shadow: var(--shadow-sm); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .matrix-card:hover, .tech-glossary-card:hover, .syllabus-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .card-header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+        .card-title { font-size: 1rem; font-weight: 700; color: var(--text-main); }
+        .card-cat-badge { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--primary); background: var(--primary-light); padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+
+        .matrix-section { margin-top: 10px; }
+        .matrix-section-title { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .matrix-list { list-style: none; font-size: 0.82rem; color: #334155; }
+        .matrix-list li { margin-bottom: 4px; position: relative; padding-left: 14px; }
+        .matrix-list li::before { content: "•"; position: absolute; left: 0; color: var(--primary); font-weight: bold; }
+
+        .tech-feature-pill { display: inline-block; background: var(--accent-purple-bg); color: var(--accent-purple); border: 1px solid #ddd6fe; font-size: 0.73rem; font-weight: 600; padding: 2px 8px; border-radius: 12px; margin-right: 4px; margin-bottom: 4px; }
+
+        /* DIDACTIC SYLLABUS GRID STYLES */
+        .hours-badge-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+        .hour-pill { font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+        .hour-pill.teoria { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .hour-pill.lab { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .hour-pill.eserc { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .hour-pill.verif { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+
+        .syllabus-block { background: #f8fafc; border-left: 3px solid var(--primary); padding: 8px 12px; margin-bottom: 8px; border-radius: 0 6px 6px 0; font-size: 0.82rem; }
+        .syllabus-block-title { font-weight: 700; color: var(--text-main); font-size: 0.76rem; text-transform: uppercase; margin-bottom: 2px; }
+
+        .empty-state { text-align: center; color: var(--text-muted); padding: 60px 20px; font-style: italic; }
+
+        .info-banner {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .highlight-flash { animation: flashHighlight 1.6s ease-out; }
+        @keyframes flashHighlight {
+            0% { background-color: #fef08a; border-color: #eab308; box-shadow: 0 0 15px rgba(234, 179, 8, 0.5); }
+            100% { background-color: white; border-color: var(--panel-border); box-shadow: var(--shadow-sm); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div class="header-title">
+                <h1>Simulatore M.A.D.E.-AI <span class="badge-tag">v5.0 • 88 Moduli Base & 264 Micro-Moduli</span></h1>
+                <p>88 Moduli formativi articolati ciascuno in 3 Micro-Moduli (Basic, Intermedio, Avanzato) da 50 ore / 2 CFU con Open Badge</p>
+            </div>
+            <div class="nav-tabs">
+                <button class="tab-btn active" id="tab-btn-dash" onclick="switchPage('page-dashboard')">
+                    📌 1. Panoramica 88 Moduli
+                </button>
+                <button class="tab-btn" id="tab-btn-sim" onclick="switchPage('page-simulator')">
+                    📊 2. Selezione 264 Micro-Moduli
+                </button>
+                <button class="tab-btn" id="tab-btn-mat" onclick="switchPage('page-matrix')">
+                    📚 3. Matrice Scelti
+                </button>
+                <button class="tab-btn" id="tab-btn-glo" onclick="switchPage('page-tech-glossary')">
+                    🔬 4. Micro-Moduli Correlati
+                </button>
+                <button class="tab-btn" id="tab-btn-syl" onclick="switchPage('page-syllabus')">
+                    🎓 5. Programmi (50h / 2 CFU)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+
+        <!-- PAGINA 1: DASHBOARD SINTETICA & GRAFICA DEGLI 88 MODULI BASE -->
+        <div id="page-dashboard" class="page-view active">
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Pagina 1: Panoramica Sintetica degli 88 Moduli Formativi Base</span>
+                    <span style="font-size:0.85rem; color:var(--text-muted);" id="dash-module-count">88 Moduli / 264 Micro-Moduli</span>
+                </div>
+
+                <div class="dash-stats-grid">
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-number">88</div>
+                        <div class="dash-stat-label">Moduli Base</div>
+                    </div>
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-number">264</div>
+                        <div class="dash-stat-label">Micro-Moduli Totali</div>
+                    </div>
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-number">528</div>
+                        <div class="dash-stat-label">CFU / ECTS Erogabili</div>
+                    </div>
+                    <div class="dash-stat-card">
+                        <div class="dash-stat-number">13.200h</div>
+                        <div class="dash-stat-label">Ore Didattiche Complessive</div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <input type="text" id="dash-search" class="search-box" placeholder="Cerca tra gli 88 moduli base per nome, competenza o parola chiave...">
+                    <select id="dash-category" class="filter-select">
+                        <option value="ALL">Tutte le Categorie (6 Area Tematiche)</option>
+                        <option value="AI & Data Science">AI & Data Science (15)</option>
+                        <option value="Advanced Manufacturing & Robotics">Advanced Manufacturing & Robotics (18)</option>
+                        <option value="Materials, Chemistry & Surface Engineering">Materials, Chemistry & Surface Engineering (15)</option>
+                        <option value="Electronics, IoT & Cybersecurity">Electronics, IoT & Cybersecurity (14)</option>
+                        <option value="Sustainability, Energy & Circular Economy">Sustainability, Energy & Circular Economy (13)</option>
+                        <option value="Design, UX, Simulation & Operations">Design, UX, Simulation & Operations (13)</option>
+                    </select>
+                </div>
+
+                <div class="modules-grid" id="dash-modules-container"></div>
+            </div>
+        </div>
+
+        <!-- PAGINA 2: SELEZIONE MICRO-MODULI (264 MICRO-MODULI) & OPEN BADGE -->
+        <div id="page-simulator" class="page-view">
+            <div class="simulator-grid">
+                
+                <!-- PANNELLO SINISTRO: CATALOGO 264 MICRO-MODULI -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <span>2. Catalogo Micro-Moduli Formativi (264 Totali)</span>
+                        <span style="font-size:0.85rem; color:var(--text-muted);" id="tech-count-badge">264 Voci</span>
+                    </div>
+
+                    <div class="controls">
+                        <input type="text" id="sim-search" class="search-box" placeholder="Cerca tra i 264 micro-moduli...">
+                        <select id="sim-level" class="filter-select">
+                            <option value="ALL">Tutti i Livelli</option>
+                            <option value="Basic">Basic (2 CFU)</option>
+                            <option value="Intermedio">Intermedio (2 CFU)</option>
+                            <option value="Avanzato">Avanzato (2 CFU)</option>
+                        </select>
+                        <select id="sim-category" class="filter-select">
+                            <option value="ALL">Tutte le Categorie</option>
+                            <option value="AI & Data Science">AI & Data Science</option>
+                            <option value="Advanced Manufacturing & Robotics">Advanced Manufacturing & Robotics</option>
+                            <option value="Materials, Chemistry & Surface Engineering">Materials, Chemistry & Surface</option>
+                            <option value="Electronics, IoT & Cybersecurity">Electronics, IoT & Cybersecurity</option>
+                            <option value="Sustainability, Energy & Circular Economy">Sustainability & Energy</option>
+                            <option value="Design, UX, Simulation & Operations">Design, UX & Operations</option>
+                        </select>
+                    </div>
+
+                    <div class="tech-list" id="sim-tech-list"></div>
+                </div>
+
+                <!-- PANNELLO DESTRO: ANTEPRIMA OPEN BADGE MICRO-CREDITI -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <span>Anteprima Open Badge & Sintesi Crediti</span>
+                    </div>
+
+                    <div id="sim-empty-state" class="empty-state">
+                        Seleziona uno o più micro-moduli (50h / 2 CFU ciascuno) dal catalogo a sinistra.<br>
+                        Potrai generare e scaricare i relativi <b>Open Badge certificati</b> e accedere alla <b>Matrice (Pag. 3)</b> e ai <b>Programmi Didattici (Pag. 5)</b>.
+                    </div>
+
+                    <div id="sim-results" style="display: none;">
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-number" id="stat-selected-count">0</div>
+                                <div class="stat-label">Micro-Moduli</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-number" id="stat-hours-count">0h</div>
+                                <div class="stat-label">Ore Totali</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-number" id="stat-cfu-count">0</div>
+                                <div class="stat-label">Totale ECTS/CFU</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-number" id="stat-skills-count">0</div>
+                                <div class="stat-label">Competenze</div>
+                            </div>
+                        </div>
+
+                        <div class="section-label">Competenze Certificate</div>
+                        <div class="tag-cloud" id="cloud-skills"></div>
+
+                        <div class="section-label">Settori Industriali Impattati</div>
+                        <div class="tag-cloud" id="cloud-sectors"></div>
+
+                        <div class="badge-preview-card">
+                            <div class="badge-shield">OB</div>
+                            <div class="badge-title" id="badge-title-text">Open Badge Micro-Crediti</div>
+                            <div class="badge-cfu-pill" id="badge-cfu-text">0 Crediti ECTS/CFU</div>
+                            <p class="badge-desc" id="badge-desc-text"></p>
+                            
+                            <div class="section-label" style="margin-top:10px; margin-bottom:6px;">Link Diretti ai Programmi (Pagina 5):</div>
+                            <div class="selected-modules-quicklinks" id="badge-syllabus-links"></div>
+                        </div>
+
+                        <button class="btn-primary" onclick="goToPage3WithSelected()">
+                            ➡️ Vai alla TERZA PAGINA (Matrice dei Micro-Moduli Scelti)
+                        </button>
+                        
+                        <button class="btn-primary btn-success" style="margin-top:8px;" onclick="exportBadgeJSON()">
+                            📥 Esporta Metadati Open Badge (Micro-Crediti JSON)
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PAGINA 3: MATRICE COMPETENZE (SOLO MICRO-MODULI SELEZIONATI) -->
+        <div id="page-matrix" class="page-view">
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Pagina 3: Matrice dei Micro-Moduli Selezionati</span>
+                    <span style="font-size:0.85rem; color:var(--text-muted);" id="matrix-count">0 Micro-Moduli</span>
+                </div>
+                
+                <div class="info-banner" id="matrix-banner">
+                    <span>Mostrando solo i micro-moduli selezionati nella Pagina 2. Clicca su un micro-modulo per accedere ai <b>Micro-Moduli Correlati nella Pagina 4</b>.</span>
+                    <button class="cross-link-btn" onclick="switchPage('page-simulator')">✏️ Modifica Selezione</button>
+                </div>
+
+                <div class="grid-cards" id="matrix-grid-container"></div>
+            </div>
+        </div>
+
+        <!-- PAGINA 4: GLOSSARIO MICRO-MODULI CORRELATI -->
+        <div id="page-tech-glossary" class="page-view">
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Pagina 4: Glossario Micro-Moduli Correlati</span>
+                    <span style="font-size:0.85rem; color:var(--text-muted);" id="glossary-count">0 Micro-Moduli</span>
+                </div>
+                
+                <div class="info-banner" id="glossary-banner">
+                    <span id="glossary-banner-text">Micro-moduli correlati alle tue scelte.</span>
+                    <button class="cross-link-btn" onclick="showAllGlossary()">Mostra Tutti i 264 Micro-Moduli</button>
+                </div>
+
+                <div class="controls">
+                    <input type="text" id="glossary-search" class="search-box" placeholder="Cerca tra i micro-moduli correlati...">
+                </div>
+
+                <div class="grid-cards" id="glossary-grid-container"></div>
+            </div>
+        </div>
+
+        <!-- PAGINA 5: PROGRAMMA DEL MICRO-MODULO (50 ORE / 2 CFU) & EXPORT JSON -->
+        <div id="page-syllabus" class="page-view">
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Pagina 5: Programmi Didattici Micro-Moduli (50 Ore / 2 CFU)</span>
+                    <button class="cross-link-btn btn-json" style="padding: 8px 14px; font-size: 0.85rem;" onclick="exportGlobalSyllabusJSON()">
+                        📥 Scarica JSON Globale (Tutti i 264 Micro-Moduli)
+                    </button>
+                </div>
+                
+                <div class="info-banner">
+                    <span>Ciascun micro-modulo si articola in <b>50 ore totali (2 CFU)</b>: 10h Teoria, 15h Laboratorio Pratico, 20h Esercitazioni/Project Work e 5h Verifica delle Competenze per il rilascio dell'<b>Open Badge</b>.</span>
+                </div>
+
+                <div class="controls">
+                    <input type="text" id="syllabus-search" class="search-box" placeholder="Cerca nei programmi didattici dei micro-moduli...">
+                </div>
+
+                <div class="grid-cards" id="syllabus-grid-container"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ELENCO COMPLETO DEGLI 88 MODULI BASE FORMATIVI M.A.D.E.-AI 5.0
+        const base88Modules = [
+            // AI & DATA SCIENCE (15 Moduli)
+            { id: "mod_01", name: "Artificial Intelligence & Machine Learning", category: "AI & Data Science", sectors: ["Automazione & Robotica", "Sanità", "Fintech", "Manifatturiero 4.0"] },
+            { id: "mod_02", name: "Deep Learning & Computer Vision", category: "AI & Data Science", sectors: ["Controllo Qualità", "Automotive", "Medicale", "Sicurezza"] },
+            { id: "mod_03", name: "Generative AI & Large Language Models", category: "AI & Data Science", sectors: ["Services", "Design", "Software", "Enterprise"] },
+            { id: "mod_04", name: "Advanced Signal Processing", category: "AI & Data Science", sectors: ["Telecomunicazioni", "Imaging Medico", "Automazione", "Cybersecurity"] },
+            { id: "mod_05", name: "Big Data Engineering & Architecture", category: "AI & Data Science", sectors: ["Cloud Computing", "Telecom", "Finance", "Smart City"] },
+            { id: "mod_06", name: "Predictive Analytics & Time Series", category: "AI & Data Science", sectors: ["Manutenzione Predittiva", "Energia", "Supply Chain"] },
+            { id: "mod_07", name: "Edge AI & Embedded Intelligence", category: "AI & Data Science", sectors: ["IoT", "Automotive", "Robotica Mobile", "Elettronica"] },
+            { id: "mod_08", name: "Natural Language Processing (NLP)", category: "AI & Data Science", sectors: ["Helpdesk", "Legal Tech", "CRM", "Document Management"] },
+            { id: "mod_09", name: "Reinforcement Learning & Autonomous Agents", category: "AI & Data Science", sectors: ["Robotica", "Logistica", "Gaming", "Finanza"] },
+            { id: "mod_10", name: "MLOps & Model Deployment", category: "AI & Data Science", sectors: ["Software Engineering", "Cloud", "Enterprise AI"] },
+            { id: "mod_11", name: "Data Governance & AI Ethics", category: "AI & Data Science", sectors: ["Compliance", "Pubblica Amministrazione", "Sanità"] },
+            { id: "mod_12", name: "Neural Networks & Deep Reinforcement Learning", category: "AI & Data Science", sectors: ["Guida Autonoma", "Robotica Industriale"] },
+            { id: "mod_13", name: "Recommendation Systems & Graph Neural Networks", category: "AI & Data Science", sectors: ["E-commerce", "Biomedicale", "Social Networks"] },
+            { id: "mod_14", name: "Synthetic Data Generation & Digital Twins", category: "AI & Data Science", sectors: ["Simulazione", "Testing Industriale", "Medicale"] },
+            { id: "mod_15", name: "Quantum Computing Fundamentals & AI", category: "AI & Data Science", sectors: ["Crittografia", "Ricerca Farmaceutica", "Materiali"] },
+
+            // ADVANCED MANUFACTURING & ROBOTICS (18 Moduli)
+            { id: "mod_16", name: "L'accoppiatura di materiali differenti", category: "Advanced Manufacturing & Robotics", sectors: ["Automotive", "Aerospaziale", "Macchinari", "Medicale"] },
+            { id: "mod_17", name: "Advanced Manufacturing & Machining", category: "Advanced Manufacturing & Robotics", sectors: ["Aerospaziale", "Precision Mechanics", "Automotive"] },
+            { id: "mod_18", name: "Collaborative Robotics & Cobotics", category: "Advanced Manufacturing & Robotics", sectors: ["Assemblaggio", "Packaging", "Elettronica"] },
+            { id: "mod_19", name: "Industrial Automation & PLCs", category: "Advanced Manufacturing & Robotics", sectors: ["Impianti Industriali", "Manifattura", "Packaging"] },
+            { id: "mod_20", name: "Additive Manufacturing Metalli & Polimeri", category: "Advanced Manufacturing & Robotics", sectors: ["Aerospaziale", "Protesica", "Prototipazione"] },
+            { id: "mod_21", name: "Micro-fabbricazione e Laser Processing", category: "Advanced Manufacturing & Robotics", sectors: ["Micro-elettronica", "Orologeria", "Dispositivi Medici"] },
+            { id: "mod_22", name: "Meccatronica & Controllo di Moto", category: "Advanced Manufacturing & Robotics", sectors: ["Robotica", "Macchine Utensili", "Automazione"] },
+            { id: "mod_23", name: "Cloud Robotics & Fleet Management", category: "Advanced Manufacturing & Robotics", sectors: ["Logistica", "Magazzini", "Intralogistica"] },
+            { id: "mod_24", name: "Controllo Qualità e Visione Artificiale", category: "Advanced Manufacturing & Robotics", sectors: ["Food & Beverage", "Pharma", "Automotive"] },
+            { id: "mod_25", name: "Assemblaggio Automatizzato & Smart Fixtures", category: "Advanced Manufacturing & Robotics", sectors: ["Elettronica", "Elettrodomestici", "Automotive"] },
+            { id: "mod_26", name: "Fabbricazione Additiva Grafene e Biomateriali", category: "Advanced Manufacturing & Robotics", sectors: ["Biomedicale", "Aerospazio", "Materiali"] },
+            { id: "mod_27", name: "Metrologia Industriale 3D & Scanner Laser", category: "Advanced Manufacturing & Robotics", sectors: ["Reverse Engineering", "Quality Assurance"] },
+            { id: "mod_28", name: "Rettifica e Lavorazioni ad Altissima Precisione", category: "Advanced Manufacturing & Robotics", sectors: ["Cuscinetti", "Stampi", "Ottica Industriale"] },
+            { id: "mod_29", name: "Stampi Intelligenti & Sensorizzati", category: "Advanced Manufacturing & Robotics", sectors: ["Stampaggio Plastica", "Pressocolata"] },
+            { id: "mod_30", name: "Fonderia Digitale e Simulazione di Processo", category: "Advanced Manufacturing & Robotics", sectors: ["Metallurgia", "Automotive", "Heavy Industry"] },
+            { id: "mod_31", name: "Deformazione Plastica e Formatura Avanzata", category: "Advanced Manufacturing & Robotics", sectors: ["Lavorazione Lamiera", "Forgiatura"] },
+            { id: "mod_32", name: "Saldatura Robotizzata e Controlli NDT", category: "Advanced Manufacturing & Robotics", sectors: ["Navale", "Costruzioni Metalliche", "Pipeline"] },
+            { id: "mod_33", name: "Ottimizzazione Topologica & Generative Design", category: "Advanced Manufacturing & Robotics", sectors: ["Aerospaziale", "Motorsport", "Design"] },
+
+            // MATERIALS, CHEMISTRY & SURFACE ENGINEERING (15 Moduli)
+            { id: "mod_34", name: "Smart Materials & Polimeri Funzionali", category: "Materials, Chemistry & Surface Engineering", sectors: ["Tessile Avanzato", "Elettronica", "Biomedicale"] },
+            { id: "mod_35", name: "Nanotecnologie & Rivestimenti Avanzati", category: "Materials, Chemistry & Surface Engineering", sectors: ["Utensileria", "Aerospazio", "Energia"] },
+            { id: "mod_36", name: "Materiali Compositi e Fibre di Carbonio", category: "Materials, Chemistry & Surface Engineering", sectors: ["Automotive", "Nautica", "Sport"] },
+            { id: "mod_37", name: "Biomateriali e Processi Sostenibili", category: "Materials, Chemistry & Surface Engineering", sectors: ["Packaging", "Medtech", "Cosmetica"] },
+            { id: "mod_38", name: "Trattamenti Termici e di Superficie", category: "Materials, Chemistry & Surface Engineering", sectors: ["Meccanica", "Automotive", "Utensileria"] },
+            { id: "mod_39", name: "Chimica Verde e Solventi Ecologici", category: "Materials, Chemistry & Surface Engineering", sectors: ["Processi Chimici", "Pharma", "Vernici"] },
+            { id: "mod_40", name: "Leghe Leggere per Aerospazio e Automotive", category: "Materials, Chemistry & Surface Engineering", sectors: ["Alluminio", "Titanio", "Magnesio"] },
+            { id: "mod_41", name: "Ceramici Tecnici e Semiconduttori", category: "Materials, Chemistry & Surface Engineering", sectors: ["Elettronica", "Sensori", "Alta Temperatura"] },
+            { id: "mod_42", name: "Corrosione e Protezione dei Materiali", category: "Materials, Chemistry & Surface Engineering", sectors: ["Offshore", "Infrastrutture", "Chimico"] },
+            { id: "mod_43", name: "Materiali Autoriparanti e Responsive", category: "Materials, Chemistry & Surface Engineering", sectors: ["Edilizia", "Smart Fabrics", "Rivestimenti"] },
+            { id: "mod_44", name: "Reologia e Lavorabilità dei Polimeri", category: "Materials, Chemistry & Surface Engineering", sectors: ["Estrusione", "Iniezione Plastica"] },
+            { id: "mod_45", name: "Adesivi Strutturali e Giunzioni Ibride", category: "Materials, Chemistry & Surface Engineering", sectors: ["Trasporti", "Aziende del Legno", "Edilizia"] },
+            { id: "mod_46", name: "Caratterizzazione Avanzata dei Materiali (XRF, SEM)", category: "Materials, Chemistry & Surface Engineering", sectors: ["Laboratori R&D", "Controllo Qualità"] },
+            { id: "mod_47", name: "Riciclaggio Chimico e Valorizzazione degli Scarti", category: "Materials, Chemistry & Surface Engineering", sectors: ["Rifiuti Industriali", "Circular Plastics"] },
+            { id: "mod_48", name: "Superfici Superidrofobiche e Funzionalizzate", category: "Materials, Chemistry & Surface Engineering", sectors: ["Vetri", "Pannelli Solari", "Filtrazione"] },
+
+            // ELECTRONICS, IOT & CYBERSECURITY (14 Moduli)
+            { id: "mod_49", name: "IoT & Sensoristica Industriale", category: "Electronics, IoT & Cybersecurity", sectors: ["Smart Factory", "Utility", "Logistica"] },
+            { id: "mod_50", name: "Cybersecurity per l'OT & Industria 4.0", category: "Electronics, IoT & Cybersecurity", sectors: ["Infrastrutture Critiche", "Manifattura"] },
+            { id: "mod_51", name: "Elettronica di Potenza & E-Mobility", category: "Electronics, IoT & Cybersecurity", sectors: ["Veicoli Elettrici", "Inverter", "Smart Grid"] },
+            { id: "mod_52", name: "Reti Wireless Industriali (5G / WiFi 6)", category: "Electronics, IoT & Cybersecurity", sectors: ["Fabbriche Connesse", "Telecomunicazioni"] },
+            { id: "mod_53", name: "Embedded Systems & Microcontrollori", category: "Electronics, IoT & Cybersecurity", sectors: ["Automotive", "Domotica", "Elettrodomestici"] },
+            { id: "mod_54", name: "Sistemi di Accumulo Energetico & Batterie", category: "Electronics, IoT & Cybersecurity", sectors: ["Renewables", "Bess", "Automotive"] },
+            { id: "mod_55", name: "Condition Monitoring & Diagnostica", category: "Electronics, IoT & Cybersecurity", sectors: ["Turbine", "Motori Industriali", "Impianti"] },
+            { id: "mod_56", name: "Architetture IIoT Cloud-to-Edge", category: "Electronics, IoT & Cybersecurity", sectors: ["Software", "Sistemi Integrati"] },
+            { id: "mod_57", name: "Hardware Hacking e Securing Industrial Devices", category: "Electronics, IoT & Cybersecurity", sectors: ["Auditing", "Sicurezza Hardware"] },
+            { id: "mod_58", name: "RFID, NFC e Tracciabilità Avanzata", category: "Electronics, IoT & Cybersecurity", sectors: ["Moda", "Pharma", "Supply Chain"] },
+            { id: "mod_59", name: "Microelettronica e Sensorica MEMS", category: "Electronics, IoT & Cybersecurity", sectors: ["Smartphone", "Sensori Inerziali"] },
+            { id: "mod_60", name: "Bassa Potenza e Energy Harvesting", category: "Electronics, IoT & Cybersecurity", sectors: ["Sensori Remoti", "Agritech"] },
+            { id: "mod_61", name: "Protocolli di Comunicazione Industriale (OPC UA, MQTT)", category: "Electronics, IoT & Cybersecurity", sectors: ["System Integration"] },
+            { id: "mod_62", name: "Sicurezza dei Moduli Hardware (TPM & Crypto)", category: "Electronics, IoT & Cybersecurity", sectors: ["Pagamenti", "Dispositivi Sicuri"] },
+
+            // SUSTAINABILITY, ENERGY & CIRCULAR ECONOMY (13 Moduli)
+            { id: "mod_63", name: "Automazione nella logistica e distribuzione", category: "Sustainability, Energy & Circular Economy", sectors: ["Food & Beverage", "Pharma", "Logistica"] },
+            { id: "mod_64", name: "Circular Economy & Life Cycle Assessment (LCA)", category: "Sustainability, Energy & Circular Economy", sectors: ["ESG Management", "Consulenza Ambientale"] },
+            { id: "mod_65", name: "Ecodesign & Tracciabilità di Filiera", category: "Sustainability, Energy & Circular Economy", sectors: ["Moda", "Arredamento", "Packaging"] },
+            { id: "mod_66", name: "Energie Rinnovabili & Smart Grid", category: "Sustainability, Energy & Circular Economy", sectors: ["Fotovoltaico", "Eolico", "Utility"] },
+            { id: "mod_67", name: "Efficienza Energetica Industriale", category: "Sustainability, Energy & Circular Economy", sectors: ["Energy Audit", "Cartiere", "Acciaierie"] },
+            { id: "mod_68", name: "Gestione delle Acque e Rifiuti Industriali", category: "Sustainability, Energy & Circular Economy", sectors: ["Depurazione", "Trattamento Scarti"] },
+            { id: "mod_69", name: "Decarbonizzazione e Carbon Footprint", category: "Sustainability, Energy & Circular Economy", sectors: ["Certificazione ESG", "Manifattura"] },
+            { id: "mod_70", name: "Borsa delle Materie Prime Secondarie", category: "Sustainability, Energy & Circular Economy", sectors: ["Riciclo", "Trading Materie"] },
+            { id: "mod_71", name: "Packaging Sostenibile e Biodegradabile", category: "Sustainability, Energy & Circular Economy", sectors: ["Alimentare", "E-commerce"] },
+            { id: "mod_72", name: "Economia Circolare per la Plastica", category: "Sustainability, Energy & Circular Economy", sectors: ["Polimeri", "Polieco"] },
+            { id: "mod_73", name: "Logistica Inversa e Remanufacturing", category: "Sustainability, Energy & Circular Economy", sectors: ["Ricambi", "Elettronica Usata"] },
+            { id: "mod_74", name: "Certificazioni Ambientali & ESG Management", category: "Sustainability, Energy & Circular Economy", sectors: ["Corporate Governance"] },
+            { id: "mod_75", name: "Idrogeno Verde e Tecnologie Fuel Cell", category: "Sustainability, Energy & Circular Economy", sectors: ["Transizione Energetica", "Heavy Transport"] },
+
+            // DESIGN, UX, SIMULATION & OPERATIONS (13 Moduli)
+            { id: "mod_76", name: "Digital Twin & Simulazione di Processo", category: "Design, UX, Simulation & Operations", sectors: ["Ingegneria di Processo", "Smart Factory"] },
+            { id: "mod_77", name: "UX/UI Design per Interfacce Industriali", category: "Design, UX, Simulation & Operations", sectors: ["HMI", "Software Industriale"] },
+            { id: "mod_78", name: "AR/VR per Addestramento Industriale", category: "Design, UX, Simulation & Operations", sectors: ["Formazione", "Manutenzione Remota"] },
+            { id: "mod_79", name: "Modellazione CAD/CAM Multiassiale", category: "Design, UX, Simulation & Operations", sectors: ["Progettazione Meccanica"] },
+            { id: "mod_80", name: "Blockchain per la Supply Chain", category: "Design, UX, Simulation & Operations", sectors: ["Agrifood", "Beni di Lusso"] },
+            { id: "mod_81", name: "Ottimizzazione di Processo & Lean AI", category: "Design, UX, Simulation & Operations", sectors: ["Operazioni Industriali", "Six Sigma"] },
+            { id: "mod_82", name: "Gestione della Manutenzione Industriale", category: "Design, UX, Simulation & Operations", sectors: ["Facility Management"] },
+            { id: "mod_83", name: "Ergonomia Industriale e Human-Centered Design", category: "Design, UX, Simulation & Operations", sectors: ["Postazioni di Lavoro"] },
+            { id: "mod_84", name: "Simulation & System Dynamics", category: "Design, UX, Simulation & Operations", sectors: ["Pianificazione Strategica"] },
+            { id: "mod_85", name: "Product Lifecycle Management (PLM)", category: "Design, UX, Simulation & Operations", sectors: ["Gestione Dati Prodotto"] },
+            { id: "mod_86", name: "Design for Manufacturing and Assembly (DFMA)", category: "Design, UX, Simulation & Operations", sectors: ["Sviluppo Prodotto"] },
+            { id: "mod_87", name: "Agile & Scrum nelle Operations Industriali", category: "Design, UX, Simulation & Operations", sectors: ["Project Management"] },
+            { id: "mod_88", name: "Smart Workstation e Postazioni di Lavoro Ergonomiche", category: "Design, UX, Simulation & Operations", sectors: ["Welfare & Sicurezza"] }
+        ];
+
+        // COSTRUZIONE DINAMICA DEL DATABASE DEI 264 MICRO-MODULI (88 × 3 LIVELLI)
+        const technologyDatabase = [];
+
+        base88Modules.forEach(mod => {
+            ['Basic', 'Intermedio', 'Avanzato'].forEach(lvl => {
+                const lvlKey = lvl.toLowerCase();
+                
+                let desc = "";
+                let features = [];
+                let skills = [];
+
+                if (lvl === 'Basic') {
+                    desc = `Introduzione ai concetti fondamentali e metodologie di base per ${mod.name}.`;
+                    features = [`Principi Base ${mod.name}`, "Normative & Standard", "Strumenti Elementari"];
+                    skills = [
+                        `Comprendere i principi fondamentali di ${mod.name}`,
+                        `Utilizzare la terminologia e gli strumenti base di livello Basic`,
+                        `Eseguire controlli di sicurezza e conformità preliminari`
+                    ];
+                } else if (lvl === 'Intermedio') {
+                    desc = `Progettazione applicata, esecuzione e ottimizzazione operativa per ${mod.name}.`;
+                    features = [`Progettazione ${mod.name}`, "Integrazione di Processo", "Testing & Diagnostica"];
+                    skills = [
+                        `Progettare e configurare processi di livello Intermedio in ${mod.name}`,
+                        `Applicare strumenti avanzati di testing e risoluzione problemi`,
+                        `Gestire l'integrazione con i sistemi aziendali ed operativi`
+                    ];
+                } else {
+                    desc = `Padronanza avanzata, architettura complessa e innovazione autonoma in ${mod.name}.`;
+                    features = [`Architettura Avanzata`, "Algoritmi & AI Integration", "Ottimizzazione Autonoma"];
+                    skills = [
+                        `Sviluppare architetture e modelli complessi di livello Avanzato`,
+                        `Ottimizzare le prestazioni mediante tecnologie abilitanti e AI`,
+                        `Coordinare progetti di ricerca e sviluppo ad alto impatto`
+                    ];
+                }
+
+                technologyDatabase.push({
+                    id: `${mod.id}_${lvlKey}`,
+                    baseId: mod.id,
+                    name: `${mod.name} - Livello ${lvl}`,
+                    baseName: mod.name,
+                    level: lvl,
+                    category: mod.category,
+                    cfu: 2,
+                    hours: 50,
+                    description: desc,
+                    features: features,
+                    skills: skills,
+                    sectors: mod.sectors,
+                    badgeType: `Open Badge Micro-Credito (${lvl})`,
+                    syllabus: {
+                        totalHours: 50,
+                        cfu: 2,
+                        teoria: { hours: 10, content: `10 ore di lezioni frontali dedicate ai principi teorici e concettuali del livello ${lvl} per "${mod.name}".` },
+                        laboratorio: { hours: 15, content: `15 ore di laboratorio pratico con strumenti software/hardware di livello ${lvl}.` },
+                        esercitazioni: { hours: 20, content: `20 ore di esercitazioni applicate e sviluppo di project work su casi studio industriali reali.` },
+                        verifica: { hours: 5, content: `5 ore di prova pratica, esame finale e valutazione per il rilascio dell'Open Badge certificato.` }
+                    }
+                });
+            });
+        });
+
+        // STATO SELEZIONE UTENTE
+        let selectedTechIds = new Set();
+        let currentRelatedModule = null;
+
+        // INIZIALIZZAZIONE
+        document.addEventListener("DOMContentLoaded", () => {
+            renderDashboardModules(base88Modules);
+            renderSimulatorList(technologyDatabase);
+            renderSyllabusGrid(technologyDatabase);
+
+            document.getElementById('dash-search').addEventListener('input', filterDashboard);
+            document.getElementById('dash-category').addEventListener('change', filterDashboard);
+
+            document.getElementById('sim-search').addEventListener('input', filterSimulator);
+            document.getElementById('sim-level').addEventListener('change', filterSimulator);
+            document.getElementById('sim-category').addEventListener('change', filterSimulator);
+            document.getElementById('glossary-search').addEventListener('input', filterGlossary);
+            document.getElementById('syllabus-search').addEventListener('input', filterSyllabus);
+        });
+
+        // NAVIGAZIONE PAGINE
+        function switchPage(pageId) {
+            document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(pageId).classList.add('active');
+
+            if(pageId === 'page-dashboard') document.getElementById('tab-btn-dash').classList.add('active');
+            if(pageId === 'page-simulator') document.getElementById('tab-btn-sim').classList.add('active');
+            if(pageId === 'page-matrix') document.getElementById('tab-btn-mat').classList.add('active');
+            if(pageId === 'page-tech-glossary') document.getElementById('tab-btn-glo').classList.add('active');
+            if(pageId === 'page-syllabus') document.getElementById('tab-btn-syl').classList.add('active');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // PAGINA 1: DASHBOARD SINTETICA RENDER & FILTRI
+        function renderDashboardModules(list) {
+            const container = document.getElementById('dash-modules-container');
+            document.getElementById('dash-module-count').innerText = `${list.length} Moduli Base (${list.length * 3} Micro-Moduli)`;
+            container.innerHTML = '';
+
+            list.forEach(mod => {
+                const card = document.createElement('div');
+                card.className = 'base-module-card';
+
+                card.innerHTML = `
+                    <div>
+                        <div class="module-code">${mod.id} • 3 Micro-Moduli (150h / 6 CFU)</div>
+                        <div class="module-title">${mod.name}</div>
+                        <span class="module-cat">${mod.category}</span>
+                        <div class="module-levels-bar">
+                            <span class="micro-level-pill basic">Basic (2 CFU)</span>
+                            <span class="micro-level-pill intermedio">Intermedio (2 CFU)</span>
+                            <span class="micro-level-pill avanzato">Avanzato (2 CFU)</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="cross-link-btn" style="width:100%; justify-content:center;" onclick="exploreModuleMicroLevels('${mod.id}')">
+                            🔎 Esplora i 3 Micro-Moduli (Pagina 2) →
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterDashboard() {
+            const query = document.getElementById('dash-search').value.toLowerCase();
+            const cat = document.getElementById('dash-category').value;
+
+            const filtered = base88Modules.filter(m => {
+                const matchSearch = m.name.toLowerCase().includes(query) || m.id.toLowerCase().includes(query);
+                const matchCat = cat === 'ALL' || m.category === cat;
+                return matchSearch && matchCat;
+            });
+
+            renderDashboardModules(filtered);
+        }
+
+        function exploreModuleMicroLevels(baseModuleId) {
+            switchPage('page-simulator');
+            const mod = base88Modules.find(m => m.id === baseModuleId);
+            if (mod) {
+                document.getElementById('sim-search').value = mod.name;
+                filterSimulator();
+            }
+        }
+
+        // PAGINA 2: RENDER E FILTRI MICRO-MODULI
+        function renderSimulatorList(list) {
+            const container = document.getElementById('sim-tech-list');
+            document.getElementById('tech-count-badge').innerText = `${list.length} Micro-Moduli`;
+            container.innerHTML = '';
+
+            list.forEach(tech => {
+                const isSelected = selectedTechIds.has(tech.id);
+                const card = document.createElement('div');
+                card.className = `tech-card ${isSelected ? 'selected' : ''}`;
+
+                const levelClass = tech.level.toLowerCase();
+
+                card.innerHTML = `
+                    <div class="tech-card-info" onclick="toggleSelectTech('${tech.id}')">
+                        <h4>
+                            <span>${tech.name}</span>
+                            <span class="level-pill ${levelClass}">${tech.level}</span>
+                        </h4>
+                        <p>${tech.category} • 50 Ore / 2 CFU</p>
+                    </div>
+                    <div class="tech-card-actions">
+                        <span class="tech-badge-cfu">+2 CFU</span>
+                        <button class="cross-link-btn btn-syl" style="font-size:0.72rem; padding:3px 8px;" onclick="event.stopPropagation(); goToPage5Directly('${tech.id}')">
+                            📖 Programma (Pag. 5) →
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterSimulator() {
+            const query = document.getElementById('sim-search').value.toLowerCase();
+            const level = document.getElementById('sim-level').value;
+            const cat = document.getElementById('sim-category').value;
+
+            const filtered = technologyDatabase.filter(t => {
+                const matchSearch = t.name.toLowerCase().includes(query) || 
+                                    t.description.toLowerCase().includes(query) ||
+                                    t.skills.some(s => s.toLowerCase().includes(query));
+                const matchLevel = level === 'ALL' || t.level === level;
+                const matchCat = cat === 'ALL' || t.category === cat;
+                return matchSearch && matchLevel && matchCat;
+            });
+
+            renderSimulatorList(filtered);
+        }
+
+        function toggleSelectTech(techId) {
+            if (selectedTechIds.has(techId)) {
+                selectedTechIds.delete(techId);
+            } else {
+                selectedTechIds.add(techId);
+            }
+            filterSimulator();
+            updateSimulatorResults();
+        }
+
+        function updateSimulatorResults() {
+            const emptyState = document.getElementById('sim-empty-state');
+            const resultsBox = document.getElementById('sim-results');
+
+            if (selectedTechIds.size === 0) {
+                emptyState.style.display = 'block';
+                resultsBox.style.display = 'none';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            resultsBox.style.display = 'block';
+
+            const selected = technologyDatabase.filter(t => selectedTechIds.has(t.id));
+
+            let totalCFU = selected.reduce((acc, curr) => acc + curr.cfu, 0);
+            let totalHours = selected.reduce((acc, curr) => acc + curr.hours, 0);
+            let skillsSet = new Set(selected.flatMap(t => t.skills));
+            let sectorsSet = new Set(selected.flatMap(t => t.sectors));
+
+            document.getElementById('stat-selected-count').innerText = selected.length;
+            document.getElementById('stat-hours-count').innerText = `${totalHours}h`;
+            document.getElementById('stat-cfu-count').innerText = totalCFU;
+            document.getElementById('stat-skills-count').innerText = skillsSet.size;
+
+            const skillsCloud = document.getElementById('cloud-skills');
+            skillsCloud.innerHTML = '';
+            skillsSet.forEach(s => {
+                const tag = document.createElement('span');
+                tag.className = 'tag skill';
+                tag.innerText = s;
+                skillsCloud.appendChild(tag);
+            });
+
+            const sectorsCloud = document.getElementById('cloud-sectors');
+            sectorsCloud.innerHTML = '';
+            sectorsSet.forEach(sec => {
+                const tag = document.createElement('span');
+                tag.className = 'tag sector';
+                tag.innerText = sec;
+                sectorsCloud.appendChild(tag);
+            });
+
+            const title = selected.length === 1 
+                ? `Micro-Credito: ${selected[0].name}`
+                : `Certificato Micro-Crediti M.A.D.E.-AI (${selected.length} Micro-Moduli)`;
+
+            document.getElementById('badge-title-text').innerText = title;
+            document.getElementById('badge-cfu-text').innerText = `${totalCFU} Crediti ECTS/CFU (${totalHours} Ore Totali)`;
+            document.getElementById('badge-desc-text').innerText = 
+                `Open Badge rilasciato per il completamento di ${selected.length} micro-moduli formativi della durata di 50 ore (2 CFU ciascuno).`;
+
+            const syllabusLinksBox = document.getElementById('badge-syllabus-links');
+            syllabusLinksBox.innerHTML = '';
+            selected.forEach(t => {
+                const btn = document.createElement('button');
+                btn.className = 'cross-link-btn btn-syl';
+                btn.innerHTML = `📖 ${t.name} (50h) →`;
+                btn.onclick = () => goToPage5Directly(t.id);
+                syllabusLinksBox.appendChild(btn);
+            });
+        }
+
+        // AZIONE: PASSA DALLA PAGINA 2 ALLA PAGINA 3
+        function goToPage3WithSelected() {
+            if (selectedTechIds.size === 0) {
+                alert("Seleziona almeno un micro-modulo per accedere alla terza pagina!");
+                return;
+            }
+            renderMatrixSelectedOnly();
+            switchPage('page-matrix');
+        }
+
+        // ACCESSO DIRETTO ALLA PAGINA 5 PER UN MICRO-MODULO
+        function goToPage5Directly(techId) {
+            switchPage('page-syllabus');
+            const tech = technologyDatabase.find(t => t.id === techId);
+            if (tech) {
+                document.getElementById('syllabus-search').value = tech.name;
+                filterSyllabus();
+                highlightFirstCard('#syllabus-grid-container .syllabus-card');
+            }
+        }
+
+        // PAGINA 3: MATRICE (SOLO I MICRO-MODULI SCELTI)
+        function renderMatrixSelectedOnly() {
+            const container = document.getElementById('matrix-grid-container');
+            const selectedList = technologyDatabase.filter(t => selectedTechIds.has(t.id));
+            
+            document.getElementById('matrix-count').innerText = `${selectedList.length} Micro-Moduli Selezionati`;
+            container.innerHTML = '';
+
+            if (selectedList.length === 0) {
+                container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">Nessun micro-modulo selezionato nella Pagina 2.<br><br><button class="cross-link-btn" onclick="switchPage('page-simulator')">Torna alla Pagina 2 per Selezionare</button></div>`;
+                return;
+            }
+
+            selectedList.forEach(tech => {
+                const card = document.createElement('div');
+                card.className = 'matrix-card';
+
+                const levelClass = tech.level.toLowerCase();
+                const skillsListHtml = tech.skills.map(s => `<li>${s}</li>`).join('');
+                const sectorsTagsHtml = tech.sectors.map(sec => `<span class="tag sector" style="font-size:0.7rem; padding:2px 8px; margin:2px;">${sec}</span>`).join('');
+
+                card.innerHTML = `
+                    <div>
+                        <div class="card-header-flex">
+                            <div>
+                                <div class="card-title">${tech.name}</div>
+                                <span class="level-pill ${levelClass}" style="margin-top:4px;">${tech.level} (2 CFU / 50h)</span>
+                            </div>
+                            <span class="card-cat-badge">${tech.category}</span>
+                        </div>
+                        
+                        <div class="matrix-section">
+                            <div class="matrix-section-title">Competenze Certificate dall'Open Badge:</div>
+                            <ul class="matrix-list">${skillsListHtml}</ul>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="matrix-section" style="margin-top: 12px;">
+                            <div class="matrix-section-title">Settori Industriali Coinvolti:</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:2px; margin-top:4px;">${sectorsTagsHtml}</div>
+                        </div>
+
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
+                            <button class="btn-primary" style="margin-top:0; padding:10px; font-size:0.85rem;" onclick="goToPage4FromModule('${tech.id}')">
+                                🔬 Vedi Micro-Moduli Correlati (Pagina 4) →
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // AZIONE: PASSA DALLA PAGINA 3 ALLA PAGINA 4
+        function goToPage4FromModule(techId) {
+            const tech = technologyDatabase.find(t => t.id === techId);
+            if (!tech) return;
+
+            currentRelatedModule = tech;
+            document.getElementById('glossary-banner-text').innerText = `Micro-moduli correlati a: "${tech.name}" (${tech.category})`;
+            
+            const relatedTechs = technologyDatabase.filter(t => t.category === tech.category && t.id !== tech.id);
+            renderGlossaryGrid(relatedTechs);
+            switchPage('page-tech-glossary');
+        }
+
+        function showAllGlossary() {
+            currentRelatedModule = null;
+            document.getElementById('glossary-banner-text').innerText = `Tutti i 264 micro-moduli del database.`;
+            document.getElementById('glossary-search').value = '';
+            renderGlossaryGrid(technologyDatabase);
+        }
+
+        // PAGINA 4: GLOSSARIO MICRO-MODULI CORRELATI
+        function renderGlossaryGrid(list) {
+            const container = document.getElementById('glossary-grid-container');
+            document.getElementById('glossary-count').innerText = `${list.length} Micro-Moduli`;
+            container.innerHTML = '';
+
+            if (list.length === 0) {
+                container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">Nessun micro-modulo correlato trovato.</div>`;
+                return;
+            }
+
+            list.forEach(tech => {
+                const card = document.createElement('div');
+                card.className = 'tech-glossary-card';
+                const levelClass = tech.level.toLowerCase();
+                const featuresPills = (tech.features || []).map(f => `<span class="tech-feature-pill">${f}</span>`).join('');
+
+                card.innerHTML = `
+                    <div>
+                        <div class="card-header-flex">
+                            <div>
+                                <div class="card-title">${tech.name}</div>
+                                <span class="level-pill ${levelClass}" style="margin-top:4px;">${tech.level} • 50h / 2 CFU</span>
+                            </div>
+                            <span class="card-cat-badge">${tech.category}</span>
+                        </div>
+                        
+                        <p style="font-size: 0.85rem; color: #334155; line-height: 1.5; margin-bottom: 12px;">
+                            ${tech.description}
+                        </p>
+
+                        <div style="margin-bottom: 12px;">
+                            ${featuresPills}
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                        <button class="cross-link-btn btn-syl" onclick="goToPage5Directly('${tech.id}')">
+                            🎓 Vedi Programma (50h) sulla Pagina 5 →
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterGlossary() {
+            const query = document.getElementById('glossary-search').value.toLowerCase();
+            let baseList = currentRelatedModule 
+                ? technologyDatabase.filter(t => t.category === currentRelatedModule.category && t.id !== currentRelatedModule.id)
+                : technologyDatabase;
+
+            const filtered = baseList.filter(t => 
+                t.name.toLowerCase().includes(query) || 
+                t.description.toLowerCase().includes(query) ||
+                (t.features && t.features.some(f => f.toLowerCase().includes(query)))
+            );
+
+            renderGlossaryGrid(filtered);
+        }
+
+        // PAGINA 5: PROGRAMMA DIDATTICO (50 ORE / 2 CFU)
+        function renderSyllabusGrid(list) {
+            const container = document.getElementById('syllabus-grid-container');
+            container.innerHTML = '';
+
+            list.forEach(tech => {
+                const card = document.createElement('div');
+                card.className = 'syllabus-card';
+                const syl = tech.syllabus;
+                const levelClass = tech.level.toLowerCase();
+
+                card.innerHTML = `
+                    <div>
+                        <div class="card-header-flex">
+                            <div>
+                                <div class="card-title">${tech.name}</div>
+                                <span class="level-pill ${levelClass}" style="margin-top:4px;">Livello ${tech.level}</span>
+                            </div>
+                            <span class="card-cat-badge">${tech.category}</span>
+                        </div>
+
+                        <div class="hours-badge-row">
+                            <span class="hour-pill teoria">Teoria: 10h</span>
+                            <span class="hour-pill lab">Laboratorio: 15h</span>
+                            <span class="hour-pill eserc">Esercitazioni: 20h</span>
+                            <span class="hour-pill verif">Verifica: 5h</span>
+                        </div>
+
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">📖 Teoria (10 Ore)</div>
+                            <div>${syl.teoria.content}</div>
+                        </div>
+
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">⚙️ Attività in Laboratorio (15 Ore)</div>
+                            <div>${syl.laboratorio.content}</div>
+                        </div>
+
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">💻 Esercitazioni & Project Work (20 Ore)</div>
+                            <div>${syl.esercitazioni.content}</div>
+                        </div>
+
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">📝 Verifica delle Competenze & Open Badge (5 Ore)</div>
+                            <div>${syl.verifica.content}</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <span style="font-size:0.8rem; font-weight:700; color:var(--accent-green);">Totale: 50 Ore / 2 CFU</span>
+                        <button class="cross-link-btn btn-json" onclick="exportSingleSyllabusJSON('${tech.id}')">
+                            📥 JSON Micro-Modulo
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterSyllabus() {
+            const query = document.getElementById('syllabus-search').value.toLowerCase();
+
+            const filtered = technologyDatabase.filter(t => {
+                const s = t.syllabus;
+                return t.name.toLowerCase().includes(query) ||
+                       s.teoria.content.toLowerCase().includes(query) ||
+                       s.laboratorio.content.toLowerCase().includes(query) ||
+                       s.esercitazioni.content.toLowerCase().includes(query) ||
+                       s.verifica.content.toLowerCase().includes(query);
+            });
+
+            renderSyllabusGrid(filtered);
+        }
+
+        function highlightFirstCard(selector) {
+            setTimeout(() => {
+                const card = document.querySelector(selector);
+                if(card) {
+                    card.classList.add('highlight-flash');
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => card.classList.remove('highlight-flash'), 1700);
+                }
+            }, 100);
+        }
+
+        // ESPORTAZIONE JSON SINGOLO E GLOBALE
+        function exportSingleSyllabusJSON(techId) {
+            const tech = technologyDatabase.find(t => t.id === techId);
+            if (!tech) return;
+
+            const singleData = formatTechToJSONSchema(tech);
+            downloadJSONFile(singleData, `micro_modulo_${tech.id}.json`);
+        }
+
+        function exportGlobalSyllabusJSON() {
+            const globalData = technologyDatabase.map(tech => formatTechToJSONSchema(tech));
+            downloadJSONFile(globalData, "264_micro_moduli_50h_2CFU_MADE_AI.json");
+        }
+
+        function formatTechToJSONSchema(tech) {
+            return {
+                id_micro_modulo: tech.id,
+                modulo_base_id: tech.baseId,
+                modulo_base: tech.baseName,
+                livello: tech.level,
+                denominazione: tech.name,
+                categoria: tech.category,
+                crediti_cfu: tech.cfu,
+                ore_totali: tech.hours,
+                open_badge_certificazione: tech.badgeType,
+                articolazione_didattica: {
+                    teoria_lezioni_frontali: {
+                        ore: tech.syllabus.teoria.hours,
+                        contenuti: tech.syllabus.teoria.content
+                    },
+                    laboratorio_pratico: {
+                        ore: tech.syllabus.laboratorio.hours,
+                        attivita: tech.syllabus.laboratorio.content
+                    },
+                    esercitazioni_project_work: {
+                        ore: tech.syllabus.esercitazioni.hours,
+                        progetti: tech.syllabus.esercitazioni.content
+                    },
+                    verifica_competenze_badge: {
+                        ore: tech.syllabus.verifica.hours,
+                        modalita: tech.syllabus.verifica.content
+                    }
+                },
+                competenze_certificate: tech.skills,
+                settori_industriali: tech.sectors
+            };
+        }
+
+        function downloadJSONFile(dataObj, filename) {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataObj, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", filename);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function exportBadgeJSON() {
+            const selected = technologyDatabase.filter(t => selectedTechIds.has(t.id));
+            let totalCFU = selected.reduce((acc, curr) => acc + curr.cfu, 0);
+            let totalHours = selected.reduce((acc, curr) => acc + curr.hours, 0);
+
+            const badgeMetadata = {
+                "@context": "https://w3id.org/openbadges/v2",
+                "type": "BadgeClass",
+                "id": "urn:uuid:" + crypto.randomUUID(),
+                "name": document.getElementById('badge-title-text').innerText,
+                "description": document.getElementById('badge-desc-text').innerText,
+                "issuer": {
+                    "type": "Profile",
+                    "name": "Cluster Tecnologico Nazionale Made in Italy - Progetto M.A.D.E.-AI"
+                },
+                "alignment": [
+                    {
+                        "targetName": "Micro-crediti Formativi ECTS/CFU",
+                        "targetUrl": "https://ec.europa.eu/education/resources-and-tools/european-credit-transfer-and-accumulation-system-ects_it"
+                    }
+                ],
+                "assertion": {
+                    "issuedOn": new Date().toISOString(),
+                    "totalHours": totalHours,
+                    "cfuTotal": totalCFU,
+                    "microModulesCount": selected.length,
+                    "completedMicroModules": selected.map(s => ({
+                        id: s.id,
+                        nome: s.name,
+                        livello: s.level,
+                        cfu: s.cfu,
+                        ore: s.hours,
+                        openBadgeType: s.badgeType
+                    }))
+                }
+            };
+
+            downloadJSONFile(badgeMetadata, "OpenBadge_MicroCrediti_MADE_AI.json");
+        }
+    </script>
+</body>
+</html>

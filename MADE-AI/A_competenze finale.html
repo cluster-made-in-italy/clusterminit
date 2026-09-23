@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore M.A.D.E.-AI 5.0 - Flusso Navigazione Integrato</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #ffffff;
+            --panel-border: #e2e8f0;
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-hover: #1d4ed8;
+            --accent-green: #059669;
+            --accent-green-bg: #ecfdf5;
+            --accent-amber: #d97706;
+            --accent-amber-bg: #fffbeb;
+            --accent-purple: #7c3aed;
+            --accent-purple-bg: #f5f3ff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #cbd5e1;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
+            --shadow-md: 0 10px 25px -5px rgba(0,0,0,0.08);
+            --shadow-glow: 0 0 20px rgba(37, 99, 235, 0.2);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: #f8fafc; color: var(--text-main); padding-bottom: 40px; line-height: 1.5; }
+
+        /* HEADER & NAVIGATION */
+        header { 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); 
+            color: white; 
+            padding: 20px 24px; 
+            box-shadow: var(--shadow-md);
+            border-bottom: 4px solid var(--primary);
+        }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+        .header-title h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 10px; }
+        .header-title h1 span.badge-tag { background: var(--primary); color: white; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; }
+        .header-title p { color: #94a3b8; font-size: 0.88rem; margin-top: 4px; }
+
+        /* NAV TABS */
+        .nav-tabs { display: flex; gap: 6px; background: rgba(255, 255, 255, 0.1); padding: 6px; border-radius: 12px; backdrop-filter: blur(8px); flex-wrap: wrap; }
+        .tab-btn { 
+            background: transparent; 
+            border: none; 
+            color: #cbd5e1; 
+            padding: 10px 14px; 
+            font-size: 0.85rem; 
+            font-weight: 600; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tab-btn:hover { color: white; background: rgba(255, 255, 255, 0.08); }
+        .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
+
+        /* LAYOUT CONTAINER */
+        .main-container { max-width: 1400px; margin: 24px auto 0 auto; padding: 0 24px; }
+        .page-view { display: none; }
+        .page-view.active { display: block; }
+
+        /* PANELS & CONTROLS */
+        .panel { background: var(--panel-bg); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--panel-border); }
+        .panel-header { font-size: 1.15rem; font-weight: 700; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+        
+        .controls { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .search-box, .filter-select { padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem; outline: none; transition: border 0.2s; background: #f8fafc; }
+        .search-box:focus, .filter-select:focus { border-color: var(--primary); background: white; }
+        .search-box { flex: 1; min-width: 220px; }
+
+        /* SIMULATOR GRID (PAGE 1) */
+        .simulator-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        @media (max-width: 1024px) { .simulator-grid { grid-template-columns: 1fr; } }
+
+        .tech-list { max-height: 580px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-right: 6px; }
+        .tech-list::-webkit-scrollbar { width: 6px; }
+        .tech-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        .tech-card { 
+            padding: 14px 18px; 
+            border: 1px solid var(--border); 
+            border-radius: var(--radius-md); 
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: white; 
+            gap: 12px;
+        }
+        .tech-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+        .tech-card.selected { border-color: var(--primary); background: var(--primary-light); box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2); }
+        
+        .tech-card-info { flex: 1; }
+        .tech-card-info h4 { font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+        .tech-card-info p { font-size: 0.8rem; color: var(--text-muted); }
+        
+        .tech-card-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+        .tech-badge-cfu { background: #e0e7ff; color: #3730a3; font-weight: 700; font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+
+        /* STATS & TAGS */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+        .stat-box { background: #f8fafc; padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--panel-border); text-align: center; }
+        .stat-number { font-size: 1.6rem; font-weight: 800; color: var(--primary); }
+        .stat-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .section-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; margin: 16px 0 8px 0; }
+        .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; max-height: 100px; overflow-y: auto; padding-right: 4px; }
+        .tag { font-size: 0.78rem; font-weight: 600; padding: 5px 12px; border-radius: 20px; }
+        .tag.skill { background: var(--accent-green-bg); color: var(--accent-green); border: 1px solid #a7f3d0; }
+        .tag.sector { background: var(--accent-amber-bg); color: var(--accent-amber); border: 1px solid #fde68a; }
+
+        /* BADGE PREVIEW */
+        .badge-preview-card {
+            border: 2px dashed #3b82f6;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+            text-align: center;
+            margin-top: 16px;
+        }
+        .badge-shield {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 10px auto;
+            background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 800;
+            box-shadow: var(--shadow-glow);
+        }
+        .badge-title { font-size: 1.05rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+        .badge-cfu-pill { display: inline-block; background: var(--accent-green); color: white; font-size: 0.8rem; font-weight: 700; padding: 4px 14px; border-radius: 20px; margin-bottom: 8px; }
+        .badge-desc { font-size: 0.83rem; color: var(--text-muted); line-height: 1.4; }
+
+        .selected-modules-quicklinks {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .btn-primary { 
+            width: 100%; 
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 14px; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            font-size: 0.95rem; 
+            cursor: pointer; 
+            margin-top: 14px; 
+            transition: all 0.2s; 
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+
+        .btn-success {
+            background: var(--accent-green);
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+        .btn-success:hover { background: #047857; }
+
+        /* BUTTONS & LINKS */
+        .cross-link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: #f1f5f9;
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 700;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            width: fit-content;
+        }
+        .cross-link-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        
+        .cross-link-btn.btn-syl { background: var(--accent-purple-bg); color: var(--accent-purple); border-color: #ddd6fe; }
+        .cross-link-btn.btn-syl:hover { background: var(--accent-purple); color: white; border-color: var(--accent-purple); }
+
+        .cross-link-btn.btn-json { background: var(--accent-green-bg); color: var(--accent-green); border-color: #a7f3d0; }
+        .cross-link-btn.btn-json:hover { background: var(--accent-green); color: white; border-color: var(--accent-green); }
+
+        /* GRIDS PAGE 2, 3, 4 */
+        .grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 20px; margin-top: 10px; }
+        
+        .matrix-card, .tech-glossary-card, .syllabus-card { 
+            background: white; 
+            border: 1px solid var(--panel-border); 
+            border-radius: var(--radius-md); 
+            padding: 22px; 
+            box-shadow: var(--shadow-sm); 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .matrix-card:hover, .tech-glossary-card:hover, .syllabus-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .card-header-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; }
+        .card-title { font-size: 1.05rem; font-weight: 700; color: var(--text-main); }
+        .card-cat-badge { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--primary); background: var(--primary-light); padding: 3px 8px; border-radius: 4px; white-space: nowrap; }
+
+        .matrix-section { margin-top: 10px; }
+        .matrix-section-title { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+        .matrix-list { list-style: none; font-size: 0.83rem; color: #334155; }
+        .matrix-list li { margin-bottom: 4px; position: relative; padding-left: 14px; }
+        .matrix-list li::before { content: "•"; position: absolute; left: 0; color: var(--primary); font-weight: bold; }
+
+        .tech-feature-pill { display: inline-block; background: var(--accent-purple-bg); color: var(--accent-purple); border: 1px solid #ddd6fe; font-size: 0.75rem; font-weight: 600; padding: 3px 10px; border-radius: 12px; margin-right: 4px; margin-bottom: 6px; }
+
+        /* DIDACTIC SYLLABUS GRID STYLES */
+        .hours-badge-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+        .hour-pill { font-size: 0.73rem; font-weight: 700; padding: 4px 8px; border-radius: 6px; }
+        .hour-pill.teoria { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .hour-pill.lab { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .hour-pill.eserc { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .hour-pill.verif { background: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+
+        .syllabus-block { background: #f8fafc; border-left: 3px solid var(--primary); padding: 8px 12px; margin-bottom: 8px; border-radius: 0 6px 6px 0; font-size: 0.82rem; }
+        .syllabus-block-title { font-weight: 700; color: var(--text-main); font-size: 0.78rem; text-transform: uppercase; margin-bottom: 2px; }
+
+        .empty-state { text-align: center; color: var(--text-muted); padding: 60px 20px; font-style: italic; }
+
+        .info-banner {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 16px;
+            font-size: 0.88rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .highlight-flash { animation: flashHighlight 1.6s ease-out; }
+        @keyframes flashHighlight {
+            0% { background-color: #fef08a; border-color: #eab308; box-shadow: 0 0 15px rgba(234, 179, 8, 0.5); }
+            100% { background-color: white; border-color: var(--panel-border); box-shadow: var(--shadow-sm); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div class="header-title">
+                <h1>Simulatore M.A.D.E.-AI <span class="badge-tag">v5.0 Streamlined</span></h1>
+                <p>Percorso guidato: Selezione Moduli (Pag 1) ➔ Matrice Moduli Scelti (Pag 2) ➔ Tecnologie Correlate (Pag 3) | Accesso diretto Programma Didattico 125h (Pag 4)</p>
+            </div>
+            <div class="nav-tabs">
+                <button class="tab-btn active" id="tab-btn-sim" onclick="switchPage('page-simulator')">
+                    📊 1. Selezione Moduli
+                </button>
+                <button class="tab-btn" id="tab-btn-mat" onclick="switchPage('page-matrix')">
+                    📚 2. Matrice Scelti
+                </button>
+                <button class="tab-btn" id="tab-btn-glo" onclick="switchPage('page-tech-glossary')">
+                    🔬 3. Tecnologie Correlate
+                </button>
+                <button class="tab-btn" id="tab-btn-syl" onclick="switchPage('page-syllabus')">
+                    🎓 4. Programma (125h)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+
+        <!-- PAGINA 1: SELEZIONE MODULI & BADGE -->
+        <div id="page-simulator" class="page-view active">
+            <div class="simulator-grid">
+                
+                <!-- PANNELLO SINISTRO: CATALOGO TECNOLOGIE -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <span>1. Scegli Moduli Formativi</span>
+                        <span style="font-size:0.85rem; color:var(--text-muted);" id="tech-count-badge">0 Voci</span>
+                    </div>
+
+                    <div class="controls">
+                        <input type="text" id="sim-search" class="search-box" placeholder="Cerca modulo, competenza o settore...">
+                        <select id="sim-category" class="filter-select">
+                            <option value="ALL">Tutte le categorie</option>
+                            <option value="AI & Data">AI & Data Processing</option>
+                            <option value="Manufacturing">Manufacturing & Prototipazione</option>
+                            <option value="Materials & Chemistry">Materiali & Chimica</option>
+                            <option value="Electronics & IoT">Elettronica & IoT</option>
+                            <option value="Design & UX">Design & Metodologie UX</option>
+                            <option value="Sustainability">Sostenibilità & Circolarità</option>
+                        </select>
+                    </div>
+
+                    <div class="tech-list" id="sim-tech-list"></div>
+                </div>
+
+                <!-- PANNELLO DESTRO: BADGE & PASSA ALLA SECONDA PAGINA -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <span>2. Anteprima Badge & Navigazione</span>
+                    </div>
+
+                    <div id="sim-empty-state" class="empty-state">
+                        Seleziona uno o più moduli dal catalogo a sinistra.<br>
+                        Potrai poi accedere alla <b>Pagina 2 (Matrice)</b> per i soli moduli scelti o andare direttamente al <b>Programma didattico (Pagina 4)</b>.
+                    </div>
+
+                    <div id="sim-results" style="display: none;">
+                        <div class="stats-grid">
+                            <div class="stat-box">
+                                <div class="stat-number" id="stat-selected-count">0</div>
+                                <div class="stat-label">Moduli Scelti</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-number" id="stat-skills-count">0</div>
+                                <div class="stat-label">Competenze Mappate</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-number" id="stat-cfu-count">0</div>
+                                <div class="stat-label">Totale ECTS / CFU</div>
+                            </div>
+                        </div>
+
+                        <div class="section-label">Competenze Mappate</div>
+                        <div class="tag-cloud" id="cloud-skills"></div>
+
+                        <div class="section-label">Settori Impattati</div>
+                        <div class="tag-cloud" id="cloud-sectors"></div>
+
+                        <div class="badge-preview-card">
+                            <div class="badge-shield">OB</div>
+                            <div class="badge-title" id="badge-title-text">Open Badge Formativo</div>
+                            <div class="badge-cfu-pill" id="badge-cfu-text">0 Crediti ECTS/CFU</div>
+                            <p class="badge-desc" id="badge-desc-text"></p>
+                            
+                            <div class="section-label" style="margin-top:12px; margin-bottom:6px;">Accesso Diretto ai Programmi dei Moduli (Pagina 4):</div>
+                            <div class="selected-modules-quicklinks" id="badge-syllabus-links"></div>
+                        </div>
+
+                        <button class="btn-primary" onclick="goToPage2WithSelected()">
+                            ➡️ Vai alla SECONDA PAGINA (Matrice dei Moduli Scelti)
+                        </button>
+                        
+                        <button class="btn-primary btn-success" style="margin-top:8px;" onclick="exportBadgeJSON()">
+                            📥 Esporta Metadati Open Badge (JSON)
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PAGINA 2: MATRICE COMPETENZE (MOSTRA SOLO I MODULI SELEZIONATI) -->
+        <div id="page-matrix" class="page-view">
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Pagina 2: Matrice dei Moduli Selezionati</span>
+                    <span style="font-size:0.85rem; color:var(--text-muted);" id="matrix-count">0 Moduli</span>
+                </div>
+                
+                <div class="info-banner" id="matrix-banner">
+                    <span>Mostrando solo i moduli selezionati nella Pagina 1. Clicca su un modulo per accedere alle <b>Tecnologie Correlate nella Pagina 3</b>.</span>
+                    <button class="cross-link-btn" onclick="switchPage('page-simulator')">✏️ Modifica Selezione</button>
+                </div>
+
+                <div class="grid-cards" id="matrix-grid-container"></div>
+            </div>
+        </div>
+
+        <!-- PAGINA 3: GLOSSARIO TECNOLOGIE CORRELATE -->
+        <div id="page-tech-glossary" class="page-view">
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Pagina 3: Glossario Tecnologie Correlate</span>
+                    <span style="font-size:0.85rem; color:var(--text-muted);" id="glossary-count">0 Tecnologie</span>
+                </div>
+                
+                <div class="info-banner" id="glossary-banner">
+                    <span id="glossary-banner-text">Tecnologie correlate al modulo selezionato nella Pagina 2.</span>
+                    <button class="cross-link-btn" onclick="showAllGlossary()">Mostra Tutte le Tecnologie</button>
+                </div>
+
+                <div class="controls">
+                    <input type="text" id="glossary-search" class="search-box" placeholder="Cerca nelle tecnologie correlate...">
+                </div>
+
+                <div class="grid-cards" id="glossary-grid-container"></div>
+            </div>
+        </div>
+
+        <!-- PAGINA 4: PROGRAMMA DEL MODULO (125 ORE) & EXPORT JSON -->
+        <div id="page-syllabus" class="page-view">
+            <div class="panel">
+                <div class="panel-header">
+                    <span>Pagina 4: Programma e Percorsi Didattici (125 Hours / 15h Lezioni Frontali / 5 CFU)</span>
+                    <button class="cross-link-btn btn-json" style="padding: 10px 16px; font-size: 0.88rem;" onclick="exportGlobalSyllabusJSON()">
+                        📥 Scarica JSON Globale (Tutti i Moduli)
+                    </button>
+                </div>
+                
+                <div class="info-banner">
+                    <span>Ogni modulo si articola in <b>125 ore totali (5 CFU)</b>: 15h Lezioni Frontali (Teoria), 45h Laboratorio, 50h Esercitazioni/Project Work e 15h Verifica. Puoi scaricare il JSON del singolo modulo o il database globale.</span>
+                </div>
+
+                <div class="controls">
+                    <input type="text" id="syllabus-search" class="search-box" placeholder="Cerca nel programma didattico dei moduli...">
+                </div>
+
+                <div class="grid-cards" id="syllabus-grid-container"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // DATABASE COMPLETO DEI MODULI E PERCORSI DIDATTICI (125h Totali: 15h Teoria + 45h Lab + 50h Eserc + 15h Ver)
+        const baseTechnologies = [
+            {
+                id: "tech_1",
+                name: "L'accoppiatura di materiali differenti",
+                category: "Materials & Chemistry",
+                cfu: 5,
+                description: "Progettazione e realizzazione di giunzioni complesse tra materiali con caratteristiche chimico-fisiche eterogenee per incrementare prestazioni meccaniche e leggerezza.",
+                features: ["Saldatura avanzata", "Incollaggio strutturale", "Laminazione", "Trattamenti superficiali"],
+                skills: [
+                    "Conoscenza delle proprietà fisiche e chimiche dei materiali",
+                    "Progettazione delle specifiche di prodotto e procedure di accoppiamento",
+                    "Padroneggiamento delle tecniche: saldatura, incollaggio, laminazione",
+                    "Uso pratico di attrezzature speciali per materiali eterogenei"
+                ],
+                sectors: ["Automotive", "Aerospaziale", "Produzione Macchinari", "Dispositivi Medici"],
+                syllabus: {
+                    totalHours: 125,
+                    cfu: 5,
+                    teoria: { hours: 15, content: "15 ore di lezioni frontali su chimica delle interfacce, adesione polimerica e compatibilità termico-meccanica dei materiali eterogenei." },
+                    laboratorio: { hours: 45, content: "Attività sperimentale di incollaggio strutturale, saldatura speciale e trattamenti al plasma su provini eterogenei." },
+                    esercitazioni: { hours: 50, content: "Project work su simulazione FEA delle tensioni di interfaccia e progettazione del giunto per componenti industriali." },
+                    verifica: { hours: 15, content: "Test pratico di trazione/taglio su campione realizzato e discussione della relazione tecnica." }
+                }
+            },
+            {
+                id: "tech_2",
+                name: "Advanced Manufacturing",
+                category: "Manufacturing",
+                cfu: 5,
+                description: "Sistemi e metodi di fabbricazione ad alta tecnologia che integrano automazione robotica, sensoristica intelligente e controllo in tempo reale.",
+                features: ["Fabbricazione Robotizzata", "Controllo Adattivo", "Precision Processing", "Integrazione CAM"],
+                skills: [
+                    "Conoscenza approfondita delle proprietà dei materiali avanzati",
+                    "Progettazione meccanica avanzata per processi ad alta velocità",
+                    "Padronanza delle tecnologie di produzione (Stampa 3D, Robotica)",
+                    "Gestione e manutenzione di impianti speciali di precisione"
+                ],
+                sectors: ["Aerospaziale", "Automotive", "Dispositivi Medici", "Meccanica di Precisione"],
+                syllabus: {
+                    totalHours: 125,
+                    cfu: 5,
+                    teoria: { hours: 15, content: "15 ore di lezioni frontali sui principi di produzione sottrattiva/additiva, meccatronica e architetture CAM." },
+                    laboratorio: { hours: 45, content: "Programmazione diretta di celle robotiche e macchine CNC ad alta velocità per lavorazioni su geometrie complesse." },
+                    esercitazioni: { hours: 50, content: "Sviluppo di un ciclo di lavorazione completo con ottimizzazione dei tempi e analisi vibrazionale." },
+                    verifica: { hours: 15, content: "Produzione in laboratorio e collaudo dimensionale di un componente meccanico di precisione." }
+                }
+            },
+            {
+                id: "tech_3",
+                name: "Advanced Signal Processing",
+                category: "AI & Data",
+                cfu: 5,
+                description: "Elaborazione complessa di segnali tempo-variabili per il filtraggio del rumore, l'estrazione di feature e la diagnosi predittiva.",
+                features: ["Trasformata di Fourier", "Filtraggio Digitale", "Analisi Spettrale", "Feature Extraction"],
+                skills: [
+                    "Matematica applicata e teoria dei segnali",
+                    "Programmazione per l'elaborazione dati (MATLAB, Python, C++)",
+                    "Tecniche di trasformata di Fourier, convoluzione e filtraggio",
+                    "Analisi e diagnosi di anomalia su segnali in tempo reale"
+                ],
+                sectors: ["Telecomunicazioni", "Imaging Medico", "Automazione Industriale", "Cybersecurity"],
+                syllabus: {
+                    totalHours: 125,
+                    cfu: 5,
+                    teoria: { hours: 15, content: "15 ore di lezioni frontali su Trasformate matematiche (FFT, Wavelet), filtri FIR/IIR e stima spettrale." },
+                    laboratorio: { hours: 45, content: "Implementazione pratica di algoritmi di filtraggio su schede DSP e ambiente Python/MATLAB." },
+                    esercitazioni: { hours: 50, content: "Sviluppo di un algoritmo per l'estrazione delle feature vibrazionali da macchine industriali per la manutenzione predittiva." },
+                    verifica: { hours: 15, content: "Valutazione del codice sorgente su segnale rumoroso reale e colloquio d'esame." }
+                }
+            },
+            {
+                id: "tech_4",
+                name: "Artificial Intelligence (AI)",
+                category: "AI & Data",
+                cfu: 5,
+                description: "Architettura e sviluppo di modelli computazionali capaci di simulare funzioni cognitive umane: apprendimento dai dati e decisioni complesse.",
+                features: ["Deep Learning", "Machine Learning", "Neural Networks", "NLP", "Computer Vision"],
+                skills: [
+                    "Sviluppo software e programmazione (Python, PyTorch, TensorFlow)",
+                    "Matematica, statistica avanzata e calcolo delle probabilità",
+                    "Modellazione di algoritmi di Machine Learning e Data Mining",
+                    "Reti neurali artificiali ed elaborazione del linguaggio naturale (NLP)"
+                ],
+                sectors: ["Automazione & Robotica", "Sanità & Diagnostica", "Finanza & Fintech", "Manifatturiero 4.0"],
+                syllabus: {
+                    totalHours: 125,
+                    cfu: 5,
+                    teoria: { hours: 15, content: "15 ore di lezioni frontali su fondamenti di Supervised/Unsupervised Learning, CNN e modelli Generativi/Transformer." },
+                    laboratorio: { hours: 45, content: "Addestramento, tuning dei iperparametri e validazione di modelli neurali su GPU in ambiente Jupyter/PyTorch." },
+                    esercitazioni: { hours: 50, content: "Project work: sviluppo di una pipeline completa di Computer Vision per il controllo qualità visivo in linea di produzione." },
+                    verifica: { hours: 15, content: "Presentazione della pipeline sviluppata e difesa orale della scelta dell'architettura e metrica di accuratezza." }
+                }
+            },
+            {
+                id: "tech_5",
+                name: "Automazione nella logistica e distribuzione",
+                category: "Manufacturing",
+                cfu: 5,
+                description: "Integrazione di sistemi meccatronici guidati autonomamente (AGV/AMR), magazzini verticali e software di gestione della supply chain.",
+                features: ["Robot AMR/AGV", "Sistemi WMS", "Tracciabilità RFID", "Ottimizzazione Flussi"],
+                skills: [
+                    "Ingegneria meccatronica ed elettronica applicata alla logistica",
+                    "Programmazione di software di automazione (WMS, PLC, Python)",
+                    "Analisi dati e Machine Learning per l'ottimizzazione dei flussi merci",
+                    "Gestione di robot di movimentazione, sensori e magazzini automatici"
+                ],
+                sectors: ["Alimentare e Bevande", "Farmaceutica", "Manifatturiero", "Logistica & Trasporti"],
+                syllabus: {
+                    totalHours: 125,
+                    cfu: 5,
+                    teoria: { hours: 15, content: "15 ore di lezioni frontali su architetture WMS/WCS, navigazione SLAM e sensoristica per robotica industriale." },
+                    laboratorio: { hours: 45, content: "Configurazione e programmazione di robot autonomi AMR e integrazione con varchi RFID." },
+                    esercitazioni: { hours: 50, content: "Simulazione del routing ottimizzato di una flotta di magazzino mediante digital twin." },
+                    verifica: { hours: 15, content: "Test pratico di gestione delle eccezioni su impianto pilota e colloquio di verifica." }
+                }
+            }
+        ];
+
+        // Generazione completa fino a 88 moduli rispettando le 15h di teoria
+        const technologyDatabase = [];
+        const categories = ["AI & Data", "Manufacturing", "Materials & Chemistry", "Electronics & IoT", "Design & UX", "Sustainability"];
+
+        for (let i = 1; i <= 88; i++) {
+            const existing = baseTechnologies.find(t => t.id === `tech_${i}`);
+            if (existing) {
+                technologyDatabase.push(existing);
+            } else {
+                const cat = categories[i % categories.length];
+                technologyDatabase.push({
+                    id: `tech_${i}`,
+                    name: `Modulo Tecnologico Avanzato #${i}`,
+                    category: cat,
+                    cfu: 5,
+                    description: `Modulo tecnico specializzato #${i} focalizzato su competenze abilitanti per la transizione digitale e sostenibile.`,
+                    features: [`Tecnologia #${i}`, "Ottimizzazione Processi", "Digital Transformation"],
+                    skills: [
+                        `Competenza specialistica in Modulo #${i}`,
+                        "Progettazione e modellazione avanzata",
+                        "Ottimizzazione di processo e controllo qualità",
+                        "Integrazione con i sistemi digitali industriali"
+                    ],
+                    sectors: ["Manifatturiero 4.0", "Moda & Accessori", "Meccanica di Precisione", "Servizi Digitali"],
+                    syllabus: {
+                        totalHours: 125,
+                        cfu: 5,
+                        teoria: { hours: 15, content: `15 ore di lezioni frontali dedicate a principi teorici, normative di settore e algoritmi chiave del Modulo #${i}.` },
+                        laboratorio: { hours: 45, content: `45 ore di attività pratica in laboratorio con software, sensori e apparecchiature avanzate.` },
+                        esercitazioni: { hours: 50, content: `50 ore di esercitazioni e project work applicato su un caso di studio industriale reale.` },
+                        verifica: { hours: 15, content: `15 ore di sessione di verifica finale con prova pratica, presentazione ed esame orale.` }
+                    }
+                });
+            }
+        }
+
+        // Stato Selezioni dell'utente
+        let selectedTechIds = new Set();
+        let currentRelatedModule = null; // Modulo selezionato per Pagina 3
+
+        // INIZIALIZZAZIONE
+        document.addEventListener("DOMContentLoaded", () => {
+            renderSimulatorList(technologyDatabase);
+            renderSyllabusGrid(technologyDatabase);
+
+            document.getElementById('sim-search').addEventListener('input', filterSimulator);
+            document.getElementById('sim-category').addEventListener('change', filterSimulator);
+            document.getElementById('glossary-search').addEventListener('input', filterGlossary);
+            document.getElementById('syllabus-search').addEventListener('input', filterSyllabus);
+        });
+
+        // NAVIGAZIONE PAGINE
+        function switchPage(pageId) {
+            document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(pageId).classList.add('active');
+
+            if(pageId === 'page-simulator') document.getElementById('tab-btn-sim').classList.add('active');
+            if(pageId === 'page-matrix') document.getElementById('tab-btn-mat').classList.add('active');
+            if(pageId === 'page-tech-glossary') document.getElementById('tab-btn-glo').classList.add('active');
+            if(pageId === 'page-syllabus') document.getElementById('tab-btn-syl').classList.add('active');
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // PAGINA 1: RENDER E FILTRI
+        function renderSimulatorList(list) {
+            const container = document.getElementById('sim-tech-list');
+            document.getElementById('tech-count-badge').innerText = `${list.length} Moduli`;
+            container.innerHTML = '';
+
+            list.forEach(tech => {
+                const isSelected = selectedTechIds.has(tech.id);
+                const card = document.createElement('div');
+                card.className = `tech-card ${isSelected ? 'selected' : ''}`;
+
+                card.innerHTML = `
+                    <div class="tech-card-info" onclick="toggleSelectTech('${tech.id}')">
+                        <h4>${tech.name}</h4>
+                        <p>${tech.category} • 125 Ore / 5 CFU</p>
+                    </div>
+                    <div class="tech-card-actions">
+                        <span class="tech-badge-cfu">+5 CFU</span>
+                        <button class="cross-link-btn btn-syl" style="font-size:0.72rem; padding:3px 8px;" onclick="event.stopPropagation(); goToPage4Directly('${tech.id}')">
+                            📖 Programma (Pag. 4) →
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterSimulator() {
+            const query = document.getElementById('sim-search').value.toLowerCase();
+            const cat = document.getElementById('sim-category').value;
+
+            const filtered = technologyDatabase.filter(t => {
+                const matchSearch = t.name.toLowerCase().includes(query) || 
+                                    t.description.toLowerCase().includes(query) ||
+                                    t.skills.some(s => s.toLowerCase().includes(query));
+                const matchCat = cat === 'ALL' || t.category === cat;
+                return matchSearch && matchCat;
+            });
+
+            renderSimulatorList(filtered);
+        }
+
+        function toggleSelectTech(techId) {
+            if (selectedTechIds.has(techId)) {
+                selectedTechIds.delete(techId);
+            } else {
+                selectedTechIds.add(techId);
+            }
+            filterSimulator();
+            updateSimulatorResults();
+        }
+
+        function updateSimulatorResults() {
+            const emptyState = document.getElementById('sim-empty-state');
+            const resultsBox = document.getElementById('sim-results');
+
+            if (selectedTechIds.size === 0) {
+                emptyState.style.display = 'block';
+                resultsBox.style.display = 'none';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            resultsBox.style.display = 'block';
+
+            const selected = technologyDatabase.filter(t => selectedTechIds.has(t.id));
+
+            let totalCFU = selected.reduce((acc, curr) => acc + curr.cfu, 0);
+            let skillsSet = new Set(selected.flatMap(t => t.skills));
+            let sectorsSet = new Set(selected.flatMap(t => t.sectors));
+
+            document.getElementById('stat-selected-count').innerText = selected.length;
+            document.getElementById('stat-skills-count').innerText = skillsSet.size;
+            document.getElementById('stat-cfu-count').innerText = totalCFU;
+
+            const skillsCloud = document.getElementById('cloud-skills');
+            skillsCloud.innerHTML = '';
+            skillsSet.forEach(s => {
+                const tag = document.createElement('span');
+                tag.className = 'tag skill';
+                tag.innerText = s;
+                skillsCloud.appendChild(tag);
+            });
+
+            const sectorsCloud = document.getElementById('cloud-sectors');
+            sectorsCloud.innerHTML = '';
+            sectorsSet.forEach(sec => {
+                const tag = document.createElement('span');
+                tag.className = 'tag sector';
+                tag.innerText = sec;
+                sectorsCloud.appendChild(tag);
+            });
+
+            const title = selected.length === 1 
+                ? `Specialista in ${selected[0].name}`
+                : `Esperto Multidisciplinare in Innovazione Industriale`;
+
+            document.getElementById('badge-title-text').innerText = title;
+            document.getElementById('badge-cfu-text').innerText = `${totalCFU} Crediti ECTS / CFU Acquisiti`;
+            document.getElementById('badge-desc-text').innerText = 
+                `Attestato M.A.D.E.-AI rilasciato per il completamento di ${selected.length} moduli didattici (${selected.length * 125} ore totali).`;
+
+            // Link diretti alla Pagina 4 per ciascun modulo selezionato
+            const syllabusLinksBox = document.getElementById('badge-syllabus-links');
+            syllabusLinksBox.innerHTML = '';
+            selected.forEach(t => {
+                const btn = document.createElement('button');
+                btn.className = 'cross-link-btn btn-syl';
+                btn.innerHTML = `📖 ${t.name} (Pag. 4) →`;
+                btn.onclick = () => goToPage4Directly(t.id);
+                syllabusLinksBox.appendChild(btn);
+            });
+        }
+
+        // AZIONE: PASSA DALLA PAGINA 1 ALLA PAGINA 2 (MOSTRA SOLO I SELEZIONATI)
+        function goToPage2WithSelected() {
+            if (selectedTechIds.size === 0) {
+                alert("Seleziona almeno un modulo per accedere alla seconda pagina!");
+                return;
+            }
+            renderMatrixSelectedOnly();
+            switchPage('page-matrix');
+        }
+
+        // ACCESSO DIRETTO DALLA PAGINA 1 ALLA PAGINA 4 PER UN SINGOLO MODULO
+        function goToPage4Directly(techId) {
+            switchPage('page-syllabus');
+            const tech = technologyDatabase.find(t => t.id === techId);
+            if (tech) {
+                document.getElementById('syllabus-search').value = tech.name;
+                filterSyllabus();
+                highlightFirstCard('#syllabus-grid-container .syllabus-card');
+            }
+        }
+
+        // PAGINA 2: MATRICE (MOSTRA SOLO I MODULI SCELTI NELLA PAGINA 1)
+        function renderMatrixSelectedOnly() {
+            const container = document.getElementById('matrix-grid-container');
+            const selectedList = technologyDatabase.filter(t => selectedTechIds.has(t.id));
+            
+            document.getElementById('matrix-count').innerText = `${selectedList.length} Moduli Selezionati`;
+            container.innerHTML = '';
+
+            if (selectedList.length === 0) {
+                container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">Nessun modulo selezionato nella Pagina 1.<br><br><button class="cross-link-btn" onclick="switchPage('page-simulator')">Torna alla Pagina 1 per Selezionare</button></div>`;
+                return;
+            }
+
+            selectedList.forEach(tech => {
+                const card = document.createElement('div');
+                card.className = 'matrix-card';
+
+                const skillsListHtml = tech.skills.map(s => `<li>${s}</li>`).join('');
+                const sectorsTagsHtml = tech.sectors.map(sec => `<span class="tag sector" style="font-size:0.7rem; padding:2px 8px; margin:2px;">${sec}</span>`).join('');
+
+                card.innerHTML = `
+                    <div>
+                        <div class="card-header-flex">
+                            <div class="card-title">${tech.name}</div>
+                            <span class="card-cat-badge">${tech.category}</span>
+                        </div>
+                        
+                        <div class="matrix-section">
+                            <div class="matrix-section-title">Competenze Tecnico-Scientifiche:</div>
+                            <ul class="matrix-list">${skillsListHtml}</ul>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="matrix-section" style="margin-top: 12px;">
+                            <div class="matrix-section-title">Settori Industriali Coinvolti:</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:2px; margin-top:4px;">${sectorsTagsHtml}</div>
+                        </div>
+
+                        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
+                            <button class="btn-primary" style="margin-top:0; padding:10px; font-size:0.85rem;" onclick="goToPage3FromModule('${tech.id}')">
+                                🔬 Vedi Tecnologie Correlate (Pagina 3) →
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // AZIONE: PASSA DALLA PAGINA 2 ALLA PAGINA 3 PER UN SPECIFICO MODULO
+        function goToPage3FromModule(techId) {
+            const tech = technologyDatabase.find(t => t.id === techId);
+            if (!tech) return;
+
+            currentRelatedModule = tech;
+            document.getElementById('glossary-banner-text').innerText = `Tecnologie correlate al modulo: "${tech.name}" (${tech.category})`;
+            
+            // Filtra le tecnologie correlate per la stessa categoria o caratteristiche
+            const relatedTechs = technologyDatabase.filter(t => t.category === tech.category);
+            renderGlossaryGrid(relatedTechs);
+            switchPage('page-tech-glossary');
+        }
+
+        function showAllGlossary() {
+            currentRelatedModule = null;
+            document.getElementById('glossary-banner-text').innerText = `Tutte le tecnologie presenti nel database.`;
+            document.getElementById('glossary-search').value = '';
+            renderGlossaryGrid(technologyDatabase);
+        }
+
+        // PAGINA 3: GLOSSARIO TECNOLOGIE CORRELATE
+        function renderGlossaryGrid(list) {
+            const container = document.getElementById('glossary-grid-container');
+            document.getElementById('glossary-count').innerText = `${list.length} Tecnologie`;
+            container.innerHTML = '';
+
+            if (list.length === 0) {
+                container.innerHTML = `<div class="empty-state" style="grid-column: 1/-1;">Nessuna tecnologia trovata.</div>`;
+                return;
+            }
+
+            list.forEach(tech => {
+                const card = document.createElement('div');
+                card.className = 'tech-glossary-card';
+                const featuresPills = (tech.features || []).map(f => `<span class="tech-feature-pill">${f}</span>`).join('');
+
+                card.innerHTML = `
+                    <div>
+                        <div class="card-header-flex">
+                            <div class="card-title">${tech.name}</div>
+                            <span class="card-cat-badge">${tech.category}</span>
+                        </div>
+                        
+                        <p style="font-size: 0.88rem; color: #334155; line-height: 1.5; margin-bottom: 12px;">
+                            ${tech.description}
+                        </p>
+
+                        <div style="margin-bottom: 12px;">
+                            ${featuresPills}
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                        <button class="cross-link-btn btn-syl" onclick="goToPage4Directly('${tech.id}')">
+                            🎓 Vedi Programma completo (125h) sulla Pagina 4 →
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterGlossary() {
+            const query = document.getElementById('glossary-search').value.toLowerCase();
+            let baseList = currentRelatedModule 
+                ? technologyDatabase.filter(t => t.category === currentRelatedModule.category)
+                : technologyDatabase;
+
+            const filtered = baseList.filter(t => 
+                t.name.toLowerCase().includes(query) || 
+                t.description.toLowerCase().includes(query) ||
+                (t.features && t.features.some(f => f.toLowerCase().includes(query)))
+            );
+
+            renderGlossaryGrid(filtered);
+        }
+
+        // PAGINA 4: PROGRAMMA DIDATTICO (125 ORE)
+        function renderSyllabusGrid(list) {
+            const container = document.getElementById('syllabus-grid-container');
+            container.innerHTML = '';
+
+            list.forEach(tech => {
+                const card = document.createElement('div');
+                card.className = 'syllabus-card';
+                const syl = tech.syllabus;
+
+                card.innerHTML = `
+                    <div>
+                        <div class="card-header-flex">
+                            <div class="card-title">${tech.name}</div>
+                            <span class="card-cat-badge">${tech.category}</span>
+                        </div>
+
+                        <div class="hours-badge-row">
+                            <span class="hour-pill teoria">Teoria (Frontale): 15h</span>
+                            <span class="hour-pill lab">Laboratorio: ${syl.laboratorio.hours}h</span>
+                            <span class="hour-pill eserc">Esercitazioni: ${syl.esercitazioni.hours}h</span>
+                            <span class="hour-pill verif">Verifica: ${syl.verifica.hours}h</span>
+                        </div>
+
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">📖 Teoria (15 Ore Lezioni Frontali)</div>
+                            <div>${syl.teoria.content}</div>
+                        </div>
+
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">⚙️ Attività in Laboratorio (45 Ore)</div>
+                            <div>${syl.laboratorio.content}</div>
+                        </div>
+
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">💻 Esercitazioni & Project Work (50 Ore)</div>
+                            <div>${syl.esercitazioni.content}</div>
+                        </div>
+
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">📝 Verifica delle Competenze (15 Ore)</div>
+                            <div>${syl.verifica.content}</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <span style="font-size:0.8rem; font-weight:700; color:var(--accent-green);">Totale: 125 Ore / 5 CFU</span>
+                        <button class="cross-link-btn btn-json" onclick="exportSingleSyllabusJSON('${tech.id}')">
+                            📥 JSON Singolo Modulo
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterSyllabus() {
+            const query = document.getElementById('syllabus-search').value.toLowerCase();
+
+            const filtered = technologyDatabase.filter(t => {
+                const s = t.syllabus;
+                return t.name.toLowerCase().includes(query) ||
+                       s.teoria.content.toLowerCase().includes(query) ||
+                       s.laboratorio.content.toLowerCase().includes(query) ||
+                       s.esercitazioni.content.toLowerCase().includes(query) ||
+                       s.verifica.content.toLowerCase().includes(query);
+            });
+
+            renderSyllabusGrid(filtered);
+        }
+
+        function highlightFirstCard(selector) {
+            setTimeout(() => {
+                const card = document.querySelector(selector);
+                if(card) {
+                    card.classList.add('highlight-flash');
+                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => card.classList.remove('highlight-flash'), 1700);
+                }
+            }, 100);
+        }
+
+        // ESPORTAZIONE JSON SINGOLO E GLOBALE
+        function exportSingleSyllabusJSON(techId) {
+            const tech = technologyDatabase.find(t => t.id === techId);
+            if (!tech) return;
+
+            const singleData = formatTechToJSONSchema(tech);
+            const fileName = `programma_${tech.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+
+            downloadJSONFile(singleData, fileName);
+        }
+
+        function exportGlobalSyllabusJSON() {
+            const globalData = technologyDatabase.map(tech => formatTechToJSONSchema(tech));
+            downloadJSONFile(globalData, "programmi_didattici_125h_MADE_AI_ALL.json");
+        }
+
+        function formatTechToJSONSchema(tech) {
+            return {
+                id: tech.id,
+                modulo_tecnologico: tech.name,
+                categoria: tech.category,
+                crediti_cfu: tech.cfu,
+                ore_totali_percorso: tech.syllabus.totalHours,
+                articolazione_didattica: {
+                    teoria_lezioni_frontali: {
+                        ore: tech.syllabus.teoria.hours,
+                        contenuti_didattici: tech.syllabus.teoria.content
+                    },
+                    laboratorio: {
+                        ore: tech.syllabus.laboratorio.hours,
+                        attivita_pratiche: tech.syllabus.laboratorio.content
+                    },
+                    esercitazioni_project_work: {
+                        ore: tech.syllabus.esercitazioni.hours,
+                        progetti_e_simulazioni: tech.syllabus.esercitazioni.content
+                    },
+                    verifica_competenze: {
+                        ore: tech.syllabus.verifica.hours,
+                        modalita_valutazione: tech.syllabus.verifica.content
+                    }
+                },
+                competenze_chiave: tech.skills,
+                settori_industriali: tech.sectors
+            };
+        }
+
+        function downloadJSONFile(dataObj, filename) {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataObj, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", filename);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function exportBadgeJSON() {
+            const selected = technologyDatabase.filter(t => selectedTechIds.has(t.id));
+            let totalCFU = selected.reduce((acc, curr) => acc + curr.cfu, 0);
+
+            const badgeMetadata = {
+                "@context": "https://w3id.org/openbadges/v2",
+                "type": "BadgeClass",
+                "id": "urn:uuid:" + crypto.randomUUID(),
+                "name": document.getElementById('badge-title-text').innerText,
+                "description": document.getElementById('badge-desc-text').innerText,
+                "issuer": {
+                    "type": "Profile",
+                    "name": "Cluster Tecnologico Nazionale Made in Italy - Progetto M.A.D.E.-AI"
+                },
+                "assertion": {
+                    "issuedOn": new Date().toISOString(),
+                    "totalHours": selected.length * 125,
+                    "cfuTotal": totalCFU,
+                    "completedModules": selected.map(s => ({
+                        id: s.id,
+                        nome: s.name,
+                        cfu: s.cfu,
+                        ore_totali: 125,
+                        lezioni_frontali_ore: s.syllabus.teoria.hours
+                    }))
+                }
+            };
+
+            downloadJSONFile(badgeMetadata, "OpenBadge_MADE_AI_Selection.json");
+        }
+    </script>
+</body>
+</html>

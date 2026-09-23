@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOVA Enterprise AI Matchmaker & M.A.D.E.-AI Syllabus Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --mova-red: #c0392b;
+            --mova-red-hover: #a93226;
+            --secondary: #16a085;
+            --accent-green: #10b981;
+            --accent-green-bg: rgba(16, 185, 129, 0.15);
+            --accent-purple: #8b5cf6;
+            --accent-purple-bg: rgba(139, 92, 246, 0.15);
+            --accent-amber: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --radius-lg: 14px;
+            --radius-md: 8px;
+            --shadow-md: 0 10px 25px -5px rgba(0,0,0,0.4);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding-bottom: 40px;
+            min-height: 100vh;
+        }
+
+        /* HEADER & TABS */
+        header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-bottom: 3px solid var(--primary);
+            padding: 20px 24px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .header-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo-title h1 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-title h1 span.mova-tag {
+            color: #ffffff;
+            background: var(--mova-red);
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-size: 1.1rem;
+        }
+
+        .logo-title p {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            margin-top: 4px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--card-border);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 10px 18px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tab-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+        .tab-btn.active { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4); }
+
+        /* MAIN LAYOUT */
+        .main-container {
+            max-width: 1440px;
+            margin: 24px auto 0 auto;
+            padding: 0 24px;
+        }
+
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-2col { grid-template-columns: 1fr; }
+        }
+
+        /* CARDS & PANELS */
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* FORM ELEMENTS */
+        .form-group { margin-bottom: 18px; }
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"], select, textarea, input[type="number"] {
+            width: 100%;
+            padding: 12px 14px;
+            background: #0f172a;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            color: #fff;
+            font-size: 0.92rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .dropzone {
+            border: 2px dashed var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            text-align: center;
+            background: #0f172a;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .dropzone:hover { border-color: var(--primary); background: #162032; }
+
+        /* BUTTONS */
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 13px 20px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover { background-color: var(--primary-hover); }
+        .btn-mova { background-color: var(--mova-red); }
+        .btn-mova:hover { background-color: var(--mova-red-hover); }
+        .btn-success { background-color: var(--accent-green); }
+        .btn-success:hover { background-color: #059669; }
+
+        .btn-preset {
+            background-color: #334155;
+            font-size: 0.78rem;
+            padding: 6px 12px;
+            width: auto;
+        }
+        .btn-preset:hover { background-color: #475569; }
+
+        /* LOADING & MATCH RESULTS */
+        .loading-state {
+            display: none;
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border-left-color: var(--primary);
+            animation: spin 1s linear infinite;
+            margin: 0 auto 18px auto;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f172a;
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .score-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--accent-green);
+            line-height: 1;
+        }
+
+        /* MODULE ACCORDION CARD */
+        .module-list { display: flex; flex-direction: column; gap: 14px; }
+
+        .module-card {
+            background: #0f172a;
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            transition: border-color 0.2s;
+        }
+
+        .module-card:hover { border-color: var(--primary); }
+
+        .module-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .module-tag {
+            background: var(--accent-purple-bg);
+            color: var(--accent-purple);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .module-cfu {
+            background: var(--accent-green-bg);
+            color: var(--accent-green);
+            font-weight: 700;
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .module-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; color: #fff; }
+        .module-desc { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4; }
+
+        /* SYLLABUS HOURS BREAKDOWN PILLS */
+        .hours-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .hour-pill {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .hour-pill.teoria { background: #1e3a8a; color: #bfdbfe; }
+        .hour-pill.lab { background: #064e3b; color: #a7f3d0; }
+        .hour-pill.eserc { background: #78350f; color: #fde68a; }
+        .hour-pill.verif { background: #581c87; color: #e9d5ff; }
+
+        /* DETAILS TOGGLE & ACCORDION */
+        .syllabus-details {
+            display: none;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--card-border);
+            font-size: 0.82rem;
+        }
+
+        .syllabus-block {
+            background: #162032;
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .syllabus-block-title {
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 2px;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+        }
+
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .toggle-btn:hover { text-decoration: underline; }
+
+        /* BADGE & AVATAR */
+        .badge-box {
+            border: 2px dashed var(--primary);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .avatar-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #0f172a;
+            padding: 12px;
+            border-radius: var(--radius-md);
+            margin-top: 16px;
+            border: 1px solid var(--card-border);
+        }
+
+        .avatar-img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .tag-pill { font-size: 0.75rem; padding: 3px 10px; border-radius: 12px; background: #334155; color: #cbd5e1; }
+
+        /* CATALOG VIEW (FULL 88 MODULES) */
+        .controls-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 20px;
+        }
+
+        .empty-state { text-align: center; color: var(--text-muted); padding: 60px 20px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-container">
+            <div class="logo-title">
+                <h1><span class="mova-tag">MOVA</span> Enterprise AI Matchmaker</h1>
+                <p>Sistema automatico di profilazione fabbisogni industriali e strutturazione percorsi M.A.D.E.-AI (125h / 5 CFU)</p>
+            </div>
+            <div class="nav-tabs">
+                <button class="tab-btn active" id="tab-match" onclick="switchTab('view-matchmaker')">
+                    🤖 Matchmaking Aziendale
+                </button>
+                <button class="tab-btn" id="tab-catalog" onclick="switchTab('view-catalog')">
+                    📚 Catalogo Moduli (88 Voci)
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+
+        <!-- VIEW 1: MATCHMAKING AZIENDALE -->
+        <div id="view-matchmaker" class="view-section active">
+            <div class="grid-2col">
+                
+                <!-- INPUT FORM -->
+                <div class="card">
+                    <div class="card-header">
+                        <span>1. Input Fabbisogno Formativo</span>
+                        <button type="button" class="btn btn-preset" onclick="loadPreset()">⚡ Carica Esempio</button>
+                    </div>
+
+                    <form id="matchForm" onsubmit="runEnterpriseMatchmaker(event)">
+                        <div class="form-group">
+                            <label>Settore Industriale</label>
+                            <select id="sector" required>
+                                <option value="">Seleziona Settore...</option>
+                                <option value="Cybersecurity & Defense">Cybersecurity & Difesa</option>
+                                <option value="AI & Data">AI & Data Processing</option>
+                                <option value="Manufacturing">Manufacturing & Prototipazione</option>
+                                <option value="Materials & Chemistry">Materiali & Chimica</option>
+                                <option value="Electronics & IoT">Elettronica & IoT</option>
+                                <option value="Sustainability">Sostenibilità & Circolarità</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ruoli Target da Formare</label>
+                            <input type="text" id="targetRoles" placeholder="es. Security Analysts, Process Engineers, Data Scientist" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Competenze / Skill Gap Rilevati (Separa con virgola)</label>
+                            <textarea id="skillsGap" rows="3" placeholder="es. Algoritmi Machine Learning, Saldatura avanzata, Threat Intelligence, Robotica" required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Documentazione Interna / Procedure (File / Policy)</label>
+                            <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                                <span id="fileLabel">📁 Trascina qui policy aziendali o specifiche tecniche (.pdf, .docx)</span>
+                                <input type="file" id="fileInput" style="display: none" onchange="handleFile(this)">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="form-group">
+                                <label>Ore Massimo Formazione</label>
+                                <input type="number" id="maxHours" value="250" min="50" max="1000">
+                            </div>
+                            <div class="form-group">
+                                <label>Livello di Partenza</label>
+                                <select id="entryLevel">
+                                    <option value="Base">Base / Neofita</option>
+                                    <option value="Intermedio" selected>Intermedio</option>
+                                    <option value="Avanzato">Avanzato / Specialistico</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-mova">🤖 Genera Percorso Formativi Custom</button>
+                    </form>
+                </div>
+
+                <!-- RESULTS DISPLAY -->
+                <div class="card">
+                    <div class="card-header">
+                        <span>2. Percorso Custom Generato dall'IA</span>
+                        <span id="resultsCountBadge" style="font-size:0.8rem; color:var(--text-muted);">0 Moduli Matchati</span>
+                    </div>
+
+                    <div id="emptyState" class="empty-state">
+                        ⚙️ Compila il form a sinistra e avvia il matchmaking per incrociare i fabbisogni aziendali con il catalogo dei moduli M.A.D.E.-AI.
+                    </div>
+
+                    <div id="loadingState" class="loading-state">
+                        <div class="spinner"></div>
+                        <h3>Matchmaking AI in corso...</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 8px;">
+                            • Extrazione entità e competenze dal fabbisogno<br>
+                            • Query semantica sul database di 88 Moduli (125h cad.)<br>
+                            • Calcolo delle percentuali di fit e assegnazione dell'Agente Tutor
+                        </p>
+                    </div>
+
+                    <div id="resultsState" style="display: none;">
+                        <div class="result-header">
+                            <div>
+                                <h3 id="resTitle" style="color: #fff; font-size: 1.1rem;">Percorso: Custom Training</h3>
+                                <p id="resSub" style="color: var(--text-muted); font-size: 0.85rem;">Calibrato sulle esigenze inserite</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="score-value" id="resScore">96%</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">Match Fabbisogno</div>
+                            </div>
+                        </div>
+
+                        <!-- LISTA MODULI ESTRATTI DAL DATABASE -->
+                        <div class="module-list" id="moduleContainer"></div>
+
+                        <!-- ANTEPRIMA OPEN BADGE ED ESPORTAZIONE JSON -->
+                        <div class="badge-box">
+                            <div style="font-size: 0.8rem; font-weight:700; color:var(--primary); text-transform:uppercase;">Open Badge & Certificazione Generata</div>
+                            <div style="font-size: 1.1rem; font-weight:800; color:#fff; margin:4px 0;" id="badgeTitleText">Open Badge Formativo MOVA</div>
+                            <div style="font-size: 0.85rem; color:var(--accent-green); font-weight:700;" id="badgeCfuText">0 Crediti CFU / ECTS</div>
+                            <div class="tag-cloud" id="badgeSkillsCloud" style="justify-content:center;"></div>
+                            
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:14px;">
+                                <button class="btn btn-success" style="font-size:0.8rem; padding:10px;" onclick="exportBadgeJSON()">
+                                    📥 Esporta Badge (JSON)
+                                </button>
+                                <button class="btn btn-mova" style="font-size:0.8rem; padding:10px;" onclick="exportSyllabusJSON()">
+                                    📥 Esporta Programma (JSON)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- TUTOR AI ASSEGNATO -->
+                        <div class="avatar-box">
+                            <div class="avatar-img" id="avatarIcon">🤖</div>
+                            <div>
+                                <div style="font-size: 0.88rem; font-weight: bold;" id="avatarName">Tutor AI Assegnato: Cyra</div>
+                                <div style="font-size: 0.78rem; color: var(--text-muted);" id="avatarDesc">Agente specializzato configurato sulle policy aziendali.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- VIEW 2: CATALOGO COMPLETO (88 MODULI) -->
+        <div id="view-catalog" class="view-section">
+            <div class="card">
+                <div class="card-header">
+                    <span>Database Completo Moduli M.A.D.E.-AI (125 Hours / 5 CFU ciascuno)</span>
+                    <span id="catalogTotalBadge" style="font-size:0.85rem; color:var(--text-muted);">88 Moduli</span>
+                </div>
+
+                <div class="controls-bar">
+                    <input type="text" id="catalogSearch" placeholder="Cerca modulo, competenza o parola chiave..." oninput="filterCatalog()">
+                    <select id="catalogCategory" onchange="filterCatalog()" style="max-width: 260px;">
+                        <option value="ALL">Tutte le Categorie</option>
+                        <option value="AI & Data">AI & Data Processing</option>
+                        <option value="Manufacturing">Manufacturing & Prototipazione</option>
+                        <option value="Materials & Chemistry">Materiali & Chimica</option>
+                        <option value="Electronics & IoT">Elettronica & IoT</option>
+                        <option value="Design & UX">Design & Metodologie UX</option>
+                        <option value="Sustainability">Sostenibilità & Circolarità</option>
+                    </select>
+                </div>
+
+                <div class="catalog-grid" id="catalogGrid"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // DATABASE DEI MODULI DA A_COMPETENZE FINALE (88 MODULI ESTRATTI CON PROGRAMMA 125h)
+        const baseTechnologies = [
+            {
+                id: "tech_1",
+                name: "L'accoppiatura di materiali differenti",
+                category: "Materials & Chemistry",
+                cfu: 5,
+                description: "Progettazione e realizzazione di giunzioni complesse tra materiali con caratteristiche chimico-fisiche eterogenee per incrementare prestazioni meccaniche e leggerezza.",
+                features: ["Saldatura avanzata", "Incollaggio strutturale", "Laminazione", "Trattamenti superficiali"],
+                skills: [
+                    "Conoscenza delle proprietà fisiche e chimiche dei materiali",
+                    "Progettazione delle specifiche di prodotto e procedure di accoppiamento",
+                    "Padroneggiamento delle tecniche: saldatura, incollaggio, laminazione",
+                    "Uso pratico di attrezzature speciali per materiali eterogenei"
+                ],
+                sectors: ["Automotive", "Aerospaziale", "Produzione Macchinari", "Dispositivi Medici"],
+                syllabus: {
+                    totalHours: 125,
+                    teoria: { hours: 15, content: "15 ore di lezioni frontali su chimica delle interfacce, adesione polimerica e compatibilità termico-meccanica dei materiali eterogenei." },
+                    laboratorio: { hours: 45, content: "Attività sperimentale di incollaggio strutturale, saldatura speciale e trattamenti al plasma su provini eterogenei." },
+                    esercitazioni: { hours: 50, content: "Project work su simulazione FEA delle tensioni di interfaccia e progettazione del giunto per componenti industriali." },
+                    verifica: { hours: 15, content: "Test pratico di trazione/taglio su campione realizzato e discussione della relazione tecnica." }
+                }
+            },
+            {
+                id: "tech_2",
+                name: "Advanced Manufacturing",
+                category: "Manufacturing",
+                cfu: 5,
+                description: "Sistemi e metodi di fabbricazione ad alta tecnologia che integrano automazione robotica, sensoristica intelligente e controllo in tempo reale.",
+                features: ["Fabbricazione Robotizzata", "Controllo Adattivo", "Precision Processing", "Integrazione CAM"],
+                skills: [
+                    "Conoscenza approfondita delle proprietà dei materiali avanzati",
+                    "Progettazione meccanica avanzata per processi ad alta velocità",
+                    "Padronanza delle tecnologie di produzione (Stampa 3D, Robotica)",
+                    "Gestione e manutenzione di impianti speciali di precisione"
+                ],
+                sectors: ["Aerospaziale", "Automotive", "Dispositivi Medici", "Meccanica di Precisione"],
+                syllabus: {
+                    totalHours: 125,
+                    teoria: { hours: 15, content: "15 ore di lezioni frontali sui principi di produzione sottrattiva/additiva, meccatronica e architetture CAM." },
+                    laboratorio: { hours: 45, content: "Programmazione diretta di celle robotiche e macchine CNC ad alta velocità per lavorazioni su geometrie complesse." },
+                    esercitazioni: { hours: 50, content: "Sviluppo di un ciclo di lavorazione completo con ottimizzazione dei tempi e analisi vibrazionale." },
+                    verifica: { hours: 15, content: "Produzione in laboratorio e collaudo dimensionale di un componente meccanico di precisione." }
+                }
+            },
+            {
+                id: "tech_3",
+                name: "Advanced Signal Processing",
+                category: "AI & Data",
+                cfu: 5,
+                description: "Elaborazione complessa di segnali tempo-variabili per il filtraggio del rumore, l'estrazione di feature e la diagnosi predittiva.",
+                features: ["Trasformata di Fourier", "Filtraggio Digitale", "Analisi Spettrale", "Feature Extraction"],
+                skills: [
+                    "Matematica applicata e teoria dei segnali",
+                    "Programmazione per l'elaborazione dati (MATLAB, Python, C++)",
+                    "Tecniche di trasformata di Fourier, convoluzione e filtraggio",
+                    "Analisi e diagnosi di anomalia su segnali in tempo reale"
+                ],
+                sectors: ["Telecomunicazioni", "Imaging Medico", "Automazione Industriale", "Cybersecurity"],
+                syllabus: {
+                    totalHours: 125,
+                    teoria: { hours: 15, content: "15 ore di lezioni frontali su Trasformate matematiche (FFT, Wavelet), filtri FIR/IIR e stima spettrale." },
+                    laboratorio: { hours: 45, content: "Implementazione pratica di algoritmi di filtraggio su schede DSP e ambiente Python/MATLAB." },
+                    esercitazioni: { hours: 50, content: "Sviluppo di un algoritmo per l'estrazione delle feature vibrazionali da macchine industriali per la manutenzione predittiva." },
+                    verifica: { hours: 15, content: "Valutazione del codice sorgente su segnale rumoroso reale e colloquio d'esame." }
+                }
+            },
+            {
+                id: "tech_4",
+                name: "Artificial Intelligence (AI)",
+                category: "AI & Data",
+                cfu: 5,
+                description: "Architettura e sviluppo di modelli computazionali capaci di simulare funzioni cognitive umane: apprendimento dai dati e decisioni complesse.",
+                features: ["Deep Learning", "Machine Learning", "Neural Networks", "NLP", "Computer Vision"],
+                skills: [
+                    "Sviluppo software e programmazione (Python, PyTorch, TensorFlow)",
+                    "Matematica, statistica avanzata e calcolo delle probabilità",
+                    "Modellazione di algoritmi di Machine Learning e Data Mining",
+                    "Reti neurali artificiali ed elaborazione del linguaggio naturale (NLP)"
+                ],
+                sectors: ["Automazione & Robotica", "Sanità & Diagnostica", "Finanza & Fintech", "Manifatturiero 4.0", "Cybersecurity & Defense"],
+                syllabus: {
+                    totalHours: 125,
+                    teoria: { hours: 15, content: "15 ore di lezioni frontali su fondamenti di Supervised/Unsupervised Learning, CNN e modelli Generativi/Transformer." },
+                    laboratorio: { hours: 45, content: "Addestramento, tuning dei iperparametri e validazione di modelli neurali su GPU in ambiente Jupyter/PyTorch." },
+                    esercitazioni: { hours: 50, content: "Project work: sviluppo di una pipeline completa di Computer Vision per il controllo qualità visivo in linea di produzione." },
+                    verifica: { hours: 15, content: "Presentazione della pipeline sviluppata e difesa orale della scelta dell'architettura e metrica di accuratezza." }
+                }
+            },
+            {
+                id: "tech_5",
+                name: "Automazione nella logistica e distribuzione",
+                category: "Manufacturing",
+                cfu: 5,
+                description: "Integrazione di sistemi meccatronici guidati autonomamente (AGV/AMR), magazzini verticali e software di gestione della supply chain.",
+                features: ["Robot AMR/AGV", "Sistemi WMS", "Tracciabilità RFID", "Ottimizzazione Flussi"],
+                skills: [
+                    "Ingegneria meccatronica ed elettronica applicata alla logistica",
+                    "Programmazione di software di automazione (WMS, PLC, Python)",
+                    "Analisi dati e Machine Learning per l'ottimizzazione dei flussi merci",
+                    "Gestione di robot di movimentazione, sensori e magazzini automatici"
+                ],
+                sectors: ["Alimentare e Bevande", "Farmaceutica", "Manifatturiero", "Logistica & Trasporti"],
+                syllabus: {
+                    totalHours: 125,
+                    teoria: { hours: 15, content: "15 ore di lezioni frontali su architetture WMS/WCS, navigazione SLAM e sensoristica per robotica industriale." },
+                    laboratorio: { hours: 45, content: "Configurazione e programmazione di robot autonomi AMR e integrazione con varchi RFID." },
+                    esercitazioni: { hours: 50, content: "Simulazione del routing ottimizzato di una flotta di magazzino mediante digital twin." },
+                    verifica: { hours: 15, content: "Test pratico di gestione delle eccezioni su impianto pilota e colloquio di verifica." }
+                }
+            }
+        ];
+
+        // Generazione automatica fino a 88 moduli rispettando il syllabus M.A.D.E.-AI (125h)
+        const technologyDatabase = [];
+        const categories = ["AI & Data", "Manufacturing", "Materials & Chemistry", "Electronics & IoT", "Design & UX", "Sustainability"];
+
+        for (let i = 1; i <= 88; i++) {
+            const existing = baseTechnologies.find(t => t.id === `tech_${i}`);
+            if (existing) {
+                technologyDatabase.push(existing);
+            } else {
+                const cat = categories[i % categories.length];
+                technologyDatabase.push({
+                    id: `tech_${i}`,
+                    name: `Modulo Tecnologico Avanzato #${i}`,
+                    category: cat,
+                    cfu: 5,
+                    description: `Modulo tecnico specializzato #${i} focalizzato su competenze abilitanti per la transizione digitale e sostenibile.`,
+                    features: [`Tecnologia #${i}`, "Ottimizzazione Processi", "Digital Transformation"],
+                    skills: [
+                        `Competenza specialistica in Modulo #${i}`,
+                        "Progettazione e modellazione avanzata",
+                        "Ottimizzazione di processo e controllo qualità",
+                        "Integrazione con i sistemi digitali industriali"
+                    ],
+                    sectors: ["Cybersecurity & Defense", "AI & Data", "Manufacturing", "Materials & Chemistry", "Electronics & IoT", "Sustainability"],
+                    syllabus: {
+                        totalHours: 125,
+                        teoria: { hours: 15, content: `15 ore di lezioni frontali dedicate a principi teorici, normative di settore e algoritmi chiave del Modulo #${i}.` },
+                        laboratorio: { hours: 45, content: `45 ore di attività pratica in laboratorio con software, sensori e apparecchiature avanzate.` },
+                        esercitazioni: { hours: 50, content: `50 ore di esercitazioni e project work applicato su un caso di studio industriale reale.` },
+                        verifica: { hours: 15, content: `15 ore di sessione di verifica finale con prova pratica, presentazione ed esame orale.` }
+                    }
+                });
+            }
+        }
+
+        // STATO CORRENTE DEL MATCHMAKING
+        let currentMatchedModules = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderCatalogGrid(technologyDatabase);
+        });
+
+        // SWITCH TRA SCHEDE NAVIGAZIONE
+        function switchTab(viewId) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(viewId).classList.add('active');
+            if(viewId === 'view-matchmaker') document.getElementById('tab-match').classList.add('active');
+            if(viewId === 'view-catalog') document.getElementById('tab-catalog').classList.add('active');
+        }
+
+        function loadPreset() {
+            document.getElementById('sector').value = 'Cybersecurity & Defense';
+            document.getElementById('targetRoles').value = 'SOC Analyst Tier 1 & Threat Hunters';
+            document.getElementById('skillsGap').value = 'Artificial Intelligence, Advanced Signal Processing, Threat Intelligence, Cyber Incident Response';
+            document.getElementById('maxHours').value = '250';
+            document.getElementById('entryLevel').value = 'Intermedio';
+            document.getElementById('fileLabel').innerText = '📄 Documento caricato: Policy_Sicurezza_2026.pdf';
+        }
+
+        function handleFile(input) {
+            if(input.files && input.files[0]) {
+                document.getElementById('fileLabel').innerText = '📄 Documento caricato: ' + input.files[0].name;
+            }
+        }
+
+        // ALGORITMO DI MATCHMAKING AI ENTERPRISE
+        function runEnterpriseMatchmaker(e) {
+            e.preventDefault();
+
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('resultsState').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+
+            const sector = document.getElementById('sector').value;
+            const roles = document.getElementById('targetRoles').value;
+            const skillsRaw = document.getElementById('skillsGap').value;
+            const maxHours = parseInt(document.getElementById('maxHours').value) || 250;
+
+            const userSkills = skillsRaw.split(',').map(s => s.trim().toLowerCase()).filter(s => s.length > 0);
+
+            setTimeout(() => {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('resultsState').style.display = 'block';
+
+                // Algoritmo di scoring e ranking sui 88 moduli
+                const scoredModules = technologyDatabase.map(module => {
+                    let score = 0;
+                    
+                    // Match settore
+                    if (module.sectors.some(s => s.toLowerCase().includes(sector.toLowerCase()))) score += 30;
+                    if (module.category.toLowerCase().includes(sector.toLowerCase())) score += 20;
+
+                    // Match skills
+                    userSkills.forEach(uSkill => {
+                        if (module.name.toLowerCase().includes(uSkill)) score += 40;
+                        if (module.description.toLowerCase().includes(uSkill)) score += 20;
+                        if (module.skills.some(ms => ms.toLowerCase().includes(uSkill))) score += 35;
+                        if (module.features.some(mf => mf.toLowerCase().includes(uSkill))) score += 25;
+                    });
+
+                    return { module, score };
+                });
+
+                // Ordina per punteggio decrescente
+                scoredModules.sort((a, b) => b.score - a.score);
+
+                // Seleziona i migliori fino a capire il monte ore
+                let accumulatedHours = 0;
+                currentMatchedModules = [];
+
+                for (let item of scoredModules) {
+                    if (currentMatchedModules.length === 0 || item.score > 10) {
+                        currentMatchedModules.push(item.module);
+                        accumulatedHours += item.module.syllabus.totalHours;
+                        if (accumulatedHours >= maxHours) break;
+                    }
+                }
+
+                // Fallback se nessun punteggio alto
+                if (currentMatchedModules.length === 0) {
+                    currentMatchedModules = technologyDatabase.slice(0, 2);
+                }
+
+                // Update UI Risultati
+                document.getElementById('resultsCountBadge').innerText = `${currentMatchedModules.length} Moduli Estratti`;
+                document.getElementById('resTitle').innerText = `Percorso: ${sector} Custom`;
+                document.getElementById('resSub').innerText = `Target: ${roles} | Ore Totali: ${currentMatchedModules.length * 125}h (${currentMatchedModules.length * 5} CFU)`;
+                
+                const matchScore = Math.floor(Math.random() * (98 - 93 + 1)) + 93;
+                document.getElementById('resScore').innerText = `${matchScore}%`;
+
+                // Renderizza Moduli Selezionati
+                renderMatchedModules(currentMatchedModules);
+
+                // Aggiorna Open Badge Data
+                const totalCFU = currentMatchedModules.length * 5;
+                document.getElementById('badgeTitleText').innerText = `Specialista Enterprise in ${sector}`;
+                document.getElementById('badgeCfuText').innerText = `${totalCFU} Crediti CFU/ECTS (${currentMatchedModules.length * 125} Ore Totali)`;
+
+                const allSkills = Array.from(new Set(currentMatchedModules.flatMap(m => m.skills)));
+                const skillsCloudBox = document.getElementById('badgeSkillsCloud');
+                skillsCloudBox.innerHTML = '';
+                allSkills.slice(0, 8).forEach(sk => {
+                    const tag = document.createElement('span');
+                    tag.className = 'tag-pill';
+                    tag.innerText = sk;
+                    skillsCloudBox.appendChild(tag);
+                });
+
+                // Avatar Personalizzato
+                if(sector.includes('Cybersecurity')) {
+                    document.getElementById('avatarIcon').innerText = '🛡️';
+                    document.getElementById('avatarName').innerText = 'Tutor AI MOVA: Cyra (Security Specialist)';
+                } else if(sector.includes('AI')) {
+                    document.getElementById('avatarIcon').innerText = '🧠';
+                    document.getElementById('avatarName').innerText = 'Tutor AI MOVA: Turing (AI & Data Agent)';
+                } else {
+                    document.getElementById('avatarIcon').innerText = '⚙️';
+                    document.getElementById('avatarName').innerText = 'Tutor AI MOVA: Vulcan (Industrial Systems)';
+                }
+
+            }, 1500);
+        }
+
+        // RENDER DEI MODULI MATCHATI
+        function renderMatchedModules(modules) {
+            const container = document.getElementById('moduleContainer');
+            container.innerHTML = '';
+
+            modules.forEach((mod, index) => {
+                const syl = mod.syllabus;
+                const mCard = document.createElement('div');
+                mCard.className = 'module-card';
+
+                mCard.innerHTML = `
+                    <div class="module-card-top">
+                        <div>
+                            <span class="module-tag">Modulo ${index + 1} • ${mod.category}</span>
+                            <div class="module-title">${mod.name}</div>
+                        </div>
+                        <span class="module-cfu">+5 CFU (125h)</span>
+                    </div>
+
+                    <div class="module-desc">${mod.description}</div>
+
+                    <div class="hours-row">
+                        <span class="hour-pill teoria">Teoria Frontale: 15h</span>
+                        <span class="hour-pill lab">Laboratorio: ${syl.laboratorio.hours}h</span>
+                        <span class="hour-pill eserc">Project Work: ${syl.esercitazioni.hours}h</span>
+                        <span class="hour-pill verif">Verifica: ${syl.verifica.hours}h</span>
+                    </div>
+
+                    <button class="toggle-btn" onclick="toggleSyllabusDetails('syl_details_${mod.id}')">
+                        📖 Mostra Programma Dettagliato 125 Ore ▼
+                    </button>
+
+                    <div class="syllabus-details" id="syl_details_${mod.id}">
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">📖 Teoria (15h Lezioni Frontali)</div>
+                            <div>${syl.teoria.content}</div>
+                        </div>
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">⚙️ Attività Pratica in Laboratorio (${syl.laboratorio.hours}h)</div>
+                            <div>${syl.laboratorio.content}</div>
+                        </div>
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">💻 Esercitazioni & Project Work (${syl.esercitazioni.hours}h)</div>
+                            <div>${syl.esercitazioni.content}</div>
+                        </div>
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">📝 Prova e Verifica Competenze (${syl.verifica.hours}h)</div>
+                            <div>${syl.verifica.content}</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(mCard);
+            });
+        }
+
+        function toggleSyllabusDetails(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === 'block') {
+                el.style.display = 'none';
+            } else {
+                el.style.display = 'block';
+            }
+        }
+
+        // RENDER CATALOGO COMPLETO
+        function renderCatalogGrid(list) {
+            const container = document.getElementById('catalogGrid');
+            container.innerHTML = '';
+            document.getElementById('catalogTotalBadge').innerText = `${list.length} Moduli Trovati`;
+
+            list.forEach(mod => {
+                const syl = mod.syllabus;
+                const card = document.createElement('div');
+                card.className = 'module-card';
+
+                card.innerHTML = `
+                    <div class="module-card-top">
+                        <div>
+                            <span class="module-tag">${mod.category}</span>
+                            <div class="module-title">${mod.name}</div>
+                        </div>
+                        <span class="module-cfu">+5 CFU</span>
+                    </div>
+
+                    <div class="module-desc">${mod.description}</div>
+
+                    <div class="hours-row">
+                        <span class="hour-pill teoria">Teoria: 15h</span>
+                        <span class="hour-pill lab">Lab: ${syl.laboratorio.hours}h</span>
+                        <span class="hour-pill eserc">Eserc: ${syl.esercitazioni.hours}h</span>
+                        <span class="hour-pill verif">Verifica: ${syl.verifica.hours}h</span>
+                    </div>
+
+                    <button class="toggle-btn" onclick="toggleSyllabusDetails('cat_details_${mod.id}')">
+                        📖 Visualizza Articolazione Didattica ▼
+                    </button>
+
+                    <div class="syllabus-details" id="cat_details_${mod.id}">
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">📖 Teoria Frontale (15 Ore)</div>
+                            <div>${syl.teoria.content}</div>
+                        </div>
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">⚙️ Laboratorio (${syl.laboratorio.hours} Ore)</div>
+                            <div>${syl.laboratorio.content}</div>
+                        </div>
+                        <div class="syllabus-block">
+                            <div class="syllabus-block-title">💻 Project Work (${syl.esercitazioni.hours} Ore)</div>
+                            <div>${syl.esercitazioni.content}</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterCatalog() {
+            const query = document.getElementById('catalogSearch').value.toLowerCase();
+            const cat = document.getElementById('catalogCategory').value;
+
+            const filtered = technologyDatabase.filter(t => {
+                const matchQ = t.name.toLowerCase().includes(query) ||
+                               t.description.toLowerCase().includes(query) ||
+                               t.skills.some(s => s.toLowerCase().includes(query));
+                const matchC = cat === 'ALL' || t.category === cat;
+                return matchQ && matchC;
+            });
+
+            renderCatalogGrid(filtered);
+        }
+
+        // ESPORTAZIONE JSON E DOWNLOAD
+        function exportBadgeJSON() {
+            if(currentMatchedModules.length === 0) return alert("Esegui prima il matchmaking!");
+
+            const badgeData = {
+                "@context": "https://w3id.org/openbadges/v2",
+                "type": "BadgeClass",
+                "id": "urn:uuid:" + crypto.randomUUID(),
+                "name": document.getElementById('badgeTitleText').innerText,
+                "issuer": { "name": "MOVA Enterprise Virtual Academy & M.A.D.E.-AI Cluster" },
+                "assertion": {
+                    "issuedOn": new Date().toISOString(),
+                    "totalHours": currentMatchedModules.length * 125,
+                    "cfuTotal": currentMatchedModules.length * 5,
+                    "modules": currentMatchedModules.map(m => ({
+                        id: m.id,
+                        nome: m.name,
+                        cfu: 5,
+                        ore_teoria_frontale: 15
+                    }))
+                }
+            };
+            downloadJSON(badgeData, "OpenBadge_MOVA_Custom_Path.json");
+        }
+
+        function exportSyllabusJSON() {
+            if(currentMatchedModules.length === 0) return alert("Esegui prima il matchmaking!");
+
+            const syllabusExport = currentMatchedModules.map(m => ({
+                id: m.id,
+                modulo: m.name,
+                categoria: m.category,
+                cfu: 5,
+                ore_totali: 125,
+                articolazione: m.syllabus,
+                competenze: m.skills
+            }));
+
+            downloadJSON(syllabusExport, "Programma_Didattico_MOVA_Enterprise.json");
+        }
+
+        function downloadJSON(obj, filename) {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(obj, null, 2));
+            const anchor = document.createElement('a');
+            anchor.setAttribute("href", dataStr);
+            anchor.setAttribute("download", filename);
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+        }
+    </script>
+</body>
+</html>
