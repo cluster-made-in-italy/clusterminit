@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fondazione Italia Domani | Centro di Intelligence & Alta Formazione - Prof. Mario Caligiuri</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-heading {
+            font-family: 'Cinzel', serif;
+        }
+        .bg-navy-900 {
+            background-color: #0b132b;
+        }
+        .bg-navy-800 {
+            background-color: #1c2541;
+        }
+        .text-gold-400 {
+            color: #c59b27;
+        }
+        .bg-gold-500 {
+            background-color: #c59b27;
+        }
+        .bg-gold-600 {
+            background-color: #a8811d;
+        }
+        .border-gold {
+            border-color: #c59b27;
+        }
+        .gradient-overlay {
+            background: linear-gradient(135deg, rgba(11,19,43,0.95) 0%, rgba(28,37,65,0.85) 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+    <!-- NAVIGATION BAR -->
+    <nav class="fixed w-full z-50 bg-navy-900/95 backdrop-blur border-b border-gray-800 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-gold-500 flex items-center justify-center text-navy-900 font-bold text-xl shadow-md">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <div>
+                        <span class="font-heading font-bold text-lg tracking-wider text-white block leading-tight">ITALIA DOMANI</span>
+                        <span class="text-xs text-gray-400 uppercase tracking-widest block">Prof. Mario Caligiuri</span>
+                    </div>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-6 text-sm font-medium">
+                    <a href="#fondazione" class="hover:text-gold-400 transition">Fondazione</a>
+                    <a href="#academy" class="hover:text-gold-400 transition">Academy</a>
+                    <a href="#biblioteca" class="hover:text-gold-400 transition">Biblioteca</a>
+                    <a href="#intelligence" class="hover:text-gold-400 transition">Centro Intelligence</a>
+                    <a href="#ricerca" class="hover:text-gold-400 transition">R&S</a>
+                    <a href="#profilo" class="hover:text-gold-400 transition">Prof. Caligiuri</a>
+                </div>
+
+                <!-- Action Button -->
+                <div class="hidden md:block">
+                    <a href="#contatti" class="bg-gold-500 hover:bg-gold-600 text-navy-900 font-semibold px-5 py-2.5 rounded-lg transition shadow-md text-sm">
+                        <i class="fa-solid fa-paper-plane mr-2"></i>Contattaci
+                    </a>
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden bg-navy-800 px-4 pt-2 pb-4 space-y-2 border-t border-gray-700">
+            <a href="#fondazione" class="block py-2 text-gray-200 hover:text-gold-400">Fondazione</a>
+            <a href="#academy" class="block py-2 text-gray-200 hover:text-gold-400">Academy</a>
+            <a href="#biblioteca" class="block py-2 text-gray-200 hover:text-gold-400">Biblioteca</a>
+            <a href="#intelligence" class="block py-2 text-gray-200 hover:text-gold-400">Centro Intelligence</a>
+            <a href="#ricerca" class="block py-2 text-gray-200 hover:text-gold-400">R&S</a>
+            <a href="#profilo" class="block py-2 text-gray-200 hover:text-gold-400">Prof. Caligiuri</a>
+            <a href="#contatti" class="block py-2 text-gold-400 font-semibold">Contattaci</a>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header class="relative bg-navy-900 text-white pt-32 pb-24 overflow-hidden border-b border-gray-800">
+        <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#c59b27_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid md:grid-cols-12 gap-12 items-center">
+                <div class="md:col-span-7 space-y-6">
+                    <div class="inline-flex items-center space-x-2 bg-navy-800 border border-gold/30 px-3 py-1.5 rounded-full text-xs text-gold-400 font-medium tracking-wide">
+                        <span class="w-2 h-2 rounded-full bg-gold-400 animate-pulse"></span>
+                        <span>Polo Nazionale di Alta Formazione e Ricerca Strategica</span>
+                    </div>
+                    <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold font-heading leading-tight">
+                        Intelligence, Cultura e <span class="text-gold-400">Sovranità Cognitiva</span>
+                    </h1>
+                    <p class="text-gray-300 text-lg leading-relaxed">
+                        L'ecosistema promosso dal <strong>Prof. Mario Caligiuri</strong> per promuovere la cultura dell'intelligence come scienza della decisione, contrastare la disinformazione e guidare lo sviluppo dello Stato e delle imprese nell'era dell'iper-informazione.
+                    </p>
+                    <div class="flex flex-wrap gap-4 pt-2">
+                        <a href="#fondazione" class="bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold px-6 py-3.5 rounded-lg shadow-lg transition">
+                            Scopri le Iniziative <i class="fa-solid fa-arrow-right ml-2"></i>
+                        </a>
+                        <a href="#intelligence" class="bg-navy-800 border border-gray-700 hover:border-gold-400 text-white font-medium px-6 py-3.5 rounded-lg transition">
+                            Attività SOCINT
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Stats / Key Cards -->
+                <div class="md:col-span-5 grid grid-cols-2 gap-4">
+                    <div class="bg-navy-800/80 p-6 rounded-xl border border-gray-700/60 shadow-xl">
+                        <div class="text-gold-400 text-3xl font-bold font-heading mb-1">+15 Anni</div>
+                        <div class="text-sm text-gray-300 font-medium">Di Master in Intelligence all'UNICAL</div>
+                    </div>
+                    <div class="bg-navy-800/80 p-6 rounded-xl border border-gray-700/60 shadow-xl">
+                        <div class="text-gold-400 text-3xl font-bold font-heading mb-1">SOCINT</div>
+                        <div class="text-sm text-gray-300 font-medium">Società Italiana di Intelligence</div>
+                    </div>
+                    <div class="bg-navy-800/80 p-6 rounded-xl border border-gray-700/60 shadow-xl">
+                        <div class="text-gold-400 text-3xl font-bold font-heading mb-1">1° Corso</div>
+                        <div class="text-sm text-gray-300 font-medium">Laurea Magistrale sul Rischio in Italia</div>
+                    </div>
+                    <div class="bg-navy-800/80 p-6 rounded-xl border border-gray-700/60 shadow-xl">
+                        <div class="text-gold-400 text-3xl font-bold font-heading mb-1">R&S</div>
+                        <div class="text-sm text-gray-300 font-medium">Cyber, AI & Infodemia</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVIGATION CARDS / PILLARS OVERVIEW -->
+    <section class="py-12 bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                
+                <a href="#fondazione" class="group p-5 rounded-xl border border-gray-200 hover:border-gold-500 hover:shadow-lg transition bg-gray-50 hover:bg-white">
+                    <div class="w-12 h-12 rounded-lg bg-navy-900 text-gold-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-landmark"></i>
+                    </div>
+                    <h3 class="font-bold text-navy-900 mb-1">Fondazione Italia Domani</h3>
+                    <p class="text-xs text-gray-600">Sintesi dell'opera e delle attività del Prof. Caligiuri.</p>
+                </a>
+
+                <a href="#academy" class="group p-5 rounded-xl border border-gray-200 hover:border-gold-500 hover:shadow-lg transition bg-gray-50 hover:bg-white">
+                    <div class="w-12 h-12 rounded-lg bg-navy-900 text-gold-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <h3 class="font-bold text-navy-900 mb-1">Academy</h3>
+                    <p class="text-xs text-gray-600">Master e corsi universitari pionieristici.</p>
+                </a>
+
+                <a href="#biblioteca" class="group p-5 rounded-xl border border-gray-200 hover:border-gold-500 hover:shadow-lg transition bg-gray-50 hover:bg-white">
+                    <div class="w-12 h-12 rounded-lg bg-navy-900 text-gold-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-book-bookmark"></i>
+                    </div>
+                    <h3 class="font-bold text-navy-900 mb-1">Biblioteca Multimediale</h3>
+                    <p class="text-xs text-gray-600">Saggi, voci Treccani, podcast e lezioni.</p>
+                </a>
+
+                <a href="#intelligence" class="group p-5 rounded-xl border border-gray-200 hover:border-gold-500 hover:shadow-lg transition bg-gray-50 hover:bg-white">
+                    <div class="w-12 h-12 rounded-lg bg-navy-900 text-gold-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <h3 class="font-bold text-navy-900 mb-1">Centro di Intelligence</h3>
+                    <p class="text-xs text-gray-600">Attività e progetti della SOCINT.</p>
+                </a>
+
+                <a href="#ricerca" class="group p-5 rounded-xl border border-gray-200 hover:border-gold-500 hover:shadow-lg transition bg-gray-50 hover:bg-white">
+                    <div class="w-12 h-12 rounded-lg bg-navy-900 text-gold-400 flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition">
+                        <i class="fa-solid fa-microscope"></i>
+                    </div>
+                    <h3 class="font-bold text-navy-900 mb-1">Ricerca & Sviluppo</h3>
+                    <p class="text-xs text-gray-600">Infodemia, AI, analisi di rischio e geopolitica.</p>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 1: FONDAZIONE ITALIA DOMANI -->
+    <section id="fondazione" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-12 gap-12 items-center">
+                <div class="lg:col-span-6 space-y-6">
+                    <div class="inline-block px-3 py-1 bg-gold-500/10 border border-gold-500/30 text-gold-600 font-semibold text-xs tracking-wider uppercase rounded-full">
+                        Pilastro Centrale
+                    </div>
+                    <h2 class="text-3xl font-bold font-heading text-navy-900">
+                        Fondazione Italia Domani
+                    </h2>
+                    <p class="text-gray-700 leading-relaxed">
+                        La <strong>Fondazione Italia Domani</strong> costituisce la sintesi e il motore operativo di tutte le iniziative scientifiche, educative e socio-culturali avviate dal <strong>Prof. Mario Caligiuri</strong>. La Fondazione nasce per restituire all'Italia centralità nel dibattito sulla conoscenza strategica e la formazione delle classe dirigente.
+                    </p>
+                    <ul class="space-y-4">
+                        <li class="flex items-start space-x-3">
+                            <i class="fa-solid fa-check-circle text-gold-500 text-xl mt-1"></i>
+                            <div>
+                                <strong class="text-navy-900">Promozione della Sovranità Cognitiva:</strong>
+                                <span class="text-gray-600 block text-sm">Fornire agli istituti e ai cittadini le chiavi di lettura per proteggersi da manipolazioni e guerre cognitive.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <i class="fa-solid fa-check-circle text-gold-500 text-xl mt-1"></i>
+                            <div>
+                                <strong class="text-navy-900">Coordinamento Scientifico Nazionale:</strong>
+                                <span class="text-gray-600 block text-sm">Integrare le competenze dell'Università della Calabria con enti di ricerca pubblici e privati.</span>
+                            </div>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <i class="fa-solid fa-check-circle text-gold-500 text-xl mt-1"></i>
+                            <div>
+                                <strong class="text-navy-900">Formazione delle Élite e della Pubblica Amministrazione:</strong>
+                                <span class="text-gray-600 block text-sm">Diffondere la cultura dell'analisi d'impatto e del Risk Management per le decisioni pubbliche.</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="lg:col-span-6">
+                    <div class="bg-navy-900 text-white p-8 rounded-2xl shadow-2xl relative border border-gold/30">
+                        <i class="fa-solid fa-quote-left text-4xl text-gold-500/30 absolute top-6 right-6"></i>
+                        <h3 class="text-xl font-heading font-semibold text-gold-400 mb-4">La Visione Fondativa</h3>
+                        <blockquote class="italic text-gray-300 leading-relaxed mb-6">
+                            "Nel XXI secolo l'intelligence non è più solo un servizio segreto di Stato, ma la più importante forma di pedagogia sociale per garantire la libertà e la sovranità decisionale delle persone e delle nazioni."
+                        </blockquote>
+                        <div class="border-t border-gray-700 pt-4 flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-full bg-gold-500 flex items-center justify-center font-bold text-navy-900 text-lg">MC</div>
+                            <div>
+                                <div class="font-bold text-white">Prof. Mario Caligiuri</div>
+                                <div class="text-xs text-gray-400">Presidente Fondazione Italia Domani & SOCINT</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: ACADEMY -->
+    <section id="academy" class="py-20 bg-white border-t border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+                <span class="px-3 py-1 bg-navy-900 text-gold-400 text-xs font-semibold uppercase tracking-wider rounded-full">Alta Formazione Accademica</span>
+                <h2 class="text-3xl md:text-4xl font-bold font-heading text-navy-900">L'Academy & I Corsi Universitari</h2>
+                <p class="text-gray-600">I percorsi formativi pionieristici avviati presso l'Università della Calabria e diffusi a livello nazionale per formare i nuovi analisti di intelligence.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Card 1 -->
+                <div class="bg-gray-50 rounded-xl p-8 border border-gray-200 hover:border-gold-500 transition shadow-sm hover:shadow-md flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-lg bg-gold-500/10 text-gold-600 flex items-center justify-center text-2xl mb-6">
+                            <i class="fa-solid fa-certificate"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-navy-900 mb-3">Master in Intelligence (UNICAL)</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-6">
+                            Inaugurato con il sostegno di illustri figure istituzionali, è stato il primo master universitario pubblico in Italia interamente dedicato alla cultura dell'intelligence.
+                        </p>
+                    </div>
+                    <ul class="text-xs text-gray-500 space-y-2 border-t border-gray-200 pt-4">
+                        <li><i class="fa-solid fa-check text-gold-500 mr-2"></i>Docenti e analisti di livello internazionale</li>
+                        <li><i class="fa-solid fa-check text-gold-500 mr-2"></i>Piattaforma e lezioni blended</li>
+                    </ul>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="bg-gray-50 rounded-xl p-8 border border-gray-200 hover:border-gold-500 transition shadow-sm hover:shadow-md flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-lg bg-gold-500/10 text-gold-600 flex items-center justify-center text-2xl mb-6">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-navy-900 mb-3">Laurea Magistrale in Analisi del Rischio</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-6">
+                            Corso universitario avanzato mirato all'integrazione tra scienze umane, cyber security, diritto internazionale ed economia per l'analisi strategica dei rischi globali.
+                        </p>
+                    </div>
+                    <ul class="text-xs text-gray-500 space-y-2 border-t border-gray-200 pt-4">
+                        <li><i class="fa-solid fa-check text-gold-500 mr-2"></i>Cyber Security e Geopolitica</li>
+                        <li><i class="fa-solid fa-check text-gold-500 mr-2"></i>Decision-making istituzionale</li>
+                    </ul>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="bg-gray-50 rounded-xl p-8 border border-gray-200 hover:border-gold-500 transition shadow-sm hover:shadow-md flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-lg bg-gold-500/10 text-gold-600 flex items-center justify-center text-2xl mb-6">
+                            <i class="fa-solid fa-user-gear"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-navy-900 mb-3">Executive Master & Summer School</h3>
+                        <p class="text-gray-600 text-sm leading-relaxed mb-6">
+                            Programmi intensivi e corsi d'estate (come l'Università d'Estate sull'Intelligence) per professionisti, dirigenti d'impresa e forze dell'ordine.
+                        </p>
+                    </div>
+                    <ul class="text-xs text-gray-500 space-y-2 border-t border-gray-200 pt-4">
+                        <li><i class="fa-solid fa-check text-gold-500 mr-2"></i>Competitive & Economic Intelligence</li>
+                        <li><i class="fa-solid fa-check text-gold-500 mr-2"></i>Networking professionale</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: BIBLIOTECA MULTIMEDIALE -->
+    <section id="biblioteca" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-12 gap-12 items-center">
+                
+                <div class="lg:col-span-5 order-2 lg:order-1 space-y-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                            <i class="fa-solid fa-book text-3xl text-gold-500 mb-3"></i>
+                            <h4 class="font-bold text-navy-900 text-sm mb-1">Enciclopedia Treccani</h4>
+                            <p class="text-xs text-gray-500">Autore della voce ufficiale "Intelligence" (X Appendice).</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                            <i class="fa-solid fa-file-pdf text-3xl text-gold-500 mb-3"></i>
+                            <h4 class="font-bold text-navy-900 text-sm mb-1">Saggi & Volumi</h4>
+                            <p class="text-xs text-gray-500">Oltre 30 volumi pubblicati su intelligence e comunicazione.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                            <i class="fa-solid fa-video text-3xl text-gold-500 mb-3"></i>
+                            <h4 class="font-bold text-navy-900 text-sm mb-1">Video Lezioni</h4>
+                            <p class="text-xs text-gray-500">Archivio digitale di seminari, interventi e lectio magistralis.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+                            <i class="fa-solid fa-podcast text-3xl text-gold-500 mb-3"></i>
+                            <h4 class="font-bold text-navy-900 text-sm mb-1">Podcast & Interviste</h4>
+                            <p class="text-xs text-gray-500">Contributi audio sui temi di geopolitica e sicurezza.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 order-1 lg:order-2 space-y-6">
+                    <span class="px-3 py-1 bg-gold-500/10 text-gold-600 text-xs font-semibold uppercase tracking-wider rounded-full border border-gold-500/20">Archivio & Conoscenza</span>
+                    <h2 class="text-3xl font-bold font-heading text-navy-900">Biblioteca Multimediale dell'Intelligence</h2>
+                    <p class="text-gray-700 leading-relaxed">
+                        Un punto di riferimento per studiosi, analisti e studenti. La Biblioteca Multimediale raccoglie e catalogha il vasto patrimonio bibliografico e digitale curato dal <strong>Prof. Mario Caligiuri</strong>, offrendo strumenti critici per comprendere la società dell'informazione.
+                    </p>
+                    <div class="p-4 bg-white rounded-xl border-l-4 border-gold-500 shadow-sm">
+                        <h4 class="font-bold text-navy-900 text-sm mb-1">In Evidenza: SOCINT Press & Collane Scientifiche</h4>
+                        <p class="text-xs text-gray-600">Accesso agli atti dei convegni nazionali, ai paper di ricerca e ai manuali fondamentali scritti dai massimi esperti italiani di sicurezza e geopolitica.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 4: CENTRO DI INTELLIGENCE (SOCINT ACTIVITIES) -->
+    <section id="intelligence" class="py-20 bg-navy-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+                <span class="px-3 py-1 bg-gold-500 text-navy-900 text-xs font-bold uppercase tracking-wider rounded-full">Società Italiana di Intelligence</span>
+                <h2 class="text-3xl md:text-4xl font-bold font-heading">Il Centro di Intelligence (SOCINT)</h2>
+                <p class="text-gray-300">
+                    Sotto la presidenza del Prof. Mario Caligiuri, la **SOCINT** opera per sdoganare l'intelligence in Italia, trasformandola da tema riservato a materia scientifica di interesse nazionale.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Feature 1 -->
+                <div class="bg-navy-800 p-6 rounded-xl border border-gray-700 hover:border-gold-400 transition">
+                    <div class="text-gold-400 text-2xl mb-4"><i class="fa-solid fa-users-rectangle"></i></div>
+                    <h3 class="font-bold text-lg mb-2">Commissioni di Studio</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed">
+                        Gruppi di lavoro specialistici su Cyber Intelligence, Disinformazione, Economia, Spazio e Geopolitica del Mediterraneo.
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="bg-navy-800 p-6 rounded-xl border border-gray-700 hover:border-gold-400 transition">
+                    <div class="text-gold-400 text-2xl mb-4"><i class="fa-solid fa-sun"></i></div>
+                    <h3 class="font-bold text-lg mb-2">Università d'Estate</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed">
+                        L'appuntamento annuale di formazione residenziale che riunisce docenti, analisti dei servizi e giovani talenti.
+                    </p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="bg-navy-800 p-6 rounded-xl border border-gray-700 hover:border-gold-400 transition">
+                    <div class="text-gold-400 text-2xl mb-4"><i class="fa-solid fa-newspaper"></i></div>
+                    <h3 class="font-bold text-lg mb-2">Rivista & SOCINT Press</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed">
+                        Pubblicazione periodica di articoli di analisi, recensioni e approfondimenti metodologici a cura della comunità accademica.
+                    </p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="bg-navy-800 p-6 rounded-xl border border-gray-700 hover:border-gold-400 transition">
+                    <div class="text-gold-400 text-2xl mb-4"><i class="fa-solid fa-network-wired"></i></div>
+                    <h3 class="font-bold text-lg mb-2">Network Istituzionale</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed">
+                        Collaborazioni attive con ministeri, università italiane ed estere, centri di ricerca e organi di sicurezza.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 5: RICERCA E SVILUPPO (R&S) -->
+    <section id="ricerca" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+                <span class="px-3 py-1 bg-navy-900 text-gold-400 text-xs font-semibold uppercase tracking-wider rounded-full">Innovazione & Metodologia</span>
+                <h2 class="text-3xl md:text-4xl font-bold font-heading text-navy-900">Ricerca & Sviluppo (R&S)</h2>
+                <p class="text-gray-600">I progetti e i laboratori attivi per sviluppare nuove metodologie di analisi informativa e fronteggiare le minacce emergenti.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="flex space-x-4 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                    <div class="w-12 h-12 bg-navy-900 text-gold-400 rounded-lg flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-navy-900 mb-2">Intelligenza Artificiale & OSINT</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            Studio degli impatti dell'AI generativa nell'analisi delle fonti aperte (OSINT) e nell'automazione dei processi di intelligence per il decision-making.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex space-x-4 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                    <div class="w-12 h-12 bg-navy-900 text-gold-400 rounded-lg flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-bug"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-navy-900 mb-2">Contrasto all'Infodemia e Fake News</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            Sviluppo di modelli pedagogici e tecnologici per la verifica delle notizie, il debunking strategico e la tutela dei processi democratici.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex space-x-4 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                    <div class="w-12 h-12 bg-navy-900 text-gold-400 rounded-lg flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-navy-900 mb-2">Economic & Financial Intelligence</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            Monitoraggio delle penetrazioni finanziarie ostili, tutela del Made in Italy, sicurezza delle catene di approvvigionamento e asset strategici.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex space-x-4 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                    <div class="w-12 h-12 bg-navy-900 text-gold-400 rounded-lg flex items-center justify-center text-xl shrink-0">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-navy-900 mb-2">Pedagogia della Comunicazione</h3>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            Ricerca scientifica sulla formazione del pensiero critico nelle scuole e università per sviluppare un'infrastruttura cognitiva nazionale.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROFILO PROF. MARIO CALIGIURI -->
+    <section id="profilo" class="py-20 bg-gray-100 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white rounded-2xl p-8 md:p-12 shadow-xl border border-gray-200 grid lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-4 text-center">
+                    <div class="w-48 h-48 rounded-full bg-navy-900 text-gold-400 mx-auto flex items-center justify-center text-6xl shadow-inner border-4 border-gold-500 mb-4">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold font-heading text-navy-900">Prof. Mario Caligiuri</h3>
+                    <p class="text-gold-600 font-medium text-sm">Ordinario UNICAL & Presidente SOCINT</p>
+                </div>
+                <div class="lg:col-span-8 space-y-4">
+                    <h3 class="text-2xl font-bold text-navy-900 font-heading">Pioniere degli Intelligence Studies in Italia</h3>
+                    <p class="text-gray-700 leading-relaxed text-sm">
+                        Mario Caligiuri è professore ordinario di Pedagogia della comunicazione presso l'Università della Calabria. È riconosciuto come il principale promotore dell'introduzione dell'intelligence nelle università italiane come disciplina scientifica ed accademica.
+                    </p>
+                    <p class="text-gray-700 leading-relaxed text-sm">
+                        Fondatore del primo Master in Intelligence universitario pubblico nel 2007, è Presidente della Società Italiana di Intelligence (SOCINT) e autore di decine di saggi adottati in master ed accademie di sicurezza in tutto il Paese.
+                    </p>
+                    <div class="pt-2 flex flex-wrap gap-3">
+                        <span class="px-3 py-1 bg-gray-100 text-navy-900 text-xs rounded-md border font-semibold">Università della Calabria</span>
+                        <span class="px-3 py-1 bg-gray-100 text-navy-900 text-xs rounded-md border font-semibold">Presidenza SOCINT</span>
+                        <span class="px-3 py-1 bg-gray-100 text-navy-900 text-xs rounded-md border font-semibold">Treccani Contributor</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACT & FOOTER -->
+    <section id="contatti" class="py-20 bg-navy-900 text-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-12 gap-12">
+                <div class="lg:col-span-6 space-y-6">
+                    <h2 class="text-3xl font-bold font-heading text-gold-400">Contatta il Centro Studi</h2>
+                    <p class="text-gray-300 text-sm leading-relaxed">
+                        Per informazioni sui master, sulle attività della Fondazione Italia Domani, sulle pubblicazioni o sull'adesione alla Società Italiana di Intelligence (SOCINT).
+                    </p>
+                    
+                    <div class="space-y-4 pt-4 text-sm">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-location-dot text-gold-400 w-5"></i>
+                            <span>Università della Calabria - Rende (CS) / Sede SOCINT</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-envelope text-gold-400 w-5"></i>
+                            <span>info@fondazioneitaliadomani.it</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-globe text-gold-400 w-5"></i>
+                            <span>www.socint.it | www.unical.it</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-6">
+                    <form class="bg-navy-800 p-8 rounded-xl border border-gray-700 space-y-4 shadow-xl">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-300 mb-1">Nome e Cognome</label>
+                            <input type="text" class="w-full bg-navy-900 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-gold-400 text-sm" placeholder="Mario Rossi">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-300 mb-1">Email</label>
+                            <input type="email" class="w-full bg-navy-900 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-gold-400 text-sm" placeholder="mario.rossi@email.it">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-300 mb-1">Area d'Interesse</label>
+                            <select class="w-full bg-navy-900 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-gold-400 text-sm">
+                                <option>Fondazione Italia Domani</option>
+                                <option>Master & Academy UNICAL</option>
+                                <option>Adesione / Iniziative SOCINT</option>
+                                <option>Biblioteca & Pubblicazioni</option>
+                                <option>Ricerca & Sviluppo</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-300 mb-1">Messaggio</label>
+                            <textarea rows="4" class="w-full bg-navy-900 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-gold-400 text-sm" placeholder="Scrivi il tuo messaggio..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-navy-900 font-bold py-3 rounded-lg transition shadow-md">
+                            Invia Richiesta
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-black text-gray-500 py-8 border-t border-gray-800 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <div>
+                © Fondazione Italia Domani & SOCINT - Tutti i diritti riservati. Iniziative del Prof. Mario Caligiuri.
+            </div>
+            <div class="flex space-x-6">
+                <a href="#" class="hover:text-gold-400">Privacy Policy</a>
+                <a href="#" class="hover:text-gold-400">Termini di Servizio</a>
+                <a href="#" class="hover:text-gold-400">SOCINT Press</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Mobile Menu -->
+    <script>
+        const btn = document.getElementById('mobile-menu-btn');
+        const menu = document.getElementById('mobile-menu');
+
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>
