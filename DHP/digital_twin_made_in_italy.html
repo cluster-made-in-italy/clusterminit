@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="it" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Twin Made in Italy | Un'idea di Daniela Fontana</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Configuration for Custom Colors & Fonts -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            950: '#070a12',
+                            900: '#0b1120',
+                            800: '#131d33',
+                            700: '#1e2d4a',
+                        },
+                        gold: {
+                            300: '#fef08a',
+                            400: '#facc15',
+                            500: '#d4af37',
+                            600: '#b48a1d',
+                            700: '#856410',
+                        },
+                        emerald: {
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                        },
+                        cyan: {
+                            400: '#38bdf8',
+                            500: '#06b6d4',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Cinzel', 'serif'],
+                        tech: ['Space Grotesk', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom scrollbar and glassmorphism styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b1120;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e2d4a;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d4af37;
+        }
+
+        .glass-panel {
+            background: rgba(19, 29, 51, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+        }
+
+        .glass-panel-active {
+            background: rgba(25, 38, 66, 0.85);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            box-shadow: 0 10px 30px -10px rgba(212, 175, 55, 0.2);
+        }
+
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #fff 0%, #fef08a 30%, #d4af37 70%, #b48a1d 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .emerald-gradient-text {
+            background: linear-gradient(135deg, #ffffff 0%, #6ee7b7 50%, #10b981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-glow {
+            background: radial-gradient(circle at 50% 30%, rgba(212, 175, 55, 0.15) 0%, rgba(16, 185, 129, 0.08) 35%, rgba(11, 17, 32, 0) 70%);
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.03); }
+        }
+
+        .animate-pulse-glow {
+            animation: pulseGlow 4s infinite ease-in-out;
+        }
+
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="bg-navy-950 text-gray-200 font-sans antialiased selection:bg-gold-500 selection:text-navy-950">
+
+    <header class="fixed top-0 left-0 w-full z-50 transition-all duration-300 glass-panel border-b border-white/10" id="main-header">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo & Visionary Brand -->
+                <a href="#" class="flex items-center space-x-3 group">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-navy-950 font-heading font-bold text-xl shadow-lg group-hover:scale-105 transition-transform">
+                        DT
+                    </div>
+                    <div>
+                        <span class="font-heading font-bold text-lg text-white tracking-wider block leading-none">DIGITAL TWIN</span>
+                        <span class="text-[10px] font-tech text-gold-400 tracking-widest uppercase block mt-1">Made in Italy • Daniela Fontana</span>
+                    </div>
+                </a>
+
+                <!-- Desktop Navigation Links -->
+                <nav class="hidden md:flex items-center space-x-8 text-sm font-medium">
+                    <a href="#simulator" class="text-gray-300 hover:text-gold-400 transition-colors">Simulatore Twin</a>
+                    <a href="#pillars" class="text-gray-300 hover:text-gold-400 transition-colors">I 4 Pilastri</a>
+                    <a href="#vision" class="text-gray-300 hover:text-gold-400 transition-colors">Vision 30 Anni</a>
+                    <a href="#calculator" class="text-gray-300 hover:text-gold-400 transition-colors">Calcolatore Distretto</a>
+                </nav>
+
+                <!-- CTA Button -->
+                <div class="hidden md:flex items-center space-x-4">
+                    <a href="#contact" class="relative inline-flex items-center justify-center px-5 py-2.5 text-xs font-bold font-tech uppercase tracking-widest text-navy-950 bg-gradient-to-r from-gold-400 via-gold-500 to-amber-500 rounded-lg shadow-lg hover:shadow-gold-500/20 hover:scale-105 transition-all">
+                        <span>Aderisci al Progetto</span>
+                        <i class="fa-solid fa-arrow-right-long ml-2"></i>
+                    </a>
+                </div>
+
+                <!-- Mobile Menu Toggle Button -->
+                <button id="mobile-toggle" class="md:hidden text-gray-300 hover:text-gold-400 p-2 focus:outline-none" aria-label="Menu Mobile">
+                    <i class="fa-solid fa-bars text-2xl"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden glass-panel border-t border-white/10 px-4 pt-3 pb-6 space-y-3">
+            <a href="#simulator" class="block py-2 text-gray-200 hover:text-gold-400 font-medium">Simulatore Twin</a>
+            <a href="#pillars" class="block py-2 text-gray-200 hover:text-gold-400 font-medium">I 4 Pilastri</a>
+            <a href="#vision" class="block py-2 text-gray-200 hover:text-gold-400 font-medium">Vision Daniela Fontana</a>
+            <a href="#calculator" class="block py-2 text-gray-200 hover:text-gold-400 font-medium">Calcolatore Distretto</a>
+            <a href="#contact" class="block w-full text-center py-3 bg-gold-500 text-navy-950 font-bold font-tech uppercase rounded-lg">Aderisci Ora</a>
+        </div>
+    </header>
+
+    <section class="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden hero-glow">
+        <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#d4af37_1px,transparent_1px)] [background-size:24px_24px]"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="max-w-4xl mx-auto text-center space-y-6">
+                
+                <!-- Honor Tagline for Daniela Fontana -->
+                <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-full glass-panel border border-gold-500/30 text-xs sm:text-sm font-medium text-gold-400 shadow-xl animate-bounce-short">
+                    <i class="fa-solid fa-award text-gold-400"></i>
+                    <span>Da un'idea di <strong>Daniela Fontana</strong> — 30 anni al servizio dei distretti del Made in Italy</span>
+                </div>
+
+                <!-- Main Hero Headline -->
+                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-heading font-extrabold tracking-tight leading-tight text-white">
+                    Il <span class="gold-gradient-text">Digital Twin</span> per l'Umanesimo Digitale nei Distretti
+                </h1>
+
+                <!-- Subtitle / Paragraph -->
+                <p class="text-lg sm:text-xl text-gray-300 font-light leading-relaxed max-w-3xl mx-auto">
+                    Unire la maestria artigianale e la tradizione secolare della manifattura italiana con l'innovazione di frontiera. Un ecosistema digitale vivente per proteggere, formare, comunicare e ottimizzare il know-how del nostro Paese.
+                </p>
+
+                <!-- Hero CTA Buttons -->
+                <div class="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+                    <a href="#simulator" class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-gold-400 to-gold-600 text-navy-950 font-tech font-bold uppercase tracking-wider rounded-xl shadow-xl hover:shadow-gold-500/25 hover:scale-105 transition-all text-sm flex items-center justify-center">
+                        <i class="fa-solid fa-cube mr-2 text-lg"></i>
+                        Esplora il Simulatore Twin
+                    </a>
+                    <a href="#pillars" class="w-full sm:w-auto px-8 py-4 glass-panel border border-white/20 text-white font-tech font-semibold tracking-wider rounded-xl hover:bg-white/10 hover:border-gold-400/50 transition-all text-sm flex items-center justify-center">
+                        <i class="fa-solid fa-network-wired mr-2 text-gold-400"></i>
+                        Scopri le 4 Applicazioni
+                    </a>
+                </div>
+
+                <!-- Metrics Highlights Bar -->
+                <div class="pt-16 grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
+                    <div class="glass-panel p-5 rounded-xl border-l-4 border-l-gold-500">
+                        <div class="text-xs font-tech text-gray-400 uppercase">Settori Manifatturieri</div>
+                        <div class="text-2xl sm:text-3xl font-heading font-bold text-white mt-1">Moda & Design</div>
+                        <div class="text-[11px] text-gold-400 mt-1">Meccanica & Agroalimentare</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl border-l-4 border-l-emerald-500">
+                        <div class="text-xs font-tech text-gray-400 uppercase">Valore Generato</div>
+                        <div class="text-2xl sm:text-3xl font-heading font-bold text-white mt-1">+35% ROI</div>
+                        <div class="text-[11px] text-emerald-400 mt-1">Ottimizzazione di filiera</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl border-l-4 border-l-cyan-500">
+                        <div class="text-xs font-tech text-gray-400 uppercase">Protezione Brand</div>
+                        <div class="text-2xl sm:text-3xl font-heading font-bold text-white mt-1">100% DPP</div>
+                        <div class="text-[11px] text-cyan-400 mt-1">Passaporto Digitale Prodotto</div>
+                    </div>
+                    <div class="glass-panel p-5 rounded-xl border-l-4 border-l-purple-500">
+                        <div class="text-xs font-tech text-gray-400 uppercase">Know-How Storico</div>
+                        <div class="text-2xl sm:text-3xl font-heading font-bold text-white mt-1">Eredità 4.0</div>
+                        <div class="text-[11px] text-purple-300 mt-1">Saper fare digitale permanente</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="simulator" class="py-20 bg-navy-900/80 border-t border-b border-white/10 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <span class="text-xs font-tech font-bold uppercase tracking-widest text-gold-400 px-3 py-1 bg-gold-500/10 rounded-full border border-gold-500/20">Esperienza Interattiva</span>
+                <h2 class="text-3xl sm:text-5xl font-heading font-bold text-white mt-3">Simulatore Reale vs. Digital Twin</h2>
+                <p class="text-gray-400 text-sm sm:text-base mt-2">
+                    Seleziona una delle 4 macro-applicazioni per osservare la sincronizzazione cibernetica tra la filiera fisica del distretto e il suo gemello digitale.
+                </p>
+            </div>
+
+            <!-- Mode Selector Tabs for Canvas Twin -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                <button data-mode="cultura" class="twin-mode-btn glass-panel-active p-4 rounded-xl text-left transition-all flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-monument"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-white text-sm">1. CULTURA</div>
+                        <div class="text-[11px] text-gray-400">Patrimonio & Identità</div>
+                    </div>
+                </button>
+
+                <button data-mode="formazione" class="twin-mode-btn glass-panel p-4 rounded-xl text-left transition-all flex items-center space-x-3 hover:border-emerald-500/40">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-white text-sm">2. FORMAZIONE</div>
+                        <div class="text-[11px] text-gray-400">Trasferimento Mestieri</div>
+                    </div>
+                </button>
+
+                <button data-mode="informazione" class="twin-mode-btn glass-panel p-4 rounded-xl text-left transition-all flex items-center space-x-3 hover:border-cyan-500/40">
+                    <div class="w-10 h-10 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-passport"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-white text-sm">3. INFORMAZIONE</div>
+                        <div class="text-[11px] text-gray-400">Passaporto Digitale & DPP</div>
+                    </div>
+                </button>
+
+                <button data-mode="produzione" class="twin-mode-btn glass-panel p-4 rounded-xl text-left transition-all flex items-center space-x-3 hover:border-purple-500/40">
+                    <div class="w-10 h-10 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-industry"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-white text-sm">4. PRODUZIONE</div>
+                        <div class="text-[11px] text-gray-400">Manutenzione Predittiva</div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Main Canvas Box Container -->
+            <div class="glass-panel rounded-2xl p-4 sm:p-6 border border-white/15 relative overflow-hidden shadow-2xl">
+                
+                <!-- Status Badge Overlay -->
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-4 pb-4 border-b border-white/10">
+                    <div class="flex items-center space-x-3">
+                        <span class="relative flex h-3 w-3">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                        </span>
+                        <span class="font-tech text-xs uppercase tracking-wider text-white">Stato Twin: <strong id="twin-status-text" class="text-gold-400">Sincronizzazione Attiva</strong></span>
+                    </div>
+
+                    <!-- Canvas Controls -->
+                    <div class="flex items-center space-x-4 text-xs font-tech">
+                        <label class="flex items-center space-x-2 text-gray-300 cursor-pointer">
+                            <span>Rotazione 3D</span>
+                            <input type="checkbox" id="twin-rotate-toggle" checked class="accent-gold-500 w-4 h-4 cursor-pointer">
+                        </label>
+                        <div class="hidden sm:flex items-center space-x-2">
+                            <span class="text-gray-400">Densità Dati:</span>
+                            <input type="range" id="twin-density-slider" min="10" max="60" value="30" class="w-24 accent-gold-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HTML5 Canvas Container -->
+                <div class="relative w-full h-[380px] sm:h-[480px] bg-navy-950/90 rounded-xl overflow-hidden border border-white/5">
+                    <canvas id="twinCanvas" class="w-full h-full cursor-grab active:cursor-grabbing"></canvas>
+                    
+                    <!-- Overlay telemetry HUD cards on top of canvas -->
+                    <div class="absolute top-4 left-4 glass-panel p-3 rounded-lg text-xs font-tech space-y-1 max-w-[200px] pointer-events-none hidden sm:block border-l-2 border-l-gold-400">
+                        <div class="text-gray-400">Frequenza Dati</div>
+                        <div class="text-white font-bold" id="hud-freq">100 Hz Sync</div>
+                        <div class="text-[10px] text-emerald-400 mt-1">Latenza: 1.2ms</div>
+                    </div>
+
+                    <div class="absolute bottom-4 right-4 glass-panel p-3 rounded-lg text-xs font-tech space-y-1 max-w-[240px] pointer-events-none border-r-2 border-r-gold-400 text-right">
+                        <div class="text-gray-400 uppercase text-[10px]" id="hud-title">Modulo Cultura Attivo</div>
+                        <div class="text-gold-400 font-bold" id="hud-value">Archiviazione Memoria Storica</div>
+                        <div class="text-[10px] text-gray-300" id="hud-desc">Oltre 30.000 artefatti digitalizzati</div>
+                    </div>
+                </div>
+
+                <!-- Canvas Dynamic Narrative Description -->
+                <div class="mt-6 p-4 rounded-xl bg-navy-950/60 border border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="space-y-1 text-center md:text-left">
+                        <div class="text-xs font-tech text-gold-400 uppercase tracking-widest" id="mode-badge-label">Modello Selezionato: Cultura</div>
+                        <h3 class="text-lg font-heading font-bold text-white" id="mode-title-label">Digitalizzazione e Tutela del Know-How Artigianale</h3>
+                        <p class="text-xs text-gray-300" id="mode-desc-label">Il Digital Twin cattura le tecniche manuali dei maestri d'arte, convertendo gesti storici in modelli matematici tridimensionali non deperibili.</p>
+                    </div>
+                    <a href="#pillars" class="shrink-0 text-xs font-tech uppercase tracking-wider font-bold text-navy-950 bg-gold-400 hover:bg-gold-300 px-4 py-2.5 rounded-lg transition-all">
+                        Approfondisci Pilastro <i class="fa-solid fa-chevron-right ml-1"></i>
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <section id="pillars" class="py-24 bg-navy-950 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+                <span class="text-xs font-tech font-bold uppercase tracking-widest text-gold-400 px-3 py-1 bg-gold-500/10 rounded-full border border-gold-500/20">
+                    L'Ecosistema Made in Italy
+                </span>
+                <h2 class="text-3xl sm:text-5xl font-heading font-bold text-white">
+                    I 4 Pilastri del Digital Twin
+                </h2>
+                <p class="text-gray-400 text-sm sm:text-base">
+                    Un modello olistico ideato da Daniela Fontana per trasformare la complessità della filiera manifatturiera italiana in vantaggio competitivo globale.
+                </p>
+            </div>
+
+            <!-- Pillars Grid -->
+            <div class="grid md:grid-cols-2 gap-8">
+                
+                <!-- Pillar 1: Cultura -->
+                <div class="glass-panel rounded-2xl p-8 border border-gold-500/20 hover:border-gold-500/50 transition-all group relative overflow-hidden">
+                    <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-gold-500/10 rounded-full blur-2xl group-hover:bg-gold-500/20 transition-all"></div>
+                    <div class="flex items-start space-x-5">
+                        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 text-navy-950 font-bold flex items-center justify-center text-2xl shadow-lg shrink-0">
+                            <i class="fa-solid fa-landmark"></i>
+                        </div>
+                        <div class="space-y-3">
+                            <span class="text-xs font-tech text-gold-400 uppercase tracking-widest">Pilastro 01</span>
+                            <h3 class="text-2xl font-heading font-bold text-white">CULTURA & IDENTITÀ</h3>
+                            <p class="text-gray-300 text-sm leading-relaxed">
+                                Trasformare la memoria storica dei distretti in patrimonio immateriale digitale. Il Digital Twin registra le origini, le tecniche di lavorazione uniche e il design storico dei prodotti Made in Italy.
+                            </p>
+                            <ul class="space-y-2 text-xs text-gray-400 pt-2">
+                                <li class="flex items-center"><i class="fa-solid fa-check text-gold-400 mr-2"></i>Archiviazione tridimensionale degli archivi storici aziendali.</li>
+                                <li class="flex items-center"><i class="fa-solid fa-check text-gold-400 mr-2"></i>Storytelling immersivo e tutela del marchio d'origine.</li>
+                                <li class="flex items-center"><i class="fa-solid fa-check text-gold-400 mr-2"></i>Valorizzazione dei musei d'impresa e distrettuali.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pillar 2: Formazione -->
+                <div class="glass-panel rounded-2xl p-8 border border-emerald-500/20 hover:border-emerald-500/50 transition-all group relative overflow-hidden">
+                    <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all"></div>
+                    <div class="flex items-start space-x-5">
+                        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-navy-950 font-bold flex items-center justify-center text-2xl shadow-lg shrink-0">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <div class="space-y-3">
+                            <span class="text-xs font-tech text-emerald-400 uppercase tracking-widest">Pilastro 02</span>
+                            <h3 class="text-2xl font-heading font-bold text-white">FORMAZIONE & MESTIERI</h3>
+                            <p class="text-gray-300 text-sm leading-relaxed">
+                                Riconnettere i giovani ai mestieri d'arte attraverso ambienti di realtà aumentata e virtuale basati su Digital Twin. Le mosse dei maestri artigiani diventano corsi interattivi e misurabili.
+                            </p>
+                            <ul class="space-y-2 text-xs text-gray-400 pt-2">
+                                <li class="flex items-center"><i class="fa-solid fa-check text-emerald-400 mr-2"></i>Laboratori virtuali di apprendimento accelerato.</li>
+                                <li class="flex items-center"><i class="fa-solid fa-check text-emerald-400 mr-2"></i>Piattaforme di e-learning con simulazione tattile (Haptic feedback).</li>
+                                <li class="flex items-center"><i class="fa-solid fa-check text-emerald-400 mr-2"></i>Integrazione con Scuole di Alta Formazione e ITS di Distretto.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pillar 3: Informazione -->
+                <div class="glass-panel rounded-2xl p-8 border border-cyan-500/20 hover:border-cyan-500/50 transition-all group relative overflow-hidden">
+                    <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl group-hover:bg-cyan-500/20 transition-all"></div>
+                    <div class="flex items-start space-x-5">
+                        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-400 to-cyan-600 text-navy-950 font-bold flex items-center justify-center text-2xl shadow-lg shrink-0">
+                            <i class="fa-solid fa-passport"></i>
+                        </div>
+                        <div class="space-y-3">
+                            <span class="text-xs font-tech text-cyan-400 uppercase tracking-widest">Pilastro 03</span>
+                            <h3 class="text-2xl font-heading font-bold text-white">INFORMAZIONE & TRACCIABILITÀ</h3>
+                            <p class="text-gray-300 text-sm leading-relaxed">
+                                Garanzia totale di trasparenza lungo l'intera catena del valore. Ogni prodotto è dotato di Passaporto Digitale del Prodotto (DPP) notarizzato su blockchain per sconfiggere la contraffazione.
+                            </p>
+                            <ul class="space-y-2 text-xs text-gray-400 pt-2">
+                                <li class="flex items-center"><i class="fa-solid fa-check text-cyan-400 mr-2"></i>Mappatura materiali, impatto CO2 e provenienza delle materie prime.</li>
+                                <li class="flex items-center"><i class="fa-solid fa-check text-cyan-400 mr-2"></i>Autenticazione anticontraffazione al 100% per il cliente finale.</li>
+                                <li class="flex items-center"><i class="fa-solid fa-check text-cyan-400 mr-2"></i>Conformità anticipata alle direttive ESG e dell'Unione Europea.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pillar 4: Produzione -->
+                <div class="glass-panel rounded-2xl p-8 border border-purple-500/20 hover:border-purple-500/50 transition-all group relative overflow-hidden">
+                    <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl group-hover:bg-purple-500/20 transition-all"></div>
+                    <div class="flex items-start space-x-5">
+                        <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-400 to-purple-600 text-navy-950 font-bold flex items-center justify-center text-2xl shadow-lg shrink-0">
+                            <i class="fa-solid fa-industry"></i>
+                        </div>
+                        <div class="space-y-3">
+                            <span class="text-xs font-tech text-purple-400 uppercase tracking-widest">Pilastro 04</span>
+                            <h3 class="text-2xl font-heading font-bold text-white">PRODUZIONE & SOSTENIBILITÀ</h3>
+                            <p class="text-gray-300 text-sm leading-relaxed">
+                                Ottimizzare le fasi produttive senza snaturare l'essenza artigianale. Monitoraggio predittivo di macchinari, riduzione degli scarti energetici e personalizzazione di massa.
+                            </p>
+                            <ul class="space-y-2 text-xs text-gray-400 pt-2">
+                                <li class="flex items-center"><i class="fa-solid fa-check text-purple-400 mr-2"></i>Manutenzione predittiva basata su sensori IoT e Intelligenza Artificiale.</li>
+                                <li class="flex items-center"><i class="fa-solid fa-check text-purple-400 mr-2"></i>Simulazione d'impatto e prototipazione virtuale a scarto zero.</li>
+                                <li class="flex items-center"><i class="fa-solid fa-check text-purple-400 mr-2"></i>Efficienza energetica e circular economy nei distretti industriali.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <section id="vision" class="py-24 bg-navy-900 border-t border-b border-white/10 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Left Column: Portrait Showcase & Bio Badge -->
+                <div class="lg:col-span-5 text-center lg:text-left">
+                    <div class="relative inline-block">
+                        <div class="w-64 h-64 sm:w-80 sm:h-80 rounded-2xl bg-gradient-to-br from-gold-400/30 via-gold-500/10 to-navy-950 p-2 border-2 border-gold-500/40 shadow-2xl relative">
+                            <div class="w-full h-full rounded-xl bg-navy-950 flex flex-col items-center justify-center p-6 text-center border border-white/10">
+                                <div class="w-20 h-20 rounded-full bg-gold-500/20 text-gold-400 flex items-center justify-center text-3xl mb-4 border border-gold-500/30">
+                                    <i class="fa-solid fa-fingerprint"></i>
+                                </div>
+                                <h3 class="font-heading font-bold text-xl text-white">Daniela Fontana</h3>
+                                <p class="text-xs font-tech text-gold-400 uppercase mt-1">Innovatrice dei Distretti Made in Italy</p>
+                                <div class="mt-4 pt-4 border-t border-white/10 text-[11px] text-gray-400">
+                                    30 Anni di Passione, Tecnologia ed Etica al servizio del territorio italiano.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Floating Badge -->
+                        <div class="absolute -bottom-6 -right-6 glass-panel p-4 rounded-xl border border-gold-500/50 shadow-2xl text-left hidden sm:block">
+                            <div class="text-2xl font-bold font-heading text-gold-400">30 ANNI</div>
+                            <div class="text-[10px] font-tech text-gray-300 uppercase">Di Esperienza nei Distretti</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Philosophy & Storytelling -->
+                <div class="lg:col-span-7 space-y-6">
+                    <span class="text-xs font-tech font-bold uppercase tracking-widest text-gold-400 px-3 py-1 bg-gold-500/10 rounded-full border border-gold-500/20">
+                        Umanesimo Tecnologico
+                    </span>
+                    <h2 class="text-3xl sm:text-4xl font-heading font-bold text-white leading-tight">
+                        "La tecnologia non sostituisce l'uomo, ne amplifica la bellezza e il valore nel mondo."
+                    </h2>
+                    
+                    <p class="text-gray-300 leading-relaxed text-sm sm:text-base">
+                        Da oltre trent'anni, <strong>Daniela Fontana</strong> affianca le imprese, le maestranze e i consorzi dei distretti produttivi italiani — dalla sartoria di alta moda all'arredo di design, dalla meccanica di precisione all'agroalimentare.
+                    </p>
+
+                    <p class="text-gray-300 leading-relaxed text-sm sm:text-base">
+                        L'idea del <strong>Digital Twin per il Made in Italy</strong> nasce dalla necessità impellente di non far scomparire l'eredità manifatturiera italiana sotto la spinta della globalizzazione. Il Digital Twin diventa così un ponte tra passato e futuro: un sistema dinamico in grado di proteggere la proprietà intellettuale, formare le nuove generazioni e dare una voce trasparente ad ogni singolo manufatto creato dalle nostre mani.
+                    </p>
+
+                    <!-- Core Principles Cards -->
+                    <div class="grid sm:grid-cols-2 gap-4 pt-2">
+                        <div class="glass-panel p-4 rounded-xl border-l-2 border-l-gold-400">
+                            <div class="font-bold text-white text-sm">Tradizione Dinamica</div>
+                            <div class="text-xs text-gray-400 mt-1">L'artigianato non è un fossile da musealizzare, ma un organismo vivente che si evolve con il digitale.</div>
+                        </div>
+                        <div class="glass-panel p-4 rounded-xl border-l-2 border-l-emerald-400">
+                            <div class="font-bold text-white text-sm">Centralità della Persona</div>
+                            <div class="text-xs text-gray-400 mt-1">L'algoritmo al servizio del sapere manuale, migliorando la qualità del lavoro delle persone.</div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="calculator" class="py-24 bg-navy-950">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto mb-16 space-y-4">
+                <span class="text-xs font-tech font-bold uppercase tracking-widest text-gold-400 px-3 py-1 bg-gold-500/10 rounded-full border border-gold-500/20">
+                    Strumento di Diagnosi Strategica
+                </span>
+                <h2 class="text-3xl sm:text-5xl font-heading font-bold text-white">
+                    Valutatore di Impatto per Distretto
+                </h2>
+                <p class="text-gray-400 text-sm sm:text-base">
+                    Simula la maturità digitale del tuo distretto o della tua filiera e scopri i benefici concreti derivanti dall'adozione del Digital Twin.
+                </p>
+            </div>
+
+            <!-- Calculator Layout -->
+            <div class="grid lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Inputs Controls (Left Column) -->
+                <div class="lg:col-span-6 glass-panel rounded-2xl p-6 sm:p-8 space-y-6 border border-white/10">
+                    <h3 class="text-xl font-heading font-bold text-white border-b border-white/10 pb-4">
+                        <i class="fa-solid fa-sliders text-gold-400 mr-2"></i>Parametri del Distretto
+                    </h3>
+
+                    <!-- Sector Select -->
+                    <div>
+                        <label class="block text-xs font-tech uppercase text-gray-300 mb-2">1. Settore di Riferimento</label>
+                        <select id="calc-sector" class="w-full bg-navy-950 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 text-sm">
+                            <option value="moda">Tessile, Calzature & Alta Moda</option>
+                            <option value="design">Arredo, Ceramica & Design</option>
+                            <option value="meccanica">Meccanica di Precisione & Automotive</option>
+                            <option value="agro">Agroalimentare di Eccellenza & Enologia</option>
+                            <option value="oreficeria">Oreficeria & Mestieri d'Arte</option>
+                        </select>
+                    </div>
+
+                    <!-- Number of Companies Slider -->
+                    <div>
+                        <div class="flex justify-between text-xs font-tech text-gray-300 mb-2">
+                            <span>2. Numero Imprese Coinvolte</span>
+                            <span id="calc-num-companies-val" class="font-bold text-gold-400">50 Imprese</span>
+                        </div>
+                        <input type="range" id="calc-num-companies" min="5" max="300" value="50" class="w-full accent-gold-500 cursor-pointer">
+                    </div>
+
+                    <!-- Export Ratio Slider -->
+                    <div>
+                        <div class="flex justify-between text-xs font-tech text-gray-300 mb-2">
+                            <span>3. Quota Export (%)</span>
+                            <span id="calc-export-val" class="font-bold text-gold-400">65%</span>
+                        </div>
+                        <input type="range" id="calc-export" min="10" max="95" value="65" class="w-full accent-gold-500 cursor-pointer">
+                    </div>
+
+                    <!-- Digital Readiness Level Slider -->
+                    <div>
+                        <div class="flex justify-between text-xs font-tech text-gray-300 mb-2">
+                            <span>4. Grado Digitalizzazione Attuale</span>
+                            <span id="calc-digital-val" class="font-bold text-gold-400">Base (Livello 2/5)</span>
+                        </div>
+                        <input type="range" id="calc-digital" min="1" max="5" value="2" class="w-full accent-gold-500 cursor-pointer">
+                    </div>
+
+                    <div class="p-3 rounded-lg bg-gold-500/10 border border-gold-500/20 text-xs text-gold-300 flex items-center space-x-2">
+                        <i class="fa-solid fa-circle-info text-gold-400 text-base"></i>
+                        <span>Il calcolo combina dati storici di performance e stime di ottimizzazione su filiere integrate.</span>
+                    </div>
+                </div>
+
+                <!-- Outputs Dashboard (Right Column) -->
+                <div class="lg:col-span-6 glass-panel-active rounded-2xl p-6 sm:p-8 space-y-6 border border-gold-500/30">
+                    <h3 class="text-xl font-heading font-bold text-white border-b border-white/10 pb-4 flex justify-between items-center">
+                        <span><i class="fa-solid fa-chart-pie text-gold-400 mr-2"></i>Risultati della Diagnosi</span>
+                        <span class="text-xs font-tech text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Stima Attiva</span>
+                    </h3>
+
+                    <!-- Result Cards Grid -->
+                    <div class="grid grid-cols-2 gap-4">
+                        
+                        <div class="bg-navy-950/80 p-4 rounded-xl border border-white/10">
+                            <div class="text-[11px] font-tech text-gray-400 uppercase">Indice Maturità Digital Twin</div>
+                            <div id="res-score" class="text-2xl sm:text-3xl font-heading font-bold text-gold-400 mt-1">78 / 100</div>
+                            <div class="w-full bg-gray-800 h-2 rounded-full mt-2 overflow-hidden">
+                                <div id="res-score-bar" class="bg-gradient-to-r from-gold-400 to-amber-500 h-full w-[78%] transition-all duration-500"></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-navy-950/80 p-4 rounded-xl border border-white/10">
+                            <div class="text-[11px] font-tech text-gray-400 uppercase">Riduzione Time-to-Market</div>
+                            <div id="res-time" class="text-2xl sm:text-3xl font-heading font-bold text-emerald-400 mt-1">-42%</div>
+                            <div class="text-[10px] text-gray-400 mt-1">Accelerazione prototipo</div>
+                        </div>
+
+                        <div class="bg-navy-950/80 p-4 rounded-xl border border-white/10">
+                            <div class="text-[11px] font-tech text-gray-400 uppercase">Protezione Anti-Contraffazione</div>
+                            <div id="res-dpp" class="text-2xl sm:text-3xl font-heading font-bold text-cyan-400 mt-1">€ 2.8M</div>
+                            <div class="text-[10px] text-gray-400 mt-1">Valore brand tutelato/anno</div>
+                        </div>
+
+                        <div class="bg-navy-950/80 p-4 rounded-xl border border-white/10">
+                            <div class="text-[11px] font-tech text-gray-400 uppercase">Retention Know-How Storico</div>
+                            <div id="res-knowhow" class="text-2xl sm:text-3xl font-heading font-bold text-purple-400 mt-1">95%</div>
+                            <div class="text-[10px] text-gray-400 mt-1">Preservazione mestieri</div>
+                        </div>
+
+                    </div>
+
+                    <!-- Strategic Takeaway Box -->
+                    <div class="p-4 rounded-xl bg-navy-950/90 border border-white/10 space-y-2">
+                        <div class="text-xs font-tech font-bold uppercase text-gold-400" id="res-recommendation-title">Raccomandazione Strategica</div>
+                        <p class="text-xs text-gray-300 leading-relaxed" id="res-recommendation-text">
+                            Per il settore selezionato, l'implementazione del Passaporto Digitale del Prodotto (DPP) e della formazione virtuale nei laboratori del distretto permetterà di abbattere i costi di scarto e attrarre nuovi giovani talenti artigiani.
+                        </p>
+                    </div>
+
+                    <a href="#contact" class="w-full block text-center py-3.5 bg-gradient-to-r from-gold-400 to-gold-600 text-navy-950 font-tech font-bold uppercase tracking-wider rounded-xl hover:shadow-lg transition-all text-sm">
+                        Richiedi Report Dettagliato di Distretto
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <section id="contact" class="py-24 bg-navy-900 border-t border-white/10 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-12 gap-12">
+                
+                <div class="lg:col-span-5 space-y-6">
+                    <span class="text-xs font-tech font-bold uppercase tracking-widest text-gold-400 px-3 py-1 bg-gold-500/10 rounded-full border border-gold-500/20">
+                        Sviluppiamo Insieme il Futuro
+                    </span>
+                    <h2 class="text-3xl sm:text-5xl font-heading font-bold text-white">
+                        Porta il Digital Twin nel tuo Distretto
+                    </h2>
+                    <p class="text-gray-300 text-sm sm:text-base leading-relaxed">
+                        Sei un'impresa, un consorzio di tutela, un ente di formazione o un'istituzione? Unisciti alla rete promossa da <strong>Daniela Fontana</strong> per portare l'innovazione del Digital Twin nel cuore del Made in Italy.
+                    </p>
+
+                    <div class="space-y-4 pt-4 text-sm font-tech">
+                        <div class="flex items-center space-x-3 text-gray-300">
+                            <div class="w-10 h-10 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <span>Milano • Roma • Distretti Industriali d'Italia</span>
+                        </div>
+
+                        <div class="flex items-center space-x-3 text-gray-300">
+                            <div class="w-10 h-10 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <span>info@digitaltwinmadeinitaly.it</span>
+                        </div>
+
+                        <div class="flex items-center space-x-3 text-gray-300">
+                            <div class="w-10 h-10 rounded-lg bg-gold-500/20 text-gold-400 flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-globe"></i>
+                            </div>
+                            <span>Progetto promosso da Daniela Fontana</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7">
+                    <form id="contact-form" class="glass-panel p-8 rounded-2xl border border-white/15 space-y-5 shadow-2xl">
+                        <h3 class="text-xl font-heading font-bold text-white mb-2">Richiedi una Consulenza o Workshop</h3>
+                        
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-tech uppercase text-gray-300 mb-1">Nome e Cognome *</label>
+                                <input type="text" required class="w-full bg-navy-950 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 text-sm" placeholder="Es. Marco Rossi">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-tech uppercase text-gray-300 mb-1">Email Aziendale *</label>
+                                <input type="email" required class="w-full bg-navy-950 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 text-sm" placeholder="m.rossi@azienda.it">
+                            </div>
+                        </div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-tech uppercase text-gray-300 mb-1">Organizzazione / Consorzio</label>
+                                <input type="text" class="w-full bg-navy-950 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 text-sm" placeholder="Nome Impresa o Distretto">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-tech uppercase text-gray-300 mb-1">Area di Maggiore Interesse</label>
+                                <select class="w-full bg-navy-950 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 text-sm">
+                                    <option>Tutti e 4 i Pilastri Integration</option>
+                                    <option>1. Cultura & Museo Digitale</option>
+                                    <option>2. Formazione & Laboratori Virtuali</option>
+                                    <option>3. Informazione & Passaporto DPP</option>
+                                    <option>4. Produzione & Ottimizzazione IoT</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-tech uppercase text-gray-300 mb-1">Messaggio / Esigenze del Distretto</label>
+                            <textarea rows="4" class="w-full bg-navy-950 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-gold-500 text-sm" placeholder="Descrivi brevemente la tua filiera e i tuoi obiettivi di digitalizzazione..."></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full py-4 bg-gradient-to-r from-gold-400 via-gold-500 to-amber-500 text-navy-950 font-tech font-bold uppercase tracking-wider rounded-xl shadow-xl hover:scale-[1.01] transition-all text-sm">
+                            <i class="fa-solid fa-paper-plane mr-2"></i>Invia Candidatura / Richiesta
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-navy-950 text-gray-500 py-10 border-t border-white/10 text-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+            <div>
+                <div class="font-heading text-white font-bold text-sm">DIGITAL TWIN MADE IN ITALY</div>
+                <div class="text-[11px] text-gray-400 mt-0.5">Un'iniziativa concettuale e strategica di Daniela Fontana — 30 Anni di Innovazione nei Distretti.</div>
+            </div>
+            <div class="flex space-x-6 text-gray-400">
+                <a href="#simulator" class="hover:text-gold-400 transition-colors">Simulatore</a>
+                <a href="#pillars" class="hover:text-gold-400 transition-colors">Pilastri</a>
+                <a href="#vision" class="hover:text-gold-400 transition-colors">Vision</a>
+                <a href="#contact" class="hover:text-gold-400 transition-colors">Contatti</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Feedback Modal for Form Submissions -->
+    <div id="modal-feedback" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+        <div class="glass-panel p-8 rounded-2xl max-w-md w-full mx-4 border border-gold-500 text-center space-y-4 shadow-2xl">
+            <div class="w-16 h-16 rounded-full bg-gold-500/20 text-gold-400 flex items-center justify-center text-3xl mx-auto border border-gold-500">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h3 class="text-2xl font-heading font-bold text-white">Richiesta Inviata!</h3>
+            <p class="text-xs text-gray-300 leading-relaxed">
+                Grazie per il tuo interesse nel progetto Digital Twin per il Made in Italy. Il nostro team strategico e Daniela Fontana ti ricontatteranno a breve.
+            </p>
+            <button id="close-modal-btn" class="w-full py-3 bg-gold-500 text-navy-950 font-tech font-bold uppercase rounded-xl">
+                Chiudi
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // 1. Mobile Menu Toggle Logic
+            const mobileBtn = document.getElementById('mobile-toggle');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            mobileBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // Close mobile menu when a link is clicked
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+
+            const canvas = document.getElementById('twinCanvas');
+            const ctx = canvas.getContext('2d');
+
+            let animationFrameId;
+            let width, height;
+            
+            // Configuration & States
+            let currentMode = 'cultura';
+            let rotationAngle = 0;
+            let autoRotate = true;
+            let particleCount = 30;
+
+            // Mode Preset Attributes
+            const modePresets = {
+                cultura: {
+                    colorHex: '#d4af37',
+                    rgb: '212, 175, 55',
+                    title: 'Digitalizzazione e Tutela del Know-How Artigianale',
+                    badge: 'Modello Selezionato: 1. Cultura',
+                    desc: 'Il Digital Twin cattura le tecniche manuali dei maestri d\'arte, convertendo gesti storici in modelli matematici tridimensionali non deperibili.',
+                    hudTitle: 'Modulo Cultura Attivo',
+                    hudVal: 'Archiviazione Memoria Storica',
+                    hudDesc: 'Oltre 30.000 artefatti digitalizzati'
+                },
+                formazione: {
+                    colorHex: '#10b981',
+                    rgb: '16, 185, 129',
+                    title: 'Laboratorio Virtuale e Trasferimento dei Mestieri',
+                    badge: 'Modello Selezionato: 2. Formazione',
+                    desc: 'I gesti dei maestri vengono codificati per consentire un e-learning aptico in realtà virtuale a favore dei giovani apprendisti dei distretti.',
+                    hudTitle: 'Modulo Formazione Attivo',
+                    hudVal: 'Simulazione Aptica VR/AR',
+                    hudDesc: 'Apprendimento accelerato +65%'
+                },
+                informazione: {
+                    colorHex: '#06b6d4',
+                    rgb: '6, 182, 212',
+                    title: 'Passaporto Digitale di Prodotto (DPP) & Anti-Contraffazione',
+                    badge: 'Modello Selezionato: 3. Informazione',
+                    desc: 'Integrazione completa di blockchain e sensori NFC per la tracciabilità trasparente della filiera dal filato o materia prima fino al cliente.',
+                    hudTitle: 'Modulo Informazione Attivo',
+                    hudVal: 'Passaporto Digitale Prodotto',
+                    hudDesc: 'Autenticità Garanzia 100%'
+                },
+                produzione: {
+                    colorHex: '#a855f7',
+                    rgb: '168, 85, 247',
+                    title: 'Manutenzione Predittiva & Efficienza di Distretto',
+                    badge: 'Modello Selezionato: 4. Produzione',
+                    desc: 'Sensori IoT monitorano in tempo reale lo stato dei macchinari e l\'efficienza energetica, azzerando gli scarti e riducendo i tempi morti.',
+                    hudTitle: 'Modulo Produzione Attivo',
+                    hudVal: 'Ottimizzazione IoT & AI',
+                    hudDesc: 'Manutenzione predittiva attiva'
+                }
+            };
+
+            function resizeCanvas() {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width * window.devicePixelRatio;
+                canvas.height = rect.height * window.devicePixelRatio;
+                width = canvas.width;
+                height = canvas.height;
+            }
+
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            // Particle Nodes logic inside canvas
+            let nodes = [];
+            function initNodes() {
+                nodes = [];
+                for (let i = 0; i < particleCount; i++) {
+                    nodes.push({
+                        x: (Math.random() - 0.5) * 200,
+                        y: (Math.random() - 0.5) * 200,
+                        z: (Math.random() - 0.5) * 200,
+                        radius: Math.random() * 3 + 2,
+                        pulse: Math.random() * Math.PI
+                    });
+                }
+            }
+            initNodes();
+
+            function renderCanvas() {
+                ctx.clearRect(0, 0, width, height);
+
+                const preset = modePresets[currentMode];
+                const centerX = width / 2;
+                const centerY = height / 2;
+                const scale = Math.min(width, height) / 500;
+
+                if (autoRotate) {
+                    rotationAngle += 0.008;
+                }
+
+                // Draw central Wireframe Cuboid / Mesh Twin
+                ctx.save();
+                ctx.translate(centerX, centerY);
+
+                // Draw 2 Twin Orbits (Physical Left, Cyber Right)
+                const offset = 110 * scale;
+
+                // --- 1. PHYSICAL ASSET HUB (LEFT) ---
+                ctx.save();
+                ctx.translate(-offset, 0);
+                drawWireframeGlobe(ctx, rotationAngle, preset.colorHex, scale * 0.8, false);
+                ctx.restore();
+
+                // --- 2. CYBER DIGITAL TWIN HUB (RIGHT) ---
+                ctx.save();
+                ctx.translate(offset, 0);
+                drawWireframeGlobe(ctx, -rotationAngle * 1.2, preset.colorHex, scale * 0.8, true);
+                ctx.restore();
+
+                // --- 3. DATA STREAM CONNECTIONS BETWEEN PHYSICAL & TWIN ---
+                const time = Date.now() * 0.003;
+                ctx.beginPath();
+                ctx.strokeStyle = `rgba(${preset.rgb}, 0.4)`;
+                ctx.lineWidth = 2 * window.devicePixelRatio;
+                ctx.setLineDash([8, 6]);
+                ctx.lineDashOffset = -time * 20;
+
+                ctx.moveTo(-offset, -30 * scale);
+                ctx.lineTo(offset, -30 * scale);
+
+                ctx.moveTo(-offset, 0);
+                ctx.lineTo(offset, 0);
+
+                ctx.moveTo(-offset, 30 * scale);
+                ctx.lineTo(offset, 30 * scale);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Draw pulsing sync data packet dots
+                const packetX = ((Math.sin(time) + 1) / 2) * (offset * 2) - offset;
+                ctx.beginPath();
+                ctx.arc(packetX, 0, 6 * scale, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = preset.colorHex;
+                ctx.shadowBlur = 15;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // Center labels
+                ctx.font = `${Math.max(10, 11 * scale)}px 'Space Grotesk', sans-serif`;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.textAlign = 'center';
+                ctx.fillText('FILIERA FISICA', -offset, 110 * scale);
+                ctx.fillStyle = preset.colorHex;
+                ctx.fillText('DIGITAL TWIN (SYNC)', offset, 110 * scale);
+
+                ctx.restore();
+
+                animationFrameId = requestAnimationFrame(renderCanvas);
+            }
+
+            // Helper to draw 3D rotating node spheres inside canvas
+            function drawWireframeGlobe(ctx, angle, colorHex, sizeScale, isCyber) {
+                const numRings = 6;
+                ctx.strokeStyle = colorHex;
+                ctx.lineWidth = 1.5 * window.devicePixelRatio;
+
+                for (let i = 0; i < numRings; i++) {
+                    const r = (i + 1) * (15 * sizeScale);
+                    ctx.save();
+                    ctx.rotate(angle + (i * 0.2));
+                    ctx.beginPath();
+                    if (isCyber) {
+                        ctx.setLineDash([4, 4]);
+                    }
+                    ctx.ellipse(0, 0, r, r * 0.5, angle, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // Core pulse
+                ctx.beginPath();
+                ctx.arc(0, 0, 12 * sizeScale, 0, Math.PI * 2);
+                ctx.fillStyle = colorHex;
+                ctx.fill();
+            }
+
+            renderCanvas();
+
+            const modeBtns = document.querySelectorAll('.twin-mode-btn');
+            const twinStatusText = document.getElementById('twin-status-text');
+            const hudTitle = document.getElementById('hud-title');
+            const hudVal = document.getElementById('hud-value');
+            const hudDesc = document.getElementById('hud-desc');
+            const modeBadgeLabel = document.getElementById('mode-badge-label');
+            const modeTitleLabel = document.getElementById('mode-title-label');
+            const modeDescLabel = document.getElementById('mode-desc-label');
+
+            modeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    modeBtns.forEach(b => {
+                        b.classList.remove('glass-panel-active');
+                        b.classList.add('glass-panel');
+                    });
+
+                    btn.classList.remove('glass-panel');
+                    btn.classList.add('glass-panel-active');
+
+                    currentMode = btn.getAttribute('data-mode');
+                    const preset = modePresets[currentMode];
+
+                    // Update HUD & Labels
+                    twinStatusText.style.color = preset.colorHex;
+                    hudTitle.textContent = preset.hudTitle;
+                    hudVal.textContent = preset.hudVal;
+                    hudDesc.textContent = preset.hudDesc;
+
+                    modeBadgeLabel.textContent = preset.badge;
+                    modeTitleLabel.textContent = preset.title;
+                    modeDescLabel.textContent = preset.desc;
+                });
+            });
+
+            // Toggle Rotation Checkbox
+            const rotateToggle = document.getElementById('twin-rotate-toggle');
+            rotateToggle.addEventListener('change', (e) => {
+                autoRotate = e.target.checked;
+            });
+
+            // Slider Density
+            const densitySlider = document.getElementById('twin-density-slider');
+            densitySlider.addEventListener('input', (e) => {
+                particleCount = parseInt(e.target.value);
+                initNodes();
+            });
+
+            const sectorSelect = document.getElementById('calc-sector');
+            const numCompaniesSlider = document.getElementById('calc-num-companies');
+            const numCompaniesVal = document.getElementById('calc-num-companies-val');
+            const exportSlider = document.getElementById('calc-export');
+            const exportVal = document.getElementById('calc-export-val');
+            const digitalSlider = document.getElementById('calc-digital');
+            const digitalVal = document.getElementById('calc-digital-val');
+
+            const resScore = document.getElementById('res-score');
+            const resScoreBar = document.getElementById('res-score-bar');
+            const resTime = document.getElementById('res-time');
+            const resDpp = document.getElementById('res-dpp');
+            const resKnowhow = document.getElementById('res-knowhow');
+            const resRecTitle = document.getElementById('res-recommendation-title');
+            const resRecText = document.getElementById('res-recommendation-text');
+
+            const digitalLevelsText = [
+                'Iniziale (Livello 1/5)',
+                'Base (Livello 2/5)',
+                'Intermedio (Livello 3/5)',
+                'Avanzato (Livello 4/5)',
+                'Leader 4.0 (Livello 5/5)'
+            ];
+
+            function updateCalculator() {
+                const sector = sectorSelect.value;
+                const numCompanies = parseInt(numCompaniesSlider.value);
+                const exportPct = parseInt(exportSlider.value);
+                const digitalLevel = parseInt(digitalSlider.value);
+
+                // Update Slider Labels
+                numCompaniesVal.textContent = `${numCompanies} Imprese`;
+                exportVal.textContent = `${exportPct}%`;
+                digitalVal.textContent = digitalLevelsText[digitalLevel - 1];
+
+                // Calculations
+                const score = Math.min(99, Math.round(35 + (digitalLevel * 10) + (exportPct * 0.25) + (numCompanies * 0.05)));
+                const timeReduction = Math.round(20 + (digitalLevel * 5) + (exportPct * 0.15));
+                const dppValue = ((numCompanies * 0.08) + (exportPct * 0.05)).toFixed(1);
+                const knowhowRetention = Math.min(98, Math.round(70 + (digitalLevel * 5)));
+
+                // Update UI Results
+                resScore.textContent = `${score} / 100`;
+                resScoreBar.style.width = `${score}%`;
+                resTime.textContent = `-${timeReduction}%`;
+                resDpp.textContent = `€ ${dppValue}M`;
+                resKnowhow.textContent = `${knowhowRetention}%`;
+
+                // Custom Recommendations per sector
+                if (sector === 'moda') {
+                    resRecTitle.textContent = 'Raccomandazione: Passaporto Digitale & Tracciabilità Filato';
+                    resRecText.textContent = 'Nel settore Moda e Tessile, il Digital Twin consente la notarizzazione dei tessuti pregiati e della sostenibilità della tintura, proteggendo il distretto dalle imitazioni est-europee e asiatiche.';
+                } else if (sector === 'design') {
+                    resRecTitle.textContent = 'Raccomandazione: Prototipazione 3D Zero-Scarto & Arredo';
+                    resRecText.textContent = 'Per l\'Arredo e il Design, il simulatore permette di testare la resistenza meccanica e l\'ergonomia del prodotto prima ancora di tagliare il primo pezzo di legno o pietra.';
+                } else if (sector === 'meccanica') {
+                    resRecTitle.textContent = 'Raccomandazione: Manutenzione Predittiva IoT su Linee Robotizzate';
+                    resRecText.textContent = 'L\'integrazione dei sensori di vibrazione sui macchinari riduce i fermi macchina imprevisti e ottimizza le forniture just-in-time per le filiere automotive.';
+                } else if (sector === 'agro') {
+                    resRecTitle.textContent = 'Raccomandazione: Tracciabilità Enogastronomica DOCG/DOP';
+                    resRecText.textContent = 'La digitalizzazione dei parametri climatici e di fermentazione assicura la perfetta replicabilità della qualità di annata in annata.';
+                } else {
+                    resRecTitle.textContent = 'Raccomandazione: Conservazione dei Gesti dei Maestri d\'Arte';
+                    resRecText.textContent = 'Cattura dei movimenti della lavorazione manuale in oreficeria e ceramica per la trasmissione del know-how alle future generazioni di artigiani.';
+                }
+            }
+
+            // Event Listeners for Calculator
+            sectorSelect.addEventListener('change', updateCalculator);
+            numCompaniesSlider.addEventListener('input', updateCalculator);
+            exportSlider.addEventListener('input', updateCalculator);
+            digitalSlider.addEventListener('input', updateCalculator);
+
+            updateCalculator();
+
+            const contactForm = document.getElementById('contact-form');
+            const feedbackModal = document.getElementById('modal-feedback');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                feedbackModal.classList.remove('hidden');
+                setTimeout(() => {
+                    feedbackModal.classList.remove('opacity-0');
+                }, 10);
+            });
+
+            closeModalBtn.addEventListener('click', () => {
+                feedbackModal.classList.add('opacity-0');
+                setTimeout(() => {
+                    feedbackModal.classList.add('hidden');
+                    contactForm.reset();
+                }, 300);
+            });
+
+        });
+    </script>
+</body>
+</html>
