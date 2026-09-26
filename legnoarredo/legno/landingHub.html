@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Senseable Wood & IA — Portal Hub</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            slateDark: '#0f172a',
+            slatePanel: '#1e293b',
+            slateBorder: '#334155',
+            accentAmber: '#f59e0b',
+            accentCyan: '#06b6d4',
+            accentPurple: '#8b5cf6'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-slateDark text-slate-100">
+
+  <!-- Header Banner -->
+  <header class="bg-slatePanel/90 border-b border-slateBorder sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-accentAmber via-accentCyan to-accentPurple flex items-center justify-center shadow-lg shadow-cyan-500/10">
+          <i class="fa-solid fa-layer-group text-slateDark text-2xl font-black"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white">
+            Senseable Wood & IA Hub
+          </h1>
+          <p class="text-xs text-slate-400">Piattaforma Unificata Progetti, Simulazioni e Assistenti IA</p>
+        </div>
+      </div>
+      <span class="px-3 py-1 text-xs font-semibold bg-slateDark border border-slateBorder rounded-full text-cyan-400">
+        3 Landing Page Collegate
+      </span>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="pt-10 pb-4 px-4 sm:px-6 text-center max-w-3xl mx-auto space-y-3">
+    <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+      Seleziona una Landing Page
+    </h2>
+    <p class="text-slate-400 text-sm">
+      Accedi alle differenti aree di progetto: configuratori di prodotto 3D, analisi FEM e Digital Twin, oppure gestione CRM e Avatar IA.
+    </p>
+  </section>
+
+  <!-- Grid Landing Pages -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex-1 w-full">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+      <!-- LANDING PAGE 1 -->
+      <a href="landing1.html" class="group bg-slatePanel border border-slateBorder hover:border-accentAmber/60 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-amber-500/10 flex flex-col justify-between">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-accentAmber flex items-center justify-center text-xl">
+              <i class="fa-solid fa-cubes"></i>
+            </div>
+            <i class="fa-solid fa-arrow-right text-slate-500 group-hover:text-accentAmber transition-transform group-hover:translate-x-1"></i>
+          </div>
+
+          <div class="space-y-1">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Parte 01 • File 1–11</span>
+            <h3 class="text-lg font-bold text-white group-hover:text-amber-300 transition">Piattaforma Digitale & Simulatori 3D</h3>
+          </div>
+
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Metodologia integrata Cliente–Progettista CAD–Produttore CAM, configuratori di armadi, boiserie decorate con ornamenti e fregi storici, pavimenti in legno e mosaici complessi (tra cui il mosaico cosmatesco di Westminster).
+          </p>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-slateBorder/50 flex items-center justify-between text-xs text-slate-400">
+          <span>Configuratori & Mosaici</span>
+          <span class="font-semibold text-amber-400 group-hover:underline">Apri landing1.html &rarr;</span>
+        </div>
+      </a>
+
+      <!-- LANDING PAGE 2 -->
+      <a href="landing2.html" class="group bg-slatePanel border border-slateBorder hover:border-accentCyan/60 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-500/10 flex flex-col justify-between">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-accentCyan flex items-center justify-center text-xl">
+              <i class="fa-solid fa-microchip"></i>
+            </div>
+            <i class="fa-solid fa-arrow-right text-slate-500 group-hover:text-accentCyan transition-transform group-hover:translate-x-1"></i>
+          </div>
+
+          <div class="space-y-1">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Parte 02 • File 12–27</span>
+            <h3 class="text-lg font-bold text-white group-hover:text-cyan-300 transition">Analisi FEM, Digital Twin & Ambienti 3D</h3>
+          </div>
+
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Analisi statiche e deformazioni FEM, generazione di arredi da prompt IA e da foto, creazione di Digital Twin e ricostruzione 3D interattiva di interi ambienti (cucina, salotto, camera da letto e appartamento).
+          </p>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-slateBorder/50 flex items-center justify-between text-xs text-slate-400">
+          <span>Simulazioni & Digital Twin</span>
+          <span class="font-semibold text-cyan-400 group-hover:underline">Apri landing2.html &rarr;</span>
+        </div>
+      </a>
+
+      <!-- LANDING PAGE 3 -->
+      <a href="landing3.html" class="group bg-slatePanel border border-slateBorder hover:border-accentPurple/60 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-purple-500/10 flex flex-col justify-between">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-accentPurple flex items-center justify-center text-xl">
+              <i class="fa-solid fa-headset"></i>
+            </div>
+            <i class="fa-solid fa-arrow-right text-slate-500 group-hover:text-accentPurple transition-transform group-hover:translate-x-1"></i>
+          </div>
+
+          <div class="space-y-1">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-purple-400">Parte 03 • File 28–32</span>
+            <h3 class="text-lg font-bold text-white group-hover:text-purple-300 transition">CRM Aziendale, Portale Web & Avatar IA</h3>
+          </div>
+
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Integrazione dell'IA nei processi aziendali (CRM e portale web fra tradizione e innovazione), portfolio digitale e assistenti virtuali IA attivi 24/7 con interazione vocale e supporto clienti.
+          </p>
+        </div>
+
+        <div class="mt-6 pt-4 border-t border-slateBorder/50 flex items-center justify-between text-xs text-slate-400">
+          <span>CRM & Voice Avatar</span>
+          <span class="font-semibold text-purple-400 group-hover:underline">Apri landing3.html &rarr;</span>
+        </div>
+      </a>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slatePanel/80 border-t border-slateBorder py-6 text-center text-xs text-slate-500">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p>Piattaforma Unificata Senseable Wood & IA</p>
+      <p class="text-slate-600">Posizionare questo file come <code class="text-cyan-400">index.html</code> nella stessa cartella di <code class="text-amber-400">landing1.html</code>, <code class="text-cyan-400">landing2.html</code> e <code class="text-purple-400">landing3.html</code>[cite: 18].</p>
+    </div>
+  </footer>
+
+</body>
+</html>

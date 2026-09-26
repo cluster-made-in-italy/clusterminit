@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="it" class="h-full bg-[#0b0d11] text-slate-200">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SenseAble Wood — Landing Page Simulatori 3D</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Manrope', 'sans-serif'],
+          },
+          colors: {
+            wood: {
+              100: '#f7edde',
+              300: '#d9b288',
+              500: '#d4a373',
+              600: '#b87c47',
+              700: '#8c582d',
+            },
+            dark: {
+              base: '#0b0d11',
+              surface: '#12161f',
+              panel: '#181d29',
+              card: '#202636',
+              border: '#2c354a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    .glass-card {
+      background: rgba(24, 29, 41, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card:hover {
+      border-color: rgba(212, 163, 115, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px -10px rgba(212, 163, 115, 0.15);
+    }
+    .wood-gradient-text {
+      background: linear-gradient(135deg, #f7edde 0%, #d4a373 50%, #b87c47 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+
+<body class="min-h-full flex flex-col font-sans bg-dark-base text-slate-200 antialiased selection:bg-wood-500 selection:text-dark-base">
+
+  <!-- HEADER -->
+  <header class="bg-dark-surface/90 border-b border-dark-border sticky top-0 z-50 backdrop-blur-md px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-wood-500 to-wood-700 flex items-center justify-center font-display font-extrabold text-dark-base text-xl shadow-lg shadow-wood-500/20">
+          SAW
+        </div>
+        <div>
+          <h1 class="font-display font-bold text-lg text-slate-100 leading-tight">SenseAble Wood</h1>
+          <p class="text-xs text-wood-300 font-medium">Digital Product Platform & Simulatori 3D</p>
+        </div>
+      </div>
+      <div class="hidden sm:flex items-center space-x-2 text-xs text-slate-400 bg-dark-base/60 px-3 py-1.5 rounded-full border border-dark-border">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>11 Simulatori Interattivi Collegati</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="relative py-14 px-6 overflow-hidden border-b border-dark-border/50">
+    <div class="max-w-4xl mx-auto text-center relative z-10 space-y-4">
+      <span class="text-xs font-bold uppercase tracking-widest text-wood-500 bg-wood-500/10 px-3.5 py-1.5 rounded-full border border-wood-500/20">
+        Piattaforma Digitale Legno & Paramettrico
+      </span>
+      <h2 class="text-3xl sm:text-5xl font-display font-extrabold tracking-tight text-slate-100">
+        Esplora i Simulatori <span class="wood-gradient-text">SenseAble Wood</span>
+      </h2>
+      <p class="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
+        Accedi agli 11 moduli interattivi di configurazione 3D per esplorare la metodologia di progettazione, le strutture curve, le boiserie decorative, i pavimenti in legno e i mosaici complessi.
+      </p>
+    </div>
+  </section>
+
+  <!-- MAIN GRID OF SIMULATORS -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-6 py-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- SIMULATORE 1 -->
+      <article class="glass-card rounded-2xl p-6 flex flex-col justify-between group">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-wood-500 bg-wood-500/10 px-2.5 py-1 rounded border border-wood-500/20">01</span>
+            <i class="fa-solid fa-cubes text-slate-500 group-hover:text-wood-500 transition-colors text-lg"></i>
+          </div>
+          <h3 class="text-lg font-display font-bold text-slate-100 group-hover:text-wood-300 transition-colors">
+            Digital Product Platform
+          </h3>
+          <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border/60 pt-3">
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span><strong>Metodologia</strong> integrata di progettazione.</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Flusso <strong>Cliente – Progettista CAD – Produttore CAM</strong>.</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Prodotti speciali <strong>Senseable Woods</strong>.</span>
+            </li>
+          </ul>
+        </div>
+        <div class="pt-6">
+          <a href="1_senseable_wood_digital_product_platform2.html" class="w-full py-2.5 px-4 rounded-xl bg-wood-500/10 hover:bg-wood-500 hover:text-dark-base text-wood-300 font-semibold text-xs transition-all border border-wood-500/30 flex items-center justify-between group-hover:shadow-lg group-hover:shadow-wood-500/20">
+            <span>Apri Simulatore 1</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </article>
+
+      <!-- SIMULATORE 2 -->
+      <article class="glass-card rounded-2xl p-6 flex flex-col justify-between group">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-wood-500 bg-wood-500/10 px-2.5 py-1 rounded border border-wood-500/20">02</span>
+            <i class="fa-solid fa-bezier-curve text-slate-500 group-hover:text-wood-500 transition-colors text-lg"></i>
+          </div>
+          <h3 class="text-lg font-display font-bold text-slate-100 group-hover:text-wood-300 transition-colors">
+            Configuratore Armadio & Curva
+          </h3>
+          <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border/60 pt-3">
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Generazione e gestione delle <strong>linee curve</strong>.</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Processo di <strong>estrusione</strong> e sagomatura.</span>
+            </li>
+          </ul>
+        </div>
+        <div class="pt-6">
+          <a href="2_armadio 3.html" class="w-full py-2.5 px-4 rounded-xl bg-wood-500/10 hover:bg-wood-500 hover:text-dark-base text-wood-300 font-semibold text-xs transition-all border border-wood-500/30 flex items-center justify-between group-hover:shadow-lg group-hover:shadow-wood-500/20">
+            <span>Apri Simulatore 2</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </article>
+
+      <!-- SIMULATORE 3 -->
+      <article class="glass-card rounded-2xl p-6 flex flex-col justify-between group">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-wood-500 bg-wood-500/10 px-2.5 py-1 rounded border border-wood-500/20">03</span>
+            <i class="fa-solid fa-layer-group text-slate-500 group-hover:text-wood-500 transition-colors text-lg"></i>
+          </div>
+          <h3 class="text-lg font-display font-bold text-slate-100 group-hover:text-wood-300 transition-colors">
+            Sistema Boiserie
+          </h3>
+          <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border/60 pt-3">
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Esplorazione di <strong>altri possibili usi del legno</strong>.</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Configurazione di <strong>boiserie</strong> modulari.</span>
+            </li>
+          </ul>
+        </div>
+        <div class="pt-6">
+          <a href="3_boiserie.html" class="w-full py-2.5 px-4 rounded-xl bg-wood-500/10 hover:bg-wood-500 hover:text-dark-base text-wood-300 font-semibold text-xs transition-all border border-wood-500/30 flex items-center justify-between group-hover:shadow-lg group-hover:shadow-wood-500/20">
+            <span>Apri Simulatore 3</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </article>
+
+      <!-- SIMULATORE 4 -->
+      <article class="glass-card rounded-2xl p-6 flex flex-col justify-between group">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-wood-500 bg-wood-500/10 px-2.5 py-1 rounded border border-wood-500/20">04</span>
+            <i class="fa-solid fa-crown text-slate-500 group-hover:text-wood-500 transition-colors text-lg"></i>
+          </div>
+          <h3 class="text-lg font-display font-bold text-slate-100 group-hover:text-wood-300 transition-colors">
+            Boiserie con Ornamenti
+          </h3>
+          <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border/60 pt-3">
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Integrazione di <strong>ornamenti di qualunque tipo</strong>.</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Applicazione a <strong>qualunque superficie</strong> (anche mobili).</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span><strong>Estrusione di ornamenti storici</strong>, fregi e gruppi ornamentali.</span>
+            </li>
+          </ul>
+        </div>
+        <div class="pt-6">
+          <a href="4_boiserie con ornamento.html" class="w-full py-2.5 px-4 rounded-xl bg-wood-500/10 hover:bg-wood-500 hover:text-dark-base text-wood-300 font-semibold text-xs transition-all border border-wood-500/30 flex items-center justify-between group-hover:shadow-lg group-hover:shadow-wood-500/20">
+            <span>Apri Simulatore 4</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </article>
+
+      <!-- SIMULATORE 5 -->
+      <article class="glass-card rounded-2xl p-6 flex flex-col justify-between group">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-wood-500 bg-wood-500/10 px-2.5 py-1 rounded border border-wood-500/20">05</span>
+            <i class="fa-solid fa-border-all text-slate-500 group-hover:text-wood-500 transition-colors text-lg"></i>
+          </div>
+          <h3 class="text-lg font-display font-bold text-slate-100 group-hover:text-wood-300 transition-colors">
+            Mosaico Ligneo
+          </h3>
+          <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border/60 pt-3">
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span><strong>Qualunque superficie</strong> può diventare un mosaico.</span>
+            </li>
+          </ul>
+        </div>
+        <div class="pt-6">
+          <a href="5_mosaico1.html" class="w-full py-2.5 px-4 rounded-xl bg-wood-500/10 hover:bg-wood-500 hover:text-dark-base text-wood-300 font-semibold text-xs transition-all border border-wood-500/30 flex items-center justify-between group-hover:shadow-lg group-hover:shadow-wood-500/20">
+            <span>Apri Simulatore 5</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </article>
+
+      <!-- SIMULATORE 6 -->
+      <article class="glass-card rounded-2xl p-6 flex flex-col justify-between group">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-wood-500 bg-wood-500/10 px-2.5 py-1 rounded border border-wood-500/20">06</span>
+            <i class="fa-solid fa-braille text-slate-500 group-hover:text-wood-500 transition-colors text-lg"></i>
+          </div>
+          <h3 class="text-lg font-display font-bold text-slate-100 group-hover:text-wood-300 transition-colors">
+            Mosaici Avanzati & Parakeet
+          </h3>
+          <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border/60 pt-3">
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Arricchimento pattern via <strong>Parakeet</strong> (plugin Rhino).</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Generazione di <strong>mosaici islamici</strong>.</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Composizioni di <strong>mosaici a due colori</strong>.</span>
+            </li>
+          </ul>
+        </div>
+        <div class="pt-6">
+          <a href="6_mosaici finali 1.html" class="w-full py-2.5 px-4 rounded-xl bg-wood-500/10 hover:bg-wood-500 hover:text-dark-base text-wood-300 font-semibold text-xs transition-all border border-wood-500/30 flex items-center justify-between group-hover:shadow-lg group-hover:shadow-wood-500/20">
+            <span>Apri Simulatore 6</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </article>
+
+      <!-- SIMULATORE 7 -->
+      <article class="glass-card rounded-2xl p-6 flex flex-col justify-between group">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-wood-500 bg-wood-500/10 px-2.5 py-1 rounded border border-wood-500/20">07</span>
+            <i class="fa-solid fa-grip-horizontal text-slate-500 group-hover:text-wood-500 transition-colors text-lg"></i>
+          </div>
+          <h3 class="text-lg font-display font-bold text-slate-100 group-hover:text-wood-300 transition-colors">
+            Pavimenti in Legno 1
+          </h3>
+          <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border/60 pt-3">
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span><strong>Pavimenti in legno a mosaico</strong>.</span>
+            </li>
+          </ul>
+        </div>
+        <div class="pt-6">
+          <a href="7_pavimenti1.html" class="w-full py-2.5 px-4 rounded-xl bg-wood-500/10 hover:bg-wood-500 hover:text-dark-base text-wood-300 font-semibold text-xs transition-all border border-wood-500/30 flex items-center justify-between group-hover:shadow-lg group-hover:shadow-wood-500/20">
+            <span>Apri Simulatore 7</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </article>
+
+      <!-- SIMULATORE 8 -->
+      <article class="glass-card rounded-2xl p-6 flex flex-col justify-between group">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-wood-500 bg-wood-500/10 px-2.5 py-1 rounded border border-wood-500/20">08</span>
+            <i class="fa-solid fa-palette text-slate-500 group-hover:text-wood-500 transition-colors text-lg"></i>
+          </div>
+          <h3 class="text-lg font-display font-bold text-slate-100 group-hover:text-wood-300 transition-colors">
+            Pavimenti Multicolore
+          </h3>
+          <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border/60 pt-3">
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span><strong>Pavimenti mosaici multicolore</strong> con combinazioni essenze.</span>
+            </li>
+          </ul>
+        </div>
+        <div class="pt-6">
+          <a href="8_pavimenti 2.html" class="w-full py-2.5 px-4 rounded-xl bg-wood-500/10 hover:bg-wood-500 hover:text-dark-base text-wood-300 font-semibold text-xs transition-all border border-wood-500/30 flex items-center justify-between group-hover:shadow-lg group-hover:shadow-wood-500/20">
+            <span>Apri Simulatore 8</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </article>
+
+      <!-- SIMULATORE 9 -->
+      <article class="glass-card rounded-2xl p-6 flex flex-col justify-between group">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-wood-500 bg-wood-500/10 px-2.5 py-1 rounded border border-wood-500/20">09</span>
+            <i class="fa-solid fa-vector-square text-slate-500 group-hover:text-wood-500 transition-colors text-lg"></i>
+          </div>
+          <h3 class="text-lg font-display font-bold text-slate-100 group-hover:text-wood-300 transition-colors">
+            Mosaico con Figura Centrale
+          </h3>
+          <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border/60 pt-3">
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Composizione mosaico ed <strong>inserimento di una figura centrale</strong>.</span>
+            </li>
+          </ul>
+        </div>
+        <div class="pt-6">
+          <a href="9_pavimenti 3.html" class="w-full py-2.5 px-4 rounded-xl bg-wood-500/10 hover:bg-wood-500 hover:text-dark-base text-wood-300 font-semibold text-xs transition-all border border-wood-500/30 flex items-center justify-between group-hover:shadow-lg group-hover:shadow-wood-500/20">
+            <span>Apri Simulatore 9</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </article>
+
+      <!-- SIMULATORE 10 -->
+      <article class="glass-card rounded-2xl p-6 flex flex-col justify-between group">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-wood-500 bg-wood-500/10 px-2.5 py-1 rounded border border-wood-500/20">10</span>
+            <i class="fa-solid fa-sliders text-slate-500 group-hover:text-wood-500 transition-colors text-lg"></i>
+          </div>
+          <h3 class="text-lg font-display font-bold text-slate-100 group-hover:text-wood-300 transition-colors">
+            Simulatore Pavimenti 3D
+          </h3>
+          <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border/60 pt-3">
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Configurazioni estese e <strong>maggiori scelte</strong>.</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Parametri avanzati e <strong>ulteriori rifiniture</strong>.</span>
+            </li>
+          </ul>
+        </div>
+        <div class="pt-6">
+          <a href="10_simulatore_3d_pavimenti_in_legno1.html" class="w-full py-2.5 px-4 rounded-xl bg-wood-500/10 hover:bg-wood-500 hover:text-dark-base text-wood-300 font-semibold text-xs transition-all border border-wood-500/30 flex items-center justify-between group-hover:shadow-lg group-hover:shadow-wood-500/20">
+            <span>Apri Simulatore 10</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </article>
+
+      <!-- SIMULATORE 11 -->
+      <article class="glass-card rounded-2xl p-6 flex flex-col justify-between group">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono font-bold text-wood-500 bg-wood-500/10 px-2.5 py-1 rounded border border-wood-500/20">11</span>
+            <i class="fa-solid fa-monument text-slate-500 group-hover:text-wood-500 transition-colors text-lg"></i>
+          </div>
+          <h3 class="text-lg font-display font-bold text-slate-100 group-hover:text-wood-300 transition-colors">
+            Mosaico Cosmatesco
+          </h3>
+          <ul class="space-y-2 text-xs text-slate-300 border-t border-dark-border/60 pt-3">
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Generazione di <strong>mosaici molto complessi</strong>.</span>
+            </li>
+            <li class="flex items-start space-x-2">
+              <i class="fa-solid fa-angle-right text-wood-500 mt-0.5 shrink-0"></i>
+              <span>Pattern geometrico d'ispirazione <strong>Westminster</strong>.</span>
+            </li>
+          </ul>
+        </div>
+        <div class="pt-6">
+          <a href="11_simulatore_3d_mosaico_cosmatesco_di_westminster (1).html" class="w-full py-2.5 px-4 rounded-xl bg-wood-500/10 hover:bg-wood-500 hover:text-dark-base text-wood-300 font-semibold text-xs transition-all border border-wood-500/30 flex items-center justify-between group-hover:shadow-lg group-hover:shadow-wood-500/20">
+            <span>Apri Simulatore 11</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </a>
+        </div>
+      </article>
+
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-dark-surface border-t border-dark-border py-6 px-6 mt-12 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p>© SenseAble Wood — Digital Product Platform. Tutti i diritti riservati.</p>
+      <p class="font-mono text-[11px] text-slate-400">Hub 11 Simulatori Interattivi 3D</p>
+    </div>
+  </footer>
+
+</body>
+</html>

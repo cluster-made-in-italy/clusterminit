@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Japandi Oak — Configuratore Tavolo Rovere Nodato & Metallo</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            japandiBg: '#f4f1ea',
+            japandiPanel: '#1e2022',
+            japandiBorder: '#34373c',
+            oakWarm: '#c89d66',
+            oakLight: '#e2be8a',
+            oakDark: '#785328',
+            metalBlack: '#18181b',
+            accentGreen: '#4d7c0f'
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Three.js e OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #121315;
+      color: #f3f4f6;
+      overflow: hidden;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #18191c;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #34373c;
+      border-radius: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #c89d66;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col select-none">
+
+  <!-- Header / Navigation Bar -->
+  <header class="h-16 bg-japandiPanel/95 border-b border-japandiBorder px-6 flex items-center justify-between shrink-0 z-30">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-lg bg-gradient-to-tr from-amber-700 via-amber-600 to-amber-200 flex items-center justify-center shadow-lg shadow-amber-900/30">
+        <i class="fa-solid fa-layer-group text-slate-950 font-bold text-lg"></i>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="text-base font-bold tracking-tight text-white">Japandi Wood Studio</h1>
+          <span class="px-2 py-0.5 text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 rounded-full">
+            Rovere Nodato & Metallo
+          </span>
+        </div>
+        <p class="text-xs text-slate-400">Configuratore 3D Tavolo da Pranzo Minimalista</p>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="hidden md:flex items-center space-x-1 bg-black/40 p-1 rounded-xl border border-japandiBorder">
+      <button onclick="switchTab('dims')" id="tab-btn-dims" class="tab-btn px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 text-slate-950 shadow transition-all">
+        <i class="fa-solid fa-ruler-combined mr-1.5"></i> 1. Dimensioni & Piano
+      </button>
+      <button onclick="switchTab('legs')" id="tab-btn-legs" class="tab-btn px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-all">
+        <i class="fa-solid fa-shapes mr-1.5"></i> 2. Gambe Metallo
+      </button>
+      <button onclick="switchTab('finish')" id="tab-btn-finish" class="tab-btn px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-all">
+        <i class="fa-solid fa-tree mr-1.5"></i> 3. Nodi & Finitura Legno
+      </button>
+      <button onclick="switchTab('room')" id="tab-btn-room" class="tab-btn px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-all">
+        <i class="fa-solid fa-sun mr-1.5"></i> 4. Ambiente Soggiorno
+      </button>
+    </nav>
+
+    <!-- Quick Actions -->
+    <div class="flex items-center space-x-2">
+      <button onclick="exportSummary()" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white transition shadow flex items-center space-x-1.5">
+        <i class="fa-solid fa-file-pdf"></i>
+        <span class="hidden sm:inline">Scheda Tecnica</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Viewport + Sidebar -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- SIDEBAR PARAMETRI -->
+    <aside class="w-80 lg:w-96 bg-japandiPanel/90 border-r border-japandiBorder flex flex-col shrink-0 h-full overflow-y-auto custom-scrollbar z-20">
+      
+      <!-- TAB 1: DIMENSIONI -->
+      <div id="panel-dims" class="tab-panel p-5 space-y-6">
+        <div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-ruler-horizontal mr-2"></i> Ingrassi e Proporzioni Piano
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Imposta la grandezza del piano in legno massello di rovere nodato.</p>
+        </div>
+
+        <div class="space-y-4 bg-black/30 p-4 rounded-xl border border-japandiBorder">
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Lunghezza Piano (L):</span>
+              <span id="lbl-length" class="font-mono font-bold text-amber-400">2200 mm</span>
+            </div>
+            <input type="range" id="input-length" min="1600" max="2800" step="100" value="2200" oninput="updateAll()" class="w-full accent-amber-500 bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Larghezza Piano (P):</span>
+              <span id="lbl-width" class="font-mono font-bold text-amber-400">1000 mm</span>
+            </div>
+            <input type="range" id="input-width" min="800" max="1100" step="50" value="1000" oninput="updateAll()" class="w-full accent-amber-500 bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Altezza Tavolo (H):</span>
+              <span id="lbl-height" class="font-mono font-bold text-amber-400">750 mm</span>
+            </div>
+            <input type="range" id="input-height" min="720" max="780" step="10" value="750" oninput="updateAll()" class="w-full accent-amber-500 bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Spessore Legno Massello:</span>
+              <span id="lbl-thick" class="font-mono font-bold text-amber-400">40 mm</span>
+            </div>
+            <input type="range" id="input-thick" min="30" max="60" step="5" value="40" oninput="updateAll()" class="w-full accent-amber-500 bg-slate-700 h-1.5 rounded-lg">
+          </div>
+        </div>
+
+        <!-- Bordo Piano -->
+        <div class="space-y-3 bg-black/30 p-4 rounded-xl border border-japandiBorder">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Profilo Bordo del Piano</h3>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="setEdgeStyle('straight')" id="edge-straight" class="edge-btn p-2.5 text-xs rounded-lg border border-amber-500 bg-amber-950/30 text-amber-300 font-medium text-left">
+              <div class="font-bold">Bordo Dritto Minimal</div>
+              <div class="text-[10px] text-slate-400">Taglio netto $90^\circ$</div>
+            </button>
+            <button onclick="setEdgeStyle('natural')" id="edge-natural" class="edge-btn p-2.5 text-xs rounded-lg border border-japandiBorder bg-slate-900 text-slate-300 font-medium text-left">
+              <div class="font-bold">Bordo Ondulato / Bark</div>
+              <div class="text-[10px] text-slate-400">Effetto tronco naturale</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: GAMBE METALLO NERO -->
+      <div id="panel-legs" class="tab-panel hidden p-5 space-y-6">
+        <div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-shapes mr-2"></i> Geometria Gambe in Metallo Nero
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Design geometrico industriale/minimalista a contrasto col legno.</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-2.5">
+          <button onclick="setLegStyle('trapezoid')" id="leg-trapezoid" class="leg-btn p-3 rounded-xl border border-amber-500 bg-amber-950/30 text-left flex items-start space-x-3">
+            <div class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-700 flex items-center justify-center shrink-0 mt-0.5 text-amber-400">
+              <i class="fa-solid fa-vector-square"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-amber-300">Trapezio Inclinato Japandi</div>
+              <div class="text-[11px] text-slate-400">Profili rettangolari inclinati sul fondo per stabilità e rigore visivo.</div>
+            </div>
+          </button>
+
+          <button onclick="setLegStyle('spider')" id="leg-spider" class="leg-btn p-3 rounded-xl border border-japandiBorder bg-black/30 text-left flex items-start space-x-3 hover:border-slate-500">
+            <div class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-700 flex items-center justify-center shrink-0 mt-0.5 text-slate-300">
+              <i class="fa-solid fa-asterisk"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-200">Gamba Incrociata a Stella (Spider)</div>
+              <div class="text-[11px] text-slate-400">Incrocio centrale dinamico in tubo d'acciaio scatolato nero.</div>
+            </div>
+          </button>
+
+          <button onclick="setLegStyle('uframe')" id="leg-uframe" class="leg-btn p-3 rounded-xl border border-japandiBorder bg-black/30 text-left flex items-start space-x-3 hover:border-slate-500">
+            <div class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-700 flex items-center justify-center shrink-0 mt-0.5 text-slate-300">
+              <i class="fa-solid fa-square text-lg"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-200">Telaio a 'U' Lineare</div>
+              <div class="text-[11px] text-slate-400">Due portali chiusi minimali ai due estremità del tavolo.</div>
+            </div>
+          </button>
+
+          <button onclick="setLegStyle('splay')" id="leg-splay" class="leg-btn p-3 rounded-xl border border-japandiBorder bg-black/30 text-left flex items-start space-x-3 hover:border-slate-500">
+            <div class="w-8 h-8 rounded-lg bg-zinc-900 border border-zinc-700 flex items-center justify-center shrink-0 mt-0.5 text-slate-300">
+              <i class="fa-solid fa-slash text-xs transform rotate-45"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-200">4 Gambe Angolate Coniche</div>
+              <div class="text-[11px] text-slate-400">Gambe cilindriche divergenti verso i 4 angoli (Stile Giapponese classico).</div>
+            </div>
+          </button>
+        </div>
+
+        <div class="space-y-3 bg-black/30 p-4 rounded-xl border border-japandiBorder">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Finitura Metallo</h3>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button onclick="setMetalFinish('black_opaco')" id="metal-black_opaco" class="p-2 rounded-lg border border-amber-500 bg-zinc-900 text-amber-300 font-medium text-center">Nero Pulver Opaco</button>
+            <button onclick="setMetalFinish('anthracite')" id="metal-anthracite" class="p-2 rounded-lg border border-japandiBorder bg-zinc-900 text-slate-400 font-medium text-center">Antracite Spazzolato</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: FINITURA & NODI DEL ROVERE -->
+      <div id="panel-finish" class="tab-panel hidden p-5 space-y-6">
+        <div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-tree mr-2"></i> Texture Rovere Massello Nodato
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Modella l'intensità delle spaccature e la tonalità dell'olio di finitura.</p>
+        </div>
+
+        <div class="space-y-4 bg-black/30 p-4 rounded-xl border border-japandiBorder">
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Presenza Nodi & Spaccature:</span>
+              <span id="lbl-knots" class="font-mono font-bold text-amber-400">Medio (Nodato Naturale)</span>
+            </div>
+            <input type="range" id="input-knots" min="1" max="3" step="1" value="2" oninput="updateAll()" class="w-full accent-amber-500 bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Stuccatura dei Nodi:</span>
+              <span id="lbl-fill" class="font-mono font-bold text-slate-200">Resina Nera Opaca</span>
+            </div>
+            <select id="select-fill" onchange="updateAll()" class="w-full bg-zinc-900 border border-japandiBorder text-xs text-white rounded-lg p-2">
+              <option value="black" selected>Resina Resinata Nera (Giapponese Tradizionale)</option>
+              <option value="brown">Resina Tono su Tono (Marrone scuro)</option>
+              <option value="transparent">Resina Trasparente Crystal</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="space-y-3 bg-black/30 p-4 rounded-xl border border-japandiBorder">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Tonalità Rovere Massello</h3>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="setOakFinish('natural')" id="oak-natural" class="oak-btn p-2 text-[11px] rounded-lg border border-amber-500 bg-amber-950/40 text-amber-300 font-bold text-center">Rovere Naturale</button>
+            <button onclick="setOakFinish('bleached')" id="oak-bleached" class="oak-btn p-2 text-[11px] rounded-lg border border-japandiBorder bg-zinc-900 text-slate-300 font-medium text-center">Rovere Sbiancato</button>
+            <button onclick="setOakFinish('smoked')" id="oak-smoked" class="oak-btn p-2 text-[11px] rounded-lg border border-japandiBorder bg-zinc-900 text-slate-300 font-medium text-center">Rovere Affumicato</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: AMBIENTE SOGGIORNO -->
+      <div id="panel-room" class="tab-panel hidden p-5 space-y-6">
+        <div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-sun mr-2"></i> Illuminazione & Arredo Soggiorno
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Simula l'inserimento in un living moderno pieno di luce naturale.</p>
+        </div>
+
+        <div class="space-y-3 bg-black/30 p-4 rounded-xl border border-japandiBorder">
+          <label class="flex items-center space-x-2 text-xs text-slate-200 cursor-pointer">
+            <input type="checkbox" id="chk-chairs" checked onchange="toggleChairs(this.checked)" class="rounded accent-amber-500">
+            <span>Mostra Sedie Minimaliste Japandi</span>
+          </label>
+
+          <label class="flex items-center space-x-2 text-xs text-slate-200 cursor-pointer">
+            <input type="checkbox" id="chk-centerpiece" checked onchange="toggleDecor(this.checked)" class="rounded accent-amber-500">
+            <span>Mostra Vaso in Ceramica & Pianta Bonsai</span>
+          </label>
+        </div>
+
+        <div class="space-y-3 bg-black/30 p-4 rounded-xl border border-japandiBorder">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Pavimento Soggiorno</h3>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button onclick="setFloorType('concrete')" id="floor-concrete" class="p-2 rounded-lg border border-amber-500 bg-zinc-900 text-amber-300 font-medium text-center">Cemento Spatolato Chiaro</button>
+            <button onclick="setFloorType('parquet')" id="floor-parquet" class="p-2 rounded-lg border border-japandiBorder bg-zinc-900 text-slate-400 font-medium text-center">Parquet Neutro Desaturato</button>
+          </div>
+        </div>
+
+        <div class="space-y-3 bg-black/30 p-4 rounded-xl border border-japandiBorder">
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Intensità Luce Finestra:</span>
+              <span id="lbl-light" class="font-mono font-bold text-amber-400">100%</span>
+            </div>
+            <input type="range" id="input-light" min="30" max="150" step="10" value="100" oninput="updateLighting(this.value)" class="w-full accent-amber-500 bg-slate-700 h-1.5 rounded-lg">
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- CENTER 3D CANVAS VIEWPORT -->
+    <main class="flex-1 relative bg-stone-900 flex flex-col h-full overflow-hidden">
+      
+      <!-- Top View Floating Controls -->
+      <div class="absolute top-4 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
+        <div class="pointer-events-auto flex items-center space-x-1.5 bg-japandiPanel/90 backdrop-blur border border-japandiBorder p-1.5 rounded-xl shadow-2xl">
+          <button onclick="setCameraPreset('3d')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 text-slate-950 shadow">Prospettiva 3D</button>
+          <button onclick="setCameraPreset('top')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Vista dall'Alto</button>
+          <button onclick="setCameraPreset('front')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Vista Frontale</button>
+          <button onclick="setCameraPreset('close')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Dettaglio Nodi Legno</button>
+        </div>
+
+        <!-- Ambient Info Tag -->
+        <div class="pointer-events-auto bg-japandiPanel/90 backdrop-blur border border-japandiBorder px-3.5 py-1.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-slate-300 font-medium">Stile: <strong class="text-white">Japandi Modern Dining</strong></span>
+        </div>
+      </div>
+
+      <!-- Canvas Box -->
+      <div id="canvas-container" class="w-full h-full relative cursor-grab active:cursor-grabbing"></div>
+
+      <!-- Dynamic Bottom HUD Metrics -->
+      <div class="absolute bottom-4 left-4 right-4 z-10 flex flex-wrap items-center justify-between gap-3 pointer-events-none">
+        <div class="pointer-events-auto bg-japandiPanel/90 backdrop-blur border border-japandiBorder px-4 py-3 rounded-2xl shadow-2xl flex items-center space-x-6 text-xs">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-users text-amber-400 text-sm"></i>
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wide">Capienza Posti</div>
+              <div id="hud-seats" class="font-bold font-mono text-white text-sm">8 Persone</div>
+            </div>
+          </div>
+
+          <div class="h-8 w-px bg-japandiBorder"></div>
+
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-weight-hanging text-amber-400 text-sm"></i>
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wide">Peso Massello Stimato</div>
+              <div id="hud-weight" class="font-bold font-mono text-white text-sm">82 kg</div>
+            </div>
+          </div>
+
+          <div class="h-8 w-px bg-japandiBorder"></div>
+
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-shield-halved text-emerald-400 text-sm"></i>
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wide">Stabilità Strutturale</div>
+              <div class="font-bold font-mono text-emerald-400 text-sm">Massima (Acciaio 8mm)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Modal Scheda Tecnica -->
+  <div id="modal-summary" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-japandiPanel border border-japandiBorder rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-japandiBorder pb-3">
+        <h3 class="text-base font-bold text-white flex items-center">
+          <i class="fa-solid fa-file-invoice text-amber-400 mr-2"></i> Scheda Progetto & Specifiche Tavolo
+        </h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-300">
+        <div class="bg-black/40 p-3 rounded-xl space-y-1">
+          <div class="text-amber-400 font-bold uppercase tracking-wider text-[10px]">Specifiche Piano</div>
+          <div>• Materiale: Massello di Rovere Nodato Selezionato a Mano</div>
+          <div>• Dimensioni: <span id="spec-size" class="font-mono text-white font-bold">2200 x 1000 x 750 mm</span></div>
+          <div>• Spessore Piano: <span id="spec-thick" class="font-mono text-white">40 mm</span></div>
+          <div>• Lavorazione Bordi: <span id="spec-edge" class="text-white">Bordo Dritto Minimalista</span></div>
+          <div>• Tonalità & Trattamento: <span id="spec-oak" class="text-white">Rovere Naturale Olio Cerato</span></div>
+          <div>• Finitura Nodi: <span id="spec-knots" class="text-white">Nodato Medio con Resina Nera</span></div>
+        </div>
+
+        <div class="bg-black/40 p-3 rounded-xl space-y-1">
+          <div class="text-amber-400 font-bold uppercase tracking-wider text-[10px]">Specifiche Basamento Metallo</div>
+          <div>• Geometria Gambe: <span id="spec-leg-type" class="text-white">Trapezio Inclinato Japandi</span></div>
+          <div>• Finitura Metallo: <span id="spec-leg-finish" class="text-white">Nero Verniciato a Polvere Opaco</span></div>
+          <div>• Piedini: Regolabili a scomparsa integrati</div>
+        </div>
+
+        <div class="p-3 bg-amber-950/20 border border-amber-500/30 rounded-xl text-amber-200">
+          <div class="font-bold mb-0.5"><i class="fa-solid fa-leaf mr-1"></i> Certificazione Legno Sostenibile</div>
+           Legno proveniente da foreste certificate FSC con essiccazione naturale e finiture a zero VOC ecologiche.
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-2">
+        <button onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl">Chiudi</button>
+        <button onclick="downloadSpecs()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-slate-950 text-xs font-bold rounded-xl shadow flex items-center space-x-1.5">
+          <i class="fa-solid fa-download"></i>
+          <span>Scarica Report TXT</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configurazione Stato dell'Applicazione
+    const appState = {
+      length: 2200,
+      width: 1000,
+      height: 750,
+      thickness: 40,
+      edgeStyle: 'straight',
+
+      legStyle: 'trapezoid', // trapezoid, spider, uframe, splay
+      metalFinish: 'black_opaco', // black_opaco, anthracite
+
+      knotDensity: 2, // 1: raro, 2: medio, 3: intenso
+      resinFill: 'black',
+      oakFinish: 'natural', // natural, bleached, smoked
+
+      showChairs: true,
+      showDecor: true,
+      floorType: 'concrete', // concrete, parquet
+      lightIntensity: 1.0
+    };
+
+    // Color Palette per Finiture Legno
+    const oakColorMap = {
+      natural:  { base: 0xc89d66, grain: 0x8a5d30, knot: 0x221a14 },
+      bleached: { base: 0xdfceb5, grain: 0xab9578, knot: 0x332d27 },
+      smoked:   { base: 0x5e4533, grain: 0x38281c, knot: 0x140e0a }
+    };
+
+    // Global Three.js Setup
+    let scene, camera, renderer, controls;
+    let tableGroup, roomGroup, chairsGroup, decorGroup;
+    let oakMaterial, metalMaterial, floorMaterial, sunLight;
+
+    window.onload = function() {
+      initThreeJS();
+      updateAll();
+      window.addEventListener('resize', onWindowResize);
+    };
+
+    function initThreeJS() {
+      const container = document.getElementById('canvas-container');
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf2efe9); // Living Room Bright Off-White
+
+      camera = new THREE.PerspectiveCamera(40, w / h, 10, 15000);
+      camera.position.set(2200, 1400, 2400);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.1;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2 - 0.02; // Non scendere sotto il pavimento
+      controls.minDistance = 600;
+      controls.maxDistance = 6000;
+      controls.target.set(0, 400, 0);
+
+      // Illuminazione Solare Soggiorno Moderno
+      const ambientLight = new THREE.AmbientLight(0xfff8f0, 0.7);
+      scene.add(ambientLight);
+
+      sunLight = new THREE.DirectionalLight(0xfff5ea, 1.4);
+      sunLight.position.set(2500, 3200, 1800);
+      sunLight.castShadow = true;
+      sunLight.shadow.mapSize.width = 2048;
+      sunLight.shadow.mapSize.height = 2048;
+      sunLight.shadow.camera.near = 100;
+      sunLight.shadow.camera.far = 8000;
+      sunLight.shadow.camera.left = -2000;
+      sunLight.shadow.camera.right = 2000;
+      sunLight.shadow.camera.top = 2000;
+      sunLight.shadow.camera.bottom = -2000;
+      sunLight.shadow.bias = -0.0001;
+      scene.add(sunLight);
+
+      // Luce Soft Soft Fill
+      const fillLight = new THREE.DirectionalLight(0xdbeafe, 0.4);
+      fillLight.position.set(-2000, 1500, -1500);
+      scene.add(fillLight);
+
+      // Node Groups
+      tableGroup = new THREE.Group();
+      roomGroup = new THREE.Group();
+      chairsGroup = new THREE.Group();
+      decorGroup = new THREE.Group();
+
+      scene.add(roomGroup);
+      scene.add(tableGroup);
+      scene.add(chairsGroup);
+      scene.add(decorGroup);
+
+      // Materiali Iniziali
+      metalMaterial = new THREE.MeshStandardMaterial({
+        color: 0x18181b,
+        roughness: 0.8,
+        metalness: 0.2
+      });
+
+      buildLivingRoomEnvironment();
+      animate();
+    }
+
+    // GENERATORE PROCEDURALE TEXTURE ROVERE NODATO
+    function generateKnottedOakTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+
+      const palette = oakColorMap[appState.oakFinish];
+      
+      // Sfondo Legno Base
+      ctx.fillStyle = `#${palette.base.toString(16).padStart(6, '0')}`;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Lines Vein / Venature del Legno
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = `#${palette.grain.toString(16).padStart(6, '0')}`;
+      ctx.globalAlpha = 0.25;
+
+      for (let i = 0; i < 180; i++) {
+        ctx.beginPath();
+        let y = (i / 180) * canvas.height;
+        ctx.moveTo(0, y);
+        for (let x = 0; x <= canvas.width; x += 40) {
+          let wave = Math.sin(x * 0.01 + i * 0.2) * 8 + Math.cos(x * 0.005) * 12;
+          ctx.lineTo(x, y + wave);
+        }
+        ctx.stroke();
+      }
+
+      // Nodi del Rovere (Procedurali)
+      ctx.globalAlpha = 0.9;
+      const knotCount = appState.knotDensity * 3;
+      const knotPositions = [
+        { x: 220, y: 300, r: 28 }, { x: 750, y: 650, r: 35 },
+        { x: 480, y: 200, r: 20 }, { x: 820, y: 280, r: 25 },
+        { x: 310, y: 780, r: 30 }, { x: 150, y: 820, r: 22 },
+        { x: 600, y: 500, r: 40 }, { x: 900, y: 850, r: 18 }
+      ];
+
+      for (let k = 0; k < Math.min(knotCount, knotPositions.length); k++) {
+        const knot = knotPositions[k];
+        
+        // Cerchi Concentrici Nodo
+        for (let r = knot.r; r > 3; r -= 4) {
+          ctx.beginPath();
+          ctx.fillStyle = (r < 8) ? 
+            (appState.resinFill === 'black' ? '#121212' : '#3d2516') : 
+            `#${palette.grain.toString(16).padStart(6, '0')}`;
+          ctx.arc(knot.x, knot.y, r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Spaccatura Resinata nel Nodo
+        ctx.strokeStyle = appState.resinFill === 'black' ? '#0a0a0a' : '#2b1a10';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(knot.x - knot.r * 0.7, knot.y - knot.r * 0.2);
+        ctx.lineTo(knot.x + knot.r * 0.8, knot.y + knot.r * 0.3);
+        ctx.stroke();
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.repeat.set(1.5, 1.0);
+      return texture;
+    }
+
+    // COSTRUZIONE AMBIENTE SOGGIORNO MODERNO
+    function buildLivingRoomEnvironment() {
+      while (roomGroup.children.length > 0) roomGroup.remove(roomGroup.children[0]);
+
+      // Pavimento Soggiorno (Grandi Lastre / Parquet)
+      const floorGeo = new THREE.PlaneGeometry(8000, 8000);
+      
+      const canvasFloor = document.createElement('canvas');
+      canvasFloor.width = 512; canvasFloor.height = 512;
+      const ctxF = canvasFloor.getContext('2d');
+      
+      if (appState.floorType === 'concrete') {
+        ctxF.fillStyle = '#e5e2db';
+        ctxF.fillRect(0, 0, 512, 512);
+        ctxF.strokeStyle = '#d0ccc3';
+        ctxF.lineWidth = 2;
+        ctxF.strokeRect(0, 0, 256, 256);
+        ctxF.strokeRect(256, 256, 256, 256);
+      } else {
+        ctxF.fillStyle = '#c5b299';
+        ctxF.fillRect(0, 0, 512, 512);
+        ctxF.strokeStyle = '#a89379';
+        ctxF.lineWidth = 3;
+        for(let y=0; y<512; y+=64) ctxF.strokeRect(0, y, 512, 64);
+      }
+
+      const floorTex = new THREE.CanvasTexture(canvasFloor);
+      floorTex.wrapS = THREE.RepeatWrapping;
+      floorTex.wrapT = THREE.RepeatWrapping;
+      floorTex.repeat.set(8, 8);
+
+      floorMaterial = new THREE.MeshStandardMaterial({
+        map: floorTex,
+        roughness: 0.6,
+        metalness: 0.05
+      });
+
+      const floorMesh = new THREE.Mesh(floorGeo, floorMaterial);
+      floorMesh.rotation.x = -Math.PI / 2;
+      floorMesh.receiveShadow = true;
+      roomGroup.add(floorMesh);
+
+      // Parete Posteriore Soggiorno con Finestra
+      const wallGeo = new THREE.PlaneGeometry(8000, 3500);
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0xefede8, roughness: 0.9 });
+      const wallMesh = new THREE.Mesh(wallGeo, wallMat);
+      wallMesh.position.set(0, 1750, -3000);
+      wallMesh.receiveShadow = true;
+      roomGroup.add(wallMesh);
+    }
+
+    // AGGIORNAMENTO DINAMICO MODELLO TAVOLO E SCENA
+    function updateAll() {
+      appState.length = parseFloat(document.getElementById('input-length').value);
+      appState.width = parseFloat(document.getElementById('input-width').value);
+      appState.height = parseFloat(document.getElementById('input-height').value);
+      appState.thickness = parseFloat(document.getElementById('input-thick').value);
+      appState.knotDensity = parseInt(document.getElementById('input-knots').value);
+      appState.resinFill = document.getElementById('select-fill').value;
+
+      // Labels UI
+      document.getElementById('lbl-length').innerText = `${appState.length} mm`;
+      document.getElementById('lbl-width').innerText = `${appState.width} mm`;
+      document.getElementById('lbl-height').innerText = `${appState.height} mm`;
+      document.getElementById('lbl-thick').innerText = `${appState.thickness} mm`;
+      
+      const knotLabels = ['Raro (Venature Pura)', 'Medio (Nodato Naturale)', 'Intenso (Wabi-Sabi Massello)'];
+      document.getElementById('lbl-knots').innerText = knotLabels[appState.knotDensity - 1];
+
+      // Pulizia Tavolo
+      while (tableGroup.children.length > 0) {
+        const child = tableGroup.children[0];
+        tableGroup.remove(child);
+        if (child.geometry) child.geometry.dispose();
+      }
+
+      const L = appState.length;
+      const W = appState.width;
+      const H = appState.height;
+      const T = appState.thickness;
+
+      // Materiale Legno con Texture Generata
+      const oakTexture = generateKnottedOakTexture();
+      oakMaterial = new THREE.MeshStandardMaterial({
+        map: oakTexture,
+        roughness: 0.45,
+        metalness: 0.05
+      });
+
+      // 1. COSTRIUZIONE PIANO TAVOLO IN ROVERE MASSAGLIO
+      const topGeo = new THREE.BoxGeometry(L, T, W, 16, 2, 16);
+      
+      // Bordo Naturale Ondulato se selezionato
+      if (appState.edgeStyle === 'natural') {
+        const pos = topGeo.attributes.position;
+        for (let i = 0; i < pos.count; i++) {
+          let z = pos.getZ(i);
+          if (Math.abs(z) > W / 2 - 5) {
+            let x = pos.getX(i);
+            let wave = Math.sin(x * 0.01) * 12 + Math.cos(x * 0.025) * 8;
+            pos.setZ(i, z + Math.sign(z) * wave);
+          }
+        }
+        topGeo.computeVertexNormals();
+      }
+
+      const topMesh = new THREE.Mesh(topGeo, oakMaterial);
+      topMesh.position.set(0, H - T / 2, 0);
+      topMesh.castShadow = true;
+      topMesh.receiveShadow = true;
+      tableGroup.add(topMesh);
+
+      // 2. COSTRUZIONE GAMBE IN METALLO NERO
+      const legHeight = H - T;
+      buildMetalLegs(L, W, legHeight);
+
+      // 3. SEDIE E DECORAZIONI
+      buildChairs(L, W, H);
+      buildDecorations(H);
+
+      // 4. METRICHE
+      const seatCount = L < 1800 ? 6 : (L <= 2400 ? 8 : 10);
+      const estWeight = Math.round((L * W * T * 0.00000072) + 28); // Rovere ~720 kg/m3 + Acciaio
+
+      document.getElementById('hud-seats').innerText = `${seatCount} Posti a Sedere`;
+      document.getElementById('hud-weight').innerText = `~${estWeight} kg`;
+    }
+
+    // COSTRUTTORE GAMBE METALLO
+    function buildMetalLegs(L, W, legH) {
+      const legGroup = new THREE.Group();
+      const profile = 60; // Profili rettangolari metallo 60mm
+
+      if (appState.legStyle === 'trapezoid') {
+        // Due Trapezio Inclinati ai Lati
+        const inset = L * 0.22;
+        [-L / 2 + inset, L / 2 - inset].forEach(xPos => {
+          const legFrame = new THREE.Group();
+          const topWidth = W * 0.85;
+          const botWidth = W * 0.65;
+
+          const shape = new THREE.Shape();
+          shape.moveTo(-topWidth/2, legH);
+          shape.lineTo(topWidth/2, legH);
+          shape.lineTo(botWidth/2, 0);
+          shape.lineTo(-botWidth/2, 0);
+          shape.closePath();
+
+          const extSettings = { depth: profile, bevelEnabled: true, bevelThickness: 3, bevelSize: 2 };
+          const geo = new THREE.ExtrudeGeometry(shape, extSettings);
+          geo.center();
+
+          const mesh = new THREE.Mesh(geo, metalMaterial);
+          mesh.castShadow = true;
+          legFrame.add(mesh);
+          legFrame.position.set(xPos, legH / 2, 0);
+          legFrame.rotation.y = Math.PI / 2;
+          legGroup.add(legFrame);
+        });
+      } else if (appState.legStyle === 'spider') {
+        // Gamba a Stella / Incrociata Centrale
+        const spiderGeo = new THREE.BoxGeometry(profile, legH * 1.1, profile);
+        for (let i = 0; i < 4; i++) {
+          const leg = new THREE.Mesh(spiderGeo, metalMaterial);
+          leg.rotation.z = (i % 2 === 0 ? 1 : -1) * 0.5;
+          leg.rotation.y = (i < 2 ? 1 : -1) * 0.6;
+          leg.position.set(0, legH / 2, 0);
+          leg.castShadow = true;
+          legGroup.add(leg);
+        }
+      } else if (appState.legStyle === 'uframe') {
+        // Telaio a U Lineare
+        const inset = L * 0.20;
+        [-L / 2 + inset, L / 2 - inset].forEach(xPos => {
+          const uGeo = new THREE.BoxGeometry(W * 0.8, legH, profile);
+          const uMesh = new THREE.Mesh(uGeo, metalMaterial);
+          uMesh.position.set(xPos, legH / 2, 0);
+          uMesh.castShadow = true;
+          legGroup.add(uMesh);
+        });
+      } else if (appState.legStyle === 'splay') {
+        // 4 Gambe Inclinati Giapponesi
+        const inX = L / 2 - 180;
+        const inZ = W / 2 - 120;
+        const legCyl = new THREE.CylinderGeometry(20, 12, legH, 16);
+
+        [
+          { x: -inX, z: -inZ, rx: -0.15, rz: -0.15 },
+          { x: inX,  z: -inZ, rx: -0.15, rz: 0.15 },
+          { x: -inX, z: inZ,  rx: 0.15,  rz: -0.15 },
+          { x: inX,  z: inZ,  rx: 0.15,  rz: 0.15 }
+        ].forEach(pt => {
+          const leg = new THREE.Mesh(legCyl, metalMaterial);
+          leg.position.set(pt.x, legH / 2, pt.x);
+          leg.rotation.x = pt.rx;
+          leg.rotation.z = pt.rz;
+          leg.castShadow = true;
+          legGroup.add(leg);
+        });
+      }
+
+      tableGroup.add(legGroup);
+    }
+
+    // SEDIE MINIMALISTI JAPANDI A CORREDO
+    function buildChairs(L, W, H) {
+      while (chairsGroup.children.length > 0) chairsGroup.remove(chairsGroup.children[0]);
+      if (!appState.showChairs) return;
+
+      const chairMat = new THREE.MeshStandardMaterial({ color: 0x222224, roughness: 0.7 });
+      const seatMat = oakMaterial;
+
+      const chairPositions = [
+        // Lato Anteriore
+        { x: -L * 0.28, z: W / 2 + 320, rot: 0 },
+        { x: L * 0.28,  z: W / 2 + 320, rot: 0 },
+        // Lato Posteriore
+        { x: -L * 0.28, z: -W / 2 - 320, rot: Math.PI },
+        { x: L * 0.28,  z: -W / 2 - 320, rot: Math.PI }
+      ];
+
+      if (L >= 2200) {
+        chairPositions.push({ x: 0, z: W / 2 + 320, rot: 0 });
+        chairPositions.push({ x: 0, z: -W / 2 - 320, rot: Math.PI });
+      }
+
+      chairPositions.forEach(p => {
+        const chair = new THREE.Group();
+        
+        // Seduta
+        const seat = new THREE.Mesh(new THREE.BoxGeometry(420, 20, 420), seatMat);
+        seat.position.y = 450;
+        seat.castShadow = true;
+        chair.add(seat);
+
+        // Schienale curvo minimal
+        const back = new THREE.Mesh(new THREE.CylinderGeometry(200, 200, 30, 16, 1, false, 0, Math.PI), chairMat);
+        back.position.set(0, 720, -180);
+        back.rotation.y = Math.PI / 2;
+        back.castShadow = true;
+        chair.add(back);
+
+        // Gambe sedia
+        const legGeo = new THREE.CylinderGeometry(10, 8, 440);
+        [-180, 180].forEach(lx => {
+          [-180, 180].forEach(lz => {
+            const leg = new THREE.Mesh(legGeo, chairMat);
+            leg.position.set(lx, 220, lz);
+            leg.castShadow = true;
+            chair.add(leg);
+          });
+        });
+
+        chair.position.set(p.x, 0, p.z);
+        chair.rotation.y = p.rot;
+        chairsGroup.add(chair);
+      });
+    }
+
+    // CENTROTAVOLA VASO CERAMICA WABI-SABI
+    function buildDecorations(H) {
+      while (decorGroup.children.length > 0) decorGroup.remove(decorGroup.children[0]);
+      if (!appState.showDecor) return;
+
+      const vaseGroup = new THREE.Group();
+      
+      // Vaso Ceramica Opaco
+      const vaseGeo = new THREE.CylinderGeometry(60, 110, 260, 24);
+      const vaseMat = new THREE.MeshStandardMaterial({ color: 0xdcd8d0, roughness: 0.9 });
+      const vase = new THREE.Mesh(vaseGeo, vaseMat);
+      vase.position.y = H + 130;
+      vase.castShadow = true;
+      vaseGroup.add(vase);
+
+      // Ramo Ikebana
+      const branchGeo = new THREE.CylinderGeometry(4, 2, 350);
+      const branchMat = new THREE.MeshStandardMaterial({ color: 0x3d2b1f, roughness: 0.9 });
+      const branch = new THREE.Mesh(branchGeo, branchMat);
+      branch.position.set(20, H + 320, 0);
+      branch.rotation.z = -0.3;
+      vaseGroup.add(branch);
+
+      decorGroup.add(vaseGroup);
+    }
+
+    // CONTROLLI UI E SELETTORI
+    function switchTab(tabKey) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('bg-amber-600', 'text-slate-950', 'shadow');
+        b.classList.add('text-slate-300');
+      });
+
+      document.getElementById(`panel-${tabKey}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-btn-${tabKey}`);
+      activeBtn.classList.add('bg-amber-600', 'text-slate-950', 'shadow');
+      activeBtn.classList.remove('text-slate-300');
+    }
+
+    function setLegStyle(style) {
+      appState.legStyle = style;
+      document.querySelectorAll('.leg-btn').forEach(btn => {
+        btn.classList.remove('border-amber-500', 'bg-amber-950/30');
+        btn.classList.add('border-japandiBorder', 'bg-black/30');
+      });
+      const btn = document.getElementById(`leg-${style}`);
+      btn.classList.add('border-amber-500', 'bg-amber-950/30');
+      updateAll();
+    }
+
+    function setOakFinish(finish) {
+      appState.oakFinish = finish;
+      document.querySelectorAll('.oak-btn').forEach(btn => {
+        btn.classList.remove('border-amber-500', 'bg-amber-950/40', 'text-amber-300', 'font-bold');
+        btn.classList.add('border-japandiBorder', 'bg-zinc-900', 'text-slate-300');
+      });
+      const btn = document.getElementById(`oak-${finish}`);
+      btn.classList.add('border-amber-500', 'bg-amber-950/40', 'text-amber-300', 'font-bold');
+      updateAll();
+    }
+
+    function setEdgeStyle(edge) {
+      appState.edgeStyle = edge;
+      document.querySelectorAll('.edge-btn').forEach(btn => {
+        btn.classList.remove('border-amber-500', 'bg-amber-950/30', 'text-amber-300');
+        btn.classList.add('border-japandiBorder', 'bg-slate-900', 'text-slate-300');
+      });
+      document.getElementById(`edge-${edge}`).classList.add('border-amber-500', 'bg-amber-950/30', 'text-amber-300');
+      updateAll();
+    }
+
+    function setFloorType(type) {
+      appState.floorType = type;
+      document.getElementById('floor-concrete').className = type === 'concrete' ? 
+        'p-2 rounded-lg border border-amber-500 bg-zinc-900 text-amber-300 font-medium text-center' : 
+        'p-2 rounded-lg border border-japandiBorder bg-zinc-900 text-slate-400 font-medium text-center';
+      document.getElementById('floor-parquet').className = type === 'parquet' ? 
+        'p-2 rounded-lg border border-amber-500 bg-zinc-900 text-amber-300 font-medium text-center' : 
+        'p-2 rounded-lg border border-japandiBorder bg-zinc-900 text-slate-400 font-medium text-center';
+      buildLivingRoomEnvironment();
+    }
+
+    function toggleChairs(val) {
+      appState.showChairs = val;
+      updateAll();
+    }
+
+    function toggleDecor(val) {
+      appState.showDecor = val;
+      updateAll();
+    }
+
+    function updateLighting(val) {
+      sunLight.intensity = (val / 100) * 1.4;
+      document.getElementById('lbl-light').innerText = `${val}%`;
+    }
+
+    function setCameraPreset(preset) {
+      const H = appState.height;
+      if (preset === '3d') camera.position.set(2200, 1400, 2400);
+      if (preset === 'top') camera.position.set(0, 3200, 10);
+      if (preset === 'front') camera.position.set(0, H, 2800);
+      if (preset === 'close') camera.position.set(600, H + 300, 600);
+      controls.target.set(0, H / 2, 0);
+      controls.update();
+    }
+
+    // MODALE E REPORT EXPORT
+    function exportSummary() {
+      document.getElementById('spec-size').innerText = `${appState.length} x ${appState.width} x ${appState.height} mm`;
+      document.getElementById('spec-thick').innerText = `${appState.thickness} mm Massello`;
+      document.getElementById('spec-edge').innerText = appState.edgeStyle === 'straight' ? 'Bordo Dritto Minimalista (90°)' : 'Bordo Ondulato Naturale Bark';
+      
+      const oakNames = { natural: 'Rovere Naturale', bleached: 'Rovere Sbiancato Japandi', smoked: 'Rovere Affumicato Scuro' };
+      document.getElementById('spec-oak').innerText = oakNames[appState.oakFinish];
+      
+      const legNames = { trapezoid: 'Trapezio Inclinato Japandi', spider: 'Stella Incrociata Spider', uframe: 'Telaio a U Minimal', splay: '4 Gambe Angolate Coniche' };
+      document.getElementById('spec-leg-type').innerText = legNames[appState.legStyle];
+
+      document.getElementById('modal-summary').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-summary').classList.add('hidden');
+    }
+
+    function downloadSpecs() {
+      const txt = `=====================================================
+JAPANDI WOOD STUDIO - SCHEDA PROGETTO TAVOLO DA PRANZO
+=====================================================
+MODELLO: Tavolo da Pranzo Rovere Nodato & Metallo Nero
+STILE: Minimalista Giapponese / Japandi Modern Living
+
+DIMENSIONI E PIANO:
+- Ingombro Totale: ${appState.length} mm (L) x ${appState.width} mm (P) x ${appState.height} mm (H)
+- Spessore Piano Legno: ${appState.thickness} mm Massello
+- Lavorazione Bordo: ${appState.edgeStyle === 'straight' ? 'Dritto 90°' : 'Ondulato Naturale Bark'}
+- Tonalità Rovere: ${appState.oakFinish.toUpperCase()}
+- Finitura Nodi: Resina Nera Opaca Giapponese
+
+BASAMENTO METALLO:
+- Geometria Gambe: ${appState.legStyle.toUpperCase()}
+- Finitura Metallo: Verniciatura a Polvere Nero Opaco Anti-Impronta
+
+CAPENZA & PESO:
+- Posti a Sedere Raccomandati: ${document.getElementById('hud-seats').innerText}
+- Peso Totale Stimato: ${document.getElementById('hud-weight').innerText}
+=====================================================`;
+
+      const blob = new Blob([txt], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Scheda_Tavolo_Japandi_${appState.length}x${appState.width}.txt`;
+      a.click();
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+  </script>
+</body>
+</html>

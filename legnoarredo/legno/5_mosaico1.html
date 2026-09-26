@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulatore 3D Pannelli Legno - Tassellature Geometriche CNC</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --panel: #162032;
+      --panel-card: #1e2d42;
+      --accent: #f59e0b;
+      --accent-light: #fbbf24;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #2e3e55;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+    /* Sidebar Controlli */
+    .sidebar { width: 400px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100%; z-index: 10; }
+    .sidebar-header { padding: 16px 20px; border-bottom: 1px solid var(--border); background: #0b0f19; }
+    .sidebar-header h2 { font-size: 1.05rem; color: var(--accent); letter-spacing: 0.03em; }
+    .sidebar-content { flex: 1; overflow-y: auto; padding: 16px; }
+
+    .control-group { margin-bottom: 16px; background: var(--panel-card); padding: 14px; border-radius: 8px; border: 1px solid var(--border); }
+    .control-group h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-light); margin-bottom: 12px; }
+    .control-item { margin-bottom: 10px; }
+    .control-item:last-child { margin-bottom: 0; }
+    .control-item label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 500; margin-bottom: 4px; color: #e2e8f0; }
+    .control-item label span.val { color: var(--accent); font-weight: 600; }
+    .control-item input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+    .control-item select { width: 100%; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border); background: #162032; color: var(--text); font-size: 0.82rem; }
+
+    /* Viewport 3D */
+    .viewport-area { flex: 1; position: relative; height: 100%; }
+    #canvas-container { width: 100%; height: 100%; background: radial-gradient(circle at center, #1e2d42 0%, #0b0f19 100%); }
+
+    /* HUD Controls */
+    .hud-bar { position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; background: rgba(11, 15, 25, 0.85); padding: 8px; border-radius: 8px; border: 1px solid var(--border); backdrop-filter: blur(8px); }
+    .hud-btn { background: var(--panel-card); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
+    .hud-btn:hover { background: var(--accent); color: #000; font-weight: bold; }
+
+    .stats-card { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(11, 15, 25, 0.9); border: 1px solid var(--border); padding: 8px 20px; border-radius: 20px; font-size: 0.78rem; display: flex; gap: 20px; backdrop-filter: blur(8px); }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Tassellatore Parametrico Legno 3D</h2>
+    </div>
+
+    <div class="sidebar-content">
+      
+      <!-- 1. Ingombro Pannello -->
+      <div class="control-group">
+        <h3>📐 Dimensioni Base Pannello</h3>
+        <div class="control-item">
+          <label>Larghezza (X): <span class="val" id="val-width">1000 mm</span></label>
+          <input type="range" id="width" min="400" max="2000" step="50" value="1000">
+        </div>
+        <div class="control-item">
+          <label>Altezza (Y): <span class="val" id="val-height">1000 mm</span></label>
+          <input type="range" id="height" min="400" max="2000" step="50" value="1000">
+        </div>
+        <div class="control-item">
+          <label>Spessore Base: <span class="val" id="val-thickness">20 mm</span></label>
+          <input type="range" id="thickness" min="10" max="50" step="2" value="20">
+        </div>
+      </div>
+
+      <!-- 2. Parametri Tassellatura Geometrica -->
+      <div class="control-group">
+        <h3>🧩 Geometria & Mosaico CNC</h3>
+        <div class="control-item">
+          <label>Tipo Tassello</label>
+          <select id="patternType">
+            <option value="squares">Quadri & Bugne Geometriche</option>
+            <option value="triangles">Triangoli & Sfaccettature 3D</option>
+            <option value="hexagons">Esagoni Nido d'Ape</option>
+            <option value="diamonds">Rombi & Diamanti</option>
+            <option value="voronoi">Celle Voronoi Poligonali</option>
+            <option value="ribs">Cannettato Squadrato CNC</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Tasselli su X: <span class="val" id="val-freqX">10</span></label>
+          <input type="range" id="freqX" min="2" max="30" step="1" value="10">
+        </div>
+        <div class="control-item">
+          <label>Tasselli su Y: <span class="val" id="val-freqY">10</span></label>
+          <input type="range" id="freqY" min="2" max="30" step="1" value="10">
+        </div>
+        <div class="control-item">
+          <label>Profondità Rilievo Max (Z): <span class="val" id="val-reliefDepth">25 mm</span></label>
+          <input type="range" id="reliefDepth" min="0" max="60" step="1" value="25">
+        </div>
+        <div class="control-item">
+          <label>Fuga / Inciso tra Tessere: <span class="val" id="val-gapWidth">3 mm</span></label>
+          <input type="range" id="gapWidth" min="0" max="15" step="0.5" value="3">
+        </div>
+        <div class="control-item">
+          <label>Smussatura Bordo (Bevel): <span class="val" id="val-bevelWidth">5 mm</span></label>
+          <input type="range" id="bevelWidth" min="0" max="20" step="0.5" value="5">
+        </div>
+        <div class="control-item">
+          <label>Colmo Piramidale vs Piattina: <span class="val" id="val-pyramidPeak">50 %</span></label>
+          <input type="range" id="pyramidPeak" min="0" max="100" step="5" value="50">
+        </div>
+        <div class="control-item">
+          <label>Casualità Altezza Z Tessere: <span class="val" id="val-randomHeight">20 %</span></label>
+          <input type="range" id="randomHeight" min="0" max="100" step="5" value="20">
+        </div>
+        <div class="control-item">
+          <label>Definizione Spigoli CNC</label>
+          <select id="shadingStyle">
+            <option value="flat">Sfaccettato / Taglio Netto CNC</option>
+
+          </select>
+        </div>
+      </div>
+
+      <!-- 3. Materiale Legno -->
+      <div class="control-group">
+        <h3>🎨 Materiale Legno</h3>
+        <div class="control-item">
+          <label>Essenza / Finitura</label>
+          <select id="woodType">
+            <option value="rovere">Rovere Naturale</option>
+            <option value="noce">Noce Canaletto</option>
+            <option value="frassino">Frassino Chiaro</option>
+            <option value="ebano">Ebano Scuro</option>
+            <option value="bianco">Laccato Bianco Opaco</option>
+            <option value="antracite">Laccato Antracite</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Ruvidità / Lucidità: <span class="val" id="val-roughness">0.45</span></label>
+          <input type="range" id="roughness" min="0.1" max="0.9" step="0.05" value="0.45">
+        </div>
+      </div>
+
+      <!-- 4. Luce -->
+      <div class="control-group">
+        <h3>💡 Luce & Incidenza Ombre</h3>
+        <div class="control-item">
+          <label>Angolo Luce Direzionale: <span class="val" id="val-lightAngle">45 °</span></label>
+          <input type="range" id="lightAngle" min="0" max="360" step="5" value="45">
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <main class="viewport-area">
+    <div class="hud-bar">
+      <button class="hud-btn" onclick="resetCamera('front')">Frontale</button>
+      <button class="hud-btn" onclick="resetCamera('persp')">Prospettiva</button>
+      <button class="hud-btn" onclick="resetCamera('side')">Inclinato</button>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div class="stats-card">
+      <div>Poligoni Unici CNC: <strong id="poly-count">0</strong></div>
+      <div>Tipo Mosaico: <strong id="mosaico-type">Quadri</strong></div>
+    </div>
+  </main>
+
+  <script>
+    const state = {
+      width: 1000,
+      height: 1000,
+      thickness: 20,
+      patternType: 'squares',
+      freqX: 10,
+      freqY: 10,
+      reliefDepth: 25,
+      gapWidth: 3,
+      bevelWidth: 5,
+      pyramidPeak: 50,
+      randomHeight: 20,
+      shadingStyle: 'flat',
+      woodType: 'rovere',
+      roughness: 0.45,
+      lightAngle: 45
+    };
+
+    const inputs = [
+      'width', 'height', 'thickness', 'patternType', 'freqX', 'freqY',
+      'reliefDepth', 'gapWidth', 'bevelWidth', 'pyramidPeak', 'randomHeight',
+      'shadingStyle', 'woodType', 'roughness', 'lightAngle'
+    ];
+
+    let scene, camera, renderer, controls;
+    let panelGroup, dirLight, woodTextures = {};
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera.position.set(0, 0, 2.2);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+
+      dirLight = new THREE.DirectionalLight(0xffffff, 1.25);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      scene.add(dirLight);
+
+      updateLightPosition();
+      generateWoodTextures();
+      rebuildPanel();
+
+      window.addEventListener('resize', onWindowResize);
+      animate();
+    }
+
+    function updateLightPosition() {
+      const rad = (state.lightAngle * Math.PI) / 180;
+      dirLight.position.set(Math.cos(rad) * 2.5, Math.sin(rad) * 2.5, 2);
+    }
+
+    function createProceduralWoodTexture(baseColorHex, grainColorHex) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024; canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = baseColorHex;
+      ctx.fillRect(0, 0, 1024, 1024);
+
+      ctx.fillStyle = grainColorHex;
+      for (let i = 0; i < 800; i++) {
+        const y = Math.random() * 1024;
+        const h = Math.random() * 2.5 + 1;
+        ctx.globalAlpha = Math.random() * 0.15;
+        ctx.fillRect(0, y, 1024, h);
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      return texture;
+    }
+
+    function generateWoodTextures() {
+      woodTextures.rovere = createProceduralWoodTexture('#d4a373', '#7c4a1d');
+      woodTextures.noce = createProceduralWoodTexture('#4a2e1b', '#201209');
+      woodTextures.frassino = createProceduralWoodTexture('#e6ceac', '#ab8b63');
+      woodTextures.ebano = createProceduralWoodTexture('#221c19', '#080605');
+    }
+
+    // Pseudo-Random Hash per Variazione Altezza Tessere
+    function hash2D(x, y) {
+      const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453123;
+      return n - Math.floor(n);
+    }
+
+    // MATEMATICA DELLE TASSELLATURE GEOMETRICHE NETTE (SDF - Distance Fields)
+    function getTileMetrics(u, v) {
+      const fx = state.freqX;
+      const fy = state.freqY;
+
+      let cellX = Math.floor(u * fx);
+      let cellY = Math.floor(v * fy);
+      let localU = (u * fx) - cellX; // 0 to 1
+      let localV = (v * fy) - cellY; // 0 to 1
+
+      let distToBorder = 0;
+      let centerFactor = 0;
+      let cellHash = hash2D(cellX, cellY);
+
+      switch (state.patternType) {
+        case 'squares': { // Quadri / Bugne
+          const dx = Math.min(localU, 1 - localU);
+          const dy = Math.min(localV, 1 - localV);
+          distToBorder = Math.min(dx, dy); // Distanza dal bordo del quadrato (0 a 0.5)
+          centerFactor = Math.min(localU, 1 - localU, localV, 1 - localV) * 2;
+          break;
+        }
+
+        case 'triangles': { // Triangoli sfaccettati
+          const triLower = (localU + localV) < 1;
+          if (!triLower) cellHash = hash2D(cellX + 0.5, cellY + 0.5);
+          
+          const d1 = localU;
+          const d2 = localV;
+          const d3 = Math.abs(1 - localU - localV) / 1.414;
+          distToBorder = Math.min(d1, d2, d3) * 0.7;
+          centerFactor = distToBorder * 3;
+          break;
+        }
+
+        case 'diamonds': { // Rombi
+          const cx = Math.abs(localU - 0.5);
+          const cy = Math.abs(localV - 0.5);
+          const manhattan = cx + cy; // 0 al centro, 0.5 al bordo rombo
+          distToBorder = Math.max(0, 0.5 - manhattan);
+          centerFactor = (0.5 - manhattan) * 2;
+          break;
+        }
+
+        case 'hexagons': { // Esagoni
+          // Approssimazione griglia esagonale
+          const hx = Math.abs(localU - 0.5) * 1.15;
+          const hy = Math.abs(localV - 0.5);
+          distToBorder = Math.max(0, 0.5 - Math.max(hy, (hx * 0.866 + hy * 0.5)));
+          centerFactor = distToBorder * 2;
+          break;
+        }
+
+        case 'voronoi': { // Celle poligonali Voronoi
+          const cx = Math.abs(Math.sin(localU * 3.14 + cellHash));
+          const cy = Math.abs(Math.cos(localV * 3.14 + cellHash));
+          distToBorder = Math.min(cx, cy) * 0.5;
+          centerFactor = distToBorder * 2;
+          break;
+        }
+
+        case 'ribs': { // Cannettato Squadrato
+          distToBorder = Math.min(localU, 1 - localU);
+          centerFactor = Math.sin(localU * 3.14);
+          break;
+        }
+      }
+
+      return { distToBorder, centerFactor, cellHash };
+    }
+
+    // Generazione della Geometria 3D
+    function rebuildPanel() {
+      if (panelGroup) scene.remove(panelGroup);
+
+      const W = state.width / 1000;
+      const H = state.height / 1000;
+      const BaseT = state.thickness / 1000;
+      const maxZ = state.reliefDepth / 1000;
+
+      // Risoluzione elevata per definizione spigoli
+      const segsX = Math.max(state.freqX * 12, 120);
+      const segsY = Math.max(state.freqY * 12, 120);
+
+      let geo = new THREE.PlaneGeometry(W, H, segsX, segsY);
+      const pos = geo.attributes.position;
+
+      const gapNorm = (state.gapWidth / 1000) / (W / state.freqX);
+      const bevelNorm = (state.bevelWidth / 1000) / (W / state.freqX);
+      const peakWeight = state.pyramidPeak / 100;
+      const randWeight = state.randomHeight / 100;
+
+      for (let i = 0; i < pos.count; i++) {
+        const u = (pos.getX(i) + W / 2) / W;
+        const v = (pos.getY(i) + H / 2) / H;
+
+        const { distToBorder, centerFactor, cellHash } = getTileMetrics(u, v);
+
+        let tileZ = 0;
+
+        // 1. Applica Fuga tra Tessere
+        if (distToBorder > gapNorm) {
+          const innerDist = distToBorder - gapNorm;
+
+          // 2. Applica Smussatura Bordo (Bevel)
+          if (innerDist < bevelNorm && bevelNorm > 0) {
+            const bevelFactor = innerDist / bevelNorm;
+            tileZ = bevelFactor * maxZ * (1 - peakWeight * 0.5);
+          } else {
+            // 3. Applica Profilo Centrale (Piramidale o Piatto)
+            const plateauZ = maxZ;
+            const pyramidZ = centerFactor * maxZ;
+            tileZ = plateauZ * (1 - peakWeight) + pyramidZ * peakWeight;
+          }
+
+          // 4. Applica Casualità di Altezza tra Tessere
+          const randOffset = (cellHash - 0.5) * randWeight * maxZ;
+          tileZ = Math.max(0, tileZ + randOffset);
+        } else {
+          tileZ = 0; // Fuga / Inciso alla quota zero
+        }
+
+        pos.setZ(i, BaseT / 2 + tileZ);
+      }
+
+      // IMPORTANTE: Disaccoppiamento vertici per Bordi Affilati tipo Intaglio CNC
+      if (state.shadingStyle === 'flat') {
+        geo = geo.toNonIndexed();
+      }
+      geo.computeVertexNormals();
+
+      // Configurazione Materiale
+      const matOptions = {
+        roughness: state.roughness,
+        metalness: 0.05
+      };
+
+      if (['rovere', 'noce', 'frassino', 'ebano'].includes(state.woodType)) {
+        matOptions.map = woodTextures[state.woodType];
+        matOptions.color = 0xffffff;
+      } else if (state.woodType === 'bianco') {
+        matOptions.color = 0xf8fafc;
+      } else if (state.woodType === 'antracite') {
+        matOptions.color = 0x1e293b;
+      }
+
+      const frontMaterial = new THREE.MeshStandardMaterial(matOptions);
+      const sideMaterial = new THREE.MeshStandardMaterial({ color: 0x1f140e, roughness: 0.8 });
+
+      panelGroup = new THREE.Group();
+
+      const frontMesh = new THREE.Mesh(geo, frontMaterial);
+      frontMesh.castShadow = true;
+      frontMesh.receiveShadow = true;
+      panelGroup.add(frontMesh);
+
+      // Struttura posteriore
+      const backGeo = new THREE.BoxGeometry(W, H, BaseT);
+      const backMesh = new THREE.Mesh(backGeo, sideMaterial);
+      backMesh.position.set(0, 0, 0);
+      backMesh.receiveShadow = true;
+      panelGroup.add(backMesh);
+
+      scene.add(panelGroup);
+
+      document.getElementById('poly-count').textContent = (pos.count / 3).toLocaleString();
+      document.getElementById('mosaico-type').textContent = state.patternType.toUpperCase();
+    }
+
+    function initListeners() {
+      inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        el.addEventListener('input', (e) => {
+          let val = e.target.value;
+          if (e.target.type === 'range') val = parseFloat(val);
+
+          state[id] = val;
+
+          const label = document.getElementById(`val-${id}`);
+          if (label) {
+            if (id === 'lightAngle') label.textContent = `${state[id]} °`;
+            else if (['pyramidPeak', 'randomHeight'].includes(id)) label.textContent = `${state[id]} %`;
+            else if (['freqX', 'freqY', 'roughness'].includes(id)) label.textContent = state[id];
+            else label.textContent = `${state[id]} mm`;
+          }
+
+          if (id === 'lightAngle') {
+            updateLightPosition();
+          } else {
+            rebuildPanel();
+          }
+        });
+      });
+    }
+
+    function resetCamera(mode) {
+      if (mode === 'front') camera.position.set(0, 0, 2.2);
+      else if (mode === 'persp') camera.position.set(1.1, -1.1, 1.4);
+      else if (mode === 'side') camera.position.set(1.8, 0, 0.4);
+      controls.target.set(0, 0, 0);
+      controls.update();
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    init3D();
+    initListeners();
+  </script>
+</body>
+</html>

@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulatore 2D / 3D Appartamento (20x10m)</title>
+  
+  <!-- Three.js, OrbitControls, STLLoader e Rhino3DM NATIVO -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/rhino3dm@7.15.0/rhino3dm.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #12121e;
+      --panel-bg: #1e1e2d;
+      --accent: #6c5ce7;
+      --accent-hover: #5a4bcf;
+      --text: #ffffff;
+      --text-dim: #a0a0b0;
+      --border: #2b2b3d;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+    /* Sidebar Controlli */
+    #sidebar {
+      width: 320px;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 15px;
+      overflow-y: auto;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    h2 { font-size: 1.1rem; color: var(--text); border-bottom: 2px solid var(--accent); padding-bottom: 5px; }
+    
+    .section {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .section h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); margin-bottom: 8px; }
+
+    .btn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+
+    button, .btn-file-label {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 7px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: center;
+      transition: background 0.2s;
+      display: inline-block;
+      width: 100%;
+    }
+    button:hover, .btn-file-label:hover { background: var(--accent-hover); }
+    button.danger { background: #e74c3c; }
+    button.danger:hover { background: #c0392b; }
+    button.success { background: #27ae60; }
+    button.success:hover { background: #219150; }
+
+    .prop-group { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+    .prop-group label { font-size: 0.75rem; color: var(--text-dim); display: flex; flex-direction: column; gap: 2px; }
+    .prop-group input { background: #12121e; border: 1px solid var(--border); color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem; }
+    .checkbox-label { font-size: 0.8rem; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+    /* Area Principale Split View */
+    #main-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .view-header {
+      background: #181825;
+      padding: 8px 15px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 35px;
+    }
+
+    #views-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 35px);
+    }
+
+    /* Vista 2D (Alto) */
+    #container-2d {
+      flex: 1;
+      min-height: 250px;
+      background: #0f0f17;
+      position: relative;
+      overflow: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 2px solid var(--border);
+      padding: 20px;
+    }
+
+    #viewport-2d {
+      position: relative;
+      width: 800px;
+      height: 400px;
+      background-color: #181825;
+      background-image: 
+        linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(to right, rgba(255,255,255,0.15) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.15) 1px, transparent 1px);
+      background-size: 4px 4px, 4px 4px, 40px 40px, 40px 40px;
+      border: 3px solid #45475a;
+      user-select: none;
+    }
+
+    /* Vista 3D (Basso) */
+    #container-3d {
+      flex: 1;
+      min-height: 250px;
+      background: #05050a;
+      position: relative;
+      width: 100%;
+    }
+
+    #container-3d canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* Stili elementi 2D */
+    .plan-object {
+      position: absolute;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: bold;
+      text-align: center;
+      cursor: move;
+      border: 1px solid rgba(255,255,255,0.4);
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+      overflow: hidden;
+      padding: 2px;
+    }
+    .plan-object.selected {
+      border: 2px solid #f1c40f !important;
+      box-shadow: 0 0 8px rgba(241, 196, 15, 0.8);
+      z-index: 1000 !important;
+    }
+
+    .type-wall { background: #7f8c8d; border-color: #95a5a6; z-index: 10; }
+    .type-door { background: rgba(46, 204, 113, 0.8); border: 2px solid #27ae60; z-index: 15; }
+    .type-window { background: rgba(52, 152, 219, 0.6); border: 2px dashed #2980b9; z-index: 15; }
+    .type-furniture { background: #e67e22; border-color: #d35400; z-index: 20; }
+    .type-sanitary { background: #9b59b6; border-color: #8e44ad; z-index: 20; }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR CONTROLLI -->
+  <div id="sidebar">
+    <h2>Simulatore 2D / 3D</h2>
+
+    <div class="section">
+      <label class="checkbox-label">
+        <input type="checkbox" id="snap-grid" checked>
+        Snap Griglia (10 cm)
+      </label>
+    </div>
+
+    <!-- Importazione / Esportazione Rhino 7 & STL -->
+    <div class="section">
+      <h3>Rhino 7 & STL</h3>
+      <button class="success" onclick="exportToRhino7()" style="margin-bottom: 6px;">💾 Salva Scena (.3dm Rhino 7)</button>
+      
+      <label style="display:block; margin-bottom: 6px;">
+        <span class="btn-file-label">📂 Apri File Rhino (.3dm)</span>
+        <input type="file" id="rhinoInput" accept=".3dm" style="display:none;" onchange="handleRhinoSelect(event)">
+      </label>
+
+      <label style="display:block;">
+        <span class="btn-file-label">📦 Importa File STL (.stl)</span>
+        <input type="file" id="stlInput" accept=".stl" style="display:none;" onchange="handleSTLSelect(event)">
+      </label>
+    </div>
+
+    <!-- Pannello Modifica Oggetto -->
+    <div class="section" id="properties-panel">
+      <h3>Proprietà Selezionate</h3>
+      <div id="no-selection" style="font-size:0.75rem; color: var(--text-dim);">Clicca su un elemento per modificarlo</div>
+      <div id="selection-controls" style="display: none;">
+        <div class="prop-group">
+          <label>Nome
+            <input type="text" id="prop-label">
+          </label>
+          <label>Rotazione (°)
+            <input type="number" id="prop-rot" step="15">
+          </label>
+        </div>
+        <div class="prop-group">
+          <label>Larghezza X (cm)
+            <input type="number" id="prop-w" step="1">
+          </label>
+          <label>Profondità Y (cm)
+            <input type="number" id="prop-h" step="1">
+          </label>
+        </div>
+        <div class="prop-group">
+          <label>Altezza Z (cm)
+            <input type="number" id="prop-z-len" step="1">
+          </label>
+          <label>Quota Terra (cm)
+            <input type="number" id="prop-elevation" step="1">
+          </label>
+        </div>
+        <div class="prop-group">
+          <label>Posizione X (cm)
+            <input type="number" id="prop-x" step="1">
+          </label>
+          <label>Posizione Y (cm)
+            <input type="number" id="prop-y" step="1">
+          </label>
+        </div>
+        <button class="danger" style="width: 100%; margin-top: 4px;" id="btn-delete">Elimina Oggetto</button>
+      </div>
+    </div>
+
+    <!-- Inserimento Porte & Finestre -->
+    <div class="section">
+      <h3>Porte & Finestre</h3>
+      <div class="btn-grid">
+        <button onclick="addObject('door', 'Porta 80', 80, 15, 210, 0)">+ Porta 80cm</button>
+        <button onclick="addObject('door', 'Porta Scorr.', 150, 15, 210, 0)">+ Scorrevole</button>
+        <button onclick="addObject('window', 'Finestra 140', 140, 15, 140, 90)">+ Finestra</button>
+        <button onclick="addObject('window', 'Vetrata 300', 300, 20, 240, 0)">+ Vetrata H240</button>
+      </div>
+    </div>
+
+    <!-- Inserimento Strutture -->
+    <div class="section">
+      <h3>Muri e Divisori</h3>
+      <div class="btn-grid">
+        <button onclick="addObject('wall', 'Muro H', 300, 10, 270, 0)">+ Muro Orizz.</button>
+        <button onclick="addObject('wall', 'Muro V', 10, 300, 270, 0)">+ Muro Vert.</button>
+      </div>
+    </div>
+
+    <!-- Inserimento Arredi -->
+    <div class="section">
+      <h3>Arredi e Sanitari</h3>
+      <div class="btn-grid">
+        <button onclick="addObject('furniture', 'Divano', 240, 90, 85, 0)">+ Divano</button>
+        <button onclick="addObject('furniture', 'Letto Matr.', 180, 200, 100, 0)">+ Letto Matr.</button>
+        <button onclick="addObject('furniture', 'Tavolo', 180, 90, 75, 0)">+ Tavolo</button>
+        <button onclick="addObject('furniture', 'Armadio', 200, 60, 240, 0)">+ Armadio</button>
+        <button onclick="addObject('sanitary', 'Doccia', 180, 90, 210, 0)">+ Doccia</button>
+        <button onclick="addObject('sanitary', 'Lavabo', 80, 50, 85, 0)">+ Lavabo</button>
+      </div>
+    </div>
+
+    <button style="background:#45475a;" onclick="resetToDefault()">Ripristina Layout Iniziale</button>
+  </div>
+
+  <!-- MAIN VIEWPORT SPLIT (2D ALTO, 3D BASSO) -->
+  <div id="main-container">
+    <div class="view-header">
+      <span>Layout Appartamento 2000 x 1000 cm (20m x 10m)</span>
+      <span style="font-size:0.75rem; color:#aaa;">2D Interattivo (In alto) | 3D Vista 360° (In basso)</span>
+    </div>
+    <div id="views-wrapper">
+      <div id="container-2d">
+        <div id="viewport-2d"></div>
+      </div>
+      <div id="container-3d"></div>
+    </div>
+  </div>
+
+  <script>
+    const SCALE_2D = 0.4;
+    const viewport2D = document.getElementById('viewport-2d');
+    
+    let state = [];
+    let selectedId = null;
+    let isDragging = false;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    let scene, camera, renderer, controls, objects3DGroup;
+
+    // Layout Iniziale
+    const defaultObjects = [
+      { id: 'w_nord', type: 'wall', label: 'Perimetrale Nord', x: 0, y: 0, w: 2000, h: 35, zLen: 270, elev: 0, rot: 0 },
+      { id: 'w_sud', type: 'wall', label: 'Perimetrale Sud', x: 0, y: 965, w: 2000, h: 35, zLen: 270, elev: 0, rot: 0 },
+      { id: 'w_ovest', type: 'wall', label: 'Perimetrale Ovest', x: 0, y: 0, w: 35, h: 1000, zLen: 270, elev: 0, rot: 0 },
+      { id: 'w_est', type: 'wall', label: 'Perimetrale Est', x: 1965, y: 0, w: 35, h: 1000, zLen: 270, elev: 0, rot: 0 },
+
+      { id: 'w_div1', type: 'wall', label: 'Tramezzo Zona Giorno', x: 785, y: 35, w: 15, h: 930, zLen: 270, elev: 0, rot: 0 },
+      { id: 'w_div2', type: 'wall', label: 'Tramezzo Notte', x: 1185, y: 35, w: 15, h: 930, zLen: 270, elev: 0, rot: 0 },
+      { id: 'w_div3', type: 'wall', label: 'Tramezzo Camere', x: 1185, y: 485, w: 780, h: 15, zLen: 270, elev: 0, rot: 0 },
+
+      { id: 'win_soggiorno', type: 'window', label: 'Vetrata Soggiorno', x: 250, y: 965, w: 300, h: 35, zLen: 240, elev: 0, rot: 0 },
+      { id: 'win_cam1', type: 'window', label: 'Finestra Camera 1', x: 1400, y: 965, w: 140, h: 35, zLen: 140, elev: 90, rot: 0 },
+      { id: 'win_cam2', type: 'window', label: 'Finestra Camera 2', x: 1700, y: 965, w: 140, h: 35, zLen: 140, elev: 90, rot: 0 },
+      { id: 'door_ingr', type: 'door', label: 'Ingresso Blindato', x: 920, y: 0, w: 100, h: 35, zLen: 210, elev: 0, rot: 0 },
+      { id: 'door_master', type: 'door', label: 'Porta Master', x: 1185, y: 200, w: 15, h: 90, zLen: 210, elev: 0, rot: 0 },
+
+      { id: 'f_divano', type: 'furniture', label: 'Divano', x: 150, y: 300, w: 280, h: 100, zLen: 85, elev: 0, rot: 0 },
+      { id: 'f_tavolo', type: 'furniture', label: 'Tavolo Pranzo', x: 450, y: 350, w: 200, h: 100, zLen: 75, elev: 0, rot: 0 },
+      { id: 'f_letto', type: 'furniture', label: 'Letto Matrimoniale', x: 1500, y: 80, w: 180, h: 200, zLen: 100, elev: 0, rot: 0 },
+      { id: 'f_doccia', type: 'sanitary', label: 'Doccia', x: 1210, y: 80, w: 180, h: 90, zLen: 210, elev: 0, rot: 0 }
+    ];
+
+    function init() {
+      init3D();
+      resetToDefault();
+
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      viewport2D.addEventListener('click', (e) => {
+        if (e.target === viewport2D) selectObject(null);
+      });
+
+      document.getElementById('prop-label').addEventListener('input', updateSelectedFromForm);
+      document.getElementById('prop-w').addEventListener('input', updateSelectedFromForm);
+      document.getElementById('prop-h').addEventListener('input', updateSelectedFromForm);
+      document.getElementById('prop-z-len').addEventListener('input', updateSelectedFromForm);
+      document.getElementById('prop-elevation').addEventListener('input', updateSelectedFromForm);
+      document.getElementById('prop-x').addEventListener('input', updateSelectedFromForm);
+      document.getElementById('prop-y').addEventListener('input', updateSelectedFromForm);
+      document.getElementById('prop-rot').addEventListener('input', updateSelectedFromForm);
+      document.getElementById('btn-delete').addEventListener('click', deleteSelected);
+
+      window.addEventListener('resize', onWindowResize);
+      setTimeout(onWindowResize, 100);
+    }
+
+    // INIZIALIZZAZIONE VISTA 3D
+    function init3D() {
+      const container3D = document.getElementById('container-3d');
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0f0f1b);
+
+      const width = container3D.clientWidth || 800;
+      const height = container3D.clientHeight || 400;
+
+      camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
+      camera.position.set(1000, 1800, 2200);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(width, height);
+      renderer.shadowMap.enabled = true;
+      container3D.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.target.set(1000, 0, 500);
+      controls.update();
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+      dirLight.position.set(1000, 2500, 1000);
+      dirLight.castShadow = true;
+      scene.add(dirLight);
+
+      // Pavimento
+      const floorGeo = new THREE.PlaneGeometry(2000, 1000);
+      const floorMat = new THREE.MeshStandardMaterial({ color: 0x222233, side: THREE.DoubleSide });
+      const floor = new THREE.Mesh(floorGeo, floorMat);
+      floor.rotation.x = Math.PI / 2;
+      floor.position.set(1000, 0, 500);
+      scene.add(floor);
+
+      const grid = new THREE.GridHelper(2000, 40, 0x6c5ce7, 0x2b2b3d);
+      grid.position.set(1000, 1, 500);
+      scene.add(grid);
+
+      objects3DGroup = new THREE.Group();
+      scene.add(objects3DGroup);
+
+      animate3D();
+    }
+
+    function animate3D() {
+      requestAnimationFrame(animate3D);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      const container3D = document.getElementById('container-3d');
+      if (!container3D || !renderer || !camera) return;
+      const width = container3D.clientWidth;
+      const height = container3D.clientHeight;
+      if (width === 0 || height === 0) return;
+
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+
+    // AGGIORNAMENTO MODELLO 3D
+    function update3D() {
+      while(objects3DGroup.children.length > 0) {
+        objects3DGroup.remove(objects3DGroup.children[0]);
+      }
+
+      state.forEach(obj => {
+        const w = obj.w;
+        const d = obj.h;
+        const h = obj.zLen || 100;
+        const elev = obj.elev || 0;
+
+        const pivot = new THREE.Group();
+        pivot.position.set(obj.x + w/2, elev + h/2, obj.y + d/2);
+        pivot.rotation.y = - (obj.rot || 0) * Math.PI / 180;
+
+        if (obj.customMesh) {
+          const meshInstance = obj.customMesh.clone(true);
+          if (obj.id === selectedId) {
+            meshInstance.traverse(child => {
+              if (child.isMesh && child.material) {
+                child.material = child.material.clone();
+                child.material.emissive = new THREE.Color(0xf1c40f);
+                child.material.emissiveIntensity = 0.3;
+              }
+            });
+          }
+          pivot.add(meshInstance);
+        } else {
+          let mat;
+          if (obj.type === 'wall') {
+            mat = new THREE.MeshStandardMaterial({ color: 0x7f8c8d });
+          } else if (obj.type === 'door') {
+            mat = new THREE.MeshStandardMaterial({ color: 0x2ecc71, transparent: true, opacity: 0.85 });
+          } else if (obj.type === 'window') {
+            mat = new THREE.MeshStandardMaterial({ color: 0x3498db, transparent: true, opacity: 0.45 });
+          } else if (obj.type === 'furniture') {
+            mat = new THREE.MeshStandardMaterial({ color: 0xe67e22 });
+          } else if (obj.type === 'sanitary') {
+            mat = new THREE.MeshStandardMaterial({ color: 0x9b59b6 });
+          } else {
+            mat = new THREE.MeshStandardMaterial({ color: 0xcccccc });
+          }
+
+          if (obj.id === selectedId) {
+            mat = mat.clone();
+            mat.emissive = new THREE.Color(0xf1c40f);
+            mat.emissiveIntensity = 0.3;
+          }
+
+          const geo = new THREE.BoxGeometry(w, h, d);
+          const mesh = new THREE.Mesh(geo, mat);
+          mesh.position.set(0, 0, 0);
+          pivot.add(mesh);
+        }
+
+        objects3DGroup.add(pivot);
+      });
+    }
+
+    // GESTIONE RHINO 7 & STL NATIVA
+
+    // 1. Salva scena corrente in formato Rhino 7 (.3dm)
+    async function exportToRhino7() {
+      if (typeof rhino3dm === 'undefined') {
+        alert("La libreria Rhino è in fase di caricamento, riprova tra qualche secondo.");
+        return;
+      }
+
+      try {
+        const rhino = await rhino3dm();
+        const doc = new rhino.File3dm();
+
+        objects3DGroup.traverse((child) => {
+          if (child.isMesh && child.geometry) {
+            const geom = child.geometry.clone();
+            geom.applyMatrix4(child.matrixWorld);
+
+            const nonIndexedGeom = geom.toNonIndexed ? geom.toNonIndexed() : geom;
+            const pos = nonIndexedGeom.attributes.position;
+            if (!pos) return;
+
+            const mesh = new rhino.Mesh();
+            for (let i = 0; i < pos.count; i++) {
+              mesh.vertices().add(pos.getX(i), pos.getY(i), pos.getZ(i));
+            }
+            for (let i = 0; i < pos.count; i += 3) {
+              mesh.faces().addFace(i, i + 1, i + 2);
+            }
+
+            mesh.compact();
+            mesh.normals().computeNormals();
+            doc.objects().add(mesh, null);
+          }
+        });
+
+        const buffer = doc.toByteArray();
+        const blob = new Blob([buffer], { type: 'application/octet-stream' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'appartamento_rhino7.3dm';
+        link.click();
+      } catch (err) {
+        alert("Errore nell'esportazione Rhino 7: " + err.message);
+      }
+    }
+
+    // 2. Apri file Rhino (.3dm)
+    async function handleRhinoSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async function (e) {
+        try {
+          const rhino = await rhino3dm();
+          const buffer = new Uint8Array(e.target.result);
+          const doc = rhino.File3dm.fromByteArray(buffer);
+
+          if (!doc) {
+            alert("Impossibile leggere il file Rhino.");
+            return;
+          }
+
+          const group = new THREE.Group();
+          const objects = doc.objects();
+
+          for (let i = 0; i < objects.count; i++) {
+            const item = objects.get(i);
+            const geom = item.geometry();
+
+            if (geom.objectType === rhino.ObjectType.Mesh) {
+              const mesh = rhinoMeshToThree(rhino, geom);
+              if (mesh) group.add(mesh);
+            } else if (geom.objectType === rhino.ObjectType.Brep) {
+              const meshes = rhino.Mesh.createFromBrep(geom);
+              for (let j = 0; j < meshes.count; j++) {
+                const mesh = rhinoMeshToThree(rhino, meshes.get(j));
+                if (mesh) group.add(mesh);
+              }
+            }
+          }
+
+          const bbox = new THREE.Box3().setFromObject(group);
+          const size = new THREE.Vector3();
+          bbox.getSize(size);
+
+          const id = 'rhino_' + Date.now();
+          const width = Math.max(20, Math.round(size.x)) || 100;
+          const depth = Math.max(20, Math.round(size.z)) || 100;
+          const height = Math.max(20, Math.round(size.y)) || 100;
+
+          const newObj = {
+            id: id,
+            type: 'furniture',
+            label: file.name.replace(/\.[^/.]+$/, ""),
+            x: 900,
+            y: 450,
+            w: width,
+            h: depth,
+            zLen: height,
+            elev: 0,
+            rot: 0,
+            customMesh: group
+          };
+
+          state.push(newObj);
+          selectObject(id);
+        } catch(err) {
+          alert('Errore nel caricamento del file Rhino: ' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+      event.target.value = '';
+    }
+
+    // Convertitore di mesh Rhino in Three.js
+    function rhinoMeshToThree(rhino, mesh) {
+      const vertices = mesh.vertices();
+      const faces = mesh.faces();
+
+      const positions = [];
+      for (let i = 0; i < vertices.count; i++) {
+        const v = vertices.get(i);
+        positions.push(v[0], v[1], v[2]);
+      }
+
+      const indices = [];
+      for (let i = 0; i < faces.count; i++) {
+        const f = faces.get(i);
+        indices.push(f[0], f[1], f[2]);
+        if (f[2] !== f[3]) {
+          indices.push(f[0], f[2], f[3]);
+        }
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geometry.setIndex(indices);
+      geometry.computeVertexNormals();
+
+      const material = new THREE.MeshStandardMaterial({ color: 0x95a5a6, side: THREE.DoubleSide });
+      return new THREE.Mesh(geometry, material);
+    }
+
+    // 3. Importa file STL (.stl)
+    function handleSTLSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const loader = new THREE.STLLoader();
+          const geometry = loader.parse(e.target.result);
+          geometry.center();
+          geometry.computeBoundingBox();
+
+          const bbox = geometry.boundingBox;
+          const size = new THREE.Vector3();
+          bbox.getSize(size);
+
+          const material = new THREE.MeshStandardMaterial({ color: 0xe67e22, roughness: 0.4 });
+          const mesh = new THREE.Mesh(geometry, material);
+
+          const id = 'stl_' + Date.now();
+          const width = Math.max(20, Math.round(size.x)) || 50;
+          const depth = Math.max(20, Math.round(size.z)) || 50;
+          const height = Math.max(20, Math.round(size.y)) || 50;
+
+          const newObj = {
+            id: id,
+            type: 'furniture',
+            label: file.name.replace(/\.[^/.]+$/, ""),
+            x: 900,
+            y: 450,
+            w: width,
+            h: depth,
+            zLen: height,
+            elev: 0,
+            rot: 0,
+            customMesh: mesh
+          };
+
+          state.push(newObj);
+          selectObject(id);
+        } catch (err) {
+          alert('Errore caricamento STL: ' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+      event.target.value = '';
+    }
+
+    // LOGICA INTERFACCIA 2D & SINCRO
+    function resetToDefault() {
+      state = JSON.parse(JSON.stringify(defaultObjects));
+      selectObject(null);
+      render();
+    }
+
+    function render() {
+      viewport2D.innerHTML = '';
+      state.forEach(obj => {
+        const el = document.createElement('div');
+        el.className = `plan-object type-${obj.type} ${obj.id === selectedId ? 'selected' : ''}`;
+        el.id = obj.id;
+        
+        el.style.width = `${obj.w * SCALE_2D}px`;
+        el.style.height = `${obj.h * SCALE_2D}px`;
+        el.style.left = `${obj.x * SCALE_2D}px`;
+        el.style.top = `${obj.y * SCALE_2D}px`;
+        el.style.transform = `rotate(${obj.rot || 0}deg)`;
+        el.innerText = obj.label;
+
+        el.addEventListener('mousedown', (e) => handleMouseDown(e, obj.id));
+        viewport2D.appendChild(el);
+      });
+
+      updateForm();
+      update3D();
+    }
+
+    function selectObject(id) {
+      selectedId = id;
+      render();
+    }
+
+    function handleMouseDown(e, id) {
+      e.stopPropagation();
+      selectObject(id);
+      isDragging = true;
+      
+      const obj = state.find(o => o.id === id);
+      const rect = viewport2D.getBoundingClientRect();
+      
+      const mouseXCm = (e.clientX - rect.left) / SCALE_2D;
+      const mouseYCm = (e.clientY - rect.top) / SCALE_2D;
+      
+      dragOffsetX = mouseXCm - obj.x;
+      dragOffsetY = mouseYCm - obj.y;
+    }
+
+    function handleMouseMove(e) {
+      if (!isDragging || !selectedId) return;
+
+      const obj = state.find(o => o.id === selectedId);
+      const rect = viewport2D.getBoundingClientRect();
+      
+      let newX = ((e.clientX - rect.left) / SCALE_2D) - dragOffsetX;
+      let newY = ((e.clientY - rect.top) / SCALE_2D) - dragOffsetY;
+
+      if (document.getElementById('snap-grid').checked) {
+        newX = Math.round(newX / 10) * 10;
+        newY = Math.round(newY / 10) * 10;
+      }
+
+      obj.x = Math.max(0, Math.min(2000 - obj.w, newX));
+      obj.y = Math.max(0, Math.min(1000 - obj.h, newY));
+
+      render();
+    }
+
+    function handleMouseUp() {
+      isDragging = false;
+    }
+
+    function updateForm() {
+      const controlsElem = document.getElementById('selection-controls');
+      const noSel = document.getElementById('no-selection');
+
+      if (!selectedId) {
+        controlsElem.style.display = 'none';
+        noSel.style.display = 'block';
+        return;
+      }
+
+      const obj = state.find(o => o.id === selectedId);
+      if (!obj) return;
+
+      controlsElem.style.display = 'block';
+      noSel.style.display = 'none';
+
+      document.getElementById('prop-label').value = obj.label;
+      document.getElementById('prop-w').value = obj.w;
+      document.getElementById('prop-h').value = obj.h;
+      document.getElementById('prop-z-len').value = obj.zLen || 100;
+      document.getElementById('prop-elevation').value = obj.elev || 0;
+      document.getElementById('prop-x').value = Math.round(obj.x);
+      document.getElementById('prop-y').value = Math.round(obj.y);
+      document.getElementById('prop-rot').value = obj.rot || 0;
+    }
+
+    function updateSelectedFromForm() {
+      if (!selectedId) return;
+      const obj = state.find(o => o.id === selectedId);
+      
+      obj.label = document.getElementById('prop-label').value;
+      obj.w = parseFloat(document.getElementById('prop-w').value) || 10;
+      obj.h = parseFloat(document.getElementById('prop-h').value) || 10;
+      obj.zLen = parseFloat(document.getElementById('prop-z-len').value) || 10;
+      obj.elev = parseFloat(document.getElementById('prop-elevation').value) || 0;
+      obj.x = parseFloat(document.getElementById('prop-x').value) || 0;
+      obj.y = parseFloat(document.getElementById('prop-y').value) || 0;
+      obj.rot = parseFloat(document.getElementById('prop-rot').value) || 0;
+
+      render();
+    }
+
+    function addObject(type, label, w, h, zLen, elev) {
+      const newObj = {
+        id: 'obj_' + Date.now(),
+        type: type,
+        label: label,
+        x: 900,
+        y: 450,
+        w: w,
+        h: h,
+        zLen: zLen,
+        elev: elev,
+        rot: 0
+      };
+      state.push(newObj);
+      selectObject(newObj.id);
+    }
+
+    function deleteSelected() {
+      if (!selectedId) return;
+      state = state.filter(o => o.id !== selectedId);
+      selectObject(null);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

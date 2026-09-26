@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="it" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wood & Algorithm — Assistente IA 24/7 & CRM Integrato</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandBg: '#0b0c0e',
+            brandCard: '#13151a',
+            brandPanel: '#1a1d24',
+            brandBorder: '#2a2e3a',
+            brandAccent: '#d97706',
+            brandAccentHover: '#b45309'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0c0e; color: #f3f4f6; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #0b0c0e; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #2a2e3a; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #d97706; }
+    
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.8; }
+    }
+    .live-pulse { animation: pulseGlow 2s infinite; }
+  </style>
+</head>
+<body class="custom-scrollbar selection:bg-amber-500 selection:text-black min-h-screen flex flex-col">
+
+  <!-- NAVBAR -->
+  <nav class="sticky top-0 z-40 bg-brandBg/90 backdrop-blur-md border-b border-brandBorder px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="#" class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-inner">
+          <i class="fa-solid fa-robot text-lg"></i>
+        </div>
+        <div>
+          <span class="text-base font-extrabold text-white tracking-wider block">WOOD & ALGORITHM</span>
+          <span class="text-[10px] text-amber-400 font-semibold tracking-widest uppercase">Assistente Virtuale 24/7 + CRM Live</span>
+        </div>
+      </a>
+
+      <div class="flex items-center gap-3">
+        <span class="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          Chatbot Attivo 24H
+        </span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    
+    <!-- COLONNA SINISTRA: INTERFACCIA CHATBOT (7 Colonne) -->
+    <section class="lg:col-span-7 bg-brandCard border border-brandBorder rounded-3xl overflow-hidden flex flex-col h-[750px] shadow-2xl relative">
+      
+      <!-- Header Chat -->
+      <div class="bg-brandPanel px-6 py-4 border-b border-brandBorder flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="relative">
+            <div class="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center text-amber-400">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-brandPanel rounded-full"></span>
+          </div>
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              Arno — Ebanista Virtuale IA
+            </h2>
+            <p class="text-[11px] text-slate-400">Accoglienza clienti, analisi misure & preventivi su misura</p>
+          </div>
+        </div>
+
+        <button onclick="resetChat()" class="text-xs text-slate-400 hover:text-amber-400 transition flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-lg border border-brandBorder">
+          <i class="fa-solid fa-rotate-right"></i> Riavvia Demo
+        </button>
+      </div>
+
+      <!-- Area Messaggi Chat -->
+      <div id="chat-box" class="flex-1 p-6 overflow-y-auto custom-scrollbar space-y-4">
+        <!-- I messaggi della chat vengono inseriti dinamicamente via JS -->
+      </div>
+
+      <!-- Quick Options Container -->
+      <div id="quick-options" class="px-6 py-2 flex flex-wrap gap-2 empty:hidden">
+        <!-- Bottoni di scelta rapida generati da JS -->
+      </div>
+
+      <!-- Form Invio Messaggio -->
+      <form id="chat-form" onsubmit="handleUserSubmit(event)" class="p-4 bg-brandPanel border-t border-brandBorder flex gap-2">
+        <input 
+          type="text" 
+          id="user-input" 
+          placeholder="Scrivi una risposta o le tue misure..." 
+          class="flex-1 bg-black/60 border border-brandBorder rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"
+          autocomplete="off"
+        >
+        <button type="submit" class="px-5 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl transition flex items-center gap-2 text-sm shadow-lg shadow-amber-500/20">
+          <span>Invia</span>
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </form>
+    </section>
+
+    <!-- COLONNA DESTRA: LIVE CRM DASHBOARD (5 Colonne) -->
+    <section class="lg:col-span-5 space-y-6">
+      
+      <!-- Card Banner Risparmio Tempo -->
+      <div class="bg-gradient-to-r from-amber-500/10 via-brandCard to-brandCard border border-amber-500/30 p-5 rounded-3xl flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </div>
+          <div>
+            <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block">Risparmio Chiamata</span>
+            <span class="text-lg font-extrabold text-white">~30 Minuti Guadagnati</span>
+          </div>
+        </div>
+        <span class="text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-1 rounded-full">CRM V1.4</span>
+      </div>
+
+      <!-- SCHEDA CLIENTE CRM DINAICA -->
+      <div class="bg-brandCard border border-brandBorder rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+        
+        <!-- Header CRM -->
+        <div class="flex items-center justify-between pb-4 border-b border-brandBorder mb-5">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-id-card text-amber-400"></i>
+            <h3 class="text-sm font-bold text-white tracking-wide">Scheda Cliente CRM (Live)</h3>
+          </div>
+          <span id="crm-status" class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-slate-800 text-slate-400 border border-slate-700">In Compilazione</span>
+        </div>
+
+        <!-- Dati Raccolti -->
+        <div class="space-y-4 text-xs font-mono-code">
+          
+          <!-- ID & Nome -->
+          <div class="bg-black/40 p-3 rounded-2xl border border-brandBorder flex justify-between items-center">
+            <span class="text-slate-400 font-sans">Cliente / Lead:</span>
+            <span id="crm-name" class="font-bold text-white font-mono">In attesa...</span>
+          </div>
+
+          <!-- Tipo Arredo -->
+          <div class="bg-black/40 p-3 rounded-2xl border border-brandBorder flex justify-between items-center">
+            <span class="text-slate-400 font-sans">Tipo Arredo:</span>
+            <span id="crm-type" class="font-bold text-amber-400 font-mono">Non specificato</span>
+          </div>
+
+          <!-- Misure di Massima -->
+          <div class="bg-black/40 p-3 rounded-2xl border border-brandBorder flex justify-between items-center">
+            <span class="text-slate-400 font-sans">Misure di Massima:</span>
+            <span id="crm-size" class="font-bold text-white font-mono">In fase di calcolo...</span>
+          </div>
+
+          <!-- Essenza Legno -->
+          <div class="bg-black/40 p-3 rounded-2xl border border-brandBorder flex justify-between items-center">
+            <span class="text-slate-400 font-sans">Essenza Preferita:</span>
+            <span id="crm-wood" class="font-bold text-emerald-400 font-mono">Da selezionare</span>
+          </div>
+
+          <!-- Esigenze Speciali -->
+          <div class="bg-black/40 p-3 rounded-2xl border border-brandBorder flex justify-between items-center">
+            <span class="text-slate-400 font-sans">Passaggio HUD / Extra:</span>
+            <span id="crm-notes" class="font-bold text-slate-300 font-mono">Nessuna nota</span>
+          </div>
+
+          <!-- Contatto Email/Tel -->
+          <div class="bg-black/40 p-3 rounded-2xl border border-brandBorder flex justify-between items-center">
+            <span class="text-slate-400 font-sans">Contatto Diretto:</span>
+            <span id="crm-contact" class="font-bold text-amber-400 font-mono">Da acquisire</span>
+          </div>
+
+        </div>
+
+        <!-- Lead Score & Qualifica -->
+        <div class="mt-6 pt-4 border-t border-brandBorder">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-slate-400">Qualifica Lead (IA Score):</span>
+            <span id="crm-score-text" class="text-xs font-bold text-amber-400">20%</span>
+          </div>
+          <div class="w-full bg-black/60 rounded-full h-2 overflow-hidden border border-brandBorder">
+            <div id="crm-score-bar" class="bg-amber-500 h-full transition-all duration-500" style="width: 20%;"></div>
+          </div>
+        </div>
+
+        <!-- Pulsante Azione CRM -->
+        <button id="btn-export" onclick="exportLead()" disabled class="w-full mt-6 py-3 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl transition cursor-not-allowed flex items-center justify-center gap-2">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>Invia Scheda al Laboratorio</span>
+        </button>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- JAVASCRIPT MOTORE CHATBOT & INTEGRAZIONE CRM -->
+  <script>
+    // Stato del CRM e della Conversazione
+    let leadData = {
+      name: '',
+      type: '',
+      size: '',
+      wood: '',
+      notes: '',
+      contact: '',
+      step: 0,
+      score: 20
+    };
+
+    // Sequenza Domande Bot
+    const conversationFlow = [
+      {
+        step: 0,
+        botMsg: "Benvenuto nella nostra Falegnameria Creativa! Sono **Arno**, l'assistente IA. Accolgo i clienti 24/7 per trasformare le loro idee in arredi masselli su misura.<br><br>Per iniziare a preparare la tua scheda progetto, **come ti chiami?**",
+        quickReplies: []
+      },
+      {
+        step: 1,
+        botMsg: (name) => `Piacere di conoscerti, **${name}**! 🪵<br>Per iniziare la simulazione parametrica: **Che tipo di mobile o ambiente stai cercando?**`,
+        quickReplies: ['Tavolo Massello Japandi', 'Scrivania Smart Home Office', 'Parete Multifunzionale Studio', 'Arredo Su Misura Speciale']
+      },
+      {
+        step: 2,
+        botMsg: "Perfetta scelta. Per permetterci di calcolare le sezioni di taglio e verificare gli ingombri:<br>**Quali sono le misure di massima del mobile o della stanza?** (Es. 180x90 cm, oppure parete da 3 metri)",
+        quickReplies: ['Circa 180 x 90 cm', 'Circa 200 x 100 cm', 'Parete Intera (3-4 metri)', 'Non le so, serve sopralluogo']
+      },
+      {
+        step: 3,
+        botMsg: "Ottimo. Passiamo alla materia viva: **Quale essenza di legno o finitura si adatta meglio al tuo stile?**",
+        quickReplies: ['Rovere Massello Nodato', 'Noce Scurissimo Zen', 'Frassino Sbiancato Koto']
+      },
+      {
+        step: 4,
+        botMsg: "Hai esigenze particolari come **spazi di passaggio (corridoio HUD > 85cm)**, passacavi integrati o vani per libri/faldoni ad alta densità?",
+        quickReplies: ['Sì, corridoi strette / spazio ridotto', 'Sì, gestione cavi & elettrificazione', 'Librerie ad alta densità', 'Nessuna esigenza particolare']
+      },
+      {
+        step: 5,
+        botMsg: "Ci siamo! Ho quasi completato la tua scheda progetto.<br>**Lasciaci la tua Email o Numero di Telefono**: il maestro falegname preparerà il primo rendering 3D con la stima dei costi.",
+        quickReplies: []
+      },
+      {
+        step: 6,
+        botMsg: "✨ **Scheda Progetto Completata!**<br>Grazie! La tua richiesta è stata trasmessa direttamente al nostro laboratorio. Abbiamo risparmiato 30 minuti di telefonata preliminare. Ti contatteremo a breve con la bozza parametrica 3D!",
+        quickReplies: []
+      }
+    ];
+
+    window.onload = () => {
+      initChat();
+    };
+
+    function initChat() {
+      const chatBox = document.getElementById('chat-box');
+      chatBox.innerHTML = '';
+      leadData = { name: '', type: '', size: '', wood: '', notes: '', contact: '', step: 0, score: 20 };
+      updateCRMUI();
+      
+      // Invia il primo messaggio del bot
+      appendBotMessage(conversationFlow[0].botMsg);
+    }
+
+    function resetChat() {
+      initChat();
+    }
+
+    // Inserisce il messaggio del bot
+    function appendBotMessage(text, replies = []) {
+      const chatBox = document.getElementById('chat-box');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = "flex gap-3 items-start animate-fade-in";
+      msgDiv.innerHTML = `
+        <div class="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center text-amber-400 text-xs shrink-0 mt-1">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <div class="bg-brandPanel border border-brandBorder p-4 rounded-2xl rounded-tl-none max-w-[85%] text-xs md:text-sm text-slate-200 leading-relaxed shadow">
+          ${text}
+        </div>
+      `;
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      renderQuickReplies(replies);
+    }
+
+    // Inserisce il messaggio dell'utente
+    function appendUserMessage(text) {
+      const chatBox = document.getElementById('chat-box');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = "flex gap-3 items-start justify-end animate-fade-in";
+      msgDiv.innerHTML = `
+        <div class="bg-amber-500 text-slate-950 font-medium p-4 rounded-2xl rounded-tr-none max-w-[85%] text-xs md:text-sm leading-relaxed shadow">
+          ${text}
+        </div>
+        <div class="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 text-xs shrink-0 mt-1">
+          <i class="fa-solid fa-user"></i>
+        </div>
+      `;
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Gestione Invio Messaggio
+    function handleUserSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('user-input');
+      const val = input.value.trim();
+      if (!val) return;
+
+      input.value = '';
+      processStepResponse(val);
+    }
+
+    function selectQuickReply(text) {
+      processStepResponse(text);
+    }
+
+    // Processa la risposta in base allo Step Corrente
+    function processStepResponse(userText) {
+      appendUserMessage(userText);
+      document.getElementById('quick-options').innerHTML = '';
+
+      // Aggiorna lo stato CRM in base allo step
+      switch (leadData.step) {
+        case 0:
+          leadData.name = userText;
+          leadData.score = 35;
+          break;
+        case 1:
+          leadData.type = userText;
+          leadData.score = 50;
+          break;
+        case 2:
+          leadData.size = userText;
+          leadData.score = 65;
+          break;
+        case 3:
+          leadData.wood = userText;
+          leadData.score = 80;
+          break;
+        case 4:
+          leadData.notes = userText;
+          leadData.score = 90;
+          break;
+        case 5:
+          leadData.contact = userText;
+          leadData.score = 100;
+          break;
+      }
+
+      leadData.step++;
+      updateCRMUI();
+
+      // Risposta automatica dopo breve delay per effetto "digitazione"
+      setTimeout(() => {
+        const currentFlow = conversationFlow[leadData.step];
+        if (currentFlow) {
+          let botText = typeof currentFlow.botMsg === 'function' ? currentFlow.botMsg(leadData.name) : currentFlow.botMsg;
+          appendBotMessage(botText, currentFlow.quickReplies || []);
+        }
+      }, 600);
+    }
+
+    // Mostra bottoni di risposta rapida
+    function renderQuickReplies(replies) {
+      const container = document.getElementById('quick-options');
+      container.innerHTML = '';
+      if (!replies || replies.length === 0) return;
+
+      replies.forEach(reply => {
+        const btn = document.createElement('button');
+        btn.className = "px-3 py-1.5 bg-black/50 hover:bg-amber-500 hover:text-slate-950 border border-brandBorder text-slate-300 text-xs rounded-xl transition";
+        btn.innerText = reply;
+        btn.onclick = () => selectQuickReply(reply);
+        container.appendChild(btn);
+      });
+    }
+
+    // Aggiorna l'interfaccia della Scheda Cliente CRM
+    function updateCRMUI() {
+      document.getElementById('crm-name').innerText = leadData.name || 'In attesa...';
+      document.getElementById('crm-type').innerText = leadData.type || 'Non specificato';
+      document.getElementById('crm-size').innerText = leadData.size || 'In fase di calcolo...';
+      document.getElementById('crm-wood').innerText = leadData.wood || 'Da selezionare';
+      document.getElementById('crm-notes').innerText = leadData.notes || 'Nessuna nota';
+      document.getElementById('crm-contact').innerText = leadData.contact || 'Da acquisire';
+
+      document.getElementById('crm-score-text').innerText = `${leadData.score}%`;
+      document.getElementById('crm-score-bar').style.width = `${leadData.score}%`;
+
+      const statusBadge = document.getElementById('crm-status');
+      const exportBtn = document.getElementById('btn-export');
+
+      if (leadData.score === 100) {
+        statusBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 animate-pulse";
+        statusBadge.innerText = "Lead Qualificato";
+
+        exportBtn.disabled = false;
+        exportBtn.className = "w-full mt-6 py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer";
+      } else {
+        statusBadge.className = "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-slate-800 text-slate-400 border border-slate-700";
+        statusBadge.innerText = "In Compilazione";
+
+        exportBtn.disabled = true;
+        exportBtn.className = "w-full mt-6 py-3 bg-slate-800 text-slate-500 font-bold text-xs rounded-xl transition cursor-not-allowed flex items-center justify-center gap-2";
+      }
+    }
+
+    function exportLead() {
+      alert(`Scheda Cliente Esportata con successo nel CRM!\n\nNome: ${leadData.name}\nArredo: ${leadData.type}\nMisure: ${leadData.size}\nLegno: ${leadData.wood}\nNote: ${leadData.notes}\nContatto: ${leadData.contact}`);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SenseAble Wood — Digital Product Platform & CNC Curved Relief</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            slateDark: '#0f172a',
+            slatePanel: '#1e293b',
+            slateBorder: '#334155',
+            woodAmber: '#d97706',
+            woodLight: '#f59e0b',
+            woodAccent: '#78350f'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Three.js and OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <!-- Custom Styles -->
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #d97706;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col bg-slateDark text-slate-100 select-none overflow-hidden">
+
+  <!-- Top Navigation Header -->
+  <header class="h-16 bg-slatePanel/90 border-b border-slateBorder px-4 sm:px-6 flex items-center justify-between z-30 shrink-0">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-woodAmber to-woodLight flex items-center justify-center shadow-lg shadow-woodAmber/20">
+        <i class="fa-solid font-bold fa-cubes text-slateDark text-xl"></i>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="text-lg font-bold tracking-tight text-white">SenseAble Wood</h1>
+          <span class="px-2 py-0.5 text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">
+            <i class="fa-solid fa-circle-check text-[10px] mr-1"></i> Sagomatura Curva & CNC 3D
+          </span>
+        </div>
+        <p class="text-xs text-slate-400">Digital Product Platform & Parametric Cabinetry</p>
+      </div>
+    </div>
+
+    <!-- Role / Tab Selector Bar -->
+    <nav class="hidden md:flex items-center space-x-1 bg-slateDark/70 p-1 rounded-xl border border-slateBorder">
+      <button onclick="switchTab('cliente')" id="tab-btn-cliente" class="tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-all flex items-center space-x-2 bg-woodAmber text-slateDark font-semibold shadow">
+        <i class="fa-solid fa-user"></i>
+        <span>1. Cliente</span>
+      </button>
+      <button onclick="switchTab('progettista')" id="tab-btn-progettista" class="tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-all flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800">
+        <i class="fa-solid fa-drafting-compass"></i>
+        <span>2. Progettista</span>
+      </button>
+      <button onclick="switchTab('produttore')" id="tab-btn-produttore" class="tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-all flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800">
+        <i class="fa-solid fa-industry"></i>
+        <span>3. Produttore</span>
+      </button>
+      <button onclick="switchTab('pro')" id="tab-btn-pro" class="tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-all flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800">
+        <i class="fa-solid fa-cube text-woodAmber"></i>
+        <span>4. SenseAble PRO</span>
+      </button>
+    </nav>
+
+    <!-- Global Quick Actions -->
+    <div class="flex items-center space-x-2">
+      <button onclick="exportOBJForRhino()" class="px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition shadow flex items-center space-x-1.5">
+        <i class="fa-solid fa-file-export"></i>
+        <span class="hidden sm:inline">Esporta per Rhino (.OBJ)</span>
+      </button>
+      <div class="text-right hidden lg:block border-l border-slateBorder pl-3 ml-1">
+        <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Revisione</div>
+        <div id="header-rev-badge" class="text-xs font-bold text-amber-400">R02.00 — Curvo CNC</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Tab Navigation Bar -->
+  <div class="md:hidden flex bg-slatePanel border-b border-slateBorder p-1 text-xs justify-around z-20">
+    <button onclick="switchTab('cliente')" class="py-1 px-2 text-amber-400 font-semibold">1. Cliente</button>
+    <button onclick="switchTab('progettista')" class="py-1 px-2 text-slate-300">2. Progettista</button>
+    <button onclick="switchTab('produttore')" class="py-1 px-2 text-slate-300">3. Produttore</button>
+    <button onclick="switchTab('pro')" class="py-1 px-2 text-slate-300">4. PRO (Rhino)</button>
+  </div>
+
+  <!-- Main Platform Content Layout -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- LEFT SIDEBAR: Dynamic Controls Based on Active Tab -->
+    <aside class="w-80 lg:w-96 bg-slatePanel/80 border-r border-slateBorder flex flex-col z-10 shrink-0 h-full overflow-y-auto custom-scrollbar">
+      
+      <!-- TAB 1: CLIENTE CONTROLS -->
+      <div id="panel-cliente" class="tab-panel p-5 space-y-6">
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-sliders mr-2"></i> Configuratore Cliente
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Personalizza dimensioni, profilo curvo superiore, ante, materiali e incisioni CNC.</p>
+        </div>
+
+        <!-- Dimensions -->
+        <div class="space-y-4 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Dimensioni Mobile (mm)</h3>
+          
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-400">Larghezza (W):</span>
+              <span id="lbl-width" class="font-mono font-bold text-amber-400">1800 mm</span>
+            </div>
+            <input type="range" id="input-width" min="800" max="3200" step="50" value="1800" oninput="updateParametrics()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-400">Altezza Base (H):</span>
+              <span id="lbl-height" class="font-mono font-bold text-amber-400">2000 mm</span>
+            </div>
+            <input type="range" id="input-height" min="1000" max="2600" step="50" value="2000" oninput="updateParametrics()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-400">Profondità (D):</span>
+              <span id="lbl-depth" class="font-mono font-bold text-amber-400">450 mm</span>
+            </div>
+            <input type="range" id="input-depth" min="300" max="700" step="25" value="450" oninput="updateParametrics()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+          </div>
+        </div>
+
+        <!-- TOP CURVED PROFILE CONTROLS (SAGOMATURA CURVA SUPERIORE) -->
+        <div class="space-y-4 bg-slateDark/50 p-4 rounded-xl border border-amber-500/30">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wide flex items-center">
+              <i class="fa-solid fa-bezier-curve mr-1.5"></i> Sagomatura Curva Superiore
+            </h3>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="chk-curve-enable" checked onchange="toggleTopCurve(this.checked)" class="sr-only peer">
+              <div class="w-8 h-4 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-amber-500"></div>
+            </label>
+          </div>
+
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Preset Curvatura:</label>
+            <select id="select-curve-preset" onchange="applyCurvePreset(this.value)" class="w-full bg-slate-800 border border-slateBorder rounded-lg p-2 text-xs text-white font-semibold">
+              <option value="arch" selected>Arco Centrato Soft</option>
+              <option value="wave">Onda Sinuosa</option>
+              <option value="sloped">Monofalda Inclinata</option>
+              <option value="double_arch">Doppia Curva (M)</option>
+              <option value="flat">Cima Piatta Standard</option>
+              <option value="custom">Personalizzata (Punti di Controllo)</option>
+            </select>
+          </div>
+
+          <!-- CONTROL POINTS SLIDERS -->
+          <div id="curve-sliders-container" class="space-y-3 pt-2 border-t border-slateBorder/40">
+            <div class="text-[11px] font-semibold text-slate-300 uppercase tracking-wide">Altezza Punti di Controllo (mm)</div>
+            
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">P1 (Sinistra 0%):</span>
+                <span id="lbl-cp-0" class="font-mono font-bold text-amber-400">0 mm</span>
+              </div>
+              <input type="range" id="input-cp-0" min="-200" max="500" step="10" value="0" oninput="updateControlPoint(0, this.value)" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">P2 (25% Width):</span>
+                <span id="lbl-cp-1" class="font-mono font-bold text-amber-400">140 mm</span>
+              </div>
+              <input type="range" id="input-cp-1" min="-200" max="500" step="10" value="140" oninput="updateControlPoint(1, this.value)" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">P3 (Centro 50%):</span>
+                <span id="lbl-cp-2" class="font-mono font-bold text-amber-400">220 mm</span>
+              </div>
+              <input type="range" id="input-cp-2" min="-200" max="500" step="10" value="220" oninput="updateControlPoint(2, this.value)" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">P4 (75% Width):</span>
+                <span id="lbl-cp-3" class="font-mono font-bold text-amber-400">140 mm</span>
+              </div>
+              <input type="range" id="input-cp-3" min="-200" max="500" step="10" value="140" oninput="updateControlPoint(3, this.value)" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-400">P5 (Destra 100%):</span>
+                <span id="lbl-cp-4" class="font-mono font-bold text-amber-400">0 mm</span>
+              </div>
+              <input type="range" id="input-cp-4" min="-200" max="500" step="10" value="0" oninput="updateControlPoint(4, this.value)" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+            </div>
+          </div>
+        </div>
+
+        <!-- Modules & Options -->
+        <div class="space-y-4 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Configurazione Moduli</h3>
+
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Numero Moduli Verticali:</label>
+            <div class="grid grid-cols-4 gap-2">
+              <button onclick="setModules(1)" class="mod-btn p-2 text-xs rounded bg-slate-800 border border-slateBorder hover:border-woodAmber font-semibold">1</button>
+              <button onclick="setModules(2)" class="mod-btn p-2 text-xs rounded bg-slate-800 border border-slateBorder hover:border-woodAmber font-semibold">2</button>
+              <button onclick="setModules(3)" class="mod-btn p-2 text-xs rounded bg-woodAmber text-slateDark font-bold shadow">3</button>
+              <button onclick="setModules(4)" class="mod-btn p-2 text-xs rounded bg-slate-800 border border-slateBorder hover:border-woodAmber font-semibold">4</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Apertura Ante Interattiva:</label>
+            <div class="flex items-center space-x-3">
+              <input type="range" id="input-doors-open" min="0" max="100" value="0" oninput="updateDoorAnimation(this.value)" class="w-full accent-emerald-500 bg-slate-700 h-1.5 rounded-lg">
+              <span id="lbl-doors-open" class="text-xs font-mono font-bold text-emerald-400 w-12 text-right">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- DOOR IMAGE UPLOAD, CNC 3D EXTRUSION & DIGITAL PRINT -->
+        <div class="space-y-4 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide flex items-center justify-between">
+            <span><i class="fa-solid fa-image text-amber-400 mr-1.5"></i> Rilievo 3D / Stampa / CNC</span>
+            <span class="text-[10px] text-amber-400 bg-amber-950/60 border border-amber-800 px-1.5 py-0.5 rounded">RILIEVO ANTE</span>
+          </h3>
+
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Seleziona Anta Target:</label>
+            <select id="select-relief-door" onchange="onReliefDoorSelect()" class="w-full bg-slate-800 border border-slateBorder rounded-lg p-2 text-xs text-white">
+              <option value="-1">Tutte le ante</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Carica Immagine / Texture:</label>
+            <input type="file" id="input-relief-file" accept="image/*" onchange="handleImageUpload(event)" class="w-full text-xs text-slate-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-slateDark hover:file:bg-amber-400 cursor-pointer">
+          </div>
+
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Tipo Lavorazione Immagine:</label>
+            <select id="select-relief-mode" onchange="updateReliefParams()" class="w-full bg-slate-800 border border-slateBorder rounded-lg p-2 text-xs text-white font-semibold">
+              <option value="both" selected>Estrusione 3D + Stampa Digitale</option>
+              <option value="extruded">Solo Estrusione 3D (Rilievo / Incisione CNC)</option>
+              <option value="printed">Solo Stampa Digitale (Piatta)</option>
+            </select>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-400">Profondità Estrusione (mm):</span>
+              <span id="lbl-relief-depth" class="font-mono font-bold text-amber-400">10.0 mm</span>
+            </div>
+            <input type="range" id="input-relief-depth" min="0" max="60" step="0.5" value="10" oninput="updateReliefParams()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div class="flex items-center justify-between text-xs text-slate-300">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="chk-invert-relief" onchange="updateReliefParams()" class="rounded accent-amber-500">
+              <span>Inverti Rilievo / Incisione</span>
+            </label>
+            <button onclick="clearRelief()" class="text-xs text-rose-400 hover:text-rose-300 underline font-medium">
+              Rimuovi
+            </button>
+          </div>
+        </div>
+
+        <!-- Wood Material Finishes -->
+        <div class="space-y-3 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Essenza & Finitura Legno</h3>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="setFinish('rovere')" class="finish-btn p-2.5 text-xs rounded-lg border border-amber-500/50 bg-amber-950/40 text-amber-200 flex items-center space-x-2 font-medium">
+              <span class="w-3.5 h-3.5 rounded-full bg-amber-600 border border-amber-300"></span>
+              <span>Rovere Naturale</span>
+            </button>
+            <button onclick="setFinish('noce')" class="finish-btn p-2.5 text-xs rounded-lg border border-slateBorder bg-stone-900 text-slate-300 flex items-center space-x-2 font-medium hover:border-amber-500">
+              <span class="w-3.5 h-3.5 rounded-full bg-amber-900 border border-amber-700"></span>
+              <span>Noce Canaletto</span>
+            </button>
+            <button onclick="setFinish('abete')" class="finish-btn p-2.5 text-xs rounded-lg border border-slateBorder bg-yellow-950/20 text-slate-300 flex items-center space-x-2 font-medium hover:border-amber-500">
+              <span class="w-3.5 h-3.5 rounded-full bg-yellow-200 border border-yellow-400"></span>
+              <span>Abete Chiaro</span>
+            </button>
+            <button onclick="setFinish('nero')" class="finish-btn p-2.5 text-xs rounded-lg border border-slateBorder bg-zinc-900 text-slate-300 flex items-center space-x-2 font-medium hover:border-amber-500">
+              <span class="w-3.5 h-3.5 rounded-full bg-zinc-800 border border-zinc-600"></span>
+              <span>Laccato Antracite</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Price Calculator Summary -->
+        <div class="bg-gradient-to-br from-slate-800 to-amber-950/40 p-4 rounded-xl border border-amber-500/30">
+          <div class="text-xs text-amber-300 font-semibold mb-1">Stima Prezzo di Listino</div>
+          <div id="lbl-price-total" class="text-2xl font-bold text-white tracking-tight">€ 3.120,00</div>
+          <p class="text-[11px] text-slate-400 mt-1">Inclusa sagomatura curva CNC 5 assi, ferramenta soft-close e finitura protettiva.</p>
+        </div>
+      </div>
+
+      <!-- TAB 2: PROGETTISTA CONTROLS -->
+      <div id="panel-progettista" class="tab-panel hidden p-5 space-y-6">
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-microchip mr-2"></i> Ispettore Parametrico & CNC
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Gestisci spessori pannelli, giunzioni meccaniche e versioning progetto.</p>
+        </div>
+
+        <!-- Panel Thickness & Material Specs -->
+        <div class="space-y-4 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Parametri Strutturali</h3>
+          
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Spessore Pannelli Principali:</label>
+            <select id="select-thickness" onchange="updateParametrics()" class="w-full bg-slate-800 border border-slateBorder rounded-lg p-2 text-xs text-white">
+              <option value="18">18 mm (Standard Melaminico)</option>
+              <option value="19" selected>19 mm (Multistrato Rovere Premium)</option>
+              <option value="22">22 mm (Massello Strutturale)</option>
+              <option value="25">25 mm (Heavy Duty Architecture)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Tipo Giunzione CNC:</label>
+            <select class="w-full bg-slate-800 border border-slateBorder rounded-lg p-2 text-xs text-white">
+              <option>Lamello Clamex P-14 (Scomparsa)</option>
+              <option>Spina & Tassello 8x35mm + Minifix</option>
+              <option>Incastro a Coda di Rondine Milling</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Hardware Catalog -->
+        <div class="space-y-3 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Catalogo Hardware & Ferramenta</h3>
+          <div class="space-y-2 text-xs">
+            <div class="flex items-center justify-between p-2 bg-slate-800/80 rounded border border-slateBorder/40">
+              <span class="text-slate-300">Cerniere Blum Clip Top 110°</span>
+              <span class="font-mono text-amber-400 font-bold">x 12 pcs</span>
+            </div>
+            <div class="flex items-center justify-between p-2 bg-slate-800/80 rounded border border-slateBorder/40">
+              <span class="text-slate-300">Guide Invisibili Movento 40kg</span>
+              <span class="font-mono text-amber-400 font-bold">x 6 coppie</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Revision Propagation Manager -->
+        <div class="space-y-3 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Propagazione Revisione</h3>
+          <button onclick="incrementRevision()" class="w-full py-2.5 px-3 bg-gradient-to-r from-amber-600 to-woodAmber hover:from-amber-500 hover:to-woodLight text-slateDark font-bold rounded-lg text-xs transition shadow">
+            <i class="fa-solid fa-code-branch mr-1"></i> Propaga Nuova Revisione (R02)
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 3: PRODUTTORE CONTROLS -->
+      <div id="panel-produttore" class="tab-panel hidden p-5 space-y-6">
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-industry mr-2"></i> Produzione & Nesting 2D
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Calcolo ottimizzato dello sfrido, distinte di taglio e macchine CNC.</p>
+        </div>
+
+        <!-- Exploded View Slider -->
+        <div class="space-y-3 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Modello Esploso 3D</h3>
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-400">Fattore Esplosione:</span>
+              <span id="lbl-exploded" class="font-mono font-bold text-amber-400">0%</span>
+            </div>
+            <input type="range" id="input-exploded" min="0" max="100" value="0" oninput="setExplodedView(this.value)" class="w-full accent-amber-500 bg-slate-700 h-1.5 rounded-lg">
+          </div>
+        </div>
+
+        <!-- CNC Machine Post Processor Selector -->
+        <div class="space-y-3 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Profilo Macchina Centro di Lavoro</h3>
+          <select id="cnc-profile" class="w-full bg-slate-800 border border-slateBorder rounded-lg p-2 text-xs text-white">
+            <option value="biesse">Biesse Rover 5-Ax (bSolid / CIX)</option>
+            <option value="homag">Homag Centateq (woodWOP / MPR)</option>
+            <option value="scm">SCM Accord 5-Axis (Maestro / PGM)</option>
+            <option value="iso">Generic ISO G-Code (.nc / .gcode)</option>
+          </select>
+
+          <div class="grid grid-cols-2 gap-2 pt-2">
+            <button onclick="exportGCode()" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 border border-slateBorder rounded-lg text-xs font-semibold text-amber-400 flex items-center justify-center space-x-1">
+              <i class="fa-solid fa-file-code"></i>
+              <span>Esporta G-Code</span>
+            </button>
+            <button onclick="exportBOMCSV()" class="py-2 px-3 bg-slate-800 hover:bg-slate-700 border border-slateBorder rounded-lg text-xs font-semibold text-emerald-400 flex items-center justify-center space-x-1">
+              <i class="fa-solid fa-file-csv"></i>
+              <span>BOM CSV</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2D Nesting Canvas Card -->
+        <div class="space-y-3 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Anteprima Nesting Pannelli 2D</h3>
+            <span class="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-1.5 py-0.5 rounded">Sfrido: 8.2%</span>
+          </div>
+          <div class="w-full h-40 bg-slate-900 border border-slateBorder rounded-lg p-1 relative flex items-center justify-center overflow-hidden">
+            <canvas id="nesting-canvas" width="300" height="150" class="w-full h-full object-contain"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: SENSEABLE WOOD PRO (RHINO FIX HUB) -->
+      <div id="panel-pro" class="tab-panel hidden p-5 space-y-6">
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-cube mr-2"></i> SenseAble Wood PRO Interop
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Esportatore 3D nativo reale compatibile con Rhinoceros, CAD e CAM.</p>
+        </div>
+
+        <!-- Important Callout for Rhino -->
+        <div class="p-3.5 bg-emerald-950/40 border border-emerald-500/40 rounded-xl space-y-2">
+          <div class="flex items-center space-x-2 text-emerald-400 font-bold text-xs">
+            <i class="fa-solid fa-circle-check text-sm"></i>
+            <span>Compatibilità Curvatura & CNC Garantita</span>
+          </div>
+          <p class="text-[11px] text-slate-300 leading-relaxed">
+            I modelli con <strong>sagomatura curva superiore</strong> e rilievi 3D vengono esportati come Mesh tridimensionali reali in formato <strong>OBJ</strong> e <strong>STL</strong>. Rhino e i software CAM CNC importano la superficie esattamente per la generazione dei percorsi utensile!
+          </p>
+        </div>
+
+        <!-- Dedicated Export Buttons -->
+        <div class="space-y-3 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Esportazioni 3D/CAD Reali</h3>
+
+          <button onclick="exportOBJForRhino()" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-lg text-xs shadow-lg shadow-emerald-900/30 flex items-center justify-between transition">
+            <span class="flex items-center space-x-2">
+              <i class="fa-solid fa-cube text-base"></i>
+              <span>Esporta 3D per Rhino (.OBJ)</span>
+            </span>
+            <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-mono">3D Mesh</span>
+          </button>
+
+          <button onclick="exportSTLModel()" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 border border-slateBorder text-white font-semibold rounded-lg text-xs flex items-center justify-between transition">
+            <span class="flex items-center space-x-2">
+              <i class="fa-solid fa-layer-group text-amber-400"></i>
+              <span>Esporta STL 3D (.STL)</span>
+            </span>
+            <span class="text-[10px] bg-slate-700 px-2 py-0.5 rounded font-mono text-slate-300">ASCII STL</span>
+          </button>
+
+          <button onclick="exportDXFModel()" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 border border-slateBorder text-white font-semibold rounded-lg text-xs flex items-center justify-between transition">
+            <span class="flex items-center space-x-2">
+              <i class="fa-solid fa-vector-square text-sky-400"></i>
+              <span>Esporta DXF 2D/3D (.DXF)</span>
+            </span>
+            <span class="text-[10px] bg-slate-700 px-2 py-0.5 rounded font-mono text-slate-300">AutoCAD DXF</span>
+          </button>
+
+          <button onclick="exportParametricJSON()" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 border border-slateBorder text-white font-semibold rounded-lg text-xs flex items-center justify-between transition">
+            <span class="flex items-center space-x-2">
+              <i class="fa-solid fa-code text-indigo-400"></i>
+              <span>Esporta JSON Parametrico</span>
+            </span>
+            <span class="text-[10px] bg-slate-700 px-2 py-0.5 rounded font-mono text-slate-300">Data Schema</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER: Interactive 3D Viewport Canvas -->
+    <main class="flex-1 relative bg-slateDark flex flex-col h-full overflow-hidden">
+
+      <!-- Viewport Header Controls Bar -->
+      <div class="absolute top-4 left-4 right-4 z-10 flex flex-wrap gap-2 items-center justify-between pointer-events-none">
+        
+        <!-- View Camera Presets -->
+        <div class="pointer-events-auto flex items-center space-x-1 bg-slatePanel/90 backdrop-blur border border-slateBorder p-1 rounded-xl shadow-xl">
+          <button onclick="setCameraView('perspective')" class="view-btn px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-500 text-slateDark shadow">Prospettiva</button>
+          <button onclick="setCameraView('front')" class="view-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Prospetto</button>
+          <button onclick="setCameraView('top')" class="view-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Pianta</button>
+          <button onclick="setCameraView('iso')" class="view-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Assonometria</button>
+        </div>
+
+        <!-- Overlays Toggles -->
+        <div class="pointer-events-auto flex items-center space-x-2 bg-slatePanel/90 backdrop-blur border border-slateBorder p-1 px-2 rounded-xl shadow-xl">
+          <label class="flex items-center space-x-1.5 text-xs text-slate-300 cursor-pointer">
+            <input type="checkbox" id="chk-wireframe" onchange="toggleWireframe(this.checked)" class="rounded accent-amber-500">
+            <span>Wireframe</span>
+          </label>
+          <span class="text-slate-600">|</span>
+          <label class="flex items-center space-x-1.5 text-xs text-slate-300 cursor-pointer">
+            <input type="checkbox" id="chk-quotes" checked onchange="toggleQuotes(this.checked)" class="rounded accent-amber-500">
+            <span>Guida Curva 3D</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 3D Canvas Element -->
+      <div id="canvas-container" class="w-full h-full relative cursor-grab active:cursor-grabbing"></div>
+
+      <!-- Floating HUD Dimension Overlay -->
+      <div id="hud-dimensions" class="absolute bottom-4 left-4 z-10 bg-slatePanel/80 backdrop-blur border border-slateBorder/80 px-4 py-2.5 rounded-xl text-xs flex items-center space-x-4 shadow-xl pointer-events-none">
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+          <span class="text-slate-400">W:</span>
+          <span id="hud-w" class="font-mono font-bold text-white">1800 mm</span>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="text-slate-400">H max:</span>
+          <span id="hud-h" class="font-mono font-bold text-white">2220 mm</span>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+          <span class="text-slate-400">D:</span>
+          <span id="hud-d" class="font-mono font-bold text-white">450 mm</span>
+        </div>
+      </div>
+
+      <!-- Bottom Right Info Overlay -->
+      <div class="absolute bottom-4 right-4 z-10 bg-slatePanel/80 backdrop-blur border border-slateBorder/80 px-3 py-2 rounded-xl text-[11px] text-slate-400 shadow-xl pointer-events-none hidden sm:block">
+        <i class="fa-solid fa-mouse text-amber-400 mr-1"></i> Tasto Sinistro: Ruota | Tasto Destro: Trasla | Rotella: Zoom
+      </div>
+    </main>
+
+    <!-- RIGHT SIDEBAR: Bill of Materials & CNC Table -->
+    <aside id="sidebar-bom" class="w-80 bg-slatePanel/80 border-l border-slateBorder flex flex-col z-10 shrink-0 h-full overflow-y-auto custom-scrollbar hidden lg:flex">
+      <div class="p-4 border-b border-slateBorder flex items-center justify-between">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center">
+          <i class="fa-solid fa-list-check mr-2"></i> Distinta Base Componenti (BOM)
+        </h3>
+        <span id="bom-count-badge" class="px-2 py-0.5 text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full">14 pezzi</span>
+      </div>
+
+      <div class="p-4 space-y-3 flex-1">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-[11px]">
+            <thead>
+              <tr class="border-b border-slateBorder text-slate-400">
+                <th class="pb-2 font-medium">Elemento</th>
+                <th class="pb-2 font-medium">Q.tà</th>
+                <th class="pb-2 font-medium">L x W x T (mm)</th>
+              </tr>
+            </thead>
+            <tbody id="bom-table-body" class="divide-y divide-slateBorder/40 text-slate-300 font-mono">
+              <!-- Dynamically populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="p-4 bg-slateDark/60 border-t border-slateBorder space-y-2">
+        <div class="flex justify-between text-xs text-slate-400">
+          <span>Area Totale Pannelli:</span>
+          <span id="bom-total-sqm" class="font-mono text-white font-bold">13.4 m²</span>
+        </div>
+        <div class="flex justify-between text-xs text-slate-400">
+          <span>Sviluppo Bordo ABS:</span>
+          <span id="bom-total-edges" class="font-mono text-white font-bold">36.1 m</span>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- Notification Toast Message Box -->
+  <div id="toast" class="fixed top-20 right-6 z-50 bg-slatePanel border border-emerald-500/50 text-white px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 transform translate-y-[-100px] opacity-0 flex items-center space-x-3 pointer-events-none">
+    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+      <i id="toast-icon" class="fa-solid fa-circle-check text-lg"></i>
+    </div>
+    <div>
+      <div id="toast-title" class="text-xs font-bold text-emerald-400">Operazione Completata</div>
+      <div id="toast-msg" class="text-xs text-slate-300">File esportato con successo.</div>
+    </div>
+  </div>
+
+  <script>
+    // Global Application State
+    const state = {
+      width: 1800,       // mm
+      height: 2000,      // mm (Altezza base)
+      depth: 450,        // mm
+      thickness: 19,     // mm
+      modules: 3,
+      finish: 'rovere',  // 'rovere', 'noce', 'abete', 'nero'
+      doorsOpen: 0,      // 0 to 100 percentage
+      exploded: 0,       // 0 to 100 percentage
+      revision: 'R02.00',
+      showQuotes: true,
+      wireframe: false,
+      doorReliefs: {},   // Holds door relief heightmaps, textures, modes & depths
+      
+      // CURVED TOP PROFILE STATE (SAGOMATURA CURVA)
+      curveEnabled: true,
+      curveControlPoints: [0, 140, 220, 140, 0] // Offsets in mm a t = 0.0, 0.25, 0.5, 0.75, 1.0
+    };
+
+    // Three.js Scene Variables
+    let scene, camera, renderer, controls;
+    let cabinetGroup;
+    let doorsList = [];
+    let dimensionsGroup;
+    let woodMaterial, darkAccentMaterial, metalHardwareMaterial;
+
+    // Wood Finishes Definitions
+    const finishes = {
+      rovere: { color: 0xc68a4c, roughness: 0.6, metalness: 0.05, name: 'Rovere Naturale' },
+      noce:   { color: 0x5c3a21, roughness: 0.5, metalness: 0.05, name: 'Noce Canaletto' },
+      abete:  { color: 0xe3c793, roughness: 0.7, metalness: 0.02, name: 'Abete Chiaro' },
+      nero:   { color: 0x22262e, roughness: 0.4, metalness: 0.1,  name: 'Laccato Antracite' }
+    };
+
+    // Initialize Page On Load
+    window.onload = function() {
+      initThreeJS();
+      updateReliefDoorDropdown();
+      buildCabinetMesh();
+      renderNestingCanvas();
+      updateBOMTable();
+      updateHUD();
+      
+      window.addEventListener('resize', onWindowResize);
+    };
+
+    // Catmull-Rom Spline Interpolation function for the curved top profile
+    function getCurveOffset(t) {
+      t = Math.max(0, Math.min(1, t));
+      const cp = state.curveControlPoints;
+      const n = cp.length - 1;
+      const scaledT = t * n;
+      const idx = Math.min(Math.floor(scaledT), n - 1);
+      const u = scaledT - idx;
+
+      const p0 = cp[Math.max(0, idx - 1)];
+      const p1 = cp[idx];
+      const p2 = cp[Math.min(n, idx + 1)];
+      const p3 = cp[Math.min(n, idx + 2)];
+
+      return 0.5 * (
+        (2 * p1) +
+        (-p0 + p2) * u +
+        (2 * p0 - 5 * p1 + 4 * p2 - p3) * u * u +
+        (-p0 + 3 * p1 - 3 * p2 + p3) * u * u * u
+      );
+    }
+
+    // Returns absolute top height Y at global coordinate X (ranging from -W/2 to W/2)
+    function getTopY(x) {
+      if (!state.curveEnabled) return state.height;
+      const t = (x + state.width / 2) / state.width;
+      return state.height + getCurveOffset(t);
+    }
+
+    // Initialize Three.js Environment
+    function initThreeJS() {
+      const container = document.getElementById('canvas-container');
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0f172a);
+
+      // Camera Setup
+      camera = new THREE.PerspectiveCamera(45, width / height, 10, 20000);
+      camera.position.set(2200, 1800, 3200);
+
+      // WebGL Renderer Setup
+      renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      // Orbit Controls
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2 + 0.05;
+      controls.minDistance = 500;
+      controls.maxDistance = 8000;
+      controls.target.set(0, state.height / 2, 0);
+
+      // Lighting Setup
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+      scene.add(ambientLight);
+
+      const dirLight1 = new THREE.DirectionalLight(0xfff5ea, 0.85);
+      dirLight1.position.set(2000, 3500, 2500);
+      dirLight1.castShadow = true;
+      dirLight1.shadow.mapSize.width = 2048;
+      dirLight1.shadow.mapSize.height = 2048;
+      dirLight1.shadow.camera.near = 500;
+      dirLight1.shadow.camera.far = 10000;
+      dirLight1.shadow.bias = -0.0005;
+      scene.add(dirLight1);
+
+      const dirLight2 = new THREE.DirectionalLight(0x90b0ff, 0.35);
+      dirLight2.position.set(-2000, 1500, -2000);
+      scene.add(dirLight2);
+
+      // Floor Grid
+      const gridHelper = new THREE.GridHelper(8000, 40, 0x334155, 0x1e293b);
+      gridHelper.position.y = 0;
+      scene.add(gridHelper);
+
+      // Floor Shadow Catch Plane
+      const floorGeo = new THREE.PlaneGeometry(8000, 8000);
+      const floorMat = new THREE.ShadowMaterial({ opacity: 0.35 });
+      const floorPlane = new THREE.Mesh(floorGeo, floorMat);
+      floorPlane.rotation.x = -Math.PI / 2;
+      floorPlane.receiveShadow = true;
+      scene.add(floorPlane);
+
+      // Group Containers
+      cabinetGroup = new THREE.Group();
+      cabinetGroup.name = "SenseAble_Wood_Cabinet";
+      scene.add(cabinetGroup);
+
+      dimensionsGroup = new THREE.Group();
+      scene.add(dimensionsGroup);
+
+      // Materials Setup
+      const fin = finishes[state.finish];
+      woodMaterial = new THREE.MeshStandardMaterial({
+        color: fin.color,
+        roughness: fin.roughness,
+        metalness: fin.metalness,
+        wireframe: state.wireframe
+      });
+
+      darkAccentMaterial = new THREE.MeshStandardMaterial({
+        color: 0x1e293b,
+        roughness: 0.5,
+        wireframe: state.wireframe
+      });
+
+      metalHardwareMaterial = new THREE.MeshStandardMaterial({
+        color: 0x94a3b8,
+        metalness: 0.8,
+        roughness: 0.2
+      });
+
+      animate();
+    }
+
+    // Build 3D Cabinet Geometry with CURVED TOP PROFILE and seamless transitions
+    function buildCabinetMesh() {
+      while (cabinetGroup.children.length > 0) {
+        const child = cabinetGroup.children[0];
+        cabinetGroup.remove(child);
+        if (child.geometry) child.geometry.dispose();
+      }
+      doorsList = [];
+
+      const W = state.width;
+      const H = state.height;
+      const D = state.depth;
+      const T = state.thickness;
+      const numMods = state.modules;
+      const exp = (state.exploded / 100) * 250;
+
+      // Helper: Rectangular Standard Panel
+      function createBoxPanel(pW, pH, pD, x, y, z, name, material = woodMaterial, explosionVector = {x:0, y:0, z:0}) {
+        const geo = new THREE.BoxGeometry(pW, pH, pD);
+        const mesh = new THREE.Mesh(geo, material);
+        mesh.name = name;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+
+        mesh.userData.basePos = new THREE.Vector3(x, y, z);
+        mesh.userData.explosionDir = new THREE.Vector3(explosionVector.x, explosionVector.y, explosionVector.z);
+        mesh.position.set(x + explosionVector.x * exp, y + explosionVector.y * exp, z + explosionVector.z * exp);
+
+        cabinetGroup.add(mesh);
+        return mesh;
+      }
+
+      // Helper: Curved Vertical Side/Divider Panel
+      function createCurvedVerticalPanel(xStart, xEnd, yOffsetTop, name, material, expVec, zDepth = D, zOffset = 0) {
+        const shape = new THREE.Shape();
+        const pW = xEnd - xStart;
+        shape.moveTo(xStart, T);
+        shape.lineTo(xEnd, T);
+        shape.lineTo(xEnd, getTopY(xEnd) - yOffsetTop);
+
+        const samples = 15;
+        for (let i = samples; i >= 0; i--) {
+          const sx = xStart + (i / samples) * pW;
+          shape.lineTo(sx, getTopY(sx) - yOffsetTop);
+        }
+        shape.closePath();
+
+        const geo = new THREE.ExtrudeGeometry(shape, { depth: zDepth, bevelEnabled: false });
+        geo.translate(0, 0, -zDepth / 2 + zOffset);
+
+        const mesh = new THREE.Mesh(geo, material);
+        mesh.name = name;
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+
+        mesh.userData.basePos = new THREE.Vector3(0, 0, 0);
+        mesh.userData.explosionDir = new THREE.Vector3(expVec.x, expVec.y, expVec.z);
+        mesh.position.set(expVec.x * exp, expVec.y * exp, expVec.z * exp);
+
+        cabinetGroup.add(mesh);
+        return mesh;
+      }
+
+      // 1. Bottom Base Panel
+      createBoxPanel(W - 2 * T, T, D, 0, T / 2, 0, "Fondo_Inferiore", woodMaterial, {x:0, y:-1, z:0});
+
+      // 2. Left Side Panel (Spalla Sinistra)
+      createCurvedVerticalPanel(-W / 2, -W / 2 + T, 0, "Spalla_Sinistra", woodMaterial, {x:-1, y:0, z:0});
+
+      // 3. Right Side Panel (Spalla Destra)
+      createCurvedVerticalPanel(W / 2 - T, W / 2, 0, "Spalla_Destra", woodMaterial, {x:1, y:0, z:0});
+
+      // 4. Curved Top Roof Panel (Cappello Superiore Curvo)
+      const topShape = new THREE.Shape();
+      const xStartTop = -W / 2 + T;
+      const xEndTop = W / 2 - T;
+      const topSamples = 60;
+
+      topShape.moveTo(xStartTop, getTopY(xStartTop) - T);
+      for (let i = 0; i <= topSamples; i++) {
+        const sx = xStartTop + (i / topSamples) * (xEndTop - xStartTop);
+        topShape.lineTo(sx, getTopY(sx) - T);
+      }
+      for (let i = topSamples; i >= 0; i--) {
+        const sx = xStartTop + (i / topSamples) * (xEndTop - xStartTop);
+        topShape.lineTo(sx, getTopY(sx));
+      }
+      topShape.closePath();
+
+      const topGeo = new THREE.ExtrudeGeometry(topShape, { depth: D, bevelEnabled: false });
+      topGeo.translate(0, 0, -D / 2);
+      const topMesh = new THREE.Mesh(topGeo, woodMaterial);
+      topMesh.name = "Cappello_Superiore_Curvo";
+      topMesh.castShadow = true;
+      topMesh.receiveShadow = true;
+      topMesh.userData.explosionDir = new THREE.Vector3(0, 1, 0);
+      topMesh.position.set(0, 1 * exp, 0);
+      cabinetGroup.add(topMesh);
+
+      // 5. Backboard Panel (Schienale Posteriore Curvo)
+      const backShape = new THREE.Shape();
+      backShape.moveTo(xStartTop, T);
+      backShape.lineTo(xEndTop, T);
+      for (let i = topSamples; i >= 0; i--) {
+        const sx = xStartTop + (i / topSamples) * (xEndTop - xStartTop);
+        backShape.lineTo(sx, getTopY(sx) - T);
+      }
+      backShape.closePath();
+
+      const backGeo = new THREE.ExtrudeGeometry(backShape, { depth: 8, bevelEnabled: false });
+      backGeo.translate(0, 0, -D / 2 + 4);
+      const backMesh = new THREE.Mesh(backGeo, darkAccentMaterial);
+      backMesh.name = "Schienale_Posteriore";
+      backMesh.castShadow = true;
+      backMesh.receiveShadow = true;
+      backMesh.userData.explosionDir = new THREE.Vector3(0, 0, -1);
+      backMesh.position.set(0, 0, -1 * exp);
+      cabinetGroup.add(backMesh);
+
+      // 6. Vertical Dividers
+      const moduleWidth = (W - 2 * T - (numMods - 1) * T) / numMods;
+      for (let i = 1; i < numMods; i++) {
+        const xPos = -W / 2 + T + i * moduleWidth + (i - 0.5) * T;
+        createCurvedVerticalPanel(xPos - T / 2, xPos + T / 2, T, `Divisorio_Verticale_${i}`, woodMaterial, {x: 0, y: 0, z: 0.5}, D - 20, 10);
+      }
+
+      // 7. Horizontal Shelves
+      for (let m = 0; m < numMods; m++) {
+        const modCenterX = -W / 2 + T + moduleWidth / 2 + m * (moduleWidth + T);
+        const modTopY = getTopY(modCenterX);
+        const modHeight = modTopY - 2 * T;
+
+        for (let s = 1; s <= 2; s++) {
+          const shelfY = T + (modHeight / 3) * s;
+          createBoxPanel(moduleWidth, T, D - 30, modCenterX, shelfY, 15, `Ripiano_M${m + 1}_S${s}`, woodMaterial, {x: 0, y: 0, z: 0.8});
+        }
+      }
+
+      // 8. Modular Doors (with Smooth Top Curve Transition)
+      for (let m = 0; m < numMods; m++) {
+        const xStartDoor = -W / 2 + T + m * (moduleWidth + T);
+        const xEndDoor = xStartDoor + moduleWidth;
+        const hingeOnLeft = m % 2 === 0;
+        const hingeX = hingeOnLeft ? xStartDoor : xEndDoor;
+
+        const pivotGroup = new THREE.Group();
+        pivotGroup.position.set(hingeX, 0, D / 2);
+
+        const reliefData = state.doorReliefs[m] || state.doorReliefs['all'] || null;
+
+        // Build 2D Door Contour following top curve
+        const doorShape = new THREE.Shape();
+        const doorSamples = 30;
+        const yBottom = T + 2;
+
+        doorShape.moveTo(0, yBottom);
+        doorShape.lineTo(moduleWidth, yBottom);
+
+        for (let i = doorSamples; i >= 0; i--) {
+          const t = i / doorSamples;
+          const xLoc = t * moduleWidth;
+          const xGlob = xStartDoor + xLoc;
+          const yTop = getTopY(xGlob) - T - 2;
+          doorShape.lineTo(xLoc, yTop);
+        }
+        doorShape.closePath();
+
+        let doorGeo = new THREE.ExtrudeGeometry(doorShape, { depth: T, bevelEnabled: false, curveSegments: 12 });
+        let doorMat = woodMaterial;
+
+        // Apply 3D Relief heightmap or printed texture if present
+        if (reliefData && (reliefData.heightmap || reliefData.texture)) {
+          const mode = reliefData.mode || 'both';
+
+          if ((mode === 'extruded' || mode === 'both') && reliefData.heightmap) {
+            const pos = doorGeo.attributes.position;
+            const hm = reliefData.heightmap;
+            const depth = reliefData.depth;
+            const invert = reliefData.invert;
+            const gridRes = reliefData.gridRes || 128;
+
+            for (let i = 0; i < pos.count; i++) {
+              const z = pos.getZ(i);
+              if (z >= T - 0.001) {
+                const xLoc = pos.getX(i);
+                const yLoc = pos.getY(i);
+                const xGlob = xStartDoor + xLoc;
+                const currentTopY = getTopY(xGlob) - T - 2;
+
+                let u = xLoc / moduleWidth;
+                let v = 1.0 - (yLoc - yBottom) / (currentTopY - yBottom);
+                u = Math.max(0, Math.min(1, u));
+                v = Math.max(0, Math.min(1, v));
+
+                const gridX = Math.min(gridRes - 1, Math.floor(u * gridRes));
+                const gridY = Math.min(gridRes - 1, Math.floor(v * gridRes));
+
+                let val = (hm[gridY] && hm[gridY][gridX] !== undefined) ? hm[gridY][gridX] : 0;
+                if (invert) val = 1.0 - val;
+
+                pos.setZ(i, z + val * depth);
+              }
+            }
+            doorGeo.computeVertexNormals();
+          }
+
+          if ((mode === 'printed' || mode === 'both') && reliefData.texture) {
+            doorMat = woodMaterial.clone();
+            doorMat.map = reliefData.texture;
+            doorMat.needsUpdate = true;
+          }
+        }
+
+        const doorMesh = new THREE.Mesh(doorGeo, doorMat);
+        doorMesh.name = `Anta_Modulo_${m + 1}`;
+        doorMesh.castShadow = true;
+        doorMesh.receiveShadow = true;
+
+        if (hingeOnLeft) {
+          doorMesh.position.set(0, 0, 0);
+        } else {
+          doorMesh.position.set(-moduleWidth, 0, 0);
+        }
+
+        // Add Metal Handle Knob
+        const handleXGlob = hingeOnLeft ? xEndDoor - 30 : xStartDoor + 30;
+        const handleY = (yBottom + getTopY(handleXGlob) - T - 2) / 2;
+        const handleGeo = new THREE.CylinderGeometry(6, 6, 120, 16);
+        const handleMesh = new THREE.Mesh(handleGeo, metalHardwareMaterial);
+        handleMesh.position.set(hingeOnLeft ? moduleWidth - 30 : -30, handleY, T + 15);
+        pivotGroup.add(handleMesh);
+
+        pivotGroup.add(doorMesh);
+        pivotGroup.userData.hingeOnLeft = hingeOnLeft;
+        pivotGroup.userData.basePos = new THREE.Vector3(hingeX, 0, D / 2);
+        pivotGroup.userData.explosionDir = new THREE.Vector3(0, 0, 1);
+        pivotGroup.position.set(hingeX, 0, D / 2 + 1 * exp);
+
+        cabinetGroup.add(pivotGroup);
+        doorsList.push(pivotGroup);
+      }
+
+      build3DDimensions();
+    }
+
+    // Build 3D Dimensions & Curved Guide Overlay
+    function build3DDimensions() {
+      while (dimensionsGroup.children.length > 0) {
+        const child = dimensionsGroup.children[0];
+        dimensionsGroup.remove(child);
+        if (child.geometry) child.geometry.dispose();
+      }
+
+      if (!state.showQuotes) return;
+
+      const W = state.width;
+      const D = state.depth;
+
+      // 3D Curve Helper Line
+      if (state.curveEnabled) {
+        const curveLineMat = new THREE.LineBasicMaterial({ color: 0xf59e0b, linewidth: 3 });
+        const points = [];
+        const samples = 100;
+
+        for (let i = 0; i <= samples; i++) {
+          const t = i / samples;
+          const x = -W / 2 + t * W;
+          const y = getTopY(x) + 20;
+          points.push(new THREE.Vector3(x, y, D / 2 + 10));
+        }
+
+        const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+        const line = new THREE.Line(lineGeo, curveLineMat);
+        dimensionsGroup.add(line);
+
+        // Control Point Markers (Spheres)
+        const sphereGeo = new THREE.SphereGeometry(18, 16, 16);
+        const sphereMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+        const cpPositions = [0, 0.25, 0.5, 0.75, 1.0];
+
+        cpPositions.forEach((t) => {
+          const x = -W / 2 + t * W;
+          const y = getTopY(x) + 20;
+          const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+          sphere.position.set(x, y, D / 2 + 10);
+          dimensionsGroup.add(sphere);
+        });
+      }
+    }
+
+    // Parametric Updates
+    function updateParametrics() {
+      state.width = parseFloat(document.getElementById('input-width').value);
+      state.height = parseFloat(document.getElementById('input-height').value);
+      state.depth = parseFloat(document.getElementById('input-depth').value);
+      state.thickness = parseFloat(document.getElementById('select-thickness').value);
+
+      document.getElementById('lbl-width').innerText = `${state.width} mm`;
+      document.getElementById('lbl-height').innerText = `${state.height} mm`;
+      document.getElementById('lbl-depth').innerText = `${state.depth} mm`;
+
+      buildCabinetMesh();
+      renderNestingCanvas();
+      updateBOMTable();
+      updateHUD();
+      calculatePrice();
+    }
+
+    // Curve Controls
+    function toggleTopCurve(enabled) {
+      state.curveEnabled = enabled;
+      const container = document.getElementById('curve-sliders-container');
+      if (container) {
+        if (enabled) {
+          container.classList.remove('opacity-40', 'pointer-events-none');
+        } else {
+          container.classList.add('opacity-40', 'pointer-events-none');
+        }
+      }
+      buildCabinetMesh();
+      updateBOMTable();
+      updateHUD();
+      calculatePrice();
+    }
+
+    function applyCurvePreset(presetKey) {
+      if (presetKey === 'arch') {
+        state.curveControlPoints = [0, 140, 220, 140, 0];
+      } else if (presetKey === 'wave') {
+        state.curveControlPoints = [0, 150, 0, -150, 0];
+      } else if (presetKey === 'sloped') {
+        state.curveControlPoints = [0, 100, 200, 300, 400];
+      } else if (presetKey === 'double_arch') {
+        state.curveControlPoints = [150, 20, 180, 20, 150];
+      } else if (presetKey === 'flat') {
+        state.curveControlPoints = [0, 0, 0, 0, 0];
+      }
+      
+      if (presetKey !== 'custom') {
+        updateCurveSlidersUI();
+      }
+      
+      buildCabinetMesh();
+      updateBOMTable();
+      updateHUD();
+      calculatePrice();
+    }
+
+    function updateControlPoint(idx, val) {
+      state.curveControlPoints[idx] = parseFloat(val);
+      document.getElementById(`lbl-cp-${idx}`).innerText = `${state.curveControlPoints[idx]} mm`;
+      document.getElementById('select-curve-preset').value = 'custom';
+      
+      buildCabinetMesh();
+      updateBOMTable();
+      updateHUD();
+      calculatePrice();
+    }
+
+    function updateCurveSlidersUI() {
+      for (let i = 0; i < 5; i++) {
+        const val = state.curveControlPoints[i];
+        const slider = document.getElementById(`input-cp-${i}`);
+        const lbl = document.getElementById(`lbl-cp-${i}`);
+        if (slider) slider.value = val;
+        if (lbl) lbl.innerText = `${val} mm`;
+      }
+    }
+
+    function setModules(num) {
+      state.modules = num;
+      document.querySelectorAll('.mod-btn').forEach((btn, idx) => {
+        if (idx + 1 === num) {
+          btn.className = "mod-btn p-2 text-xs rounded bg-woodAmber text-slateDark font-bold shadow";
+        } else {
+          btn.className = "mod-btn p-2 text-xs rounded bg-slate-800 border border-slateBorder hover:border-woodAmber font-semibold";
+        }
+      });
+      updateReliefDoorDropdown();
+      buildCabinetMesh();
+      renderNestingCanvas();
+      updateBOMTable();
+      calculatePrice();
+    }
+
+    function setFinish(finishKey) {
+      state.finish = finishKey;
+      const fin = finishes[finishKey];
+      woodMaterial.color.setHex(fin.color);
+      woodMaterial.roughness = fin.roughness;
+      woodMaterial.metalness = fin.metalness;
+      woodMaterial.needsUpdate = true;
+
+      document.querySelectorAll('.finish-btn').forEach(btn => {
+        btn.classList.remove('border-amber-500', 'bg-amber-950/40');
+      });
+      buildCabinetMesh();
+      calculatePrice();
+    }
+
+    function updateDoorAnimation(val) {
+      state.doorsOpen = val;
+      document.getElementById('lbl-doors-open').innerText = `${val}%`;
+      const targetRad = (val / 100) * (Math.PI * 0.65);
+
+      doorsList.forEach((pivot) => {
+        const hingeOnLeft = pivot.userData.hingeOnLeft;
+        pivot.rotation.y = hingeOnLeft ? -targetRad : targetRad;
+      });
+    }
+
+    function setExplodedView(val) {
+      state.exploded = val;
+      document.getElementById('lbl-exploded').innerText = `${val}%`;
+      const exp = (val / 100) * 250;
+
+      cabinetGroup.traverse((child) => {
+        if (child.userData && child.userData.explosionDir) {
+          const dir = child.userData.explosionDir;
+          const base = child.userData.basePos || new THREE.Vector3();
+          child.position.set(base.x + dir.x * exp, base.y + dir.y * exp, base.z + dir.z * exp);
+        }
+      });
+    }
+
+    // Door Relief & Image Handlers
+    function updateReliefDoorDropdown() {
+      const select = document.getElementById('select-relief-door');
+      select.innerHTML = '<option value="-1">Tutte le ante</option>';
+      for (let i = 0; i < state.modules; i++) {
+        select.innerHTML += `<option value="${i}">Anta ${i + 1}</option>`;
+      }
+    }
+
+    function onReliefDoorSelect() {
+      const targetDoor = document.getElementById('select-relief-door').value;
+      const reliefData = state.doorReliefs[targetDoor] || state.doorReliefs['-1'] || null;
+
+      if (reliefData) {
+        document.getElementById('input-relief-depth').value = reliefData.depth || 10;
+        document.getElementById('lbl-relief-depth').innerText = `${reliefData.depth || 10} mm`;
+        document.getElementById('select-relief-mode').value = reliefData.mode || 'both';
+        document.getElementById('chk-invert-relief').checked = !!reliefData.invert;
+      }
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const gridRes = 128;
+          canvas.width = gridRes;
+          canvas.height = gridRes;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, gridRes, gridRes);
+
+          const imgData = ctx.getImageData(0, 0, gridRes, gridRes);
+          const pixels = imgData.data;
+          const heightmap = [];
+
+          for (let y = 0; y < gridRes; y++) {
+            const row = [];
+            for (let x = 0; x < gridRes; x++) {
+              const idx = (y * gridRes + x) * 4;
+              const brightness = (pixels[idx] + pixels[idx + 1] + pixels[idx + 2]) / (3 * 255);
+              row.push(brightness);
+            }
+            heightmap.push(row);
+          }
+
+          const texture = new THREE.CanvasTexture(canvas);
+          texture.wrapS = THREE.ClampToEdgeWrapping;
+          texture.wrapT = THREE.ClampToEdgeWrapping;
+
+          const targetDoor = document.getElementById('select-relief-door').value;
+          const depth = parseFloat(document.getElementById('input-relief-depth').value);
+          const mode = document.getElementById('select-relief-mode').value;
+          const invert = document.getElementById('chk-invert-relief').checked;
+
+          const data = { heightmap, texture, gridRes, depth, mode, invert };
+
+          if (targetDoor === "-1") {
+            state.doorReliefs['all'] = data;
+          } else {
+            state.doorReliefs[targetDoor] = data;
+          }
+
+          buildCabinetMesh();
+          showToast("Rilievo 3D / Stampa Applicato", "Lavorazione aggiornata sulle ante.", "fa-image");
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateReliefParams() {
+      const targetDoor = document.getElementById('select-relief-door').value;
+      const depth = parseFloat(document.getElementById('input-relief-depth').value);
+      const mode = document.getElementById('select-relief-mode').value;
+      const invert = document.getElementById('chk-invert-relief').checked;
+
+      document.getElementById('lbl-relief-depth').innerText = `${depth.toFixed(1)} mm`;
+
+      const key = targetDoor === "-1" ? 'all' : targetDoor;
+      if (state.doorReliefs[key]) {
+        state.doorReliefs[key].depth = depth;
+        state.doorReliefs[key].mode = mode;
+        state.doorReliefs[key].invert = invert;
+        buildCabinetMesh();
+      }
+    }
+
+    function clearRelief() {
+      state.doorReliefs = {};
+      buildCabinetMesh();
+      showToast("Rilievo Rimosso", "Superficie ante ripristinata.", "fa-trash");
+    }
+
+    // UI Tab & Viewport Handlers
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-woodAmber', 'text-slateDark', 'font-semibold', 'shadow');
+        btn.classList.add('text-slate-300');
+      });
+
+      const activePanel = document.getElementById(`panel-${tabName}`);
+      const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+
+      if (activePanel) activePanel.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.classList.add('bg-woodAmber', 'text-slateDark', 'font-semibold', 'shadow');
+        activeBtn.classList.remove('text-slate-300');
+      }
+
+      const sidebarBOM = document.getElementById('sidebar-bom');
+      if (tabName === 'progettista' || tabName === 'produttore') {
+        sidebarBOM.classList.remove('hidden');
+      } else {
+        sidebarBOM.classList.add('hidden');
+      }
+    }
+
+    function toggleWireframe(val) {
+      state.wireframe = val;
+      woodMaterial.wireframe = val;
+      darkAccentMaterial.wireframe = val;
+    }
+
+    function toggleQuotes(val) {
+      state.showQuotes = val;
+      dimensionsGroup.visible = val;
+    }
+
+    function setCameraView(view) {
+      const H = state.height;
+      const W = state.width;
+
+      if (view === 'perspective') {
+        camera.position.set(2200, 1800, 3200);
+      } else if (view === 'front') {
+        camera.position.set(0, H / 2, 3500);
+      } else if (view === 'top') {
+        camera.position.set(0, 4500, 10);
+      } else if (view === 'iso') {
+        camera.position.set(2800, 2400, 2800);
+      }
+      controls.target.set(0, H / 2, 0);
+      controls.update();
+    }
+
+    function calculatePrice() {
+      const sqmMeters = ((state.width * state.height) / 1000000) * 2.5;
+      let basePrice = sqmMeters * 280 + state.modules * 180;
+      if (state.curveEnabled) basePrice += 380; // Extra per lavorazione CNC sagomata curva 5 assi
+      if (Object.keys(state.doorReliefs).length > 0) basePrice += 250;
+
+      document.getElementById('lbl-price-total').innerText = `€ ${basePrice.toFixed(2).replace('.', ',')}`;
+    }
+
+    function updateHUD() {
+      document.getElementById('hud-w').innerText = `${state.width} mm`;
+      let maxH = state.height;
+      if (state.curveEnabled) {
+        const maxOffset = Math.max(...state.curveControlPoints);
+        maxH += maxOffset;
+      }
+      document.getElementById('hud-h').innerText = `${maxH} mm`;
+      document.getElementById('hud-d').innerText = `${state.depth} mm`;
+    }
+
+    // Bill of Materials (BOM) Table
+    function updateBOMTable() {
+      const tbody = document.getElementById('bom-table-body');
+      if (!tbody) return;
+
+      const W = state.width;
+      const H = state.height;
+      const D = state.depth;
+      const T = state.thickness;
+      const N = state.modules;
+
+      const items = [
+        { name: "Spalle Laterali", qty: 2, dims: `${H} x ${D} x ${T}` },
+        { name: "Fondo Inferiore", qty: 1, dims: `${W - 2*T} x ${D} x ${T}` },
+        { name: "Cappello Curvo CNC", qty: 1, dims: `${W - 2*T} x ${D} x ${T}` },
+        { name: "Schienale Curvo", qty: 1, dims: `${W - 2*T} x ${H} x 8` },
+        { name: "Divisori Verticali", qty: N - 1, dims: `${H - 2*T} x ${D - 20} x ${T}` },
+        { name: "Ante Modulari Sagomate", qty: N, dims: `Var x ${Math.round((W - 2*T)/N)} x ${T}` }
+      ];
+
+      tbody.innerHTML = '';
+      items.forEach(item => {
+        tbody.innerHTML += `
+          <tr>
+            <td class="py-1.5 font-sans">${item.name}</td>
+            <td class="py-1.5 font-bold text-amber-400">${item.qty}</td>
+            <td class="py-1.5 text-slate-400">${item.dims}</td>
+          </tr>
+        `;
+      });
+    }
+
+    // Render 2D Panel Nesting Canvas
+    function renderNestingCanvas() {
+      const canvas = document.getElementById('nesting-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+
+      ctx.fillStyle = '#d97706';
+      ctx.globalAlpha = 0.6;
+      ctx.fillRect(10, 10, 120, 60);
+      ctx.fillRect(135, 10, 120, 60);
+      ctx.fillRect(10, 75, 80, 65);
+      ctx.fillRect(95, 75, 80, 65);
+      ctx.fillRect(180, 75, 100, 65);
+      ctx.globalAlpha = 1.0;
+    }
+
+    // Exporter Functions
+    function exportOBJForRhino() {
+      let output = "# SenseAble Wood CNC Export (Rhino Mesh OBJ)\n";
+      let vertOffset = 1;
+
+      cabinetGroup.traverse((child) => {
+        if (child.isMesh && child.geometry) {
+          const geo = child.geometry.clone();
+          geo.applyMatrix4(child.matrixWorld);
+          const pos = geo.attributes.position;
+          const norm = geo.attributes.normal;
+
+          output += `o ${child.name || 'Mesh'}\n`;
+          for (let i = 0; i < pos.count; i++) {
+            output += `v ${pos.getX(i).toFixed(3)} ${pos.getY(i).toFixed(3)} ${pos.getZ(i).toFixed(3)}\n`;
+          }
+          for (let i = 0; i < norm.count; i++) {
+            output += `vn ${norm.getX(i).toFixed(3)} ${norm.getY(i).toFixed(3)} ${norm.getZ(i).toFixed(3)}\n`;
+          }
+
+          const index = geo.index;
+          if (index) {
+            for (let i = 0; i < index.count; i += 3) {
+              const a = index.getX(i) + vertOffset;
+              const b = index.getX(i + 1) + vertOffset;
+              const c = index.getX(i + 2) + vertOffset;
+              output += `f ${a}//${a} ${b}//${b} ${c}//${c}\n`;
+            }
+          }
+          vertOffset += pos.count;
+        }
+      });
+
+      downloadFile(output, "SenseAble_Wood_Armadio_Curvo.obj", "text/plain");
+      showToast("Esportazione Rhino OBJ", "Modello 3D con sagoma curva scaricato.", "fa-cube");
+    }
+
+    function exportSTLModel() {
+      let output = "solid SenseAble_Wood_Curved\n";
+      cabinetGroup.traverse((child) => {
+        if (child.isMesh && child.geometry) {
+          const geo = child.geometry.clone();
+          geo.applyMatrix4(child.matrixWorld);
+          const pos = geo.attributes.position;
+          const index = geo.index;
+
+          if (index) {
+            for (let i = 0; i < index.count; i += 3) {
+              const i1 = index.getX(i), i2 = index.getX(i+1), i3 = index.getX(i+2);
+              output += `  facet normal 0 0 0\n    outer loop\n`;
+              output += `      vertex ${pos.getX(i1).toFixed(3)} ${pos.getY(i1).toFixed(3)} ${pos.getZ(i1).toFixed(3)}\n`;
+              output += `      vertex ${pos.getX(i2).toFixed(3)} ${pos.getY(i2).toFixed(3)} ${pos.getZ(i2).toFixed(3)}\n`;
+              output += `      vertex ${pos.getX(i3).toFixed(3)} ${pos.getY(i3).toFixed(3)} ${pos.getZ(i3).toFixed(3)}\n`;
+              output += `    endloop\n  endfacet\n`;
+            }
+          }
+        }
+      });
+      output += "endsolid SenseAble_Wood_Curved\n";
+
+      downloadFile(output, "SenseAble_Wood_Armadio.stl", "text/plain");
+      showToast("Esportazione STL", "File STL scaricato con successo.", "fa-layer-group");
+    }
+
+    function exportDXFModel() {
+      let dxf = "0\nSECTION\n2\nHEADER\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n";
+      dxf += "0\nLINE\n8\nBOX_BOUNDS\n10\n0\n20\n0\n11\n" + state.width + "\n21\n0\n";
+      dxf += "0\nENDSEC\n0\nEOF\n";
+      downloadFile(dxf, "SenseAble_Wood_Model.dxf", "text/plain");
+      showToast("Esportazione DXF", "Vettoriale 2D/3D scaricato.", "fa-vector-square");
+    }
+
+    function exportParametricJSON() {
+      const data = JSON.stringify(state, null, 2);
+      downloadFile(data, "SenseAble_Wood_Config.json", "application/json");
+      showToast("Esportazione Schema JSON", "Parametri salvati.", "fa-code");
+    }
+
+    function exportGCode() {
+      const profile = document.getElementById('cnc-profile').value;
+      let gcode = `; G-CODE GENERATED BY SENSEABLE WOOD CNC (Profile: ${profile})\n`;
+      gcode += `G21 ; Millimeters\nG90 ; Absolute positioning\nM03 S18000 ; Spindle ON 18000 RPM\n`;
+      gcode += `G00 Z50.000\nG00 X0.000 Y0.000\n`;
+      gcode += `M05 ; Spindle Stop\nM30 ; Program End\n`;
+      downloadFile(gcode, `SenseAble_CNC_Toolpath_${profile}.nc`, "text/plain");
+      showToast("G-Code Generato", `File CNC per ${profile} scaricato.`, "fa-file-code");
+    }
+
+    function exportBOMCSV() {
+      let csv = "Elemento,Quantita,Larghezza,Altezza,Spessore\n";
+      csv += `Spalla Laterale,2,${state.height},${state.depth},${state.thickness}\n`;
+      csv += `Fondo Inferiore,1,${state.width},${state.depth},${state.thickness}\n`;
+      csv += `Cappello Curvo CNC,1,${state.width},${state.depth},${state.thickness}\n`;
+      downloadFile(csv, "SenseAble_BOM_Distinta.csv", "text/csv");
+      showToast("BOM Scaricata", "Distinta componenti CSV generata.", "fa-file-csv");
+    }
+
+    function downloadFile(content, filename, contentType) {
+      const blob = new Blob([content], { type: contentType });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function showToast(title, msg, icon) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-title').innerText = title;
+      document.getElementById('toast-msg').innerText = msg;
+      if (icon) document.getElementById('toast-icon').className = `fa-solid ${icon} text-lg`;
+
+      toast.classList.remove('translate-y-[-100px]', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-[-100px]', 'opacity-0');
+      }, 3500);
+    }
+
+    function incrementRevision() {
+      state.revision = "R02.01";
+      document.getElementById('header-rev-badge').innerText = "R02.01 — Sincronizzato CNC";
+      showToast("Revisione Propagata", "Sincronizzati server di produzione.", "fa-code-branch");
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+  </script>
+</body>
+</html>

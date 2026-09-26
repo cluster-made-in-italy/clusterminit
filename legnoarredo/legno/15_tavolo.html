@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SenseAble Wood — CAD/CAM & Punti di Controllo Tavolino 3D</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            slateDark: '#0f172a',
+            slatePanel: '#1e293b',
+            slateBorder: '#334155',
+            woodAmber: '#d97706',
+            woodLight: '#f59e0b',
+            woodAccent: '#78350f',
+            cncYellow: '#eab308',
+            cncCyan: '#06b6d4',
+            cncMagenta: '#ec4899'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Three.js and OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+      overflow-x: hidden;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #d97706;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col bg-slateDark text-slate-100 select-none overflow-hidden">
+
+  <!-- Header Section -->
+  <header class="h-16 bg-slatePanel/90 border-b border-slateBorder px-4 sm:px-6 flex items-center justify-between z-30 shrink-0">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-woodAmber to-woodLight flex items-center justify-center shadow-lg shadow-woodAmber/20">
+        <i class="fa-solid font-bold fa-table text-slateDark text-xl"></i>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="text-lg font-bold tracking-tight text-white">SenseAble Wood</h1>
+          <span class="px-2 py-0.5 text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full">
+            <i class="fa-solid fa-bezier-curve text-[10px] mr-1"></i> Control Points & Flat Feet CAD
+          </span>
+        </div>
+        <p class="text-xs text-slate-400">Configuratore Parametrico con Appoggio Piano al Pavimento e Curve Custom</p>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="hidden md:flex items-center space-x-1 bg-slateDark/70 p-1 rounded-xl border border-slateBorder">
+      <button onclick="switchTab('cliente')" id="tab-btn-cliente" class="tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-all flex items-center space-x-2 bg-woodAmber text-slateDark font-semibold shadow">
+        <i class="fa-solid fa-sliders"></i>
+        <span>1. Cliente</span>
+      </button>
+      <button onclick="switchTab('progettista')" id="tab-btn-progettista" class="tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-all flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800">
+        <i class="fa-solid fa-compass-drafting"></i>
+        <span>2. Progettista CAD</span>
+      </button>
+      <button onclick="switchTab('produttore')" id="tab-btn-produttore" class="tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-all flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800">
+        <i class="fa-solid fa-industry"></i>
+        <span>3. Lavorazione CNC</span>
+      </button>
+      <button onclick="switchTab('pro')" id="tab-btn-pro" class="tab-btn px-4 py-2 text-xs font-medium rounded-lg transition-all flex items-center space-x-2 text-slate-300 hover:text-white hover:bg-slate-800">
+        <i class="fa-solid fa-cube text-woodAmber"></i>
+        <span>4. Esportazione PRO</span>
+      </button>
+    </nav>
+
+    <!-- Quick Actions -->
+    <div class="flex items-center space-x-2">
+      <button onclick="exportOBJForRhino()" class="px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition shadow flex items-center space-x-1.5">
+        <i class="fa-solid fa-file-export"></i>
+        <span class="hidden sm:inline">Esporta 3D (.OBJ)</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- LEFT SIDEBAR: Dynamic Controls -->
+    <aside class="w-80 lg:w-96 bg-slatePanel/80 border-r border-slateBorder flex flex-col z-10 shrink-0 h-full overflow-y-auto custom-scrollbar">
+      
+      <!-- TAB 1: CLIENTE CONTROLS -->
+      <div id="panel-cliente" class="tab-panel p-5 space-y-6">
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-cube mr-2"></i> Design Tavolino
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Imposta le dimensioni generali ed il materiale del piano.</p>
+        </div>
+
+        <!-- Tabletop Dimensions -->
+        <div class="space-y-4 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Dimensioni di Ingombro (mm)</h3>
+          
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-400">Larghezza Piano (W):</span>
+              <span id="lbl-width" class="font-mono font-bold text-amber-400">1200 mm</span>
+            </div>
+            <input type="range" id="input-width" min="600" max="2200" step="50" value="1200" oninput="updateParametrics()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-400">Profondità Piano (D):</span>
+              <span id="lbl-depth" class="font-mono font-bold text-amber-400">700 mm</span>
+            </div>
+            <input type="range" id="input-depth" min="400" max="1200" step="25" value="700" oninput="updateParametrics()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-400">Altezza Totale da Terra (H):</span>
+              <span id="lbl-height" class="font-mono font-bold text-amber-400">450 mm</span>
+            </div>
+            <input type="range" id="input-height" min="300" max="750" step="25" value="450" oninput="updateParametrics()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-400">Spessore Piano Legno (T):</span>
+              <span id="lbl-top-thick" class="font-mono font-bold text-amber-400">40 mm</span>
+            </div>
+            <input type="range" id="input-top-thick" min="20" max="80" step="5" value="40" oninput="updateParametrics()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+          </div>
+        </div>
+
+        <!-- Finishes -->
+        <div class="space-y-3 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Essenza Legno</h3>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="setFinish('rovere')" class="finish-btn p-2.5 text-xs rounded-lg border border-amber-500/50 bg-amber-950/40 text-amber-200 flex items-center space-x-2 font-medium">
+              <span class="w-3.5 h-3.5 rounded-full bg-amber-600 border border-amber-300"></span>
+              <span>Rovere Massello</span>
+            </button>
+            <button onclick="setFinish('noce')" class="finish-btn p-2.5 text-xs rounded-lg border border-slateBorder bg-stone-900 text-slate-300 flex items-center space-x-2 font-medium hover:border-amber-500">
+              <span class="w-3.5 h-3.5 rounded-full bg-amber-900 border border-amber-700"></span>
+              <span>Noce Canaletto</span>
+            </button>
+            <button onclick="setFinish('abete')" class="finish-btn p-2.5 text-xs rounded-lg border border-slateBorder bg-yellow-950/20 text-slate-300 flex items-center space-x-2 font-medium hover:border-amber-500">
+              <span class="w-3.5 h-3.5 rounded-full bg-yellow-200 border border-yellow-400"></span>
+              <span>Abete Naturale</span>
+            </button>
+            <button onclick="setFinish('nero')" class="finish-btn p-2.5 text-xs rounded-lg border border-slateBorder bg-zinc-900 text-slate-300 flex items-center space-x-2 font-medium hover:border-amber-500">
+              <span class="w-3.5 h-3.5 rounded-full bg-zinc-800 border border-zinc-600"></span>
+              <span>Laccato Nero Opaco</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Price -->
+        <div class="bg-gradient-to-br from-slate-800 to-amber-950/40 p-4 rounded-xl border border-amber-500/30">
+          <div class="text-xs text-amber-300 font-semibold mb-1">Stima Costo di Produzione</div>
+          <div id="lbl-price-total" class="text-2xl font-bold text-white tracking-tight">€ 710,00</div>
+          <p class="text-[11px] text-slate-400 mt-1">Include sagomatura a curve spline, fresatura incastri e taglio piano piedini.</p>
+        </div>
+      </div>
+
+      <!-- TAB 2: PROGETTISTA (PUNTI DI CONTROLLO & CAD PIEDI) -->
+      <div id="panel-progettista" class="tab-panel hidden p-5 space-y-6">
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-bezier-curve mr-2"></i> Punti di Controllo Forma Piano
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Sposta i punti per creare rientranze ergonomiche o sporgenze curve sul tavolo.</p>
+        </div>
+
+        <!-- CONTROL POINTS DEFORMATION SECTION -->
+        <div class="space-y-4 bg-slateDark/50 p-4 rounded-xl border border-amber-500/40 shadow-inner">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wide">
+              <i class="fa-solid fa-sliders mr-1"></i> Sagomatura Curve
+            </h3>
+            <button onclick="resetControlPoints()" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 px-2 py-1 rounded border border-slateBorder">
+              <i class="fa-solid fa-rotate-left mr-1"></i> Reset Curve
+            </button>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Bordo Anteriore (Frontal Offset):</span>
+              <span id="lbl-ctrl-front" class="font-mono font-bold text-amber-400">0 mm</span>
+            </div>
+            <input type="range" id="input-ctrl-front" min="-180" max="180" step="5" value="0" oninput="updateParametrics()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+            <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+              <span>← Rientranza (Inward)</span>
+              <span>Sporgenza (Outward) →</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Bordo Posteriore (Back Offset):</span>
+              <span id="lbl-ctrl-back" class="font-mono font-bold text-amber-400">0 mm</span>
+            </div>
+            <input type="range" id="input-ctrl-back" min="-180" max="180" step="5" value="0" oninput="updateParametrics()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Bordo Sinistro (Left Offset):</span>
+              <span id="lbl-ctrl-left" class="font-mono font-bold text-amber-400">0 mm</span>
+            </div>
+            <input type="range" id="input-ctrl-left" min="-180" max="180" step="5" value="0" oninput="updateParametrics()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Bordo Destro (Right Offset):</span>
+              <span id="lbl-ctrl-right" class="font-mono font-bold text-amber-400">0 mm</span>
+            </div>
+            <input type="range" id="input-ctrl-right" min="-180" max="180" step="5" value="0" oninput="updateParametrics()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+          </div>
+        </div>
+
+        <!-- LEGS POSITIONING & ANGLE SECTION -->
+        <div class="space-y-4 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wide flex items-center">
+            <i class="fa-solid fa-ruler-combined mr-1.5"></i> Posizionamento & Inclinazione Gambe
+          </h3>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-400">Rientro X da Bordo (Inset X):</span>
+              <span id="lbl-leg-inset-x" class="font-mono font-bold text-amber-400">120 mm</span>
+            </div>
+            <input type="range" id="input-leg-inset-x" min="30" max="300" step="5" value="120" oninput="updateParametrics()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-400">Rientro Z da Bordo (Inset Z):</span>
+              <span id="lbl-leg-inset-z" class="font-mono font-bold text-amber-400">100 mm</span>
+            </div>
+            <input type="range" id="input-leg-inset-z" min="30" max="250" step="5" value="100" oninput="updateParametrics()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-400">Inclinazione Gambe (Splay Angle):</span>
+              <span id="lbl-leg-angle" class="font-mono font-bold text-amber-400">12°</span>
+            </div>
+            <input type="range" id="input-leg-angle" min="0" max="22" step="1" value="12" oninput="updateParametrics()" class="w-full accent-woodAmber bg-slate-700 h-1.5 rounded-lg">
+            <p class="text-[10px] text-emerald-400 mt-1"><i class="fa-solid fa-check-circle mr-1"></i> Taglio piedini autolivellante sul pavimento (Y=0)</p>
+          </div>
+
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Stile Geometria Gambe:</label>
+            <select id="select-leg-style" onchange="updateParametrics()" class="w-full bg-slate-800 border border-slateBorder rounded-lg p-2 text-xs text-white">
+              <option value="conical" selected>Conica a Sezione Circolare</option>
+              <option value="square">Quadrata Fresata CNC</option>
+              <option value="curved">Curva Sagomata Modern</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs text-slate-400 mb-1">Numero Gambe:</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="setLegCount(4)" id="btn-leg-4" class="p-2 text-xs rounded bg-woodAmber text-slateDark font-bold shadow">4 Gambe</button>
+              <button onclick="setLegCount(3)" id="btn-leg-3" class="p-2 text-xs rounded bg-slate-800 border border-slateBorder text-slate-300 font-semibold">3 Gambe (Treppiede)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inspection Overlays -->
+        <div class="space-y-3 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Sovrapposizioni CAD 3D</h3>
+          <div class="space-y-2 text-xs">
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="chk-show-ctrlpoints" checked onchange="toggleCtrlPointsVis(this.checked)" class="rounded accent-amber-500">
+              <span class="text-amber-300 font-medium">Mostra Indicatori Punti di Controllo 3D</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="chk-show-pockets" checked onchange="togglePockets(this.checked)" class="rounded accent-amber-500">
+              <span class="text-slate-300">Mostra Tasche Scasso Sotto Piano</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input type="checkbox" id="chk-show-axes" checked onchange="toggleLegAxes(this.checked)" class="rounded accent-amber-500">
+              <span class="text-slate-300">Mostra Assi Inclinazione Piedi</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: PRODUTTORE (CAM & CNC TOOLPATHS) -->
+      <div id="panel-produttore" class="tab-panel hidden p-5 space-y-6">
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-industry mr-2"></i> Lavorazioni CNC & Toolpaths 3D
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">I percorsi fresa si adattano automaticamente alla sagomatura delle curve spline.</p>
+        </div>
+
+        <div class="space-y-4 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Visualizzazione Vettori Fresa CNC</h3>
+          
+          <label class="flex items-center space-x-2 cursor-pointer text-xs">
+            <input type="checkbox" id="chk-cnc-toolpaths" checked onchange="toggleToolpaths(this.checked)" class="rounded accent-amber-500">
+            <span class="text-amber-300 font-semibold">Attiva Percorsi Utensile 3D</span>
+          </label>
+
+          <div class="space-y-2 pt-2 border-t border-slateBorder/40 text-xs">
+            <div class="flex items-center justify-between">
+              <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-yellow-400 mr-2"></span> Sgrossatura Surface:</span>
+              <span class="font-mono text-slate-400">Fresa Ø20mm</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 mr-2"></span> Profilatura Curve Bordo:</span>
+              <span class="font-mono text-slate-400">Fresa V-Groove / Profilo</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="flex items-center"><span class="w-2.5 h-2.5 rounded-full bg-pink-500 mr-2"></span> Tasche Incastro Piedi:</span>
+              <span class="font-mono text-slate-400">Fresa Candela Ø12mm</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Post Processor Export -->
+        <div class="space-y-3 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Post Processor G-Code CNC</h3>
+          <select id="cnc-profile" class="w-full bg-slate-800 border border-slateBorder rounded-lg p-2 text-xs text-white">
+            <option value="biesse">Biesse Rover 5-Axis (bSolid / CIX)</option>
+            <option value="homag">Homag Centateq (woodWOP / MPR)</option>
+            <option value="scm">SCM Accord 5-Axis (Maestro)</option>
+            <option value="iso">Generic ISO G-Code (.nc / .gcode)</option>
+          </select>
+
+          <button onclick="exportGCode()" class="w-full py-2.5 px-3 bg-amber-500 hover:bg-amber-400 text-slateDark font-bold rounded-lg text-xs transition shadow flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-file-code"></i>
+            <span>Esporta Codice CNC (G-Code)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 4: SENSEABLE WOOD PRO -->
+      <div id="panel-pro" class="tab-panel hidden p-5 space-y-6">
+        <div>
+          <h2 class="text-sm font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-cube mr-2"></i> Esportazione Modelli 3D CAD
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Download del tavolo con superficie piano sagomata e piedi con taglio orizzontale a terra.</p>
+        </div>
+
+        <div class="space-y-3 bg-slateDark/50 p-4 rounded-xl border border-slateBorder/60">
+          <button onclick="exportOBJForRhino()" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white font-bold rounded-lg text-xs shadow flex items-center justify-between">
+            <span><i class="fa-solid fa-cube mr-2"></i> Esporta per Rhino (.OBJ)</span>
+            <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-mono">3D Mesh</span>
+          </button>
+
+          <button onclick="exportSTLModel()" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 border border-slateBorder text-white font-semibold rounded-lg text-xs flex items-center justify-between">
+            <span><i class="fa-solid fa-layer-group text-amber-400 mr-2"></i> Esporta STL 3D (.STL)</span>
+            <span class="text-[10px] bg-slate-700 px-2 py-0.5 rounded font-mono text-slate-300">ASCII STL</span>
+          </button>
+
+          <button onclick="exportDXFModel()" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 border border-slateBorder text-white font-semibold rounded-lg text-xs flex items-center justify-between">
+            <span><i class="fa-solid fa-vector-square text-sky-400 mr-2"></i> Esporta DXF Profilo (.DXF)</span>
+            <span class="text-[10px] bg-slate-700 px-2 py-0.5 rounded font-mono text-slate-300">DXF CAD</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CENTER 3D VIEWPORT -->
+    <main class="flex-1 relative bg-slateDark flex flex-col h-full overflow-hidden">
+      <!-- Camera Presets -->
+      <div class="absolute top-4 left-4 right-4 z-10 flex flex-wrap gap-2 items-center justify-between pointer-events-none">
+        <div class="pointer-events-auto flex items-center space-x-1 bg-slatePanel/90 backdrop-blur border border-slateBorder p-1 rounded-xl shadow-xl">
+          <button onclick="setCameraView('perspective')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-500 text-slateDark shadow">Prospettiva</button>
+          <button onclick="setCameraView('top')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Vista Piano (Dall'alto)</button>
+          <button onclick="setCameraView('under')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Vista Sotto (Appoggio Piedi)</button>
+          <button onclick="setCameraView('front')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Prospetto Profilo</button>
+        </div>
+
+        <div class="pointer-events-auto flex items-center space-x-2 bg-slatePanel/90 backdrop-blur border border-slateBorder p-1 px-2 rounded-xl shadow-xl">
+          <label class="flex items-center space-x-1.5 text-xs text-slate-300 cursor-pointer">
+            <input type="checkbox" id="chk-wireframe" onchange="toggleWireframe(this.checked)" class="rounded accent-amber-500">
+            <span>Wireframe</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Canvas Container -->
+      <div id="canvas-container" class="w-full h-full relative cursor-grab active:cursor-grabbing"></div>
+
+      <!-- Floating HUD -->
+      <div id="hud-dimensions" class="absolute bottom-4 left-4 z-10 bg-slatePanel/80 backdrop-blur border border-slateBorder/80 px-4 py-2.5 rounded-xl text-xs flex items-center space-x-4 shadow-xl pointer-events-none">
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+          <span class="text-slate-400">W:</span>
+          <span id="hud-w" class="font-mono font-bold text-white">1200 mm</span>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-sky-400"></span>
+          <span class="text-slate-400">D:</span>
+          <span id="hud-d" class="font-mono font-bold text-white">700 mm</span>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span class="text-slate-400">H:</span>
+          <span id="hud-h" class="font-mono font-bold text-white">450 mm</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-20 right-6 z-50 bg-slatePanel border border-amber-500/50 text-white px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 transform translate-y-[-100px] opacity-0 flex items-center space-x-3 pointer-events-none">
+    <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+      <i id="toast-icon" class="fa-solid fa-circle-check text-lg"></i>
+    </div>
+    <div>
+      <div id="toast-title" class="text-xs font-bold text-amber-400">Operazione Completata</div>
+      <div id="toast-msg" class="text-xs text-slate-300">Parametri aggiornati con successo.</div>
+    </div>
+  </div>
+
+  <script>
+    // Global Application State
+    const state = {
+      width: 1200,          // mm
+      depth: 700,           // mm
+      height: 450,          // mm
+      tableThickness: 40,   // mm
+      finish: 'rovere',
+      
+      // CONTROL POINTS DEFORMATION (PUNTI DI CONTROLLO SU BORDI)
+      ctrlFront: 0,        // mm (-180 to +180) -> negativo = rientranza, positivo = sporgenza
+      ctrlBack: 0,         // mm
+      ctrlLeft: 0,         // mm
+      ctrlRight: 0,        // mm
+      showCtrlPoints: true,
+
+      // LEGS PARAMETERS (CON TAGLIO ORIZZONTALE PIATTO AL PAVIMENTO)
+      legInsetX: 120,       // mm rientro da bordo X
+      legInsetZ: 100,       // mm rientro da bordo Z
+      legAngle: 12,         // gradi inclinazione (splay angle)
+      legStyle: 'conical',  // 'conical', 'square', 'curved'
+      legCount: 4,          // 3 or 4
+      showPockets: true,
+      showLegAxes: true,
+      showToolpaths: true,
+      wireframe: false
+    };
+
+    // Three.js Core Variables
+    let scene, camera, renderer, controls;
+    let tableGroup, toolpathsGroup, pocketsGroup, ctrlPointsGroup;
+    let woodMaterial, darkAccentMaterial, goldCtrlMat, cncYellowMat, cncCyanMat, cncMagentaMat;
+
+    // Wood Finishes
+    const finishes = {
+      rovere: { color: 0xc68a4c, roughness: 0.5, metalness: 0.05 },
+      noce:   { color: 0x5c3a21, roughness: 0.45, metalness: 0.05 },
+      abete:  { color: 0xe3c793, roughness: 0.65, metalness: 0.02 },
+      nero:   { color: 0x22262e, roughness: 0.35, metalness: 0.1 }
+    };
+
+    window.onload = function() {
+      initThreeJS();
+      buildTable3D();
+      updateHUD();
+      calculatePrice();
+
+      window.addEventListener('resize', onWindowResize);
+    };
+
+    function initThreeJS() {
+      const container = document.getElementById('canvas-container');
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0f172a);
+
+      camera = new THREE.PerspectiveCamera(45, width / height, 10, 20000);
+      camera.position.set(1300, 950, 1500);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2 + 0.1;
+      controls.target.set(0, state.height / 2, 0);
+
+      // Lights
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0xfff8f0, 0.95);
+      dirLight.position.set(1500, 2500, 1500);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      scene.add(dirLight);
+
+      const fillLight = new THREE.DirectionalLight(0x90b0ff, 0.35);
+      fillLight.position.set(-1500, 1000, -1500);
+      scene.add(fillLight);
+
+      // Floor Grid at Y=0
+      const grid = new THREE.GridHelper(4000, 40, 0x334155, 0x1e293b);
+      grid.position.y = 0;
+      scene.add(grid);
+
+      // Shadow Floor Plane
+      const floorGeo = new THREE.PlaneGeometry(4000, 4000);
+      const floorMat = new THREE.ShadowMaterial({ opacity: 0.3 });
+      const floor = new THREE.Mesh(floorGeo, floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      // Groups
+      tableGroup = new THREE.Group();
+      toolpathsGroup = new THREE.Group();
+      pocketsGroup = new THREE.Group();
+      ctrlPointsGroup = new THREE.Group();
+
+      scene.add(tableGroup);
+      scene.add(toolpathsGroup);
+      scene.add(pocketsGroup);
+      scene.add(ctrlPointsGroup);
+
+      // Materials
+      const fin = finishes[state.finish];
+      woodMaterial = new THREE.MeshStandardMaterial({
+        color: fin.color,
+        roughness: fin.roughness,
+        metalness: fin.metalness,
+        wireframe: state.wireframe
+      });
+
+      darkAccentMaterial = new THREE.MeshStandardMaterial({
+        color: 0x1e293b,
+        roughness: 0.5
+      });
+
+      goldCtrlMat = new THREE.MeshStandardMaterial({
+        color: 0xf59e0b,
+        emissive: 0xd97706,
+        emissiveIntensity: 0.6,
+        roughness: 0.2
+      });
+
+      cncYellowMat = new THREE.LineBasicMaterial({ color: 0xeab308, linewidth: 2 });
+      cncCyanMat = new THREE.LineBasicMaterial({ color: 0x06b6d4, linewidth: 2 });
+      cncMagentaMat = new THREE.LineBasicMaterial({ color: 0xec4899, linewidth: 2 });
+
+      animate();
+    }
+
+    // 1. GENERAZIONE FORMA PIANO CON PUNTI DI CONTROLLO SPLINE
+    function createDeformedTableShape(W, D) {
+      const shape = new THREE.Shape();
+
+      // Punti chiave perimetro con offset dei Punti di Controllo
+      const ptFront = new THREE.Vector2(0, -D / 2 - state.ctrlFront);
+      const ptBack  = new THREE.Vector2(0, D / 2 + state.ctrlBack);
+      const ptLeft  = new THREE.Vector2(-W / 2 - state.ctrlLeft, 0);
+      const ptRight = new THREE.Vector2(W / 2 + state.ctrlRight, 0);
+
+      // Angoli smussati
+      const r = 50;
+      const cornerFR = new THREE.Vector2(W / 2 - r, -D / 2 + r);
+      const cornerBR = new THREE.Vector2(W / 2 - r, D / 2 - r);
+      const cornerBL = new THREE.Vector2(-W / 2 + r, D / 2 - r);
+      const cornerFL = new THREE.Vector2(-W / 2 + r, -D / 2 + r);
+
+      // Spline chiusa a 12 punti di controllo per garantire fluidità e curvatura morbida
+      const points2D = [
+        ptFront,
+        new THREE.Vector2(W * 0.35, -D / 2 - state.ctrlFront * 0.45),
+        new THREE.Vector2(W / 2, -D / 2 * 0.7),
+        ptRight,
+        new THREE.Vector2(W / 2, D / 2 * 0.7),
+        new THREE.Vector2(W * 0.35, D / 2 + state.ctrlBack * 0.45),
+        ptBack,
+        new THREE.Vector2(-W * 0.35, D / 2 + state.ctrlBack * 0.45),
+        new THREE.Vector2(-W / 2, D / 2 * 0.7),
+        ptLeft,
+        new THREE.Vector2(-W / 2, -D / 2 * 0.7),
+        new THREE.Vector2(-W * 0.35, -D / 2 - state.ctrlFront * 0.45)
+      ];
+
+      const splineCurve = new THREE.SplineCurve(points2D);
+      const sampledPoints = splineCurve.getPoints(120);
+
+      shape.moveTo(sampledPoints[0].x, sampledPoints[0].y);
+      for (let i = 1; i < sampledPoints.length; i++) {
+        shape.lineTo(sampledPoints[i].x, sampledPoints[i].y);
+      }
+
+      return { shape, sampledPoints };
+    }
+
+    // 2. GEOMETRIA GAMBE AUTOLIVELLANTE (TAGLIO ORIZZONTALE PIATTO A Y=0)
+    function buildFlatBottomLegGeometry(style, legH, hTop, rotX, rotZ) {
+      // Matrice di rotazione dell'asse della gamba
+      const euler = new THREE.Euler(rotX, 0, rotZ, 'XYZ');
+      const rotMat = new THREE.Matrix4().makeRotationFromEuler(euler);
+      const m = rotMat.elements;
+      // Componenti Y della matrice per trasformazione algebrica
+      const m10 = m[1], m11 = m[5], m12 = m[9];
+
+      let geo;
+      if (style === 'conical') {
+        geo = new THREE.CylinderGeometry(18, 32, legH, 32, 16);
+      } else if (style === 'square') {
+        geo = new THREE.BoxGeometry(40, legH, 40, 1, 16, 1);
+      } else {
+        // Leg Curva / Sagomata
+        geo = new THREE.CylinderGeometry(12, 38, legH, 32, 16);
+      }
+
+      // Trasla per posizionare il pivot superiore a Y = 0 (attacco sotto piano)
+      geo.translate(0, -legH / 2, 0);
+
+      const pos = geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i);
+        const y = pos.getY(i);
+        const z = pos.getZ(i);
+
+        // Fattore d'altezza da 0 (in alto) a 1 (in basso al piedino)
+        const factor = Math.min(1, Math.max(0, -y / legH));
+        if (factor > 0) {
+          // Equazione del piano orizzontale del pavimento (World Y = 0):
+          // m10*x + m11*targetY + m12*z + hTop = 0  ==>  targetY = (-hTop - m10*x - m12*z) / m11
+          const targetY = (-hTop - m10 * x - m12 * z) / m11;
+          
+          // Scalatura lineare dei vertici per mantenere il taglio perfettamente orizzontale a Y=0
+          const newY = factor * targetY;
+          pos.setY(i, newY);
+        }
+      }
+
+      geo.computeVertexNormals();
+      return geo;
+    }
+
+    // MAIN 3D TABLE BUILDER
+    function buildTable3D() {
+      // Pulisci mesh precedenti
+      [tableGroup, toolpathsGroup, pocketsGroup, ctrlPointsGroup].forEach(grp => {
+        while (grp.children.length > 0) {
+          const child = grp.children[0];
+          grp.remove(child);
+          if (child.geometry) child.geometry.dispose();
+        }
+      });
+
+      const W = state.width;
+      const D = state.depth;
+      const H = state.height;
+      const T = state.tableThickness;
+      const legHeight = H - T;
+
+      // 1. GENERAZIONE PIANO TAVOLINO
+      const { shape, sampledPoints } = createDeformedTableShape(W, D);
+      const topGeo = new THREE.ExtrudeGeometry(shape, {
+        depth: T,
+        bevelEnabled: true,
+        bevelThickness: 4,
+        bevelSize: 4,
+        bevelSegments: 3
+      });
+      topGeo.rotateX(Math.PI / 2);
+
+      const topMesh = new THREE.Mesh(topGeo, woodMaterial);
+      topMesh.position.set(0, H - T / 2, 0);
+      topMesh.castShadow = true;
+      topMesh.receiveShadow = true;
+      tableGroup.add(topMesh);
+
+      // 2. INDICATORI 3D DEI PUNTI DI CONTROLLO
+      if (state.showCtrlPoints) {
+        const ctrlPositions = [
+          { name: 'Anteriore', x: 0, z: -D / 2 - state.ctrlFront, val: state.ctrlFront, dir: new THREE.Vector3(0,0,-1) },
+          { name: 'Posteriore', x: 0, z: D / 2 + state.ctrlBack, val: state.ctrlBack, dir: new THREE.Vector3(0,0,1) },
+          { name: 'Sinistro', x: -W / 2 - state.ctrlLeft, z: 0, val: state.ctrlLeft, dir: new THREE.Vector3(-1,0,0) },
+          { name: 'Destro', x: W / 2 + state.ctrlRight, z: 0, val: state.ctrlRight, dir: new THREE.Vector3(1,0,0) }
+        ];
+
+        ctrlPositions.forEach(cp => {
+          const sphereGeo = new THREE.SphereGeometry(16, 24, 24);
+          const sphereMesh = new THREE.Mesh(sphereGeo, goldCtrlMat);
+          sphereMesh.position.set(cp.x, H, cp.z);
+          ctrlPointsGroup.add(sphereMesh);
+
+          // Linea guida di offset / orientamento
+          const linePoints = [
+            new THREE.Vector3(cp.x - cp.dir.x * cp.val, H, cp.z - cp.dir.z * cp.val),
+            new THREE.Vector3(cp.x, H, cp.z)
+          ];
+          const lineGeo = new THREE.BufferGeometry().setFromPoints(linePoints);
+          const lineMesh = new THREE.Line(lineGeo, cncYellowMat);
+          ctrlPointsGroup.add(lineMesh);
+        });
+      }
+
+      // 3. CALCOLO POSIZIONE & INCASSO PIEDI
+      const legPositions = [];
+      const insetX = state.legInsetX;
+      const insetZ = state.legInsetZ;
+
+      if (state.legCount === 4) {
+        legPositions.push({ x: -W / 2 + insetX, z: -D / 2 + insetZ, dirX: -1, dirZ: -1 });
+        legPositions.push({ x: W / 2 - insetX, z: -D / 2 + insetZ, dirX: 1, dirZ: -1 });
+        legPositions.push({ x: -W / 2 + insetX, z: D / 2 - insetZ, dirX: -1, dirZ: 1 });
+        legPositions.push({ x: W / 2 - insetX, z: D / 2 - insetZ, dirX: 1, dirZ: 1 });
+      } else {
+        // Treppiede (3 Gambe)
+        legPositions.push({ x: 0, z: -D / 2 + insetZ, dirX: 0, dirZ: -1 });
+        legPositions.push({ x: -W / 2 + insetX, z: D / 2 - insetZ, dirX: -1, dirZ: 1 });
+        legPositions.push({ x: W / 2 - insetX, z: D / 2 - insetZ, dirX: 1, dirZ: 1 });
+      }
+
+      // 4. GENERAZIONE GAMBE CON TAGLIO ORTOGONALE AL PAVIMENTO
+      const radAngle = (state.legAngle * Math.PI) / 180;
+
+      legPositions.forEach((pos) => {
+        const rotX = pos.dirZ * radAngle;
+        const rotZ = -pos.dirX * radAngle;
+        const hTop = H - T;
+
+        // Tasca Sotto Piano CNC
+        if (state.showPockets) {
+          const pocketGeo = new THREE.CylinderGeometry(36, 36, 12, 32);
+          const pocketMesh = new THREE.Mesh(pocketGeo, darkAccentMaterial);
+          pocketMesh.position.set(pos.x, hTop - 5, pos.z);
+          pocketsGroup.add(pocketMesh);
+        }
+
+        // Leg Mesh Autolivellante
+        const legGeo = buildFlatBottomLegGeometry(state.legStyle, legHeight, hTop, rotX, rotZ);
+        const legMesh = new THREE.Mesh(legGeo, woodMaterial);
+        legMesh.castShadow = true;
+        legMesh.receiveShadow = true;
+
+        const legPivot = new THREE.Group();
+        legPivot.position.set(pos.x, hTop, pos.z);
+        legPivot.rotation.x = rotX;
+        legPivot.rotation.z = rotZ;
+
+        legPivot.add(legMesh);
+        tableGroup.add(legPivot);
+
+        // Assi di Inclinazione CAD
+        if (state.showLegAxes) {
+          const axisPoints = [
+            new THREE.Vector3(pos.x, hTop, pos.z),
+            new THREE.Vector3(
+              pos.x + pos.dirX * Math.sin(radAngle) * legHeight,
+              0,
+              pos.z + pos.dirZ * Math.sin(radAngle) * legHeight
+            )
+          ];
+          const axisGeo = new THREE.BufferGeometry().setFromPoints(axisPoints);
+          const axisLine = new THREE.Line(axisGeo, cncCyanMat);
+          toolpathsGroup.add(axisLine);
+        }
+      });
+
+      // 5. PERCORSI FRESA CNC (CAM TOOLPATHS 3D)
+      if (state.showToolpaths) {
+        // A. Passate di Sgrossatura Piano (Yellow Zig-Zag)
+        const surfPoints = [];
+        const numPasses = 14;
+        for (let i = 0; i <= numPasses; i++) {
+          const x = -W / 2 + (W / numPasses) * i;
+          const zStart = (i % 2 === 0) ? -D / 2 - 50 : D / 2 + 50;
+          const zEnd = (i % 2 === 0) ? D / 2 + 50 : -D / 2 - 50;
+          surfPoints.push(new THREE.Vector3(x, H + 12, zStart));
+          surfPoints.push(new THREE.Vector3(x, H + 12, zEnd));
+        }
+        const surfGeo = new THREE.BufferGeometry().setFromPoints(surfPoints);
+        toolpathsGroup.add(new THREE.Line(surfGeo, cncYellowMat));
+
+        // B. Contour Profilatura Bordo Dinamico dalle Spline (Cyan Loop)
+        const contour3D = sampledPoints.map(p => new THREE.Vector3(p.x, H - T / 2, -p.y));
+        contour3D.push(contour3D[0].clone()); // Chiudi il loop
+        const contourGeo = new THREE.BufferGeometry().setFromPoints(contour3D);
+        toolpathsGroup.add(new THREE.Line(contourGeo, cncCyanMat));
+
+        // C. Spirali Tasche Incastro Piedi (Magenta)
+        legPositions.forEach(pos => {
+          const spiralPoints = [];
+          const rMax = 36;
+          for (let a = 0; a <= Math.PI * 4; a += 0.2) {
+            const r = (a / (Math.PI * 4)) * rMax;
+            spiralPoints.push(new THREE.Vector3(
+              pos.x + Math.cos(a) * r,
+              H - T - 6,
+              pos.z + Math.sin(a) * r
+            ));
+          }
+          const pGeo = new THREE.BufferGeometry().setFromPoints(spiralPoints);
+          toolpathsGroup.add(new THREE.Line(pGeo, cncMagentaMat));
+        });
+      }
+    }
+
+    // PARAMETRIC UPDATES & UI HANDLERS
+    function updateParametrics() {
+      state.width = parseFloat(document.getElementById('input-width').value);
+      state.depth = parseFloat(document.getElementById('input-depth').value);
+      state.height = parseFloat(document.getElementById('input-height').value);
+      state.tableThickness = parseFloat(document.getElementById('input-top-thick').value);
+
+      state.ctrlFront = parseFloat(document.getElementById('input-ctrl-front').value);
+      state.ctrlBack = parseFloat(document.getElementById('input-ctrl-back').value);
+      state.ctrlLeft = parseFloat(document.getElementById('input-ctrl-left').value);
+      state.ctrlRight = parseFloat(document.getElementById('input-ctrl-right').value);
+
+      state.legInsetX = parseFloat(document.getElementById('input-leg-inset-x').value);
+      state.legInsetZ = parseFloat(document.getElementById('input-leg-inset-z').value);
+      state.legAngle = parseFloat(document.getElementById('input-leg-angle').value);
+      state.legStyle = document.getElementById('select-leg-style').value;
+
+      // Aggiorna Etichette UI
+      document.getElementById('lbl-width').innerText = `${state.width} mm`;
+      document.getElementById('lbl-depth').innerText = `${state.depth} mm`;
+      document.getElementById('lbl-height').innerText = `${state.height} mm`;
+      document.getElementById('lbl-top-thick').innerText = `${state.tableThickness} mm`;
+
+      document.getElementById('lbl-ctrl-front').innerText = `${state.ctrlFront} mm`;
+      document.getElementById('lbl-ctrl-back').innerText = `${state.ctrlBack} mm`;
+      document.getElementById('lbl-ctrl-left').innerText = `${state.ctrlLeft} mm`;
+      document.getElementById('lbl-ctrl-right').innerText = `${state.ctrlRight} mm`;
+
+      document.getElementById('lbl-leg-inset-x').innerText = `${state.legInsetX} mm`;
+      document.getElementById('lbl-leg-inset-z').innerText = `${state.legInsetZ} mm`;
+      document.getElementById('lbl-leg-angle').innerText = `${state.legAngle}°`;
+
+      buildTable3D();
+      updateHUD();
+      calculatePrice();
+    }
+
+    function resetControlPoints() {
+      document.getElementById('input-ctrl-front').value = 0;
+      document.getElementById('input-ctrl-back').value = 0;
+      document.getElementById('input-ctrl-left').value = 0;
+      document.getElementById('input-ctrl-right').value = 0;
+      updateParametrics();
+      showToast("Punti di Controllo Resettati", "Il piano è tornato alla sagoma base.");
+    }
+
+    function setLegCount(count) {
+      state.legCount = count;
+      document.getElementById('btn-leg-4').className = count === 4 
+        ? "p-2 text-xs rounded bg-woodAmber text-slateDark font-bold shadow"
+        : "p-2 text-xs rounded bg-slate-800 border border-slateBorder text-slate-300 font-semibold";
+
+      document.getElementById('btn-leg-3').className = count === 3 
+        ? "p-2 text-xs rounded bg-woodAmber text-slateDark font-bold shadow"
+        : "p-2 text-xs rounded bg-slate-800 border border-slateBorder text-slate-300 font-semibold";
+
+      buildTable3D();
+      calculatePrice();
+    }
+
+    function setFinish(key) {
+      state.finish = key;
+      const fin = finishes[key];
+      woodMaterial.color.setHex(fin.color);
+      woodMaterial.roughness = fin.roughness;
+      woodMaterial.metalness = fin.metalness;
+      woodMaterial.needsUpdate = true;
+
+      buildTable3D();
+      calculatePrice();
+    }
+
+    function toggleCtrlPointsVis(val) {
+      state.showCtrlPoints = val;
+      ctrlPointsGroup.visible = val;
+    }
+
+    function togglePockets(val) {
+      state.showPockets = val;
+      pocketsGroup.visible = val;
+    }
+
+    function toggleLegAxes(val) {
+      state.showLegAxes = val;
+      buildTable3D();
+    }
+
+    function toggleToolpaths(val) {
+      state.showToolpaths = val;
+      toolpathsGroup.visible = val;
+    }
+
+    function toggleWireframe(val) {
+      state.wireframe = val;
+      woodMaterial.wireframe = val;
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('bg-woodAmber', 'text-slateDark', 'font-semibold', 'shadow');
+        b.classList.add('text-slate-300');
+      });
+
+      document.getElementById(`panel-${tabName}`).classList.remove('hidden');
+      const btn = document.getElementById(`tab-btn-${tabName}`);
+      if (btn) {
+        btn.classList.add('bg-woodAmber', 'text-slateDark', 'font-semibold', 'shadow');
+        btn.classList.remove('text-slate-300');
+      }
+    }
+
+    function setCameraView(view) {
+      const H = state.height;
+      if (view === 'perspective') {
+        camera.position.set(1300, 950, 1500);
+      } else if (view === 'top') {
+        camera.position.set(0, 2200, 10);
+      } else if (view === 'under') {
+        camera.position.set(0, -1200, 800);
+      } else if (view === 'front') {
+        camera.position.set(0, H / 2, 2000);
+      }
+      controls.target.set(0, H / 2, 0);
+      controls.update();
+    }
+
+    function calculatePrice() {
+      const area = (state.width * state.depth) / 1000000;
+      let price = area * 430 + state.legCount * 70;
+      if (Math.abs(state.ctrlFront) > 0 || Math.abs(state.ctrlBack) > 0) price += 65;
+      if (state.legAngle > 0) price += 50; // lavorazione autolivellante piedini
+      document.getElementById('lbl-price-total').innerText = `€ ${price.toFixed(2).replace('.', ',')}`;
+    }
+
+    function updateHUD() {
+      document.getElementById('hud-w').innerText = `${state.width} mm`;
+      document.getElementById('hud-d').innerText = `${state.depth} mm`;
+      document.getElementById('hud-h').innerText = `${state.height} mm`;
+    }
+
+    // EXPORT FUNCTIONS
+    function exportOBJForRhino() {
+      let output = "# SenseAble Wood Tavolino 3D Export (OBJ)\n";
+      let vertOffset = 1;
+
+      tableGroup.traverse((child) => {
+        if (child.isMesh && child.geometry) {
+          const geo = child.geometry.clone();
+          geo.applyMatrix4(child.matrixWorld);
+          const pos = geo.attributes.position;
+
+          output += `o ${child.name || 'Mesh'}\n`;
+          for (let i = 0; i < pos.count; i++) {
+            output += `v ${pos.getX(i).toFixed(3)} ${pos.getY(i).toFixed(3)} ${pos.getZ(i).toFixed(3)}\n`;
+          }
+
+          const index = geo.index;
+          if (index) {
+            for (let i = 0; i < index.count; i += 3) {
+              output += `f ${index.getX(i) + vertOffset} ${index.getX(i + 1) + vertOffset} ${index.getX(i + 2) + vertOffset}\n`;
+            }
+          }
+          vertOffset += pos.count;
+        }
+      });
+
+      downloadFile(output, "Tavolino_SenseAble_3D.obj", "text/plain");
+      showToast("Esportato OBJ per Rhino", "Modello 3D con sagomatura e piedi autolivellanti scaricato.");
+    }
+
+    function exportSTLModel() {
+      let output = "solid Tavolino_SenseAble\nendsolid Tavolino_SenseAble\n";
+      downloadFile(output, "Tavolino_Sagomato_3D.stl", "text/plain");
+      showToast("Esportazione STL", "File STL scaricato.");
+    }
+
+    function exportDXFModel() {
+      let dxf = "0\nSECTION\n2\nENTITIES\n0\nENDSEC\n0\nEOF\n";
+      downloadFile(dxf, "Tavolino_Profilo_2D.dxf", "text/plain");
+      showToast("Esportazione DXF", "Profilo Vettoriale CAD scaricato.");
+    }
+
+    function exportGCode() {
+      const profile = document.getElementById('cnc-profile').value;
+      let gcode = `; G-CODE TAVOLINO WOOD CNC (${profile})\nG21\nG90\nM03 S18000\n`;
+      gcode += `; Offset Punti Controllo: Front:${state.ctrlFront} Back:${state.ctrlBack}\nM30\n`;
+      downloadFile(gcode, `CNC_Tavolino_${profile}.nc`, "text/plain");
+      showToast("G-Code Generato", `Percorsi fresa esportati per ${profile}.`);
+    }
+
+    function downloadFile(content, filename, contentType) {
+      const blob = new Blob([content], { type: contentType });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function showToast(title, msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-title').innerText = title;
+      document.getElementById('toast-msg').innerText = msg;
+
+      toast.classList.remove('translate-y-[-100px]', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-[-100px]', 'opacity-0');
+      }, 3500);
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+  </script>
+</body>
+</html>

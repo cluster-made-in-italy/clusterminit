@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulatore 3D Boiserie & Intagli Ornamentali - Gombrich</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  
+  <style>
+    :root {
+      --bg: #06090e;
+      --panel: #0b111e;
+      --panel-card: #131c2e;
+      --accent: #f59e0b;
+      --accent-light: #fbbf24;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #223046;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+    /* Sidebar Controlli */
+    .sidebar { width: 450px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100%; z-index: 10; }
+    .sidebar-header { padding: 16px 20px; border-bottom: 1px solid var(--border); background: #06090e; }
+    .sidebar-header h2 { font-size: 1.05rem; color: var(--accent); letter-spacing: 0.03em; }
+    .sidebar-header p { font-size: 0.73rem; color: var(--text-muted); margin-top: 2px; }
+    .sidebar-content { flex: 1; overflow-y: auto; padding: 16px; }
+
+    .control-group { margin-bottom: 16px; background: var(--panel-card); padding: 14px; border-radius: 8px; border: 1px solid var(--border); }
+    .control-group h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-light); margin-bottom: 12px; }
+    .control-item { margin-bottom: 10px; }
+    .control-item:last-child { margin-bottom: 0; }
+    .control-item label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 500; margin-bottom: 4px; color: #e2e8f0; }
+    .control-item label span.val { color: var(--accent); font-weight: 600; }
+    .control-item input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+    .control-item select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: #0b111e; color: var(--text); font-size: 0.82rem; }
+    .control-item optgroup { font-weight: bold; color: var(--accent-light); background: #06090e; }
+
+    /* Viewport 3D */
+    .viewport-area { flex: 1; position: relative; height: 100%; }
+    #canvas-container { width: 100%; height: 100%; background: radial-gradient(circle at center, #131c2e 0%, #06090e 100%); }
+
+    /* HUD Controls */
+    .hud-bar { position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; background: rgba(6, 9, 14, 0.9); padding: 8px; border-radius: 8px; border: 1px solid var(--border); backdrop-filter: blur(8px); }
+    .hud-btn { background: var(--panel-card); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
+    .hud-btn:hover { background: var(--accent); color: #000; font-weight: bold; }
+
+    .stats-card { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(6, 9, 14, 0.92); border: 1px solid var(--border); padding: 8px 20px; border-radius: 20px; font-size: 0.78rem; display: flex; gap: 20px; backdrop-filter: blur(8px); }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Boiserie & Gran Collezione Intagli</h2>
+      <p>Ornato Classico, Scanalature & Mosaici CNC (Gombrich)</p>
+    </div>
+
+    <div class="sidebar-content">
+      
+      <!-- 1. Architettura Boiserie -->
+      <div class="control-group">
+        <h3>🏛️ Architettura Parete</h3>
+        <div class="control-item">
+          <label>Larghezza Parete (X): <span class="val" id="val-wallWidth">3400 mm</span></label>
+          <input type="range" id="wallWidth" min="1600" max="5000" step="100" value="3400">
+        </div>
+        <div class="control-item">
+          <label>Altezza Parete (Y): <span class="val" id="val-wallHeight">2800 mm</span></label>
+          <input type="range" id="wallHeight" min="2000" max="3800" step="50" value="2800">
+        </div>
+        <div class="control-item">
+          <label>Numero Moduli Verticali: <span class="val" id="val-numPanels">4</span></label>
+          <input type="range" id="numPanels" min="2" max="8" step="1" value="4">
+        </div>
+        <div class="control-item">
+          <label>Altezza Cimasa (Top): <span class="val" id="val-corniceHeight">160 mm</span></label>
+          <input type="range" id="corniceHeight" min="80" max="260" step="10" value="160">
+        </div>
+        <div class="control-item">
+          <label>Altezza Zoccolo: <span class="val" id="val-skirtingHeight">150 mm</span></label>
+          <input type="range" id="skirtingHeight" min="80" max="250" step="10" value="150">
+        </div>
+        <div class="control-item">
+          <label>Larghezza Lesene / Montanti: <span class="val" id="val-stilesWidth">100 mm</span></label>
+          <input type="range" id="stilesWidth" min="60" max="200" step="5" value="100">
+        </div>
+      </div>
+
+      <!-- 2. Fregi & Modanature Superiori -->
+      <div class="control-group">
+        <h3>🌿 Fregi & Modanature Cimasa</h3>
+        <div class="control-item">
+          <label>Motivo Scolpito Cornice</label>
+          <select id="mouldingType">
+            <option value="acanthus" selected>Foglie d'Acanto Intagliate</option>
+            <option value="palmette">Palmette & Fior di Loto (Anthemion)</option>
+            <option value="guilloche">Guilloché Intrecciato a Nastro</option>
+            <option value="dentils">Dentelli Classici Alternati</option>
+            <option value="egg_dart">Ovoli & Dardi (Egg & Dart)</option>
+            <option value="bead_reel">Astragalo a Perle & Fusi</option>
+            <option value="meander">Greca Geometrica a Meandro</option>
+            <option value="none">Liscia Senza Fregio</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Densità Ornato Cornice: <span class="val" id="val-ornamentDensity">28</span></label>
+          <input type="range" id="ornamentDensity" min="10" max="50" step="2" value="28">
+        </div>
+      </div>
+
+      <!-- 3. Lavorazione Lesene & Capitelli -->
+      <div class="control-group">
+        <h3>🏛️ Lavorazione Lesene & Capitelli</h3>
+        <div class="control-item">
+          <label>Lavorazione Asta Lesena</label>
+          <select id="stileStyle">
+            <option value="fluted" selected>Scanalatura Ionica (Fluting Concavo)</option>
+            <option value="cabled">Rudentatura (Scanalature con Cavi)</option>
+            <option value="smooth">Asta Liscia Massello</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Capitello In Testa alla Lesena</label>
+          <select id="capitalType">
+            <option value="corinthian" selected>Capitello Corinzio ad Acanto</option>
+            <option value="ionic">Capitello Ionio a Volute</option>
+            <option value="block">Dado di Raccordo Semplice</option>
+            <option value="none">Nessun Capitello</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 4. Accenti d'Angolo e Medaglioni Centrali -->
+      <div class="control-group">
+        <h3>⚜️ Accenti d'Angolo & Medaglioni</h3>
+        <div class="control-item">
+          <label>Intaglio d'Angolo (Riquadri)</label>
+          <select id="cornerAccent">
+            <option value="shell" selected>Conchiglia Rocaille (Capasanta)</option>
+            <option value="leaf">Foglia d'Acanto d'Angolo</option>
+            <option value="none">Nessun Accento Angolare</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Dimensione Accento Angolo: <span class="val" id="val-cornerSize">65 mm</span></label>
+          <input type="range" id="cornerSize" min="40" max="110" step="5" value="65">
+        </div>
+        <div class="control-item">
+          <label>Centro Specchiature (Medaglione)</label>
+          <select id="rosetteStyle">
+            <option value="mascherone" selected>Mascherone Classico Scolpito</option>
+            <option value="rosette">Rosetta Raggificata a Petali</option>
+            <option value="none">Nessun Medaglione Centrale</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Diametro Medaglione: <span class="val" id="val-rosetteSize">85 mm</span></label>
+          <input type="range" id="rosetteSize" min="50" max="150" step="5" value="85">
+        </div>
+        <div class="control-item">
+          <label>Finitura Ornamenti / Intagli</label>
+          <select id="ornamentFinish">
+            <option value="gold" selected>Foglia d'Oro Zecchino (Doratura)</option>
+            <option value="frame_match">Stesso Legno della Struttura</option>
+            <option value="ebony_contrast">Ebano Scuro a Contrasto</option>
+            <option value="ivory">Laccato Avorio Anticato</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 5. Mosaici Parakeet Centrali -->
+      <div class="control-group">
+        <h3>🦜 Campo Mosaico Intarsiato</h3>
+        <div class="control-item">
+          <label>Modello Tassellatura Campo</label>
+          <select id="patternType">
+            <optgroup label="MOSAICI GIRIH & ARCHIMEDEI">
+              <option value="girih_8" selected>Girih Stella a 8 Punte & Rosone</option>
+              <option value="girih_10">Girih Stella a 10 Punte (Khatam)</option>
+              <option value="girih_12">Girih Stella a 12 Punte Dodecagramma</option>
+              <option value="honeycomb">Nido d'Ape Esagonale (6.6.6)</option>
+              <option value="archimedean_488">Archimedea 4.8.8 (Ottagoni/Quadri)</option>
+              <option value="rhombille">Rhombille 3D (Cubi Isometrici)</option>
+              <option value="celtic_weave">Intreccio Celtico Parametrico</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Frequenza X: <span class="val" id="val-freqX">6</span></label>
+          <input type="range" id="freqX" min="2" max="16" step="1" value="6">
+        </div>
+        <div class="control-item">
+          <label>Frequenza Y: <span class="val" id="val-freqY">12</span></label>
+          <input type="range" id="freqY" min="4" max="24" step="1" value="12">
+        </div>
+        <div class="control-item">
+          <label>Profondità Rilievo Intarsio: <span class="val" id="val-reliefDepth">22 mm</span></label>
+          <input type="range" id="reliefDepth" min="0" max="50" step="1" value="22">
+        </div>
+      </div>
+
+      <!-- 6. Essenze Legno Telaio -->
+      <div class="control-group">
+        <h3>🪵 Essenze Legno Struttura</h3>
+        <div class="control-item">
+          <label>Legno Telaio & Lesene</label>
+          <select id="frameWood">
+            <option value="noce" selected>Noce Canaletto Massello</option>
+            <option value="rovere">Rovere Naturale</option>
+            <option value="frassino">Frassino Chiaro</option>
+            <option value="ebano">Ebano Scuro</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Legno Intarsio A</label>
+          <select id="woodTypeA">
+            <option value="rovere" selected>Rovere Naturale</option>
+            <option value="noce">Noce Canaletto</option>
+            <option value="frassino">Frassino Chiaro</option>
+            <option value="ebano">Ebano Scuro</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Legno Intarsio B</label>
+          <select id="woodTypeB">
+            <option value="noce" selected>Noce Canaletto</option>
+            <option value="rovere">Rovere Naturale</option>
+            <option value="frassino">Frassino Chiaro</option>
+            <option value="ebano">Ebano Scuro</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 7. Illuminazione -->
+      <div class="control-group">
+        <h3>💡 Direzione Luce Solare</h3>
+        <div class="control-item">
+          <label>Angolo Luce: <span class="val" id="val-lightAngle">50 °</span></label>
+          <input type="range" id="lightAngle" min="0" max="360" step="5" value="50">
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <main class="viewport-area">
+    <div class="hud-bar">
+      <button class="hud-btn" onclick="resetCamera('front')">Vista Frontale</button>
+      <button class="hud-btn" onclick="resetCamera('persp')">Prospettiva Gombrich</button>
+      <button class="hud-btn" onclick="resetCamera('detail')">Dettaglio Intagli</button>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div class="stats-card">
+      <div>Boiserie: <strong id="wall-size-info">3.4m x 2.8m</strong></div>
+      <div>Cornice: <strong id="moulding-info" style="color:var(--accent)">FOGLIE D'ACANTO</strong></div>
+      <div>Angoli: <strong id="corner-info">CONCHIGLIA ROCAILLE</strong></div>
+    </div>
+  </main>
+
+  <script>
+    const state = {
+      wallWidth: 3400,
+      wallHeight: 2800,
+      numPanels: 4,
+      corniceHeight: 160,
+      skirtingHeight: 150,
+      stilesWidth: 100,
+      
+      mouldingType: 'acanthus',
+      ornamentDensity: 28,
+      stileStyle: 'fluted',
+      capitalType: 'corinthian',
+      cornerAccent: 'shell',
+      cornerSize: 65,
+      rosetteStyle: 'mascherone',
+      rosetteSize: 85,
+      ornamentFinish: 'gold',
+
+      patternType: 'girih_8',
+      freqX: 6,
+      freqY: 12,
+      reliefDepth: 22,
+
+      frameWood: 'noce',
+      woodTypeA: 'rovere',
+      woodTypeB: 'noce',
+      lightAngle: 50
+    };
+
+    const inputs = [
+      'wallWidth', 'wallHeight', 'numPanels', 'corniceHeight', 'skirtingHeight',
+      'stilesWidth', 'mouldingType', 'ornamentDensity', 'stileStyle', 'capitalType',
+      'cornerAccent', 'cornerSize', 'rosetteStyle', 'rosetteSize',
+      'ornamentFinish', 'patternType', 'freqX', 'freqY', 'reliefDepth',
+      'frameWood', 'woodTypeA', 'woodTypeB', 'lightAngle'
+    ];
+
+    let scene, camera, renderer, controls;
+    let boiserieGroup, dirLight, woodTextures = {};
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+
+      camera = new THREE.PerspectiveCamera(42, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera.position.set(0, 0, 4.5);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+
+      dirLight = new THREE.DirectionalLight(0xffffff, 1.45);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      scene.add(dirLight);
+
+      updateLightPosition();
+      generateWoodTextures();
+      rebuildBoiserie();
+
+      window.addEventListener('resize', onWindowResize);
+      animate();
+    }
+
+    function updateLightPosition() {
+      const rad = (state.lightAngle * Math.PI) / 180;
+      dirLight.position.set(Math.cos(rad) * 4.5, Math.sin(rad) * 4.5, 3.8);
+    }
+
+    function createProceduralWoodTexture(baseColorHex, grainColorHex) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024; canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = baseColorHex;
+      ctx.fillRect(0, 0, 1024, 1024);
+
+      ctx.fillStyle = grainColorHex;
+      for (let i = 0; i < 900; i++) {
+        const y = Math.random() * 1024;
+        const h = Math.random() * 2.5 + 1;
+        ctx.globalAlpha = Math.random() * 0.18;
+        ctx.fillRect(0, y, 1024, h);
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      return texture;
+    }
+
+    function generateWoodTextures() {
+      woodTextures.rovere = createProceduralWoodTexture('#d4a373', '#7c4a1d');
+      woodTextures.noce = createProceduralWoodTexture('#4a2e1b', '#201209');
+      woodTextures.frassino = createProceduralWoodTexture('#e6ceac', '#ab8b63');
+      woodTextures.ebano = createProceduralWoodTexture('#221c19', '#080605');
+    }
+
+    function hash2D(x, y) {
+      const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453123;
+      return n - Math.floor(n);
+    }
+
+    function calculateParakeetZ(u, v) {
+      const fx = state.freqX;
+      const fy = state.freqY;
+      const uScaled = u * fx;
+      const vScaled = v * fy;
+      const cellX = Math.floor(uScaled);
+      const cellY = Math.floor(vScaled);
+      const localU = uScaled - cellX; 
+      const localV = vScaled - cellY; 
+
+      const cx = localU - 0.5;
+      const cy = localV - 0.5;
+      const r = Math.sqrt(cx * cx + cy * cy);
+      const angle = Math.atan2(cy, cx);
+
+      let rawZ = 0;
+
+      switch (state.patternType) {
+        case 'girih_8':
+          rawZ = Math.max(0, (0.5 - r) * (1 + Math.abs(Math.cos(angle * 4))));
+          break;
+        case 'girih_10':
+          rawZ = Math.max(0, (0.48 - r) * (1 + 0.6 * Math.abs(Math.sin(angle * 5))));
+          break;
+        case 'girih_12':
+          rawZ = Math.max(0, (0.5 - r) * (1 + 0.8 * Math.abs(Math.cos(angle * 6))));
+          break;
+        case 'honeycomb':
+          const hexDist = Math.abs(cx) * 1.732 + Math.abs(cy);
+          rawZ = hexDist < 0.85 ? 1.0 - hexDist * 0.5 : 0.2;
+          break;
+        case 'archimedean_488':
+          const octDist = Math.abs(cx) + Math.abs(cy);
+          rawZ = octDist > 0.65 ? 0.25 : 1.0 - octDist * 1.2;
+          break;
+        case 'rhombille':
+          const sector = Math.floor(((angle + Math.PI) / (Math.PI * 2)) * 3);
+          rawZ = sector === 0 ? 1.0 : (sector === 1 ? 0.65 : 0.35);
+          break;
+        case 'celtic_weave':
+          rawZ = (Math.sin(localU * Math.PI) * Math.cos(localV * Math.PI) + 1) / 2;
+          break;
+        default:
+          rawZ = (Math.sin(uScaled) * Math.cos(vScaled) + 1) / 2;
+      }
+
+      return rawZ * (state.reliefDepth / 1000);
+    }
+
+    function getWoodID(u, v) {
+      const fx = state.freqX;
+      const fy = state.freqY;
+      const cellX = Math.floor(u * fx);
+      const cellY = Math.floor(v * fy);
+      const localU = (u * fx) - cellX;
+      const localV = (v * fy) - cellY;
+      const r = Math.sqrt((localU - 0.5) ** 2 + (localV - 0.5) ** 2);
+
+      if (['girih_8', 'girih_10', 'girih_12'].includes(state.patternType)) {
+        return r < 0.32 ? 1 : 0;
+      }
+      return (cellX + cellY) % 2 === 0 ? 0 : 1;
+    }
+
+    function createMaterial(type) {
+      if (type === 'gold') {
+        return new THREE.MeshStandardMaterial({ color: 0xefbf04, roughness: 0.18, metalness: 0.88 });
+      }
+      if (type === 'ebony_contrast') {
+        return new THREE.MeshStandardMaterial({ color: 0x110d0a, roughness: 0.4 });
+      }
+      if (type === 'ivory') {
+        return new THREE.MeshStandardMaterial({ color: 0xf3efe0, roughness: 0.35 });
+      }
+      
+      const matOptions = { roughness: 0.4, metalness: 0.05 };
+      if (['rovere', 'noce', 'frassino', 'ebano'].includes(type)) {
+        matOptions.map = woodTextures[type];
+        matOptions.color = 0xffffff;
+      }
+      return new THREE.MeshStandardMaterial(matOptions);
+    }
+
+    // --- COSTRUTTORI GEOMETRICI DEGLI INTAGLI ORNAMENTALI ---
+
+    // 1. Foglia d'Acanto (Cornice / Angoli)
+    function createAcanthusLeafMesh(size, material) {
+      const group = new THREE.Group();
+      const numLobes = 5;
+      for (let i = 0; i < numLobes; i++) {
+        const angle = ((i - (numLobes - 1) / 2) * 0.35);
+        const lobeLen = size * (1 - Math.abs(i - 2) * 0.18);
+        const lobeGeo = new THREE.ConeGeometry(size * 0.18, lobeLen, 5);
+        const lobeMesh = new THREE.Mesh(lobeGeo, material);
+        lobeMesh.rotation.z = angle;
+        lobeMesh.rotation.x = 0.25;
+        lobeMesh.position.set(Math.sin(angle) * lobeLen * 0.4, Math.cos(angle) * lobeLen * 0.4, size * 0.1);
+        group.add(lobeMesh);
+      }
+      const stemGeo = new THREE.CylinderGeometry(size * 0.08, size * 0.14, size * 0.6, 8);
+      const stemMesh = new THREE.Mesh(stemGeo, material);
+      stemMesh.position.set(0, -size * 0.2, size * 0.05);
+      group.add(stemMesh);
+      return group;
+    }
+
+    // 2. Palmetta & Loto (Anthemion)
+    function createPalmetteMesh(size, material) {
+      const group = new THREE.Group();
+      const numPetals = 7;
+      for (let i = 0; i < numPetals; i++) {
+        const ang = (i / (numPetals - 1) - 0.5) * Math.PI * 0.8;
+        const petGeo = new THREE.ConeGeometry(size * 0.12, size * 0.9, 4);
+        const petMesh = new THREE.Mesh(petGeo, material);
+        petMesh.rotation.z = ang;
+        petMesh.rotation.x = 0.2;
+        petMesh.position.set(Math.sin(ang) * size * 0.35, Math.cos(ang) * size * 0.35, size * 0.08);
+        group.add(petMesh);
+      }
+      const baseGeo = new THREE.TorusGeometry(size * 0.25, size * 0.08, 8, 12, Math.PI);
+      const baseMesh = new THREE.Mesh(baseGeo, material);
+      baseMesh.rotation.x = Math.PI / 2;
+      baseMesh.position.set(0, -size * 0.2, 0);
+      group.add(baseMesh);
+      return group;
+    }
+
+    // 3. Conchiglia d'Angolo Rocaille (Capasanta)
+    function createShellMesh(radius, material) {
+      const group = new THREE.Group();
+      const numRibs = 9;
+      for (let i = 0; i < numRibs; i++) {
+        const ang = ((i / (numRibs - 1)) - 0.5) * Math.PI * 0.7;
+        const ribGeo = new THREE.ConeGeometry(radius * 0.15, radius * 1.1, 5);
+        const ribMesh = new THREE.Mesh(ribGeo, material);
+        ribMesh.rotation.z = ang;
+        ribMesh.rotation.x = 0.3;
+        ribMesh.position.set(Math.sin(ang) * radius * 0.4, Math.cos(ang) * radius * 0.4, radius * 0.15);
+        group.add(ribMesh);
+      }
+      const cupGeo = new THREE.SphereGeometry(radius * 0.5, 12, 12, 0, Math.PI, 0, Math.PI * 0.5);
+      const cupMesh = new THREE.Mesh(cupGeo, material);
+      cupMesh.rotation.x = -Math.PI / 2;
+      cupMesh.position.z = radius * 0.1;
+      group.add(cupMesh);
+      return group;
+    }
+
+    // 4. Mascherone Classico / Medaglione Scolpito
+    function createMascheroneMesh(radius, material) {
+      const group = new THREE.Group();
+
+      // Disco e Cartiglio di Fondo
+      const plateGeo = new THREE.CylinderGeometry(radius, radius * 0.95, radius * 0.2, 20);
+      const plateMesh = new THREE.Mesh(plateGeo, material);
+      plateMesh.rotation.x = Math.PI / 2;
+      group.add(plateMesh);
+
+      // Fronte / Volto A Rilievo
+      const faceGeo = new THREE.SphereGeometry(radius * 0.55, 16, 12);
+      faceGeo.scale(0.85, 1.2, 0.6);
+      const faceMesh = new THREE.Mesh(faceGeo, material);
+      faceMesh.position.z = radius * 0.18;
+      group.add(faceMesh);
+
+      // Capigliatura / Acanto Superiore
+      for (let a = -1; a <= 1; a += 0.5) {
+        const hairGeo = new THREE.ConeGeometry(radius * 0.2, radius * 0.6, 5);
+        const hairMesh = new THREE.Mesh(hairGeo, material);
+        hairMesh.rotation.z = a * 0.5;
+        hairMesh.position.set(a * radius * 0.3, radius * 0.5, radius * 0.2);
+        group.add(hairMesh);
+      }
+
+      // Barba Intagliata
+      const beardGeo = new THREE.ConeGeometry(radius * 0.3, radius * 0.7, 6);
+      const beardMesh = new THREE.Mesh(beardGeo, material);
+      beardMesh.rotation.x = Math.PI;
+      beardMesh.position.set(0, -radius * 0.55, radius * 0.2);
+      group.add(beardMesh);
+
+      return group;
+    }
+
+    // 5. Capitello Corinzio ad Acanto per Lesene
+    function createCorinthianCapital(stileW, material) {
+      const group = new THREE.Group();
+      const capH = stileW * 0.9;
+
+      // Abaco di Testa (Avaso)
+      const abacusGeo = new THREE.BoxGeometry(stileW * 1.35, capH * 0.25, stileW * 1.3);
+      const abacus = new THREE.Mesh(abacusGeo, material);
+      abacus.position.y = capH * 0.4;
+      group.add(abacus);
+
+      // Tamburo Conico
+      const bellGeo = new THREE.CylinderGeometry(stileW * 0.6, stileW * 0.45, capH * 0.75, 12);
+      const bell = new THREE.Mesh(bellGeo, material);
+      bell.position.y = -capH * 0.05;
+      group.add(bell);
+
+      // Volute Angolari
+      for (let side of [-1, 1]) {
+        const voluteGeo = new THREE.TorusGeometry(stileW * 0.2, stileW * 0.06, 8, 12);
+        const volute = new THREE.Mesh(voluteGeo, material);
+        volute.position.set(side * stileW * 0.45, capH * 0.2, stileW * 0.3);
+        volute.rotation.y = Math.PI / 2;
+        group.add(volute);
+      }
+
+      // Foglie d'Acanto Frontali
+      const leafCount = 3;
+      for (let i = 0; i < leafCount; i++) {
+        const xPos = (i - (leafCount - 1) / 2) * (stileW * 0.35);
+        const acant = createAcanthusLeafMesh(stileW * 0.4, material);
+        acant.position.set(xPos, -capH * 0.2, stileW * 0.35);
+        group.add(acant);
+      }
+
+      return group;
+    }
+
+    // 6. Rosetta Classica Raggificata
+    function createRosetteMesh(radius, material) {
+      const group = new THREE.Group();
+      const baseGeo = new THREE.CylinderGeometry(radius, radius * 0.9, radius * 0.2, 24);
+      const baseMesh = new THREE.Mesh(baseGeo, material);
+      baseMesh.rotation.x = Math.PI / 2;
+      group.add(baseMesh);
+
+      const numPetals = 8;
+      for (let i = 0; i < numPetals; i++) {
+        const angle = (i / numPetals) * Math.PI * 2;
+        const petalGeo = new THREE.ConeGeometry(radius * 0.28, radius * 0.7, 4);
+        const petalMesh = new THREE.Mesh(petalGeo, material);
+        petalMesh.rotation.z = angle - Math.PI / 2;
+        petalMesh.rotation.x = Math.PI / 2;
+        petalMesh.position.set(Math.cos(angle) * radius * 0.45, Math.sin(angle) * radius * 0.45, radius * 0.12);
+        group.add(petalMesh);
+      }
+      return group;
+    }
+
+
+    function rebuildBoiserie() {
+      if (boiserieGroup) scene.remove(boiserieGroup);
+      boiserieGroup = new THREE.Group();
+
+      const WallW = state.wallWidth / 1000;
+      const WallH = state.wallHeight / 1000;
+      const CorniceH = state.corniceHeight / 1000;
+      const SkirtingH = state.skirtingHeight / 1000;
+      const StileW = state.stilesWidth / 1000;
+      const FrameT = 0.04;
+      const N = state.numPanels;
+
+      const frameMat = createMaterial(state.frameWood);
+      const matA = createMaterial(state.woodTypeA);
+      const matB = createMaterial(state.woodTypeB);
+
+      let ornMat = frameMat;
+      if (state.ornamentFinish === 'gold') ornMat = createMaterial('gold');
+      else if (state.ornamentFinish === 'ebony_contrast') ornMat = createMaterial('ebony_contrast');
+      else if (state.ornamentFinish === 'ivory') ornMat = createMaterial('ivory');
+
+      // 1. Zoccolo di Base
+      const skirtingGeo = new THREE.BoxGeometry(WallW, SkirtingH, FrameT * 1.25);
+      const skirtingMesh = new THREE.Mesh(skirtingGeo, frameMat);
+      skirtingMesh.position.set(0, -WallH/2 + SkirtingH/2, FrameT * 0.1);
+      skirtingMesh.castShadow = true; skirtingMesh.receiveShadow = true;
+      boiserieGroup.add(skirtingMesh);
+
+      // 2. Cimasa Superiore (Cornice Top)
+      const corniceGeo = new THREE.BoxGeometry(WallW, CorniceH, FrameT * 1.35);
+      const corniceMesh = new THREE.Mesh(corniceGeo, frameMat);
+      corniceMesh.position.set(0, WallH/2 - CorniceH/2, FrameT * 0.15);
+      corniceMesh.castShadow = true; corniceMesh.receiveShadow = true;
+      boiserieGroup.add(corniceMesh);
+
+      // --- GENERAZIONE MOTIVI ORNAMENTALI INTAGLIATI CORNICE ---
+      if (state.mouldingType !== 'none') {
+        const count = state.ornamentDensity;
+        const stepX = WallW / count;
+        const mouldingY = WallH/2 - CorniceH + (CorniceH * 0.25);
+
+        for (let i = 0; i < count; i++) {
+          const xPos = -WallW/2 + stepX * i + stepX/2;
+
+          if (state.mouldingType === 'acanthus') {
+            const acant = createAcanthusLeafMesh(CorniceH * 0.45, ornMat);
+            acant.position.set(xPos, mouldingY, FrameT * 0.7);
+            boiserieGroup.add(acant);
+          } else if (state.mouldingType === 'palmette') {
+            const palm = createPalmetteMesh(CorniceH * 0.45, ornMat);
+            palm.position.set(xPos, mouldingY, FrameT * 0.7);
+            boiserieGroup.add(palm);
+          } else if (state.mouldingType === 'guilloche') {
+            const ringGeo = new THREE.TorusGeometry(stepX * 0.35, stepX * 0.08, 8, 16);
+            const ring = new THREE.Mesh(ringGeo, ornMat);
+            ring.position.set(xPos, mouldingY, FrameT * 0.68);
+            boiserieGroup.add(ring);
+          } else if (state.mouldingType === 'dentils' && i % 2 === 0) {
+            const dentilGeo = new THREE.BoxGeometry(stepX * 0.7, CorniceH * 0.25, FrameT * 0.5);
+            const dentilMesh = new THREE.Mesh(dentilGeo, ornMat);
+            dentilMesh.position.set(xPos, mouldingY, FrameT * 0.7);
+            boiserieGroup.add(dentilMesh);
+          } else if (state.mouldingType === 'egg_dart') {
+            const eggGeo = new THREE.SphereGeometry(stepX * 0.35, 12, 12);
+            eggGeo.scale(1, 1.4, 0.6);
+            const eggMesh = new THREE.Mesh(eggGeo, ornMat);
+            eggMesh.position.set(xPos, mouldingY, FrameT * 0.65);
+            boiserieGroup.add(eggMesh);
+          } else if (state.mouldingType === 'bead_reel') {
+            const beadGeo = (i % 3 !== 0) ? new THREE.SphereGeometry(stepX * 0.22, 10, 10) : new THREE.CylinderGeometry(stepX * 0.15, stepX * 0.15, stepX * 0.5, 8);
+            const beadMesh = new THREE.Mesh(beadGeo, ornMat);
+            if (i % 3 === 0) beadMesh.rotation.z = Math.PI / 2;
+            beadMesh.position.set(xPos, mouldingY, FrameT * 0.65);
+            boiserieGroup.add(beadMesh);
+          } else if (state.mouldingType === 'meander') {
+            const meanderGeo = new THREE.TorusGeometry(stepX * 0.3, stepX * 0.08, 6, 4);
+            const meanderMesh = new THREE.Mesh(meanderGeo, ornMat);
+            meanderMesh.position.set(xPos, mouldingY, FrameT * 0.65);
+            boiserieGroup.add(meanderMesh);
+          }
+        }
+      }
+
+      // Calcolo Area Pannelli Interni
+      const innerAreaH = WallH - SkirtingH - CorniceH;
+      const totalStilesW = StileW * (N + 1);
+      const panelW = (WallW - totalStilesW) / N;
+      const panelCenterY = -WallH/2 + SkirtingH + innerAreaH/2;
+
+      // 3. Montanti Verticali (Lesene) con Scanalature e Capitelli
+      for (let i = 0; i <= N; i++) {
+        const stileX = -WallW/2 + StileW/2 + i * (panelW + StileW);
+        
+        // Asta Lesena
+        const stileGeo = new THREE.BoxGeometry(StileW, innerAreaH, FrameT);
+        const stileMesh = new THREE.Mesh(stileGeo, frameMat);
+        stileMesh.position.set(stileX, panelCenterY, FrameT/2);
+        stileMesh.castShadow = true; stileMesh.receiveShadow = true;
+        boiserieGroup.add(stileMesh);
+
+        // --- SCANALATURE VERTICALI (FLUTING / RUDENTATURA) ---
+        if (state.stileStyle !== 'smooth') {
+          const numGrooves = 4;
+          const grooveStep = StileW / (numGrooves + 1);
+          for (let g = 1; g <= numGrooves; g++) {
+            const gX = stileX - StileW/2 + grooveStep * g;
+            const grooveH = innerAreaH * 0.85;
+            const grooveGeo = new THREE.CylinderGeometry(StileW * 0.06, StileW * 0.06, grooveH, 8);
+            const grooveMesh = new THREE.Mesh(grooveGeo, ornMat);
+            grooveMesh.position.set(gX, panelCenterY, FrameT + 0.002);
+            boiserieGroup.add(grooveMesh);
+
+            // Rudentatura (Tondino inferiore)
+            if (state.stileStyle === 'cabled') {
+              const cableGeo = new THREE.CylinderGeometry(StileW * 0.05, StileW * 0.05, grooveH * 0.35, 8);
+              const cableMesh = new THREE.Mesh(cableGeo, ornMat);
+              cableMesh.position.set(gX, panelCenterY - grooveH * 0.32, FrameT + 0.008);
+              boiserieGroup.add(cableMesh);
+            }
+          }
+        }
+
+        // --- CAPITELLI DI CORONAMENTO LESENE ---
+        if (state.capitalType === 'corinthian') {
+          const cap = createCorinthianCapital(StileW, ornMat);
+          cap.position.set(stileX, panelCenterY + innerAreaH/2 - StileW * 0.45, FrameT + 0.01);
+          boiserieGroup.add(cap);
+        } else if (state.capitalType === 'ionic') {
+          const capGeo = new THREE.BoxGeometry(StileW * 1.3, StileW * 0.4, FrameT * 1.5);
+          const capMesh = new THREE.Mesh(capGeo, ornMat);
+          capMesh.position.set(stileX, panelCenterY + innerAreaH/2 - StileW * 0.2, FrameT + 0.01);
+          boiserieGroup.add(capMesh);
+        } else if (state.capitalType === 'block') {
+          const blockGeo = new THREE.BoxGeometry(StileW * 1.15, StileW * 0.6, FrameT * 1.3);
+          const blockMesh = new THREE.Mesh(blockGeo, ornMat);
+          blockMesh.position.set(stileX, panelCenterY + innerAreaH/2 - StileW * 0.3, FrameT + 0.01);
+          boiserieGroup.add(blockMesh);
+        }
+      }
+
+      // 4. Traversini Orizzontali
+      for (let i = 0; i < N; i++) {
+        const panCenterX = -WallW/2 + StileW + panelW/2 + i * (panelW + StileW);
+
+        const railTopGeo = new THREE.BoxGeometry(panelW, StileW*0.7, FrameT);
+        const railTop = new THREE.Mesh(railTopGeo, frameMat);
+        railTop.position.set(panCenterX, panelCenterY + innerAreaH/2 - (StileW*0.7)/2, FrameT/2);
+        railTop.castShadow = true; railTop.receiveShadow = true;
+        boiserieGroup.add(railTop);
+
+        const railBotGeo = new THREE.BoxGeometry(panelW, StileW*0.7, FrameT);
+        const railBot = new THREE.Mesh(railBotGeo, frameMat);
+        railBot.position.set(panCenterX, panelCenterY - innerAreaH/2 + (StileW*0.7)/2, FrameT/2);
+        railBot.castShadow = true; railBot.receiveShadow = true;
+        boiserieGroup.add(railBot);
+      }
+
+      // 5. Specchiature Centrali, Conchiglie d'Angolo e Mascheroni
+      const activePanelH = innerAreaH - (StileW * 1.4);
+      const segsX = Math.max(state.freqX * 10, 70);
+      const segsY = Math.max(state.freqY * 10, 90);
+
+      for (let i = 0; i < N; i++) {
+        const panCenterX = -WallW/2 + StileW + panelW/2 + i * (panelW + StileW);
+
+        let baseGeo = new THREE.PlaneGeometry(panelW, activePanelH, segsX, segsY).toNonIndexed();
+        const basePos = baseGeo.attributes.position;
+        const baseUv = baseGeo.attributes.uv;
+
+        for (let k = 0; k < basePos.count; k++) {
+          const u = (basePos.getX(k) + panelW / 2) / panelW;
+          const v = (basePos.getY(k) + activePanelH / 2) / activePanelH;
+          basePos.setZ(k, calculateParakeetZ(u, v));
+        }
+
+        const posA = [], uvsA = [];
+        const posB = [], uvsB = [];
+
+        for (let f = 0; f < basePos.count; f += 3) {
+          const uAvg = ((basePos.getX(f) + basePos.getX(f+1) + basePos.getX(f+2)) / 3 + panelW / 2) / panelW;
+          const vAvg = ((basePos.getY(f) + basePos.getY(f+1) + basePos.getY(f+2)) / 3 + activePanelH / 2) / activePanelH;
+
+          const woodID = getWoodID(uAvg, vAvg);
+
+          for (let vIdx = 0; vIdx < 3; vIdx++) {
+            const idx = f + vIdx;
+            if (woodID === 0) {
+              posA.push(basePos.getX(idx), basePos.getY(idx), basePos.getZ(idx));
+              uvsA.push(baseUv.getX(idx), baseUv.getY(idx));
+            } else {
+              posB.push(basePos.getX(idx), basePos.getY(idx), basePos.getZ(idx));
+              uvsB.push(baseUv.getX(idx), baseUv.getY(idx));
+            }
+          }
+        }
+
+        const panGroup = new THREE.Group();
+
+        if (posA.length > 0) {
+          const geoA = new THREE.BufferGeometry();
+          geoA.setAttribute('position', new THREE.Float32BufferAttribute(posA, 3));
+          geoA.setAttribute('uv', new THREE.Float32BufferAttribute(uvsA, 2));
+          geoA.computeVertexNormals();
+          panGroup.add(new THREE.Mesh(geoA, matA));
+        }
+
+        if (posB.length > 0) {
+          const geoB = new THREE.BufferGeometry();
+          geoB.setAttribute('position', new THREE.Float32BufferAttribute(posB, 3));
+          geoB.setAttribute('uv', new THREE.Float32BufferAttribute(uvsB, 2));
+          geoB.computeVertexNormals();
+          panGroup.add(new THREE.Mesh(geoB, matB));
+        }
+
+        panGroup.position.set(panCenterX, panelCenterY, FrameT * 0.1);
+        boiserieGroup.add(panGroup);
+
+        // --- ACCENTI D'ANGOLO QUADRANTE (CONCHIGLIE ROCAILLE / FOGLIE) ---
+        if (state.cornerAccent !== 'none') {
+          const cornerR = (state.cornerSize) / 1000;
+          const offsetX = panelW / 2 - cornerR * 0.8;
+          const offsetY = activePanelH / 2 - cornerR * 0.8;
+
+          const cornerCoords = [
+            { x: panCenterX - offsetX, y: panelCenterY + offsetY, rot: Math.PI / 4 },
+            { x: panCenterX + offsetX, y: panelCenterY + offsetY, rot: -Math.PI / 4 },
+            { x: panCenterX - offsetX, y: panelCenterY - offsetY, rot: (3 * Math.PI) / 4 },
+            { x: panCenterX + offsetX, y: panelCenterY - offsetY, rot: -(3 * Math.PI) / 4 }
+          ];
+
+          cornerCoords.forEach(c => {
+            let cornerMesh;
+            if (state.cornerAccent === 'shell') {
+              cornerMesh = createShellMesh(cornerR, ornMat);
+            } else {
+              cornerMesh = createAcanthusLeafMesh(cornerR * 1.2, ornMat);
+            }
+            cornerMesh.position.set(c.x, c.y, FrameT * 0.55);
+            cornerMesh.rotation.z = c.rot;
+            boiserieGroup.add(cornerMesh);
+          });
+        }
+
+        // --- MEDAGLIONE O MASCHERONE CENTRALE ---
+        if (state.rosetteStyle !== 'none') {
+          const rosR = (state.rosetteSize / 2) / 1000;
+          let centerMesh;
+          if (state.rosetteStyle === 'mascherone') {
+            centerMesh = createMascheroneMesh(rosR, ornMat);
+          } else {
+            centerMesh = createRosetteMesh(rosR, ornMat);
+          }
+          centerMesh.position.set(panCenterX, panelCenterY, FrameT * 0.65);
+          boiserieGroup.add(centerMesh);
+        }
+      }
+
+      scene.add(boiserieGroup);
+
+      document.getElementById('wall-size-info').textContent = `${(WallW).toFixed(1)}m x ${(WallH).toFixed(1)}m`;
+      document.getElementById('moulding-info').textContent = state.mouldingType.replace('_', ' ').toUpperCase();
+      document.getElementById('corner-info').textContent = state.cornerAccent.toUpperCase();
+    }
+
+    function initListeners() {
+      inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        el.addEventListener('input', (e) => {
+          let val = e.target.value;
+          if (e.target.type === 'range') val = parseFloat(val);
+
+          state[id] = val;
+
+          const label = document.getElementById(`val-${id}`);
+          if (label) {
+            if (id === 'lightAngle') label.textContent = `${state[id]} °`;
+            else if (['numPanels', 'freqX', 'freqY', 'ornamentDensity'].includes(id)) label.textContent = state[id];
+            else label.textContent = `${state[id]} mm`;
+          }
+
+          if (id === 'lightAngle') {
+            updateLightPosition();
+          } else {
+            rebuildBoiserie();
+          }
+        });
+      });
+    }
+
+    function resetCamera(mode) {
+      const WallW = state.wallWidth / 1000;
+      if (mode === 'front') camera.position.set(0, 0, WallW * 1.3);
+      else if (mode === 'persp') camera.position.set(WallW * 0.85, 0.1, WallW * 1.15);
+      else if (mode === 'detail') camera.position.set(-WallW * 0.15, WallW * 0.25, 0.85);
+      controls.target.set(0, 0, 0);
+      controls.update();
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    init3D();
+    initListeners();
+  </script>
+</body>
+</html>

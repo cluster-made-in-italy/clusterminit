@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulatore 3D Pannelli Legno - Intarsio Bicolore Parakeet</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  
+  <style>
+    :root {
+      --bg: #090d16;
+      --panel: #121a29;
+      --panel-card: #1a2638;
+      --accent: #f59e0b;
+      --accent-light: #fbbf24;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #26354a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+    /* Sidebar Controlli */
+    .sidebar { width: 420px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100%; z-index: 10; }
+    .sidebar-header { padding: 16px 20px; border-bottom: 1px solid var(--border); background: #090d16; }
+    .sidebar-header h2 { font-size: 1.05rem; color: var(--accent); letter-spacing: 0.03em; }
+    .sidebar-header p { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+    .sidebar-content { flex: 1; overflow-y: auto; padding: 16px; }
+
+    .control-group { margin-bottom: 16px; background: var(--panel-card); padding: 14px; border-radius: 8px; border: 1px solid var(--border); }
+    .control-group h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-light); margin-bottom: 12px; }
+    .control-item { margin-bottom: 10px; }
+    .control-item:last-child { margin-bottom: 0; }
+    .control-item label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 500; margin-bottom: 4px; color: #e2e8f0; }
+    .control-item label span.val { color: var(--accent); font-weight: 600; }
+    .control-item input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+    .control-item select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: #121a29; color: var(--text); font-size: 0.82rem; }
+    .control-item optgroup { font-weight: bold; color: var(--accent-light); background: #090d16; }
+
+    /* Viewport 3D */
+    .viewport-area { flex: 1; position: relative; height: 100%; }
+    #canvas-container { width: 100%; height: 100%; background: radial-gradient(circle at center, #1a2638 0%, #090d16 100%); }
+
+    /* HUD Controls */
+    .hud-bar { position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; background: rgba(9, 13, 22, 0.85); padding: 8px; border-radius: 8px; border: 1px solid var(--border); backdrop-filter: blur(8px); }
+    .hud-btn { background: var(--panel-card); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
+    .hud-btn:hover { background: var(--accent); color: #000; font-weight: bold; }
+
+    .stats-card { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(9, 13, 22, 0.9); border: 1px solid var(--border); padding: 8px 20px; border-radius: 20px; font-size: 0.78rem; display: flex; gap: 20px; backdrop-filter: blur(8px); }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Tassellatore Intarsio 3D Parakeet</h2>
+      <p>Mosaici Inseriti e Intarsi Bicolore CNC in Legno Massello</p>
+    </div>
+
+    <div class="sidebar-content">
+      
+      <!-- 1. Dimensioni Pannello -->
+      <div class="control-group">
+        <h3>📐 Geometria Pannello Massello</h3>
+        <div class="control-item">
+          <label>Larghezza (X): <span class="val" id="val-width">1000 mm</span></label>
+          <input type="range" id="width" min="400" max="2000" step="50" value="1000">
+        </div>
+        <div class="control-item">
+          <label>Altezza (Y): <span class="val" id="val-height">1000 mm</span></label>
+          <input type="range" id="height" min="400" max="2000" step="50" value="1000">
+        </div>
+        <div class="control-item">
+          <label>Spessore Massello: <span class="val" id="val-thickness">25 mm</span></label>
+          <input type="range" id="thickness" min="10" max="60" step="2" value="25">
+        </div>
+      </div>
+
+      <!-- 2. Tutti i Mosaici e Incisioni Parakeet -->
+      <div class="control-group">
+        <h3>🦜 Libreria Modelli Parakeet</h3>
+        <div class="control-item">
+          <label>Modello Tassellatura / Incisione</label>
+          <select id="patternType">
+            
+            <optgroup label="1. MOSAICI ISLAMICI GIRIH">
+              <option value="girih_8" selected>Girih Stella a 8 Punte & Rosone</option>
+              <option value="girih_10">Girih Stella a 10 Punte (Khatam)</option>
+              <option value="girih_12">Girih Stella a 12 Punte Dodecagramma</option>
+              <option value="girih_6">Girih Stella Esagonale Islamica</option>
+            </optgroup>
+
+            <optgroup label="2. TASSELLATURE ARCHIMEDEE">
+              <option value="honeycomb">Nido d'Ape Esagonale (6.6.6)</option>
+              <option value="kagome">Lattice Tri-Esagonale Kagome (3.6.3.6)</option>
+              <option value="snub_hex">Tassellatura Esagonale Snub (3.3.3.3.6)</option>
+              <option value="archimedean_488">Archimedea 4.8.8 (Ottagoni & Quadri)</option>
+              <option value="triangular">Griglia Triangolare Rilievo (3.3.3.3.3.3)</option>
+            </optgroup>
+
+            <optgroup label="3. MOSAICI ISOEDRICI, DUALI & 3D">
+              <option value="cairo">Tassellatura Pentagonale del Cairo</option>
+              <option value="rhombille">Rhombille 3D (Cubi Isometrici)</option>
+              <option value="penrose_rhomb">Mosaico Romboidale Stile Penrose</option>
+              <option value="voronoi">Algoritmo Organico Voronoi 3D</option>
+            </optgroup>
+
+            <optgroup label="4. TRUCHET, INTRECCI & NODI">
+              <option value="truchet_arc">Truchet ad Archi Curvi Intersecati</option>
+              <option value="truchet_diag">Truchet Nastro Diagonale</option>
+              <option value="celtic_weave">Intreccio Celtico Parametrico</option>
+            </optgroup>
+
+            <optgroup label="5. INCISIONI & RILIEVI DI CAMPO">
+              <option value="parametric_wave">Onda Sinusoidale Incrociata (Ripple)</option>
+              <option value="radial_ripple">Incisione Radiale Concentrica</option>
+              <option value="guilloche">Spirografo Parametrico Guilloché</option>
+              <option value="perlin_organic">Rilievo Organico Legno Scolpito</option>
+            </optgroup>
+
+          </select>
+        </div>
+
+        <div class="control-item">
+          <label>Frequenza X (Densità): <span class="val" id="val-freqX">8</span></label>
+          <input type="range" id="freqX" min="2" max="24" step="1" value="8">
+        </div>
+        <div class="control-item">
+          <label>Frequenza Y (Densità): <span class="val" id="val-freqY">8</span></label>
+          <input type="range" id="freqY" min="2" max="24" step="1" value="8">
+        </div>
+        <div class="control-item">
+          <label>Altezza Rilievo Max (Z): <span class="val" id="val-reliefDepth">30 mm</span></label>
+          <input type="range" id="reliefDepth" min="0" max="60" step="1" value="30">
+        </div>
+        <div class="control-item">
+          <label>Profondità Fuga CNC: <span class="val" id="val-gapDepth">4 mm</span></label>
+          <input type="range" id="gapDepth" min="0" max="12" step="0.5" value="4">
+        </div>
+        <div class="control-item">
+          <label>Inclinazione Facette / Piramide: <span class="val" id="val-facetWeight">60 %</span></label>
+          <input type="range" id="facetWeight" min="0" max="100" step="5" value="60">
+        </div>
+        <div class="control-item">
+          <label>Bugnato Sfalsato (Random Z): <span class="val" id="val-randomZ">15 %</span></label>
+          <input type="range" id="randomZ" min="0" max="100" step="5" value="15">
+        </div>
+      </div>
+
+      <!-- 3. Configurazione Intarsio & Essenze Legno -->
+      <div class="control-group">
+        <h3>🪵 Intarsio & Essenze Legno</h3>
+        
+        <div class="control-item">
+          <label>Modalità Composizione</label>
+          <select id="enableInlay">
+            <option value="true" selected>Sì - Intarsio Bicolore (Doppio Legno)</option>
+            <option value="false">No - Monocromatico (Singolo Legno)</option>
+          </select>
+        </div>
+
+        <div class="control-item">
+          <label>Legno A (Struttura / Base)</label>
+          <select id="woodTypeA">
+            <option value="rovere" selected>Rovere Naturale</option>
+            <option value="noce">Noce Canaletto</option>
+            <option value="frassino">Frassino Chiaro</option>
+            <option value="ebano">Ebano Scuro</option>
+            <option value="bianco">Laccato Bianco Opaco</option>
+            <option value="antracite">Laccato Antracite</option>
+          </select>
+        </div>
+
+        <div class="control-item">
+          <label>Legno B (Intarsio / Mosaico Inserito)</label>
+          <select id="woodTypeB">
+            <option value="rovere">Rovere Naturale</option>
+            <option value="noce" selected>Noce Canaletto</option>
+            <option value="frassino">Frassino Chiaro</option>
+            <option value="ebano">Ebano Scuro</option>
+            <option value="bianco">Laccato Bianco Opaco</option>
+            <option value="antracite">Laccato Antracite</option>
+          </select>
+        </div>
+
+        <div class="control-item">
+          <label>Ruvidità Finitura: <span class="val" id="val-roughness">0.45</span></label>
+          <input type="range" id="roughness" min="0.1" max="0.9" step="0.05" value="0.45">
+        </div>
+      </div>
+
+      <!-- 4. Illuminazione -->
+      <div class="control-group">
+        <h3>💡 Direzione Luce</h3>
+        <div class="control-item">
+          <label>Inclinazione Luce: <span class="val" id="val-lightAngle">45 °</span></label>
+          <input type="range" id="lightAngle" min="0" max="360" step="5" value="45">
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <main class="viewport-area">
+    <div class="hud-bar">
+      <button class="hud-btn" onclick="resetCamera('front')">Frontale</button>
+      <button class="hud-btn" onclick="resetCamera('persp')">Prospettiva</button>
+      <button class="hud-btn" onclick="resetCamera('side')">Vista di Taglio</button>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div class="stats-card">
+      <div>Poligoni Unici CNC: <strong id="poly-count">0</strong></div>
+      <div>Modello: <strong id="mosaico-type">GIRIH 8</strong></div>
+      <div>Composizione: <strong id="inlay-status" style="color:#f59e0b">Intarsio Bicolore (Legno A + B)</strong></div>
+    </div>
+  </main>
+
+  <script>
+    const state = {
+      width: 1000,
+      height: 1000,
+      thickness: 25,
+      patternType: 'girih_8',
+      freqX: 8,
+      freqY: 8,
+      reliefDepth: 30,
+      gapDepth: 4,
+      facetWeight: 60,
+      randomZ: 15,
+      enableInlay: 'true',
+      woodTypeA: 'rovere',
+      woodTypeB: 'noce',
+      roughness: 0.45,
+      lightAngle: 45
+    };
+
+    const inputs = [
+      'width', 'height', 'thickness', 'patternType', 'freqX', 'freqY',
+      'reliefDepth', 'gapDepth', 'facetWeight', 'randomZ',
+      'enableInlay', 'woodTypeA', 'woodTypeB', 'roughness', 'lightAngle'
+    ];
+
+    let scene, camera, renderer, controls;
+    let panelGroup, dirLight, woodTextures = {};
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera.position.set(0, 0, 2.2);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+
+      dirLight = new THREE.DirectionalLight(0xffffff, 1.3);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      scene.add(dirLight);
+
+      updateLightPosition();
+      generateWoodTextures();
+      rebuildPanel();
+
+      window.addEventListener('resize', onWindowResize);
+      animate();
+    }
+
+    function updateLightPosition() {
+      const rad = (state.lightAngle * Math.PI) / 180;
+      dirLight.position.set(Math.cos(rad) * 2.5, Math.sin(rad) * 2.5, 2.2);
+    }
+
+    function createProceduralWoodTexture(baseColorHex, grainColorHex) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024; canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = baseColorHex;
+      ctx.fillRect(0, 0, 1024, 1024);
+
+      ctx.fillStyle = grainColorHex;
+      for (let i = 0; i < 800; i++) {
+        const y = Math.random() * 1024;
+        const h = Math.random() * 2.5 + 1;
+        ctx.globalAlpha = Math.random() * 0.15;
+        ctx.fillRect(0, y, 1024, h);
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      return texture;
+    }
+
+    function generateWoodTextures() {
+      woodTextures.rovere = createProceduralWoodTexture('#d4a373', '#7c4a1d');
+      woodTextures.noce = createProceduralWoodTexture('#4a2e1b', '#201209');
+      woodTextures.frassino = createProceduralWoodTexture('#e6ceac', '#ab8b63');
+      woodTextures.ebano = createProceduralWoodTexture('#221c19', '#080605');
+    }
+
+    function hash2D(x, y) {
+      const n = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453123;
+      return n - Math.floor(n);
+    }
+
+    // CALCOLO ALTEZZA Z PER TUTTI I MODELLI
+    function calculateParakeetZ(u, v) {
+      const fx = state.freqX;
+      const fy = state.freqY;
+
+      const uScaled = u * fx;
+      const vScaled = v * fy;
+
+      const cellX = Math.floor(uScaled);
+      const cellY = Math.floor(vScaled);
+
+      const localU = uScaled - cellX; 
+      const localV = vScaled - cellY; 
+
+      const cellHash = hash2D(cellX, cellY);
+
+      let rawZ = 0;
+      let edgeFactor = 0;
+
+      const cx = localU - 0.5;
+      const cy = localV - 0.5;
+      const r = Math.sqrt(cx * cx + cy * cy);
+      const angle = Math.atan2(cy, cx);
+
+      switch (state.patternType) {
+
+        case 'girih_8': {
+          const starSector = Math.abs(Math.cos(angle * 4));
+          rawZ = Math.max(0, (0.5 - r) * (1 + starSector));
+          edgeFactor = Math.min(localU, 1 - localU, localV, 1 - localV);
+          break;
+        }
+
+        case 'girih_10': {
+          const starSector = Math.abs(Math.sin(angle * 5));
+          rawZ = Math.max(0, (0.48 - r) * (1 + 0.6 * starSector));
+          edgeFactor = Math.min(localU, 1 - localU, localV, 1 - localV);
+          break;
+        }
+
+        case 'girih_12': {
+          const starSector = Math.abs(Math.cos(angle * 6));
+          rawZ = Math.max(0, (0.5 - r) * (1 + 0.8 * starSector));
+          edgeFactor = Math.min(localU, 1 - localU, localV, 1 - localV);
+          break;
+        }
+
+        case 'girih_6': {
+          const starSector = Math.abs(Math.cos(angle * 3));
+          rawZ = Math.max(0, (0.5 - r) * starSector * 1.5);
+          edgeFactor = Math.min(localU, 1 - localU, localV, 1 - localV);
+          break;
+        }
+
+        case 'honeycomb': {
+          const hexDist = Math.abs(cx) * 1.732 + Math.abs(cy);
+          rawZ = hexDist < 0.85 ? 1.0 - hexDist * 0.5 : 0.2;
+          edgeFactor = Math.abs(0.85 - hexDist);
+          break;
+        }
+
+        case 'kagome': {
+          const hexDist = Math.abs(cx) * 1.732 + Math.abs(cy);
+          rawZ = hexDist < 0.75 ? 1.0 - hexDist * 0.8 : 0.15;
+          edgeFactor = Math.abs(0.75 - hexDist);
+          break;
+        }
+
+        case 'snub_hex': {
+          const rotU = cx * Math.cos(0.523) - cy * Math.sin(0.523);
+          const rotV = cx * Math.sin(0.523) + cy * Math.cos(0.523);
+          const val = Math.abs(rotU) + Math.abs(rotV);
+          rawZ = val < 0.45 ? 1.0 : 0.3;
+          edgeFactor = Math.abs(0.45 - val);
+          break;
+        }
+
+        case 'archimedean_488': {
+          const octDist = Math.abs(cx) + Math.abs(cy);
+          if (octDist > 0.65) {
+            rawZ = 0.25;
+            edgeFactor = Math.abs(0.65 - octDist);
+          } else {
+            rawZ = 1.0 - octDist * 1.2;
+            edgeFactor = 0.65 - octDist;
+          }
+          break;
+        }
+
+        case 'triangular': {
+          const d1 = localU;
+          const d2 = localV;
+          const d3 = Math.abs(localU - localV);
+          edgeFactor = Math.min(d1, d2, d3, 1 - d1, 1 - d2);
+          rawZ = edgeFactor * 2.0;
+          break;
+        }
+
+        case 'cairo': {
+          const parity = (cellX + cellY) % 2 === 0;
+          const uP = parity ? localU : localV;
+          const vP = parity ? localV : localU;
+          const d1 = Math.abs(uP - vP);
+          const d2 = Math.abs(1 - uP - vP);
+          rawZ = (1 - Math.min(d1, d2)) * 0.85;
+          edgeFactor = Math.min(d1, d2);
+          break;
+        }
+
+        case 'rhombille': {
+          const sector = Math.floor(((angle + Math.PI) / (Math.PI * 2)) * 3);
+          if (sector === 0) rawZ = 1.0;
+          else if (sector === 1) rawZ = 0.65;
+          else rawZ = 0.35;
+          edgeFactor = 0.5 - r;
+          break;
+        }
+
+        case 'penrose_rhomb': {
+          const phi = 1.6180339887;
+          const penVal = Math.sin(uScaled * phi) * Math.cos(vScaled * phi);
+          rawZ = (penVal + 1) / 2;
+          edgeFactor = Math.min(localU, 1 - localU, localV, 1 - localV);
+          break;
+        }
+
+        case 'voronoi': {
+          let minDist1 = 99.0;
+          let minDist2 = 99.0;
+
+          for (let dx = -1; dx <= 1; dx++) {
+            for (let dy = -1; dy <= 1; dy++) {
+              const nx = cellX + dx;
+              const ny = cellY + dy;
+              const seedX = dx + hash2D(nx, ny);
+              const seedY = dy + hash2D(nx + 17, ny + 31);
+              const dist = Math.sqrt((localU - seedX) ** 2 + (localV - seedY) ** 2);
+
+              if (dist < minDist1) {
+                minDist2 = minDist1;
+                minDist1 = dist;
+              } else if (dist < minDist2) {
+                minDist2 = dist;
+              }
+            }
+          }
+          edgeFactor = (minDist2 - minDist1);
+          rawZ = Math.min(1.0, minDist1 * 1.5);
+          break;
+        }
+
+        case 'truchet_arc': {
+          const parity = cellHash > 0.5;
+          const arcCenterU = parity ? 0 : 1;
+          const arcCenterV = 0;
+          const distArc = Math.sqrt((localU - arcCenterU) ** 2 + (localV - arcCenterV) ** 2);
+          rawZ = Math.abs(Math.sin(distArc * Math.PI * 2));
+          edgeFactor = Math.min(localU, 1 - localU, localV, 1 - localV);
+          break;
+        }
+
+        case 'truchet_diag': {
+          const parity = cellHash > 0.5;
+          const val = parity ? (localU + localV) : (localU - localV + 1);
+          const rib = Math.abs((val % 0.5) - 0.25);
+          rawZ = rib * 3.0;
+          edgeFactor = rib;
+          break;
+        }
+
+        case 'celtic_weave': {
+          const wave1 = Math.sin(localU * Math.PI);
+          const wave2 = Math.cos(localV * Math.PI);
+          rawZ = (wave1 * wave2 + 1) / 2;
+          edgeFactor = Math.min(localU, 1 - localU, localV, 1 - localV);
+          break;
+        }
+
+        case 'parametric_wave': {
+          const w = Math.sin(u * Math.PI * fx) * Math.cos(v * Math.PI * fy);
+          rawZ = (w + 1) / 2;
+          edgeFactor = 0.5;
+          break;
+        }
+
+        case 'radial_ripple': {
+          const cxG = u - 0.5;
+          const cyG = v - 0.5;
+          const rG = Math.sqrt(cxG * cxG + cyG * cyG);
+          rawZ = (Math.sin(rG * Math.PI * fx * 2) + 1) / 2;
+          edgeFactor = 0.5;
+          break;
+        }
+
+        case 'guilloche': {
+          const g = Math.cos(u * Math.PI * fx) + Math.sin(v * Math.PI * fy) + Math.cos((u + v) * Math.PI * fx * 0.5);
+          rawZ = (g + 3) / 6;
+          edgeFactor = 0.5;
+          break;
+        }
+
+        case 'perlin_organic': {
+          const noise = Math.sin(uScaled) * Math.cos(vScaled) + 0.5 * Math.sin(uScaled * 2.1) * Math.sin(vScaled * 2.3);
+          rawZ = (noise + 1.5) / 3;
+          edgeFactor = 0.5;
+          break;
+        }
+      }
+
+      const maxZ = state.reliefDepth / 1000;
+      const gapDepthM = (state.gapDepth / 1000);
+      const facetW = state.facetWeight / 100;
+      const randW = state.randomZ / 100;
+
+      let height = rawZ * facetW + (1 - facetW);
+      const gapCut = Math.smoothstep(edgeFactor, 0.0, 0.08) * gapDepthM;
+      const randOffset = (cellHash - 0.5) * randW * maxZ;
+
+      let finalZ = (height * maxZ) - gapCut + randOffset;
+      return Math.max(0, finalZ);
+    }
+
+    // ALGORITMO DI SEPARAZIONE D'INTARSIO: ASSEGNA IL LEGNO A O B (0 oppure 1)
+    function getWoodID(u, v) {
+      if (state.enableInlay === 'false') return 0;
+
+      const fx = state.freqX;
+      const fy = state.freqY;
+      const uScaled = u * fx;
+      const vScaled = v * fy;
+      const cellX = Math.floor(uScaled);
+      const cellY = Math.floor(vScaled);
+      const localU = uScaled - cellX;
+      const localV = vScaled - cellY;
+      const cellHash = hash2D(cellX, cellY);
+
+      const cx = localU - 0.5;
+      const cy = localV - 0.5;
+      const r = Math.sqrt(cx * cx + cy * cy);
+      const angle = Math.atan2(cy, cx);
+
+      switch (state.patternType) {
+        case 'girih_8':
+        case 'girih_10':
+        case 'girih_12':
+        case 'girih_6':
+          return r < 0.32 ? 1 : 0; // Stelle/Rosone = Legno B, Sfondo = Legno A
+
+        case 'honeycomb':
+        case 'cairo':
+        case 'triangular':
+          return (cellX + cellY) % 2 === 0 ? 0 : 1; // Scacchiera Alternata
+
+        case 'kagome':
+          const hexDistK = Math.abs(cx) * 1.732 + Math.abs(cy);
+          return hexDistK < 0.75 ? 0 : 1; // Esagoni = A, Triangoli = B
+
+        case 'archimedean_488':
+          const octDist = Math.abs(cx) + Math.abs(cy);
+          return octDist > 0.65 ? 1 : 0; // Quadri = B, Ottagoni = A
+
+        case 'rhombille':
+          const sector = Math.floor(((angle + Math.PI) / (Math.PI * 2)) * 3);
+          return sector === 1 ? 1 : 0; // Facetta d'Ombra = Legno B
+
+        case 'voronoi':
+          return cellHash > 0.5 ? 1 : 0; // Cellule Stocastiche Alternate
+
+        case 'truchet_arc':
+        case 'truchet_diag':
+        case 'celtic_weave':
+          return cellHash > 0.5 ? 1 : 0; // Ribbon / Nastri Intrecciati
+
+        default:
+          const zVal = calculateParakeetZ(u, v);
+          return zVal > (state.reliefDepth / 2000) ? 1 : 0; // Rilievo Alto = B, Basso = A
+      }
+    }
+
+    Math.smoothstep = function(x, min, max) {
+      if (x <= min) return 0;
+      if (x >= max) return 1;
+      x = (x - min) / (max - min);
+      return x * x * (3 - 2 * x);
+    };
+
+    function createMaterial(woodType) {
+      const matOptions = { roughness: state.roughness, metalness: 0.05 };
+      if (['rovere', 'noce', 'frassino', 'ebano'].includes(woodType)) {
+        matOptions.map = woodTextures[woodType];
+        matOptions.color = 0xffffff;
+      } else if (woodType === 'bianco') {
+        matOptions.color = 0xf8fafc;
+      } else if (woodType === 'antracite') {
+        matOptions.color = 0x1e293b;
+      }
+      return new THREE.MeshStandardMaterial(matOptions);
+    }
+
+    function rebuildPanel() {
+      if (panelGroup) scene.remove(panelGroup);
+
+      const W = state.width / 1000;
+      const H = state.height / 1000;
+      const BaseT = state.thickness / 1000;
+
+      const segsX = Math.max(state.freqX * 14, 140);
+      const segsY = Math.max(state.freqY * 14, 140);
+
+      // Creazione Mesh Superficiale Disaccoppiata
+      let baseGeo = new THREE.PlaneGeometry(W, H, segsX, segsY).toNonIndexed();
+      const basePos = baseGeo.attributes.position;
+      const baseUv = baseGeo.attributes.uv;
+
+      // Applica Dislocazione 3D Z a tutti i vertici
+      for (let i = 0; i < basePos.count; i++) {
+        const u = (basePos.getX(i) + W / 2) / W;
+        const v = (basePos.getY(i) + H / 2) / H;
+        const tileZ = calculateParakeetZ(u, v);
+        basePos.setZ(i, BaseT / 2 + tileZ);
+      }
+
+      // Separazione Triangoli per i due tipi di legno (Legno A vs Legno B)
+      const posA = [], uvsA = [];
+      const posB = [], uvsB = [];
+
+      for (let f = 0; f < basePos.count; f += 3) {
+        // Calcola Centroide del Triangolo
+        const uAvg = ((basePos.getX(f) + basePos.getX(f+1) + basePos.getX(f+2)) / 3 + W / 2) / W;
+        const vAvg = ((basePos.getY(f) + basePos.getY(f+1) + basePos.getY(f+2)) / 3 + H / 2) / H;
+
+        const woodID = getWoodID(uAvg, vAvg);
+
+        for (let vIdx = 0; vIdx < 3; vIdx++) {
+          const idx = f + vIdx;
+          if (woodID === 0) {
+            posA.push(basePos.getX(idx), basePos.getY(idx), basePos.getZ(idx));
+            uvsA.push(baseUv.getX(idx), baseUv.getY(idx));
+          } else {
+            posB.push(basePos.getX(idx), basePos.getY(idx), basePos.getZ(idx));
+            uvsB.push(baseUv.getX(idx), baseUv.getY(idx));
+          }
+        }
+      }
+
+      panelGroup = new THREE.Group();
+
+      // Mesh A (Legno Primario)
+      if (posA.length > 0) {
+        const geoA = new THREE.BufferGeometry();
+        geoA.setAttribute('position', new THREE.Float32BufferAttribute(posA, 3));
+        geoA.setAttribute('uv', new THREE.Float32BufferAttribute(uvsA, 2));
+        geoA.computeVertexNormals();
+        const meshA = new THREE.Mesh(geoA, createMaterial(state.woodTypeA));
+        meshA.castShadow = true; meshA.receiveShadow = true;
+        panelGroup.add(meshA);
+      }
+
+      // Mesh B (Legno Secondario - Intarsio Mosaico)
+      if (posB.length > 0) {
+        const geoB = new THREE.BufferGeometry();
+        geoB.setAttribute('position', new THREE.Float32BufferAttribute(posB, 3));
+        geoB.setAttribute('uv', new THREE.Float32BufferAttribute(uvsB, 2));
+        geoB.computeVertexNormals();
+        const meshB = new THREE.Mesh(geoB, createMaterial(state.woodTypeB));
+        meshB.castShadow = true; meshB.receiveShadow = true;
+        panelGroup.add(meshB);
+      }
+
+      // Cassa Massiccia Posteriore (Solido 3D Pieno)
+      const sideMaterial = new THREE.MeshStandardMaterial({ color: 0x1a120b, roughness: 0.85 });
+      const backGeo = new THREE.BoxGeometry(W, H, BaseT);
+      const backMesh = new THREE.Mesh(backGeo, sideMaterial);
+      backMesh.position.set(0, 0, 0);
+      backMesh.receiveShadow = true;
+      panelGroup.add(backMesh);
+
+      scene.add(panelGroup);
+
+      document.getElementById('poly-count').textContent = (basePos.count / 3).toLocaleString();
+      document.getElementById('mosaico-type').textContent = state.patternType.toUpperCase();
+      document.getElementById('inlay-status').textContent = state.enableInlay === 'true' ? 'Intarsio Bicolore (Legno A + B)' : 'Monocromatico';
+      document.getElementById('inlay-status').style.color = state.enableInlay === 'true' ? '#f59e0b' : '#10b981';
+    }
+
+    function initListeners() {
+      inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        el.addEventListener('input', (e) => {
+          let val = e.target.value;
+          if (e.target.type === 'range') val = parseFloat(val);
+
+          state[id] = val;
+
+          const label = document.getElementById(`val-${id}`);
+          if (label) {
+            if (id === 'lightAngle') label.textContent = `${state[id]} °`;
+            else if (['facetWeight', 'randomZ'].includes(id)) label.textContent = `${state[id]} %`;
+            else if (['freqX', 'freqY', 'roughness'].includes(id)) label.textContent = state[id];
+            else label.textContent = `${state[id]} mm`;
+          }
+
+          if (id === 'lightAngle') {
+            updateLightPosition();
+          } else {
+            rebuildPanel();
+          }
+        });
+      });
+    }
+
+    function resetCamera(mode) {
+      if (mode === 'front') camera.position.set(0, 0, 2.2);
+      else if (mode === 'persp') camera.position.set(1.1, -1.1, 1.4);
+      else if (mode === 'side') camera.position.set(1.8, 0, 0.4);
+      controls.target.set(0, 0, 0);
+      controls.update();
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    init3D();
+    initListeners();
+  </script>
+</body>
+</html>

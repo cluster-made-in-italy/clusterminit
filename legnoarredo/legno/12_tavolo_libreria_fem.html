@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SenseAble Wood — CAD/CAM 3D e analisi statica FEM</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            slateDark: '#0f172a', slatePanel: '#1e293b', slateBorder: '#334155',
+            woodAmber: '#d97706', woodLight: '#f59e0b'
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], mono: ['JetBrains Mono', 'ui-monospace', 'monospace'] }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; background-color: #0f172a; color: #f8fafc; overflow: hidden; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #d97706; }
+    input[type=range] { cursor: pointer; }
+    .card { background: rgba(15, 23, 42, .5); border: 1px solid #334155; border-radius: .75rem; padding: 1rem; }
+    .sect { font-size: .75rem; font-weight: 700; color: #fbbf24; display: flex; align-items: center; gap: .5rem; }
+    .row { display: flex; justify-content: space-between; font-size: .75rem; margin-bottom: .25rem; }
+    .row > span:first-child { color: #cbd5e1; }
+    .val { font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 600; color: #fbbf24; }
+    .val-g { color: #34d399; } .val-c { color: #22d3ee; }
+    .sel { width: 100%; background: #1e293b; border: 1px solid #334155; border-radius: .5rem; padding: .45rem; font-size: .75rem; color: #fff; }
+    .seg { display: flex; background: rgba(15,23,42,.8); border: 1px solid #334155; border-radius: .75rem; padding: 3px; }
+    .seg button { padding: .35rem .8rem; font-size: .75rem; font-weight: 600; border-radius: .55rem; color: #cbd5e1; transition: background .15s; }
+    .seg button.on { background: #d97706; color: #0f172a; }
+    .metric { padding: .6rem; border-radius: .5rem; background: #1e293b; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+    .metric .k { font-size: 10px; color: #94a3b8; }
+    .metric .v { font-size: .85rem; font-weight: 700; font-family: 'JetBrains Mono', ui-monospace, monospace; }
+    .ok { color: #34d399; } .warn { color: #fbbf24; } .bad { color: #f87171; }
+    .rep div { padding: .35rem .5rem; border-radius: .4rem; background: #1e293b; border: 1px solid #334155; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid #f59e0b; outline-offset: 2px; }
+    #legend canvas { border-radius: 3px; border: 1px solid #475569; display: block; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+<body class="h-screen flex flex-col bg-slateDark text-slate-100 select-none">
+
+  <!-- Header -->
+  <header class="h-16 bg-slatePanel/90 border-b border-slateBorder px-4 sm:px-6 flex items-center justify-between gap-3 z-30 shrink-0">
+    <div class="flex items-center space-x-3 min-w-0">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-woodAmber to-woodLight flex items-center justify-center shrink-0">
+        <i class="fa-solid fa-cube text-slateDark text-xl"></i>
+      </div>
+      <div class="min-w-0">
+        <h1 class="text-lg font-bold tracking-tight text-white leading-tight">SenseAble Wood 3D</h1>
+        <p class="text-xs text-slate-400 truncate">Progetto parametrico e analisi statica FEM: piastre/shell + travi</p>
+      </div>
+    </div>
+
+    <!-- Scelta tipologia -->
+    <div class="seg" role="group" aria-label="Tipologia di mobile">
+      <button id="type-table" class="on" onclick="setType('table')"><i class="fa-solid fa-table mr-1"></i>Tavolo</button>
+      <button id="type-bookcase" onclick="setType('bookcase')"><i class="fa-solid fa-book mr-1"></i>Libreria</button>
+    </div>
+
+    <nav class="hidden lg:flex items-center space-x-1 bg-slateDark/80 p-1 rounded-xl border border-slateBorder">
+      <button onclick="switchTab('dimensions')" id="tab-btn-dimensions" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-lg bg-woodAmber text-slateDark">1. Dimensioni</button>
+      <button onclick="switchTab('shape')" id="tab-btn-shape" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white">2. Forma</button>
+      <button onclick="switchTab('fea')" id="tab-btn-fea" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white">3. Analisi statica</button>
+      <button onclick="switchTab('cnc')" id="tab-btn-cnc" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white">4. CAM / CNC</button>
+      <button onclick="switchTab('export')" id="tab-btn-export" class="tab-btn px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white">5. Esporta</button>
+    </nav>
+    <select id="tab-mobile" class="lg:hidden sel" style="width:auto" onchange="switchTab(this.value)" aria-label="Sezione">
+      <option value="dimensions">1. Dimensioni</option><option value="shape">2. Forma</option>
+      <option value="fea">3. Analisi statica</option><option value="cnc">4. CAM / CNC</option><option value="export">5. Esporta</option>
+    </select>
+
+    <button onclick="exportOBJ()" class="px-3 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white flex items-center space-x-1.5 shrink-0">
+      <i class="fa-solid fa-download"></i><span class="hidden sm:inline">Esporta .OBJ</span>
+    </button>
+  </header>
+
+  <div class="flex-1 flex overflow-hidden relative">
+    <aside class="w-80 lg:w-96 bg-slatePanel/80 border-r border-slateBorder flex flex-col z-10 shrink-0 h-full overflow-y-auto custom-scrollbar">
+
+      <!-- ============ TAB 1: DIMENSIONI ============ -->
+      <div id="panel-dimensions" class="tab-panel p-5 space-y-5">
+        <div>
+          <h2 class="sect"><i class="fa-solid fa-ruler-combined"></i><span id="dim-title">Dimensioni del tavolo</span></h2>
+          <p class="text-xs text-slate-400 mt-1">Ingombro, spessori ed essenza: definiscono geometria e mesh di calcolo.</p>
+        </div>
+
+        <div id="dims-table" class="card space-y-4">
+          <div><div class="row"><span>Larghezza piano W</span><span id="lbl-width" class="val"></span></div>
+            <input type="range" id="input-width" min="600" max="2000" step="50" value="1200" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+          <div><div class="row"><span>Profondità piano D</span><span id="lbl-depth" class="val"></span></div>
+            <input type="range" id="input-depth" min="400" max="1200" step="25" value="700" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+          <div><div class="row"><span>Altezza totale H</span><span id="lbl-height" class="val"></span></div>
+            <input type="range" id="input-height" min="300" max="800" step="25" value="450" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+          <div><div class="row"><span>Spessore piano T</span><span id="lbl-thick" class="val"></span></div>
+            <input type="range" id="input-thick" min="18" max="70" step="2" value="40" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+        </div>
+
+        <div id="dims-bookcase" class="card space-y-4 hidden">
+          <div><div class="row"><span>Larghezza W</span><span id="lbl-bw" class="val"></span></div>
+            <input type="range" id="input-bw" min="400" max="1600" step="50" value="800" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+          <div><div class="row"><span>Altezza H</span><span id="lbl-bh" class="val"></span></div>
+            <input type="range" id="input-bh" min="800" max="2400" step="50" value="1800" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+          <div><div class="row"><span>Profondità D</span><span id="lbl-bd" class="val"></span></div>
+            <input type="range" id="input-bd" min="200" max="500" step="10" value="300" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+          <div><div class="row"><span>Spessore pannelli t</span><span id="lbl-bt" class="val"></span></div>
+            <input type="range" id="input-bt" min="15" max="40" step="1" value="20" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+          <div><div class="row"><span>Ripiani intermedi</span><span id="lbl-bn" class="val"></span></div>
+            <input type="range" id="input-bn" min="0" max="8" step="1" value="4" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+          <label class="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
+            <input type="checkbox" id="chk-back" checked onchange="scheduleSolve()" class="accent-amber-600">
+            <span>Schienale in compensato 6 mm (irrigidisce il telaio)</span>
+          </label>
+        </div>
+
+        <div class="card space-y-3">
+          <h3 class="text-xs font-semibold text-slate-200">Essenza (E, resistenza a flessione f<sub>m,k</sub>, densità)</h3>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="setWoodMaterial('rovere')" id="mat-rovere" class="mat-btn p-2.5 text-xs rounded-lg border text-left"><div class="font-bold">Rovere</div><div class="text-[10px] opacity-80">E 11.0 GPa · f 40 MPa</div></button>
+            <button onclick="setWoodMaterial('noce')" id="mat-noce" class="mat-btn p-2.5 text-xs rounded-lg border text-left"><div class="font-bold">Noce canaletto</div><div class="text-[10px] opacity-80">E 12.5 GPa · f 45 MPa</div></button>
+            <button onclick="setWoodMaterial('abete')" id="mat-abete" class="mat-btn p-2.5 text-xs rounded-lg border text-left"><div class="font-bold">Abete</div><div class="text-[10px] opacity-80">E 8.5 GPa · f 28 MPa</div></button>
+            <button onclick="setWoodMaterial('frassino')" id="mat-frassino" class="mat-btn p-2.5 text-xs rounded-lg border text-left"><div class="font-bold">Frassino</div><div class="text-[10px] opacity-80">E 13.0 GPa · f 48 MPa</div></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ TAB 2: FORMA ============ -->
+      <div id="panel-shape" class="tab-panel hidden p-5 space-y-5">
+        <div id="shape-table" class="space-y-5">
+          <div>
+            <h2 class="sect"><i class="fa-solid fa-bezier-curve"></i>Sagoma del piano (spline)</h2>
+            <p class="text-xs text-slate-400 mt-1">Ogni bordo è una curva di Bézier quadratica; la mesh FEM segue la sagoma esatta.</p>
+          </div>
+          <div class="card space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-amber-400">Curvatura dei bordi</span>
+              <button onclick="resetSplines()" class="text-[10px] bg-slate-800 text-slate-300 px-2 py-1 rounded border border-slateBorder hover:bg-slate-700"><i class="fa-solid fa-rotate-left mr-1"></i>Azzera</button>
+            </div>
+            <div><div class="row"><span>Anteriore</span><span id="lbl-ctrl-front" class="val"></span></div><input type="range" id="input-ctrl-front" min="-180" max="180" step="5" value="0" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+            <div><div class="row"><span>Posteriore</span><span id="lbl-ctrl-back" class="val"></span></div><input type="range" id="input-ctrl-back" min="-180" max="180" step="5" value="0" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+            <div><div class="row"><span>Sinistra</span><span id="lbl-ctrl-left" class="val"></span></div><input type="range" id="input-ctrl-left" min="-180" max="180" step="5" value="0" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+            <div><div class="row"><span>Destra</span><span id="lbl-ctrl-right" class="val"></span></div><input type="range" id="input-ctrl-right" min="-180" max="180" step="5" value="0" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+            <label class="flex items-center space-x-2 pt-1 text-xs text-slate-300 cursor-pointer">
+              <input type="checkbox" id="chk-show-handles" checked onchange="toggleHandles(this.checked)" class="accent-amber-600"><span>Mostra punti di controllo</span>
+            </label>
+          </div>
+          <div class="card space-y-4">
+            <h3 class="text-xs font-bold text-slate-200">Gambe (elementi trave)</h3>
+            <div><div class="row"><span>Inclinazione θ dalla verticale</span><span id="lbl-leg-angle" class="val"></span></div><input type="range" id="input-leg-angle" min="0" max="22" step="1" value="12" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+            <div><div class="row"><span>Rientro dai bordi</span><span id="lbl-leg-inset" class="val"></span></div><input type="range" id="input-leg-inset" min="50" max="250" step="10" value="100" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+            <div><div class="row"><span>Diametro in testa</span><span id="lbl-leg-dtop" class="val"></span></div><input type="range" id="input-leg-dtop" min="24" max="80" step="2" value="36" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+            <div><div class="row"><span>Diametro al piede</span><span id="lbl-leg-dbot" class="val"></span></div><input type="range" id="input-leg-dbot" min="24" max="100" step="2" value="60" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <button onclick="setLegCount(4)" id="btn-leg-4" class="py-2 text-xs font-bold rounded-lg">4 gambe</button>
+              <button onclick="setLegCount(3)" id="btn-leg-3" class="py-2 text-xs font-bold rounded-lg">3 gambe</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="shape-bookcase" class="space-y-5 hidden">
+          <div>
+            <h2 class="sect"><i class="fa-solid fa-book"></i>Struttura della libreria</h2>
+            <p class="text-xs text-slate-400 mt-1">Fianchi, fondo, cielo, ripiani e schienale sono shell collegate a incastro; i piedini sono travi.</p>
+          </div>
+          <div class="card space-y-4">
+            <div><div class="row"><span>Altezza piedini</span><span id="lbl-bhf" class="val"></span></div><input type="range" id="input-bhf" min="20" max="150" step="5" value="60" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+            <div><div class="row"><span>Diametro piedini</span><span id="lbl-bfd" class="val"></span></div><input type="range" id="input-bfd" min="20" max="70" step="2" value="40" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+            <div><div class="row"><span>Rientro piedini (fronte/retro)</span><span id="lbl-bfi" class="val"></span></div><input type="range" id="input-bfi" min="20" max="120" step="5" value="40" oninput="scheduleSolve()" class="w-full accent-amber-600"></div>
+            <p class="text-[10px] text-slate-500">I ripiani sono equidistanti tra fondo e cielo. Più i piedini rientrano, minore è la resistenza al ribaltamento.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ TAB 3: ANALISI STATICA ============ -->
+      <div id="panel-fea" class="tab-panel hidden p-5 space-y-5">
+        <div>
+          <h2 class="sect" style="color:#34d399"><i class="fa-solid fa-diagram-project"></i>Analisi statica lineare</h2>
+          <p class="text-xs text-slate-400 mt-1">Carichi, vincoli e rappresentazione dei risultati.</p>
+        </div>
+
+        <div class="card space-y-4" style="border-color:rgba(16,185,129,.4)">
+          <h3 class="text-xs font-bold text-emerald-400"><i class="fa-solid fa-weight-hanging mr-1.5"></i>Carichi</h3>
+          <div>
+            <label class="block text-[11px] text-slate-300 mb-1" for="fem-use">Destinazione d'uso (carico distribuito q)</label>
+            <select id="fem-use" onchange="setUsage(this.value)" class="sel"></select>
+          </div>
+          <div><div class="row"><span>Carico concentrato P</span><span id="lbl-fea-load" class="val val-g"></span></div>
+            <input type="range" id="input-fea-load" min="0" max="350" step="5" value="60" oninput="scheduleSolve()" class="w-full accent-emerald-500"></div>
+
+          <div id="shelf-select-wrap" class="hidden">
+            <label class="block text-[11px] text-slate-300 mb-1" for="input-shelf">Ripiano su cui agisce P</label>
+            <select id="input-shelf" onchange="scheduleSolve()" class="sel"></select>
+          </div>
+          <div class="space-y-3 pt-2 border-t border-slateBorder/60">
+            <div><div class="row"><span>Posizione X (larghezza)</span><span id="lbl-load-x" class="val val-c"></span></div>
+              <input type="range" id="input-load-x" min="-600" max="600" step="10" value="0" oninput="scheduleSolve()" class="w-full accent-cyan-500"></div>
+            <div><div class="row"><span>Posizione Z (profondità)</span><span id="lbl-load-z" class="val val-c"></span></div>
+              <input type="range" id="input-load-z" min="-350" max="350" step="10" value="0" oninput="scheduleSolve()" class="w-full accent-cyan-500"></div>
+            <div class="grid grid-cols-2 gap-1.5">
+              <button onclick="setLoadPreset('center')" class="py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] rounded border border-slateBorder">Centro</button>
+              <button onclick="setLoadPreset('front')" class="py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] rounded border border-slateBorder">Bordo anteriore</button>
+              <button onclick="setLoadPreset('corner')" class="py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] rounded border border-slateBorder">Angolo</button>
+              <button onclick="setLoadPreset('side')" id="preset-side" class="py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] rounded border border-slateBorder">Bordo laterale</button>
+            </div>
+          </div>
+          <p class="text-[10px] text-slate-500">Casi di carico: G = peso proprio; Q = q + P. Spostamenti in SLE (G+Q), tensioni in SLU (1.3 G + 1.5 Q).</p>
+        </div>
+
+        <div class="card space-y-3">
+          <h3 class="text-xs font-bold text-emerald-400"><i class="fa-solid fa-anchor mr-1.5"></i>Vincoli e mesh</h3>
+          <div>
+            <label class="block text-[11px] text-slate-300 mb-1" for="fem-bc">Vincolo al piede</label>
+            <select id="fem-bc" onchange="scheduleSolve()" class="sel">
+              <option value="pinned" selected>Cerniera (traslazioni bloccate, rotazioni libere)</option>
+              <option value="fixed">Incastro (tutti i gdl bloccati)</option>
+            </select>
+          </div>
+          <label id="anchor-wrap" class="hidden flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
+            <input type="checkbox" id="chk-anchor" onchange="scheduleSolve()" class="accent-emerald-500"><span>Ancorata a parete in sommità (antiribaltamento)</span>
+          </label>
+          <div>
+            <label class="block text-[11px] text-slate-300 mb-1" for="fem-mesh">Densità mesh</label>
+            <select id="fem-mesh" onchange="scheduleSolve()" class="sel">
+              <option value="coarse">Grossolana (rapida)</option>
+              <option value="medium" selected>Media</option>
+              <option value="fine">Fine (più lenta)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card space-y-3">
+          <h3 class="text-xs font-bold text-slate-200"><i class="fa-solid fa-palette mr-1.5"></i>Mappa dei risultati</h3>
+          <label class="flex items-center space-x-2 cursor-pointer text-xs">
+            <input type="checkbox" id="chk-fea-heatmap" checked onchange="scheduleDraw()" class="accent-emerald-500"><span class="text-emerald-300 font-medium">Mostra mappa a colori</span>
+          </label>
+          <div>
+            <label class="block text-[11px] text-slate-300 mb-1" for="map-field">Grandezza</label>
+            <select id="map-field" onchange="scheduleDraw()" class="sel">
+              <option value="vm" selected>Tensione di Von Mises σVM (SLU)</option>
+              <option value="util">Tasso di lavoro σ/fd (SLU)</option>
+              <option value="disp">Spostamento totale |u| (SLE)</option>
+              <option value="uy">Freccia verticale (SLE)</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] text-slate-300 mb-1" for="map-cmap">Scala colori</label>
+              <select id="map-cmap" onchange="scheduleDraw()" class="sel">
+                <option value="turbo" selected>Turbo</option><option value="jet">Jet (classica)</option><option value="viridis">Viridis</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-300 mb-1" for="map-range">Intervallo</label>
+              <select id="map-range" onchange="scheduleDraw()" class="sel">
+                <option value="auto" selected>0 → massimo</option><option value="fd">0 → fd (o 1)</option>
+              </select>
+            </div>
+          </div>
+          <label class="flex items-center space-x-2 cursor-pointer text-xs text-slate-300">
+            <input type="checkbox" id="chk-bands" checked onchange="scheduleDraw()" class="accent-emerald-500"><span>Isolinee a bande (12 livelli)</span>
+          </label>
+          <div class="pt-2 border-t border-slateBorder/60 space-y-2">
+            <label class="flex items-center space-x-2 cursor-pointer text-xs text-slate-300">
+              <input type="checkbox" id="chk-deform" checked onchange="scheduleDraw()" class="accent-emerald-500"><span>Deformata amplificata</span>
+            </label>
+            <div><div class="row"><span>Amplificazione</span><span id="lbl-fea-scale" class="val val-g"></span></div>
+              <input type="range" id="input-fea-scale" min="0" max="100" step="1" value="50" oninput="document.getElementById('chk-autoscale').checked=false; scheduleDraw()" class="w-full accent-emerald-500"></div>
+            <label class="flex items-center space-x-2 cursor-pointer text-xs text-slate-300">
+              <input type="checkbox" id="chk-autoscale" checked onchange="scheduleDraw()" class="accent-emerald-500"><span>Automatica (freccia visibile ≈ 4% dell'ingombro)</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer text-xs text-slate-300">
+              <input type="checkbox" id="chk-ghost" checked onchange="scheduleDraw()" class="accent-emerald-500"><span>Sagoma indeformata</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer text-xs text-slate-300">
+              <input type="checkbox" id="chk-mesh" onchange="scheduleDraw()" class="accent-emerald-500"><span>Mostra mesh FEM</span>
+            </label>
+            <label class="flex items-center space-x-2 cursor-pointer text-xs text-slate-300">
+              <input type="checkbox" id="chk-show-cog" checked onchange="scheduleDraw()" class="accent-emerald-500"><span>Carico, baricentro e poligono d'appoggio</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="card space-y-2">
+          <h3 class="text-xs font-semibold text-slate-200">Risultati principali</h3>
+          <div class="metric"><div><div class="k">σ<sub>VM</sub> max (SLU)</div><div id="val-fea-stress" class="v"></div></div>
+            <div class="text-right"><div class="k">f<sub>d</sub> = k<sub>mod</sub>·f<sub>m,k</sub>/γ<sub>M</sub></div><div id="val-fea-yield" class="text-xs font-mono text-slate-300"></div></div></div>
+          <div class="metric"><div><div class="k">Freccia relativa (SLE)</div><div id="val-fea-deflection" class="v warn"></div></div>
+            <div class="text-right"><div class="k">Limite</div><div id="val-fea-deflim" class="text-xs font-mono"></div></div></div>
+          <div class="metric"><div><div class="k" id="lbl-legs-metric">Gambe: σ max / compressione</div><div id="val-fea-legs" class="v"></div></div>
+            <div class="text-right"><div class="k">Tasso di lavoro max</div><div id="val-fea-sf" class="text-xs font-mono font-bold"></div></div></div>
+          <div class="metric"><div><div class="k">Spinta orizzontale di ribaltamento</div><div id="val-fea-tipping" class="v val-c"></div></div>
+            <div class="text-right"><div class="k">Stabilità</div><div id="val-fea-status" class="text-xs font-mono font-bold"></div></div></div>
+        </div>
+
+        <div class="card space-y-2">
+          <h3 class="text-xs font-semibold text-slate-200">Relazione di calcolo sintetica</h3>
+          <div id="fem-report" class="rep text-[11px] font-mono text-slate-300 space-y-1"></div>
+        </div>
+      </div>
+
+      <!-- ============ TAB 4: CAM ============ -->
+      <div id="panel-cnc" class="tab-panel hidden p-5 space-y-5">
+        <div>
+          <h2 class="sect"><i class="fa-solid fa-industry"></i>Lavorazioni CNC</h2>
+          <p class="text-xs text-slate-400 mt-1">Percorsi di taglio: contorno del piano (tavolo) o dei pannelli (libreria).</p>
+        </div>
+        <div class="card space-y-4">
+          <label class="block text-xs text-slate-300" for="cnc-post">Post-processor</label>
+          <select id="cnc-post" class="sel">
+            <option value="biesse">Biesse Rover 5-Axis (.cix)</option><option value="homag">Homag Centateq (.mpr)</option>
+            <option value="scm">SCM Accord (.xxl)</option><option value="gcode" selected>G-Code standard ISO (.nc)</option>
+          </select>
+          <label class="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
+            <input type="checkbox" id="chk-show-cnc-paths" checked onchange="toggleCNCPaths(this.checked)" class="accent-amber-600"><span>Mostra i percorsi nel modello 3D</span>
+          </label>
+          <button onclick="exportGCode()" class="w-full py-2.5 px-3 bg-amber-500 hover:bg-amber-400 text-slateDark font-bold rounded-lg text-xs flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-file-code"></i><span>Genera codice CNC</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ============ TAB 5: EXPORT ============ -->
+      <div id="panel-export" class="tab-panel hidden p-5 space-y-5">
+        <div>
+          <h2 class="sect"><i class="fa-solid fa-file-export"></i>Esportazione</h2>
+          <p class="text-xs text-slate-400 mt-1">Modello 3D (con colori della mappa, se attiva) e relazione di calcolo.</p>
+        </div>
+        <div class="card space-y-3">
+          <button onclick="exportOBJ()" class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs flex items-center justify-between">
+            <span><i class="fa-solid fa-cube mr-2"></i>Modello 3D (.OBJ)</span><span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-mono">Rhino/CAD</span>
+          </button>
+          <button onclick="exportFEAReport()" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 border border-slateBorder text-white font-semibold rounded-lg text-xs flex items-center justify-between">
+            <span><i class="fa-solid fa-file-lines text-amber-400 mr-2"></i>Relazione FEM e ribaltamento</span><span class="text-[10px] bg-slate-700 px-2 py-0.5 rounded font-mono text-slate-300">TXT</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============ VIEWPORT ============ -->
+    <main class="flex-1 relative bg-slateDark flex flex-col h-full overflow-hidden">
+      <div class="absolute top-4 left-4 right-4 z-10 flex flex-wrap gap-2 items-start justify-between pointer-events-none">
+        <div class="pointer-events-auto flex items-center space-x-1 bg-slatePanel/90 backdrop-blur border border-slateBorder p-1 rounded-xl">
+          <button onclick="setCameraView('perspective')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">3D</button>
+          <button onclick="setCameraView('top')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Dall'alto</button>
+          <button onclick="setCameraView('front')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Prospetto</button>
+          <button onclick="setCameraView('side')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Fianco</button>
+          <button onclick="setCameraView('floor')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Da terra</button>
+        </div>
+        <div id="legend" class="pointer-events-auto bg-slatePanel/90 backdrop-blur border border-slateBorder px-3 py-2 rounded-xl text-[11px]">
+          <div class="flex items-baseline justify-between gap-4 mb-1">
+            <span id="leg-title" class="text-slate-300 font-medium"></span>
+            <span id="leg-max" class="font-mono text-slate-400"></span>
+          </div>
+          <canvas id="leg-canvas" width="220" height="12"></canvas>
+          <div class="flex justify-between font-mono text-slate-300 mt-1" id="leg-ticks"></div>
+        </div>
+      </div>
+
+      <div id="canvas-container" class="w-full h-full relative cursor-grab active:cursor-grabbing"></div>
+
+      <div id="hud" class="absolute bottom-4 left-4 right-4 sm:right-auto z-10 bg-slatePanel/80 backdrop-blur border border-slateBorder px-4 py-2.5 rounded-xl text-xs flex flex-wrap items-center gap-x-4 gap-y-1 pointer-events-none">
+        <div><span class="text-slate-400">Ingombro </span><span id="hud-dims" class="font-mono font-bold text-white"></span></div>
+        <div><span class="text-slate-400">Carico </span><span id="hud-load-pos" class="font-mono font-bold text-cyan-300"></span></div>
+        <div><span class="text-slate-400">Modello </span><span id="hud-model" class="font-mono text-slate-300"></span></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast" class="fixed top-20 right-6 z-50 bg-slatePanel border border-amber-500/50 text-white px-4 py-3 rounded-xl shadow-2xl transition-all duration-300 transform -translate-y-20 opacity-0 flex items-center space-x-3 pointer-events-none">
+    <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0"><i class="fa-solid fa-circle-check text-lg"></i></div>
+    <div><div id="toast-title" class="text-xs font-bold text-amber-400"></div><div id="toast-msg" class="text-xs text-slate-300"></div></div>
+  </div>
+
+<script>
+// ================================================================
+//  NUCLEO FEM STATICO LINEARE (JS puro, nessuna dipendenza)
+//  - Shell piana Q4: membrana isoparametrica + piastra Mindlin MITC4
+//    + rigidezza di drilling (6 gdl/nodo: u,v,w,θx,θy,θz)
+//  - Trave 3D Eulero-Bernoulli (12 gdl), sezione circolare/rettangolare
+//  - Riordino nodi Reverse Cuthill-McKee + Cholesky skyline (profilo)
+//  Unità: N, mm, MPa
+// ================================================================
+const FEM = (function () {
+  const XI = [-1, 1, 1, -1], ETA = [-1, -1, 1, 1];
+  const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+  const nrm = a => { const l = Math.hypot(a[0], a[1], a[2]); return [a[0] / l, a[1] / l, a[2] / l]; };
+
+  function shp(xi, eta) {
+    const N = [0, 0, 0, 0], dxi = [0, 0, 0, 0], deta = [0, 0, 0, 0];
+    for (let i = 0; i < 4; i++) {
+      N[i] = 0.25 * (1 + XI[i] * xi) * (1 + ETA[i] * eta);
+      dxi[i] = 0.25 * XI[i] * (1 + ETA[i] * eta);
+      deta[i] = 0.25 * ETA[i] * (1 + XI[i] * xi);
+    }
+    return { N, dxi, deta };
+  }
+  function jac(s, xl, yl) {
+    let a = 0, b = 0, c = 0, d = 0;
+    for (let i = 0; i < 4; i++) { a += s.dxi[i] * xl[i]; b += s.dxi[i] * yl[i]; c += s.deta[i] * xl[i]; d += s.deta[i] * yl[i]; }
+    const det = a * d - b * c, dx = [0, 0, 0, 0], dy = [0, 0, 0, 0];
+    for (let i = 0; i < 4; i++) { dx[i] = (d * s.dxi[i] - b * s.deta[i]) / det; dy[i] = (-c * s.dxi[i] + a * s.deta[i]) / det; }
+    return { a, b, c, d, det, dx, dy };
+  }
+
+  // Sistema locale di un quadrilatero piano: e3 = normale, e1 lungo il lato 1-2
+  function shellFrame(P) {
+    const e3 = nrm(cross(sub(P[2], P[0]), sub(P[3], P[1])));
+    let e1 = sub(P[1], P[0]); const p = dot(e1, e3);
+    e1 = nrm([e1[0] - p * e3[0], e1[1] - p * e3[1], e1[2] - p * e3[2]]);
+    const e2 = cross(e3, e1);
+    const xl = [], yl = [];
+    for (let i = 0; i < 4; i++) { const r = sub(P[i], P[0]); xl.push(dot(r, e1)); yl.push(dot(r, e2)); }
+    return { R: [e1, e2, e3], xl, yl };
+  }
+
+  // Rigidezza locale 24x24. gdl per nodo: [u, v, w, θx, θy, θz]
+  // Mindlin: ψx = θy, ψy = -θx ;  γxz = w,x + ψx ; γyz = w,y + ψy
+  function shellKlocal(xl, yl, E, nu, t) {
+    const K = new Float64Array(576);
+    const q = E / (1 - nu * nu), G = E / (2 * (1 + nu));
+    const Q = [[q, q * nu, 0], [q * nu, q, 0], [0, 0, G]];
+    const Dm = Q.map(r => r.map(v => v * t));
+    const Db = Q.map(r => r.map(v => v * t * t * t / 12));
+    const ks = 5 / 6 * G * t;
+    const add = (B, D, w) => {
+      const n = B.length;
+      for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+        const d = D[r][c] * w; if (!d) continue;
+        const Br = B[r], Bc = B[c];
+        for (let i = 0; i < 24; i++) { const bi = Br[i]; if (!bi) continue; const f = bi * d, o = i * 24; for (let j = 0; j < 24; j++) K[o + j] += f * Bc[j]; }
+      }
+    };
+    // riga di deformazione a taglio covariante (MITC4) in un punto di legame
+    const covRow = (xi, eta, dir) => {
+      const s = shp(xi, eta), dN = dir ? s.deta : s.dxi;
+      let xd = 0, yd = 0; for (let i = 0; i < 4; i++) { xd += dN[i] * xl[i]; yd += dN[i] * yl[i]; }
+      const row = new Float64Array(24);
+      for (let i = 0; i < 4; i++) { row[6 * i + 2] = dN[i]; row[6 * i + 4] = s.N[i] * xd; row[6 * i + 3] = -s.N[i] * yd; }
+      return row;
+    };
+    const gA = covRow(0, -1, 0), gC = covRow(0, 1, 0), gD = covRow(-1, 0, 1), gB = covRow(1, 0, 1);
+    const g = 1 / Math.sqrt(3);
+    for (let k = 0; k < 4; k++) {
+      const xi = XI[k] * g, eta = ETA[k] * g, s = shp(xi, eta), J = jac(s, xl, yl);
+      const Bm = [new Float64Array(24), new Float64Array(24), new Float64Array(24)];
+      const Bb = [new Float64Array(24), new Float64Array(24), new Float64Array(24)];
+      for (let i = 0; i < 4; i++) {
+        const o = 6 * i;
+        Bm[0][o] = J.dx[i]; Bm[1][o + 1] = J.dy[i]; Bm[2][o] = J.dy[i]; Bm[2][o + 1] = J.dx[i];
+        Bb[0][o + 4] = J.dx[i]; Bb[1][o + 3] = -J.dy[i]; Bb[2][o + 4] = J.dy[i]; Bb[2][o + 3] = -J.dx[i];
+      }
+      add(Bm, Dm, J.det); add(Bb, Db, J.det);
+      const gx = new Float64Array(24), gy = new Float64Array(24);
+      for (let i = 0; i < 24; i++) {
+        const gxi = 0.5 * (1 - eta) * gA[i] + 0.5 * (1 + eta) * gC[i];
+        const get = 0.5 * (1 - xi) * gD[i] + 0.5 * (1 + xi) * gB[i];
+        gx[i] = (J.d * gxi - J.b * get) / J.det; gy[i] = (-J.c * gxi + J.a * get) / J.det;
+      }
+      add([gx, gy], [[ks, 0], [0, ks]], J.det);
+    }
+    // drilling (Hughes-Brezzi semplificato): θz_i ≈ ω = ½(v,x - u,y) al centro
+    const s0 = shp(0, 0), J0 = jac(s0, xl, yl), A = 4 * J0.det, kd = 0.01 * G * t * A / 4;
+    for (let n = 0; n < 4; n++) {
+      const b = new Float64Array(24);
+      for (let j = 0; j < 4; j++) { b[6 * j + 1] -= 0.5 * J0.dx[j]; b[6 * j] += 0.5 * J0.dy[j]; }
+      b[6 * n + 5] += 1;
+      add([b], [[kd]], 1);
+    }
+    return K;
+  }
+
+  // Trasformazione K_g = Tᵀ K_l T, T = blockdiag(R)
+  function rotateK(Kl, R, n) {
+    const Kg = new Float64Array(n * n), nb = n / 3;
+    for (let a = 0; a < nb; a++) for (let b = 0; b < nb; b++) {
+      const blk = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+      for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) blk[i][j] = Kl[(3 * a + i) * n + 3 * b + j];
+      for (let p = 0; p < 3; p++) for (let q2 = 0; q2 < 3; q2++) {
+        let s = 0;
+        for (let i = 0; i < 3; i++) { const ri = R[i][p]; if (!ri) continue; for (let j = 0; j < 3; j++) s += ri * blk[i][j] * R[j][q2]; }
+        Kg[(3 * a + p) * n + 3 * b + q2] = s;
+      }
+    }
+    return Kg;
+  }
+  const toLocal = (R, ug) => {
+    const n = ug.length, ul = new Float64Array(n);
+    for (let a = 0; a < n; a += 3) for (let i = 0; i < 3; i++) ul[a + i] = R[i][0] * ug[a] + R[i][1] * ug[a + 1] + R[i][2] * ug[a + 2];
+    return ul;
+  };
+
+  // Trave 3D: sezione {A, Iy, Iz, J, cy, cz} (c = distanza fibra estrema)
+  function beamFrame(p1, p2) {
+    const L = Math.hypot(p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]);
+    const ex = [(p2[0] - p1[0]) / L, (p2[1] - p1[1]) / L, (p2[2] - p1[2]) / L];
+    const ref = Math.abs(ex[1]) > 0.95 ? [1, 0, 0] : [0, 1, 0];
+    const pr = dot(ref, ex);
+    const ey = nrm([ref[0] - pr * ex[0], ref[1] - pr * ex[1], ref[2] - pr * ex[2]]);
+    return { L, R: [ex, ey, cross(ex, ey)] };
+  }
+  function beamKlocal(L, E, G, S) {
+    const k = new Float64Array(144), set = (i, j, v) => { k[i * 12 + j] = v; k[j * 12 + i] = v; };
+    const ea = E * S.A / L, gj = G * S.J / L;
+    set(0, 0, ea); set(6, 6, ea); set(0, 6, -ea);
+    set(3, 3, gj); set(9, 9, gj); set(3, 9, -gj);
+    let I = S.Iz; let a = 12 * E * I / L ** 3, b = 6 * E * I / L ** 2, c = 4 * E * I / L, d = 2 * E * I / L;
+    set(1, 1, a); set(1, 5, b); set(1, 7, -a); set(1, 11, b); set(5, 5, c); set(5, 7, -b); set(5, 11, d); set(7, 7, a); set(7, 11, -b); set(11, 11, c);
+    I = S.Iy; a = 12 * E * I / L ** 3; b = 6 * E * I / L ** 2; c = 4 * E * I / L; d = 2 * E * I / L;
+    set(2, 2, a); set(2, 4, -b); set(2, 8, -a); set(2, 10, -b); set(4, 4, c); set(4, 8, b); set(4, 10, d); set(8, 8, a); set(8, 10, b); set(10, 10, c);
+    return k;
+  }
+  const circle = r => ({ A: Math.PI * r * r, Iy: Math.PI * r ** 4 / 4, Iz: Math.PI * r ** 4 / 4, J: Math.PI * r ** 4 / 2, cy: r, cz: r, r });
+  const rect = (b, h) => ({ A: b * h, Iy: b * h ** 3 / 12, Iz: h * b ** 3 / 12, J: 0.141 * Math.max(b, h) * Math.min(b, h) ** 3, cy: b / 2, cz: h / 2 });
+
+  // Reverse Cuthill-McKee sui nodi
+  function rcm(nn, adj) {
+    const deg = adj.map(a => a.length), vis = new Uint8Array(nn), order = [];
+    const bfs = (s, mark) => {
+      const q = [s], lev = new Int32Array(nn).fill(-1); lev[s] = 0; let h = 0;
+      const seen = mark ? vis : new Uint8Array(nn); seen[s] = 1;
+      while (h < q.length) {
+        const v = q[h++];
+        const nb = adj[v].filter(w => !seen[w]).sort((x, y) => deg[x] - deg[y]);
+        for (const w of nb) { seen[w] = 1; lev[w] = lev[v] + 1; q.push(w); }
+      }
+      return { q, lev };
+    };
+    while (order.length < nn) {
+      let s = -1; for (let i = 0; i < nn; i++) if (!vis[i] && (s < 0 || deg[i] < deg[s])) s = i;
+      const r = bfs(s, false), last = r.q[r.q.length - 1], L = r.lev[last];
+      let best = last; for (const v of r.q) if (r.lev[v] === L && deg[v] < deg[best]) best = v;
+      order.push(...bfs(best, true).q);
+    }
+    return order.reverse();
+  }
+
+  // ------------------------------------------------------------
+  // Soluzione. model = { nodes:[[x,y,z]], shells:[{n,E,nu,t,...}], beams:[{n,E,G,S,...}],
+  //   fixed: Map(node -> [6 bool]), loads: [Float64Array(6nn), ...] }
+  // ------------------------------------------------------------
+  function solve(model) {
+    const nn = model.nodes.length, N6 = 6 * nn, t0 = (typeof performance !== 'undefined' ? performance : Date).now();
+    const els = [];
+    const cache = new Map();
+    for (const sh of model.shells) {
+      const P = sh.n.map(i => model.nodes[i]), f = shellFrame(P);
+      sh.R = f.R; sh.xl = f.xl; sh.yl = f.yl;
+      // cache per elementi congruenti (pannelli rettangolari della libreria)
+      const key = f.xl.concat(f.yl).map(v => Math.round(v * 100)).join(',') + '|' + sh.E + '|' + sh.nu + '|' + sh.t;
+      let Kl = cache.get(key); if (!Kl) { Kl = shellKlocal(f.xl, f.yl, sh.E, sh.nu, sh.t); cache.set(key, Kl); }
+      sh.Ke = rotateK(Kl, f.R, 24);
+      els.push(sh);
+    }
+    for (const bm of model.beams) {
+      const f = beamFrame(model.nodes[bm.n[0]], model.nodes[bm.n[1]]);
+      bm.L = f.L; bm.R = f.R; bm.Kl = beamKlocal(f.L, bm.E, bm.G, bm.S);
+      bm.Ke = rotateK(bm.Kl, f.R, 12);
+      els.push(bm);
+    }
+    // grafo nodale e numerazione equazioni
+    const adjS = Array.from({ length: nn }, () => new Set());
+    for (const e of els) for (const a of e.n) for (const b of e.n) if (a !== b) adjS[a].add(b);
+    const order = rcm(nn, adjS.map(s => [...s]));
+    const eq = new Int32Array(N6).fill(-1); let neq = 0;
+    for (const v of order) { const fx = model.fixed.get(v); for (let d = 0; d < 6; d++) if (!(fx && fx[d])) eq[6 * v + d] = neq++; }
+    // profilo
+    const m = new Int32Array(neq); for (let i = 0; i < neq; i++) m[i] = i;
+    const edofs = e => { const r = []; for (const a of e.n) for (let d = 0; d < 6; d++) r.push(eq[6 * a + d]); return r; };
+    for (const e of els) {
+      e.eqs = edofs(e); let mn = Infinity; for (const q of e.eqs) if (q >= 0 && q < mn) mn = q;
+      for (const q of e.eqs) if (q >= 0 && mn < m[q]) m[q] = mn;
+    }
+    const ptr = new Int32Array(neq + 1); for (let j = 0; j < neq; j++) ptr[j + 1] = ptr[j] + (j - m[j] + 1);
+    const S = new Float64Array(ptr[neq]), at = (i, j) => ptr[j] + i - m[j];
+    for (const e of els) {
+      const q = e.eqs, n = q.length;
+      for (let a = 0; a < n; a++) { const i = q[a]; if (i < 0) continue; for (let b = 0; b < n; b++) { const j = q[b]; if (j < 0 || i > j) continue; S[at(i, j)] += e.Ke[a * n + b]; } }
+    }
+    // Cholesky skyline: K = Uᵀ U
+    let singular = 0, maxd = 0; for (let j = 0; j < neq; j++) maxd = Math.max(maxd, S[at(j, j)]);
+    const tc0 = Date.now();
+    for (let j = 0; j < neq; j++) {
+      const mj = m[j], pj = ptr[j] - mj;
+      for (let i = mj; i < j; i++) {
+        const mi = m[i] > mj ? m[i] : mj, pi = ptr[i] - m[i];
+        let s = S[pj + i], a = pi + mi, b = pj + mi; const e = pj + i;
+        while (b < e) s -= S[a++] * S[b++];
+        S[pj + i] = s / S[pi + i];
+      }
+      let s = S[pj + j]; for (let k = pj + mj, e = pj + j; k < e; k++) s -= S[k] * S[k];
+      if (s <= 1e-10 * maxd) { singular++; s = 1e-10 * maxd; }
+      S[pj + j] = Math.sqrt(s);
+    }
+    const tchol = Date.now() - tc0;
+    const sol = model.loads.map(F => {
+      const x = new Float64Array(neq);
+      for (let g = 0; g < N6; g++) if (eq[g] >= 0) x[eq[g]] = F[g];
+      for (let j = 0; j < neq; j++) { const pj = ptr[j] - m[j]; let s = x[j]; for (let k = m[j]; k < j; k++) s -= S[pj + k] * x[k]; x[j] = s / S[pj + j]; }
+      for (let j = neq - 1; j >= 0; j--) { const pj = ptr[j] - m[j]; x[j] /= S[pj + j]; const xj = x[j]; for (let k = m[j]; k < j; k++) x[k] -= S[pj + k] * xj; }
+      const u = new Float64Array(N6); for (let g = 0; g < N6; g++) if (eq[g] >= 0) u[g] = x[eq[g]];
+      return u;
+    });
+    const t1 = (typeof performance !== 'undefined' ? performance : Date).now();
+    return { u: sol, neq, nnz: ptr[neq], singular, ms: t1 - t0, tchol };
+  }
+
+  const gatherE = (e, u) => { const r = new Float64Array(6 * e.n.length); e.n.forEach((a, k) => { for (let d = 0; d < 6; d++) r[6 * k + d] = u[6 * a + d]; }); return r; };
+
+  // Reazioni vincolari: R = K u - F sui gdl vincolati
+  function reactions(model, u, F) {
+    const R = new Float64Array(u.length);
+    for (const e of [...model.shells, ...model.beams]) {
+      const ue = gatherE(e, u), n = ue.length;
+      e.n.forEach((a, k) => { for (let d = 0; d < 6; d++) { let s = 0; const r = (6 * k + d) * n; for (let j = 0; j < n; j++) s += e.Ke[r + j] * ue[j]; R[6 * a + d] += s; } });
+    }
+    for (let i = 0; i < R.length; i++) R[i] -= F[i];
+    return R;
+  }
+
+  // Tensioni superficiali (Von Mises, faccia superiore/inferiore) ai 4 vertici dell'elemento
+  function shellCornerVM(sh, u) {
+    const ul = toLocal(sh.R, gatherE(sh, u)), q = sh.E / (1 - sh.nu * sh.nu), nu = sh.nu, G = sh.E / (2 * (1 + nu)), out = [];
+    for (let c = 0; c < 4; c++) {
+      const s = shp(XI[c], ETA[c]), J = jac(s, sh.xl, sh.yl);
+      let ex = 0, ey = 0, gxy = 0, kx = 0, ky = 0, kxy = 0;
+      for (let i = 0; i < 4; i++) {
+        const o = 6 * i;
+        ex += J.dx[i] * ul[o]; ey += J.dy[i] * ul[o + 1]; gxy += J.dy[i] * ul[o] + J.dx[i] * ul[o + 1];
+        kx += J.dx[i] * ul[o + 4]; ky -= J.dy[i] * ul[o + 3]; kxy += J.dy[i] * ul[o + 4] - J.dx[i] * ul[o + 3];
+      }
+      const smx = q * (ex + nu * ey), smy = q * (nu * ex + ey), smt = G * gxy, h = sh.t / 2;
+      const sbx = q * (kx + nu * ky) * h, sby = q * (nu * kx + ky) * h, sbt = G * kxy * h;
+      const vm = (a, b, c2) => Math.sqrt(a * a - a * b + b * b + 3 * c2 * c2);
+      out.push(Math.max(vm(smx + sbx, smy + sby, smt + sbt), vm(smx - sbx, smy - sby, smt - sbt)));
+    }
+    return out;
+  }
+
+  // Sollecitazioni di estremità della trave: N (trazione +), M risultante, tensione max
+  function beamEndForces(bm, u) {
+    const ul = toLocal(bm.R, gatherE(bm, u)), f = new Float64Array(12);
+    for (let i = 0; i < 12; i++) { let s = 0; for (let j = 0; j < 12; j++) s += bm.Kl[i * 12 + j] * ul[j]; f[i] = s; }
+    const S = bm.S, N = f[6];
+    const M1 = [f[4], f[5]], M2 = [f[10], f[11]];
+    const sig = M => Math.abs(N) / S.A + (S.r ? Math.hypot(M[0], M[1]) * S.r / S.Iy : Math.abs(M[0]) * S.cz / S.Iy + Math.abs(M[1]) * S.cy / S.Iz);
+    return { N, M1: Math.hypot(M1[0], M1[1]), M2: Math.hypot(M2[0], M2[1]), s1: sig(M1), s2: sig(M2) };
+  }
+
+  return { solve, reactions, shellCornerVM, beamEndForces, circle, rect, shp, shellFrame, shellKlocal, rotateK, beamFrame, beamKlocal };
+})();
+if (typeof module !== 'undefined') module.exports = FEM;
+// ================================================================
+//  MODELLI STRUTTURALI: TAVOLO (piastra + gambe beam) e LIBRERIA
+//  (pannelli shell + piedini beam). Post-processing e verifiche.
+// ================================================================
+const Structures = (function () {
+  const GAMMA_G = 1.3, GAMMA_Q = 1.5, KMOD = 0.8, GAMMA_M = 1.5;
+  const g9 = 9.81e-9; // kg/m³ -> N/mm³ (x ρ)
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+  // suddivisione di [0,1] (o di un intervallo) rispettando i punti di rottura
+  function gridFrom(breaks, hTarget) {
+    const out = [breaks[0]];
+    for (let k = 0; k < breaks.length - 1; k++) {
+      const a = breaks[k], b = breaks[k + 1], n = Math.max(1, Math.round((b - a) / hTarget));
+      for (let i = 1; i <= n; i++) out.push(a + (b - a) * i / n);
+    }
+    return out;
+  }
+  function mergeBreaks(vals, tol) {
+    const v = [...vals].sort((a, b) => a - b), out = [];
+    for (const x of v) { if (!out.length || x - out[out.length - 1] > tol) out.push(x); else out[out.length - 1] = (out[out.length - 1] + x) / 2; }
+    return out;
+  }
+  const nearestIdx = (arr, v) => { let b = 0; for (let i = 1; i < arr.length; i++) if (Math.abs(arr[i] - v) < Math.abs(arr[b] - v)) b = i; return b; };
+  const cellOf = (arr, v) => { for (let i = 0; i < arr.length - 1; i++) if (v <= arr[i + 1]) return i; return arr.length - 2; };
+
+  // Integrazione dei carichi di superficie (verticali, verso -Y) su un elemento shell
+  function addSurfaceLoad(F, model, sh, p) {
+    const P = sh.n.map(i => model.nodes[i]), fr = FEM.shellFrame(P), gp = 1 / Math.sqrt(3);
+    for (const [a, b] of [[-gp, -gp], [gp, -gp], [gp, gp], [-gp, gp]]) {
+      const s = FEM.shp(a, b);
+      let j11 = 0, j12 = 0, j21 = 0, j22 = 0;
+      for (let i = 0; i < 4; i++) { j11 += s.dxi[i] * fr.xl[i]; j12 += s.dxi[i] * fr.yl[i]; j21 += s.deta[i] * fr.xl[i]; j22 += s.deta[i] * fr.yl[i]; }
+      const det = j11 * j22 - j12 * j21;
+      for (let i = 0; i < 4; i++) F[6 * sh.n[i] + 1] -= p * s.N[i] * det;
+    }
+  }
+  const elemArea = (model, sh) => {
+    const P = sh.n.map(i => model.nodes[i]), fr = FEM.shellFrame(P), x = fr.xl, y = fr.yl;
+    return 0.5 * Math.abs((x[0] * y[1] - x[1] * y[0]) + (x[1] * y[2] - x[2] * y[1]) + (x[2] * y[3] - x[3] * y[2]) + (x[3] * y[0] - x[0] * y[3]));
+  };
+  const centroid = (model, sh) => [0, 1, 2].map(k => sh.n.reduce((a, i) => a + model.nodes[i][k], 0) / 4);
+
+  function addPointLoad(F, sh, xi, eta, P) {
+    const s = FEM.shp(xi, eta);
+    for (let i = 0; i < 4; i++) F[6 * sh.n[i] + 1] -= P * s.N[i];
+  }
+
+  // Gamba/piede: catena di elementi trave da terra (G) al nodo superiore (topId)
+  function addLeg(model, G, topId, ne, rBot, rTop, mat, extra) {
+    const T = model.nodes[topId], ids = [];
+    ids.push(model.nodes.push([G[0], G[1], G[2]]) - 1);
+    for (let k = 1; k < ne; k++) { const f = k / ne; ids.push(model.nodes.push([G[0] + (T[0] - G[0]) * f, G[1] + (T[1] - G[1]) * f, G[2] + (T[2] - G[2]) * f]) - 1); }
+    ids.push(topId);
+    const beams = [];
+    for (let k = 0; k < ne; k++) {
+      const f = (k + 0.5) / ne, r = rBot + (rTop - rBot) * f;
+      beams.push(model.beams.push({ n: [ids[k], ids[k + 1]], E: mat.E, G: mat.E / 16, S: FEM.circle(r), rho: mat.density, fk: mat.yield, leg: extra.index }) - 1);
+    }
+    return { ids, beams, G, top: T.slice(), rBot, rTop, ...extra };
+  }
+
+  // ---------------- TAVOLO ----------------
+  function buildTable(p) {
+    const { W, D, H, T } = p, hW = W / 2, hD = D / 2, yM = H - T / 2, c = p.ctrl, mat = p.mat;
+    const qb = (p0, p1, p2, u) => [0, 1].map(k => (1 - u) * (1 - u) * p0[k] + 2 * u * (1 - u) * p1[k] + u * u * p2[k]);
+    const P00 = [-hW, -hD], P10 = [hW, -hD], P01 = [-hW, hD], P11 = [hW, hD];
+    // superficie di Coons: il piano sagomato è mappato esattamente sul quadrato [0,1]²
+    const S = (s, t) => {
+      const f = qb(P00, [0, -hD - c.front], P10, s), b = qb(P01, [0, hD + c.back], P11, s);
+      const l = qb(P00, [-hW - c.left, 0], P01, t), r = qb(P10, [hW + c.right, 0], P11, t);
+      return [0, 1].map(k => (1 - t) * f[k] + t * b[k] + (1 - s) * l[k] + s * r[k] - ((1 - s) * (1 - t) * P00[k] + s * (1 - t) * P10[k] + (1 - s) * t * P01[k] + s * t * P11[k]));
+    };
+    const inv = (x, z) => {
+      let s = (x + hW) / W, t = (z + hD) / D;
+      for (let it = 0; it < 30; it++) {
+        const f = S(s, t), e = 1e-5, fs = S(s + e, t), ft = S(s, t + e);
+        const a = (fs[0] - f[0]) / e, b = (ft[0] - f[0]) / e, cc = (fs[1] - f[1]) / e, d = (ft[1] - f[1]) / e, det = a * d - b * cc;
+        const rx = x - f[0], rz = z - f[1];
+        s += (d * rx - b * rz) / det; t += (-cc * rx + a * rz) / det;
+      }
+      return [s, t];
+    };
+    const ins = p.legInset;
+    const legXZ = p.legCount === 4 ? [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(q => [q[0] * (hW - ins), q[1] * (hD - ins)])
+      : [[0, -hD + ins], [-hW + ins, hD - ins], [hW - ins, hD - ins]];
+    const legST = legXZ.map(q => inv(q[0], q[1]).map(v => clamp(v, 0.03, 0.97)));
+    const hs = p.meshH / W, ht = p.meshH / D;
+    const sG = gridFrom(mergeBreaks([0, 1, ...legST.map(a => a[0])], 0.6 * hs), hs);
+    const tG = gridFrom(mergeBreaks([0, 1, ...legST.map(a => a[1])], 0.6 * ht), ht);
+    const model = { nodes: [], shells: [], beams: [], fixed: new Map() };
+    const ni = sG.length, nj = tG.length, ids = [];
+    for (let j = 0; j < nj; j++) { ids.push([]); for (let i = 0; i < ni; i++) { const q = S(sG[i], tG[j]); ids[j].push(model.nodes.push([q[0], yM, -q[1]]) - 1); } } // z mondo = -y sagoma (fronte verso +z)
+    const panel = { name: 'Piano', ids, ni, nj, normal: [0, 1, 0], t: T, eu: [1, 0, 0], ev: [0, 0, 1], ext: [0, 0, 0, 0], off: 0, shells: [], fk: mat.yield };
+    for (let j = 0; j < nj - 1; j++) for (let i = 0; i < ni - 1; i++) {
+      panel.shells.push(model.shells.push({ n: [ids[j][i], ids[j][i + 1], ids[j + 1][i + 1], ids[j + 1][i]], E: mat.E, nu: 0.3, t: T, rho: mat.density, fk: mat.yield, panel: 0, ij: [i, j] }) - 1);
+    }
+    // gambe (elementi trave), inclinate radialmente verso l'esterno
+    const th = p.legAngle * Math.PI / 180, hl = H - T, legs = [];
+    legST.forEach((st, k) => {
+      const i = nearestIdx(sG, st[0]), j = nearestIdx(tG, st[1]), top = model.nodes[ids[j][i]];
+      let dx = top[0], dz = top[2], L = Math.hypot(dx, dz); if (L < 1) { dx = 0; dz = -1; L = 1; }
+      const off = hl * Math.tan(th), Gp = [top[0] + dx / L * off, 0, top[2] + dz / L * off];
+      legs.push(addLeg(model, Gp, ids[j][i], 8, p.rBot, p.rTop, mat, { index: k, U: [top[0], hl, top[2]] }));
+    });
+    const bc = p.bc === 'fixed' ? [1, 1, 1, 1, 1, 1] : [1, 1, 1, 0, 0, 0];
+    legs.forEach(l => model.fixed.set(l.ids[0], bc));
+
+    // carichi: caso G (peso proprio) e caso Q (variabili)
+    const nn = model.nodes.length, FG = new Float64Array(6 * nn), FQ = new Float64Array(6 * nn);
+    let area = 0;
+    for (const e of model.shells) { addSurfaceLoad(FG, model, e, e.rho * g9 * e.t); addSurfaceLoad(FQ, model, e, p.q * 1e-3); area += elemArea(model, e); }
+    for (const b of model.beams) {
+      const A = b.S.A, a = model.nodes[b.n[0]], bb = model.nodes[b.n[1]], L = Math.hypot(bb[0] - a[0], bb[1] - a[1], bb[2] - a[2]), w = b.rho * g9 * A * L / 2;
+      FG[6 * b.n[0] + 1] -= w; FG[6 * b.n[1] + 1] -= w;
+    }
+    // carico concentrato
+    const lst = inv(p.loadX, -p.loadZ).map(v => clamp(v, 0, 1));
+    const ci = cellOf(sG, lst[0]), cj = cellOf(tG, lst[1]);
+    const xi = 2 * (lst[0] - sG[ci]) / (sG[ci + 1] - sG[ci]) - 1, eta = 2 * (lst[1] - tG[cj]) / (tG[cj + 1] - tG[cj]) - 1;
+    const sh = model.shells[panel.shells[cj * (ni - 1) + ci]];
+    const Pn = p.P * 9.81; addPointLoad(FQ, sh, xi, eta, Pn);
+    const lp = S(lst[0], lst[1]);
+    model.loads = [FG, FQ];
+    return {
+      kind: 'table', model, panels: [panel], legs, area,
+      loadPoint: [lp[0], H, -lp[1]], P: Pn, qArea: p.q * 1e-3 * area, loadPanel: panel,
+      span: maxAdjacentSpan(legs.map(l => l.top)),
+      pushHeight: H, supports: legs.map(l => l.ids[0]), anchored: false, dims: { W, D, H, T },
+      shape: (s, t) => { const q = S(s, t); return [q[0], -q[1]]; }
+    };
+  }
+  function maxAdjacentSpan(pts) {
+    // lato più lungo del poligono (ordinato per angolo) formato dalle teste delle gambe
+    const o = pts.map(q => [q[0], q[2]]).sort((a, b) => Math.atan2(a[1], a[0]) - Math.atan2(b[1], b[0]));
+    let m = 0; for (let i = 0; i < o.length; i++) { const a = o[i], b = o[(i + 1) % o.length]; m = Math.max(m, Math.hypot(a[0] - b[0], a[1] - b[1])); }
+    return m;
+  }
+
+  // ---------------- LIBRERIA ----------------
+  function buildBookcase(p) {
+    const { W, H, D, t } = p, mat = p.mat, xs = W / 2 - t / 2, y0 = p.hf + t / 2, y1 = H - t / 2;
+    // passo di mesh adattivo: numero di elementi circa costante al variare delle dimensioni
+    const areaTot = 2 * D * (y1 - y0) + (p.nShelves + 2) * 2 * xs * D + (p.back ? 2 * xs * (y1 - y0) : 0);
+    const h = Math.max(p.meshH, Math.sqrt(areaTot / p.targetEl));
+    const back = { E: 6000, density: 600, yield: 20, t: p.tb };
+    const fi = Math.min(p.feetInset, D / 2 - 10);
+    const shelfY = []; for (let k = 1; k <= p.nShelves; k++) shelfY.push(y0 + (y1 - y0) * k / (p.nShelves + 1));
+    const levels = [y0, ...shelfY, y1];
+    const xg = gridFrom([-xs, xs], h), zg = gridFrom(mergeBreaks([-D / 2, -D / 2 + fi, D / 2 - fi, D / 2], 1), h);
+    const yg = gridFrom(levels, h);
+    const model = { nodes: [], shells: [], beams: [], fixed: new Map() }, map = new Map();
+    const node = (x, y, z) => { const k = Math.round(x * 10) + ',' + Math.round(y * 10) + ',' + Math.round(z * 10); let id = map.get(k); if (id === undefined) { id = model.nodes.push([x, y, z]) - 1; map.set(k, id); } return id; };
+    const panels = [];
+    const mkPanel = (name, us, vs, pos, normal, eu, ev, thick, m, ext, off) => {
+      const ids = vs.map(v => us.map(u => node(...pos(u, v))));
+      const pn = { name, ids, ni: us.length, nj: vs.length, normal, t: thick, eu, ev, ext, off, shells: [], fk: m.yield };
+      const pi = panels.length;
+      for (let j = 0; j < vs.length - 1; j++) for (let i = 0; i < us.length - 1; i++)
+        pn.shells.push(model.shells.push({ n: [ids[j][i], ids[j][i + 1], ids[j + 1][i + 1], ids[j + 1][i]], E: m.E, nu: 0.3, t: thick, rho: m.density, fk: m.yield, panel: pi, ij: [i, j] }) - 1);
+      panels.push(pn); return pn;
+    };
+    mkPanel('Fianco sinistro', zg, yg, (z, y) => [-xs, y, z], [-1, 0, 0], [0, 0, 1], [0, 1, 0], t, mat, [0, 0, t / 2, t / 2], 0);
+    mkPanel('Fianco destro', zg, yg, (z, y) => [xs, y, z], [1, 0, 0], [0, 0, 1], [0, 1, 0], t, mat, [0, 0, t / 2, t / 2], 0);
+    const shelfPanels = levels.map((y, k) => mkPanel(k === 0 ? 'Fondo' : (k === levels.length - 1 ? 'Cielo' : `Ripiano ${k}`), xg, zg, (x, z) => [x, y, z], [0, 1, 0], [1, 0, 0], [0, 0, 1], t, mat, [-t / 2, -t / 2, 0, 0], 0));
+    if (p.back) mkPanel('Schienale', xg, yg, (x, y) => [x, y, -D / 2], [0, 0, -1], [1, 0, 0], [0, 1, 0], p.tb, back, [t / 2, t / 2, t / 2, t / 2], p.tb / 2);
+    // piedini (trave) sotto i fianchi
+    const legs = [];
+    [[-xs, -D / 2 + fi], [xs, -D / 2 + fi], [-xs, D / 2 - fi], [xs, D / 2 - fi]].forEach((q, k) => {
+      const top = node(q[0], y0, q[1]);
+      legs.push(addLeg(model, [q[0], 0, q[1]], top, 3, p.footR, p.footR, mat, { index: k, U: [q[0], p.hf, q[1]] }));
+    });
+    const bc = p.bc === 'fixed' ? [1, 1, 1, 1, 1, 1] : [1, 1, 1, 0, 0, 0];
+    legs.forEach(l => model.fixed.set(l.ids[0], bc));
+    if (p.anchor) [-xs, xs].forEach(x => { const id = node(x, y1, -D / 2); model.fixed.set(id, [0, 0, 1, 0, 0, 0]); });
+
+    const nn = model.nodes.length, FG = new Float64Array(6 * nn), FQ = new Float64Array(6 * nn);
+    let area = 0;
+    for (const e of model.shells) addSurfaceLoad(FG, model, e, e.rho * g9 * e.t);
+    for (const b of model.beams) {
+      const a = model.nodes[b.n[0]], bb = model.nodes[b.n[1]], L = Math.hypot(bb[0] - a[0], bb[1] - a[1], bb[2] - a[2]), w = b.rho * g9 * b.S.A * L / 2;
+      FG[6 * b.n[0] + 1] -= w; FG[6 * b.n[1] + 1] -= w;
+    }
+    // carico distribuito su fondo e ripiani (non sul cielo)
+    shelfPanels.slice(0, -1).forEach(pn => pn.shells.forEach(si => { const e = model.shells[si]; addSurfaceLoad(FQ, model, e, p.q * 1e-3); area += elemArea(model, e); }));
+    const lvl = clamp(p.loadShelf, 0, levels.length - 1), pn = shelfPanels[lvl];
+    const lx = clamp(p.loadX, -xs, xs), lz = clamp(p.loadZ, -D / 2, D / 2);
+    const ci = cellOf(xg, lx), cj = cellOf(zg, lz);
+    const xi = 2 * (lx - xg[ci]) / (xg[ci + 1] - xg[ci]) - 1, eta = 2 * (lz - zg[cj]) / (zg[cj + 1] - zg[cj]) - 1;
+    const Pn = p.P * 9.81; addPointLoad(FQ, model.shells[pn.shells[cj * (xg.length - 1) + ci]], xi, eta, Pn);
+    model.loads = [FG, FQ];
+    return {
+      kind: 'bookcase', model, panels, legs, area, shelfPanels, levels,
+      loadPoint: [lx, levels[lvl] + t / 2, lz], P: Pn, qArea: p.q * 1e-3 * area, loadPanel: pn, loadLevel: lvl,
+      span: 2 * xs, pushHeight: H, supports: legs.map(l => l.ids[0]), anchored: !!p.anchor,
+      dims: { W, H, D, t, xs, hf: p.hf, tb: p.tb, back: p.back }
+    };
+  }
+
+  // ---------------- ANALISI + POST-PROCESSING ----------------
+  function analyse(S) {
+    const m = S.model, res = FEM.solve(m);
+    const [uG, uQ] = res.u, n6 = uG.length;
+    const uSLE = new Float64Array(n6), uSLU = new Float64Array(n6);
+    for (let i = 0; i < n6; i++) { uSLE[i] = uG[i] + uQ[i]; uSLU[i] = GAMMA_G * uG[i] + GAMMA_Q * uQ[i]; }
+    const FSLE = new Float64Array(n6); for (let i = 0; i < n6; i++) FSLE[i] = m.loads[0][i] + m.loads[1][i];
+    const R = FEM.reactions(m, uSLE, FSLE);
+    const fd = fk => KMOD * fk / GAMMA_M;
+
+    // campi nodali per pannello (media degli spigoli degli elementi adiacenti)
+    let vmMax = 0, utilMax = 0, vmMaxAt = null;
+    S.panels.forEach(pn => {
+      const n = pn.ni * pn.nj, acc = new Float64Array(n), cnt = new Float64Array(n);
+      pn.shells.forEach(si => {
+        const e = m.shells[si], vm = FEM.shellCornerVM(e, uSLU), [i, j] = e.ij;
+        const loc = [[i, j], [i + 1, j], [i + 1, j + 1], [i, j + 1]];
+        loc.forEach((q, k) => { const a = q[1] * pn.ni + q[0]; acc[a] += vm[k]; cnt[a]++; });
+      });
+      pn.vm = new Float64Array(n); pn.util = new Float64Array(n);
+      for (let a = 0; a < n; a++) {
+        pn.vm[a] = acc[a] / Math.max(1, cnt[a]); pn.util[a] = pn.vm[a] / fd(pn.fk);
+        if (pn.vm[a] > vmMax) { vmMax = pn.vm[a]; vmMaxAt = pn.name; }
+        utilMax = Math.max(utilMax, pn.util[a]);
+      }
+    });
+    // gambe/piedini
+    let legSig = 0, legNc = 0, legUtil = 0;
+    S.legs.forEach(l => {
+      l.vm = new Float64Array(l.ids.length);
+      l.beams.forEach((bi, k) => {
+        const b = m.beams[bi], f = FEM.beamEndForces(b, uSLU);
+        l.vm[k] = Math.max(l.vm[k], f.s1); l.vm[k + 1] = Math.max(l.vm[k + 1], f.s2);
+        legNc = Math.max(legNc, -f.N);
+      });
+      l.util = l.vm.map(v => v / fd(m.beams[l.beams[0]].fk));
+      legSig = Math.max(legSig, ...l.vm); legUtil = Math.max(legUtil, ...l.util);
+    });
+    utilMax = Math.max(utilMax, legUtil);
+    // spostamenti
+    let dispMax = 0; const nn = m.nodes.length;
+    for (let a = 0; a < nn; a++) dispMax = Math.max(dispMax, Math.hypot(uSLE[6 * a], uSLE[6 * a + 1], uSLE[6 * a + 2]));
+    // freccia relativa
+    const uy = id => -uSLE[6 * id + 1];
+    let wRel = 0, wRelName = '';
+    if (S.kind === 'table') {
+      const ref = S.legs.reduce((a, l) => a + uy(l.ids[l.ids.length - 1]), 0) / S.legs.length;
+      S.panels[0].ids.flat().forEach(id => { const w = uy(id) - ref; if (w > wRel) { wRel = w; wRelName = 'Piano'; } });
+    } else {
+      S.shelfPanels.forEach(pn => {
+        const edge = []; for (let j = 0; j < pn.nj; j++) { edge.push(uy(pn.ids[j][0]), uy(pn.ids[j][pn.ni - 1])); }
+        const ref = edge.reduce((a, b) => a + b, 0) / edge.length;
+        pn.ids.flat().forEach(id => { const w = uy(id) - ref; if (w > wRel) { wRel = w; wRelName = pn.name; } });
+      });
+    }
+    const wLim = S.span / (S.kind === 'table' ? 300 : 200);
+    // reazioni verticali ai piedi
+    const Rv = S.supports.map(id => R[6 * id + 1]);
+    return { res, uSLE, uSLU, R, Rv, vmMax, vmMaxAt, utilMax, legSig, legNc, legUtil, dispMax, wRel, wRelName, wLim, fd };
+  }
+
+  // Pesi e baricentri (per il ribaltamento)
+  function massProps(S) {
+    const m = S.model; let Wt = 0, cx = 0, cy = 0, cz = 0;
+    const add = (w, c) => { Wt += w; cx += w * c[0]; cy += w * c[1]; cz += w * c[2]; };
+    m.shells.forEach(e => add(e.rho * g9 * e.t * elemArea(m, e), centroid(m, e)));
+    m.beams.forEach(b => { const a = m.nodes[b.n[0]], c = m.nodes[b.n[1]], L = Math.hypot(c[0] - a[0], c[1] - a[1], c[2] - a[2]); add(b.rho * g9 * b.S.A * L, [(a[0] + c[0]) / 2, (a[1] + c[1]) / 2, (a[2] + c[2]) / 2]); });
+    return { W: Wt, c: [cx / Wt, cy / Wt, cz / Wt] };
+  }
+  // Ribaltamento rigido attorno ai lati del poligono d'appoggio
+  function tipping(S) {
+    const mp = massProps(S), pts = S.legs.map(l => [l.G[0], l.G[2]]);
+    const c = pts.reduce((a, q) => [a[0] + q[0] / pts.length, a[1] + q[1] / pts.length], [0, 0]);
+    const poly = pts.slice().sort((a, b) => Math.atan2(a[1] - c[1], a[0] - c[0]) - Math.atan2(b[1] - c[1], b[0] - c[0]));
+    const edges = poly.map((a, i) => {
+      const b = poly[(i + 1) % poly.length], dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz);
+      const nx = dz / L, nz = -dx / L, sgn = ((c[0] - a[0]) * nx + (c[1] - a[1]) * nz) > 0 ? 1 : -1;
+      return q => sgn * ((q[0] - a[0]) * nx + (q[1] - a[1]) * nz);
+    });
+    const dG = Math.min(...edges.map(f => f([mp.c[0], mp.c[2]])));
+    const Fpush = dG > 0 ? mp.W * dG / S.pushHeight : 0;
+    const lp = [S.loadPoint[0], S.loadPoint[2]];
+    let Ptip = Infinity;
+    edges.forEach(f => { const dP = f(lp), dg = f([mp.c[0], mp.c[2]]); if (dP < 0 && dg > 0) Ptip = Math.min(Ptip, mp.W * dg / -dP); });
+    const Wc = mp.W + S.P, cc = [(mp.W * mp.c[0] + S.P * lp[0]) / Wc, (mp.W * mp.c[2] + S.P * lp[1]) / Wc];
+    const dC = Math.min(...edges.map(f => f(cc)));
+    return { W: mp.W, cog: mp.c, cogLoaded: [cc[0], cc[1]], dG, dC, Fpush, Ptip, poly, stable: dC > 0 || S.anchored };
+  }
+
+  return { buildTable, buildBookcase, analyse, tipping, massProps, GAMMA_G, GAMMA_Q, KMOD, GAMMA_M };
+})();
+if (typeof module !== 'undefined') module.exports = Structures;
+// ================================================================
+//  APPLICAZIONE: interfaccia, rendering 3D, mappe a colori, export
+// ================================================================
+const woodDatabase = {
+  rovere:   { color: 0xc68a4c, E: 11000, yield: 40.0, density: 720 },
+  noce:     { color: 0x5c3a21, E: 12500, yield: 45.0, density: 650 },
+  abete:    { color: 0xe3c793, E: 8500,  yield: 28.0, density: 450 },
+  frassino: { color: 0xe8d2b0, E: 13000, yield: 48.0, density: 700 }
+};
+const usageDB = {
+  table: [
+    { k: 'salotto', label: 'Salotto / caffè: q 0.5 kN/m², P 40 kg', q: 0.5, kg: 40 },
+    { k: 'pranzo', label: 'Pranzo: q 1.0 kN/m², P 60 kg', q: 1.0, kg: 60, def: true },
+    { k: 'ufficio', label: 'Ufficio / lavoro: q 2.0 kN/m², P 100 kg', q: 2.0, kg: 100 },
+    { k: 'pubblico', label: 'Ristorazione / pubblico: q 3.0 kN/m², P 150 kg', q: 3.0, kg: 150 }
+  ],
+  bookcase: [
+    { k: 'leggero', label: 'Oggetti leggeri: q 0.5 kN/m², P 10 kg', q: 0.5, kg: 10 },
+    { k: 'libri', label: 'Libri: q 1.0 kN/m², P 15 kg', q: 1.0, kg: 15, def: true },
+    { k: 'archivio', label: 'Archivio / volumi pesanti: q 1.5 kN/m², P 25 kg', q: 1.5, kg: 25 },
+    { k: 'vinili', label: 'Dischi / vinili: q 2.5 kN/m², P 40 kg', q: 2.5, kg: 40 }
+  ]
+};
+const FIELD_INFO = {
+  vm:   { title: 'σ Von Mises (SLU)', unit: 'MPa', dec: 2 },
+  util: { title: 'Tasso di lavoro σ/fd (SLU)', unit: '', dec: 2 },
+  disp: { title: 'Spostamento |u| (SLE)', unit: 'mm', dec: 3 },
+  uy:   { title: 'Freccia verticale (SLE)', unit: 'mm', dec: 3 }
+};
+
+const state = { type: 'table', wood: 'rovere', legCount: 4, showHandles: true, showCNCPaths: true, tab: 'dimensions' };
+let scene, camera, renderer, controls;
+let modelGroup, overlayGroup, handlesGroup, cncGroup, ghostGroup, meshGroup;
+let woodMat, feaMat, cmapTex, lut = null, lutKey = '';
+let lastS = null, lastA = null, lastTip = null, lastLines = [], lastP = null, lastAmp = 1;
+
+const $ = id => document.getElementById(id);
+const num = id => parseFloat($(id).value);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+// ---------------- COLOR MAP ----------------
+const CMAPS = {
+  turbo: t => [
+    0.13572138 + t * (4.61539260 + t * (-42.66032258 + t * (132.13108234 + t * (-152.94239396 + t * 59.28637943)))),
+    0.09140261 + t * (2.19418839 + t * (4.84296658 + t * (-14.18503333 + t * (4.27729857 + t * 2.82956604)))),
+    0.10667330 + t * (12.64194608 + t * (-60.58204836 + t * (110.36276771 + t * (-89.90310912 + t * 27.34824973))))],
+  jet: t => [1.5 - Math.abs(4 * t - 3), 1.5 - Math.abs(4 * t - 2), 1.5 - Math.abs(4 * t - 1)],
+  viridis: (() => {
+    const c = [[0.27772733, 0.00540734, 0.33409981], [0.10509304, 1.40461353, 1.38459016], [-0.33086183, 0.21484756, 0.09509516],
+      [-4.63423050, -5.79910097, -19.33244096], [6.22826994, 14.17993337, 56.69055260], [4.77638500, -13.74514538, -65.35303263], [-5.43545586, 4.64585261, 26.31243525]];
+    return t => [0, 1, 2].map(k => c[0][k] + t * (c[1][k] + t * (c[2][k] + t * (c[3][k] + t * (c[4][k] + t * (c[5][k] + t * c[6][k]))))));
+  })()
+};
+function buildLUT(name, bands) {
+  const f = CMAPS[name], L = new Uint8Array(256 * 4);
+  for (let i = 0; i < 256; i++) {
+    let t = i / 255;
+    if (bands) t = Math.min(11, Math.floor(t * 12)) / 11;
+    const c = f(t);
+    for (let k = 0; k < 3; k++) L[4 * i + k] = Math.round(clamp(c[k], 0, 1) * 255);
+    L[4 * i + 3] = 255;
+  }
+  return L;
+}
+function updateColormap(name, bands) {
+  const key = name + bands;
+  if (key === lutKey) return;
+  lutKey = key; lut = buildLUT(name, bands);
+  if (cmapTex) cmapTex.dispose();
+  cmapTex = new THREE.DataTexture(lut, 256, 1, THREE.RGBAFormat);
+  cmapTex.magFilter = bands ? THREE.NearestFilter : THREE.LinearFilter;
+  cmapTex.minFilter = bands ? THREE.NearestFilter : THREE.LinearFilter;
+  cmapTex.wrapS = cmapTex.wrapT = THREE.ClampToEdgeWrapping;
+  cmapTex.generateMipmaps = false;
+  cmapTex.needsUpdate = true;
+  feaMat.map = cmapTex; feaMat.needsUpdate = true;
+  const cv = $('leg-canvas'), ctx = cv.getContext('2d');
+  for (let x = 0; x < cv.width; x++) {
+    const i = Math.round(x / (cv.width - 1) * 255);
+    ctx.fillStyle = `rgb(${lut[4 * i]},${lut[4 * i + 1]},${lut[4 * i + 2]})`;
+    ctx.fillRect(x, 0, 1, cv.height);
+  }
+}
+const texU = t => 0.5 / 256 + clamp(t, 0, 1) * (255 / 256);
+
+// ---------------- INIT ----------------
+window.onload = function () {
+  initThreeJS();
+  setWoodMaterial('rovere', true);
+  setLegCount(4, true);
+  fillUsage();
+  solveAndDraw();
+  window.addEventListener('resize', onWindowResize);
+};
+
+function initThreeJS() {
+  const container = $('canvas-container');
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0f172a);
+  camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 10, 30000);
+  renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setSize(container.clientWidth, container.clientHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  container.appendChild(renderer.domElement);
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true; controls.dampingFactor = 0.06;
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 0.55));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+  const dir = new THREE.DirectionalLight(0xfff8f0, 0.8);
+  dir.position.set(1500, 3000, 1800); dir.castShadow = true;
+  dir.shadow.mapSize.set(2048, 2048);
+  Object.assign(dir.shadow.camera, { left: -2000, right: 2000, top: 2000, bottom: -2000, near: 100, far: 8000 });
+  scene.add(dir);
+  const fill = new THREE.DirectionalLight(0x9db4ff, 0.3); fill.position.set(-1500, 1200, -1500); scene.add(fill);
+
+  scene.add(new THREE.GridHelper(4000, 40, 0x334155, 0x1e293b));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), new THREE.ShadowMaterial({ opacity: 0.25 }));
+  floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+
+  modelGroup = new THREE.Group(); overlayGroup = new THREE.Group(); handlesGroup = new THREE.Group();
+  cncGroup = new THREE.Group(); ghostGroup = new THREE.Group(); meshGroup = new THREE.Group();
+  [modelGroup, overlayGroup, handlesGroup, cncGroup, ghostGroup, meshGroup].forEach(g => scene.add(g));
+
+  woodMat = new THREE.MeshStandardMaterial({ color: woodDatabase.rovere.color, roughness: 0.55, metalness: 0.03, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+  feaMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6, metalness: 0.0, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+  updateColormap('turbo', true);
+  setCameraView('perspective');
+  animate();
+}
+
+// ---------------- PARAMETRI ----------------
+function meshSetting() {
+  const m = $('fem-mesh').value;
+  return state.type === 'table' ? { meshH: { coarse: 75, medium: 50, fine: 32 }[m] } : { meshH: 25, targetEl: { coarse: 350, medium: 650, fine: 1300 }[m] };
+}
+function currentUsage() { const k = $('fem-use').value; return usageDB[state.type].find(u => u.k === k) || usageDB[state.type][0]; }
+
+function readParams() {
+  const mat = woodDatabase[state.wood], common = { mat, bc: $('fem-bc').value, q: currentUsage().q, P: num('input-fea-load'), ...meshSetting() };
+  const lx = $('input-load-x'), lz = $('input-load-z');
+  if (state.type === 'table') {
+    const W = num('input-width'), D = num('input-depth');
+    lx.min = -(W / 2 - 20); lx.max = W / 2 - 20; lz.min = -(D / 2 - 20); lz.max = D / 2 - 20;
+    return {
+      ...common, W, D, H: num('input-height'), T: num('input-thick'),
+      ctrl: { front: num('input-ctrl-front'), back: num('input-ctrl-back'), left: num('input-ctrl-left'), right: num('input-ctrl-right') },
+      legCount: state.legCount, legAngle: num('input-leg-angle'), legInset: num('input-leg-inset'),
+      rTop: num('input-leg-dtop') / 2, rBot: num('input-leg-dbot') / 2,
+      loadX: clamp(num('input-load-x'), -(W / 2 - 20), W / 2 - 20), loadZ: clamp(num('input-load-z'), -(D / 2 - 20), D / 2 - 20)
+    };
+  }
+  const W = num('input-bw'), D = num('input-bd'), t = num('input-bt'), n = num('input-bn');
+  lx.min = -(W / 2 - t - 10); lx.max = W / 2 - t - 10; lz.min = -(D / 2 - 5); lz.max = D / 2 - 5;
+  refreshShelfOptions(n);
+  return {
+    ...common, W, H: num('input-bh'), D, t, nShelves: n, hf: num('input-bhf'), back: $('chk-back').checked, tb: 6,
+    footR: num('input-bfd') / 2, feetInset: num('input-bfi'), anchor: $('chk-anchor').checked,
+    loadShelf: parseInt($('input-shelf').value || '0', 10),
+    loadX: clamp(num('input-load-x'), -(W / 2 - t - 10), W / 2 - t - 10), loadZ: clamp(num('input-load-z'), -(D / 2 - 5), D / 2 - 5)
+  };
+}
+function refreshShelfOptions(n) {
+  const sel = $('input-shelf'), want = n + 2;
+  if (sel.options.length === want) return;
+  const prev = parseInt(sel.value || String(Math.ceil((n + 1) / 2)), 10);
+  sel.innerHTML = '';
+  for (let k = 0; k < want; k++) {
+    const o = document.createElement('option'); o.value = k;
+    o.textContent = k === 0 ? 'Fondo' : (k === want - 1 ? 'Cielo (piano superiore)' : `Ripiano ${k}`);
+    sel.appendChild(o);
+  }
+  sel.value = String(clamp(isNaN(prev) ? 1 : prev, 0, want - 1));
+}
+function updateLabels(p) {
+  const mm = v => `${Math.round(v)} mm`;
+  if (state.type === 'table') {
+    $('lbl-width').innerText = mm(p.W); $('lbl-depth').innerText = mm(p.D); $('lbl-height').innerText = mm(p.H); $('lbl-thick').innerText = mm(p.T);
+    ['front', 'back', 'left', 'right'].forEach(k => $('lbl-ctrl-' + k).innerText = mm(p.ctrl[k]));
+    $('lbl-leg-angle').innerText = `${p.legAngle}°`; $('lbl-leg-inset').innerText = mm(p.legInset);
+    $('lbl-leg-dtop').innerText = `Ø ${p.rTop * 2} mm`; $('lbl-leg-dbot').innerText = `Ø ${p.rBot * 2} mm`;
+    $('hud-dims').innerText = `${p.W} × ${p.D} × ${p.H} mm`;
+  } else {
+    $('lbl-bw').innerText = mm(p.W); $('lbl-bh').innerText = mm(p.H); $('lbl-bd').innerText = mm(p.D); $('lbl-bt').innerText = mm(p.t);
+    $('lbl-bn').innerText = p.nShelves; $('lbl-bhf').innerText = mm(p.hf); $('lbl-bfd').innerText = `Ø ${p.footR * 2} mm`; $('lbl-bfi').innerText = mm(p.feetInset);
+    $('hud-dims').innerText = `${p.W} × ${p.D} × ${p.H} mm`;
+  }
+  $('lbl-fea-load').innerText = `${p.P} kg (${(p.P * 9.81).toFixed(0)} N)`;
+  $('lbl-load-x').innerText = mm(p.loadX); $('lbl-load-z').innerText = mm(p.loadZ);
+}
+
+// ---------------- SCHEDULING ----------------
+let solvePending = false, drawPending = false;
+function scheduleSolve() { if (solvePending) return; solvePending = true; requestAnimationFrame(() => { solvePending = false; drawPending = false; solveAndDraw(); }); }
+function scheduleDraw() { if (drawPending || solvePending) return; drawPending = true; requestAnimationFrame(() => { drawPending = false; draw(); }); }
+
+function solveAndDraw() {
+  const p = readParams(); lastP = p;
+  updateLabels(p);
+  const S = state.type === 'table' ? Structures.buildTable(p) : Structures.buildBookcase(p);
+  const A = Structures.analyse(S), tip = Structures.tipping(S);
+  lastS = S; lastA = A; lastTip = tip;
+  updateMetrics();
+  draw();
+}
+
+// ---------------- CAMPI DA RAPPRESENTARE ----------------
+function nodeField(field, u) {
+  const nn = lastS.model.nodes.length, v = new Float64Array(nn);
+  for (let a = 0; a < nn; a++) v[a] = field === 'uy' ? -u[6 * a + 1] : Math.hypot(u[6 * a], u[6 * a + 1], u[6 * a + 2]);
+  return v;
+}
+function panelValues(pn, field, nf) {
+  if (field === 'vm') return pn.vm;
+  if (field === 'util') return pn.util;
+  const out = new Float64Array(pn.ni * pn.nj);
+  for (let j = 0; j < pn.nj; j++) for (let i = 0; i < pn.ni; i++) out[j * pn.ni + i] = nf[pn.ids[j][i]];
+  return out;
+}
+function legValues(l, field, nf) {
+  if (field === 'vm') return l.vm;
+  if (field === 'util') return l.util;
+  return l.ids.map(id => nf[id]);
+}
+
+// ---------------- DISEGNO ----------------
+function clearGroup(g) {
+  while (g.children.length) {
+    const c = g.children[0]; g.remove(c);
+    c.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material !== woodMat && o.material !== feaMat) o.material.dispose(); });
+  }
+}
+
+function draw() {
+  if (!lastS) return;
+  const S = lastS, A = lastA, u = A.uSLE;
+  [modelGroup, overlayGroup, handlesGroup, cncGroup, ghostGroup, meshGroup].forEach(clearGroup);
+
+  const heat = $('chk-fea-heatmap').checked, field = $('map-field').value;
+  const bands = $('chk-bands').checked, range = $('map-range').value;
+  updateColormap($('map-cmap').value, bands);
+
+  // valori del campo e intervallo della scala
+  const nf = (field === 'disp' || field === 'uy') ? nodeField(field, u) : null;
+  const pv = S.panels.map(pn => panelValues(pn, field, nf)), lv = S.legs.map(l => legValues(l, field, nf));
+  let vmin = Infinity, vmax = -Infinity;
+  [...pv, ...lv].forEach(arr => { for (const v of arr) { if (v < vmin) vmin = v; if (v > vmax) vmax = v; } });
+  if (field !== 'uy') vmin = 0; else vmin = Math.min(0, vmin);
+  const fdWood = A.fd(woodDatabase[state.wood].yield);
+  if (range === 'fd' && field === 'vm') vmax = fdWood;
+  if (range === 'fd' && field === 'util') vmax = 1;
+  if (!(vmax > vmin)) vmax = vmin + 1e-9;
+
+  // amplificazione della deformata
+  const Lref = Math.max(S.dims.W, S.dims.H, S.dims.D);
+  let amp = 0;
+  if ($('chk-deform').checked) {
+    if ($('chk-autoscale').checked) {
+      amp = A.dispMax > 0 ? 0.04 * Lref / A.dispMax : 1;
+      $('input-fea-scale').value = Math.round(clamp(Math.log10(Math.max(1, amp)) / 3 * 100, 0, 100));
+    } else amp = Math.pow(10, num('input-fea-scale') / 100 * 3);
+  }
+  lastAmp = amp;
+  $('lbl-fea-scale').innerText = amp ? `×${amp >= 10 ? amp.toFixed(0) : amp.toFixed(1)}` : 'spenta';
+
+  const mat = heat ? feaMat : woodMat;
+  S.panels.forEach((pn, k) => {
+    const geo = buildSlab(S, pn, u, amp, pv[k], vmin, vmax);
+    const mesh = new THREE.Mesh(geo, mat); mesh.castShadow = true; mesh.receiveShadow = true; mesh.name = pn.name.replace(/\s+/g, '_');
+    modelGroup.add(mesh);
+    if ($('chk-mesh').checked) meshGroup.add(buildMeshLines(S, pn, u, amp));
+    if (amp > 0 && $('chk-ghost').checked) ghostGroup.add(buildOutline(S, pn, 0x94a3b8, 0.45));
+  });
+  S.legs.forEach((l, k) => {
+    const mesh = new THREE.Mesh(buildLeg(S, l, u, amp, lv[k], vmin, vmax), mat);
+    mesh.castShadow = true; mesh.name = (state.type === 'table' ? 'Gamba_' : 'Piedino_') + (k + 1);
+    modelGroup.add(mesh);
+    if (amp > 0 && $('chk-ghost').checked) ghostGroup.add(line([l.G, l.U], 0x94a3b8, 0.45));
+  });
+
+  if ($('chk-show-cog').checked) drawOverlays(S, u, amp);
+  if (state.type === 'table' && state.showHandles && state.tab === 'shape') drawHandles();
+  if (state.showCNCPaths && (state.tab === 'cnc' || state.tab === 'export')) drawCNC(S);
+
+  // legenda
+  const info = FIELD_INFO[field];
+  $('legend').style.display = heat ? '' : 'none';
+  $('leg-title').innerText = info.title + (info.unit ? ` [${info.unit}]` : '');
+  const vtrue = Math.max(...[...pv, ...lv].map(a => Math.max(...a)));
+  $('leg-max').innerText = `max ${vtrue.toFixed(info.dec)}`;
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => (vmin + f * (vmax - vmin)).toFixed(field === 'vm' || field === 'util' ? 2 : 3));
+  $('leg-ticks').innerHTML = ticks.map(t => `<span>${t}</span>`).join('');
+}
+
+// Lastra (piano o pannello) generata dalla mesh FEM: facce superiore/inferiore + bordi
+function buildSlab(S, pn, u, amp, vals, vmin, vmax) {
+  const nodes = S.model.nodes, ni = pn.ni, nj = pn.nj, n = pn.normal, h = pn.t / 2, [e0, e1, e2, e3] = pn.ext;
+  const pos = [], uv = [], idx = [];
+  const vert = (i, j, f) => {
+    const id = pn.ids[j][i], P = nodes[id];
+    let du = 0, dv = 0; if (i === 0) du = -e0; if (i === ni - 1) du = e1; if (j === 0) dv = -e2; if (j === nj - 1) dv = e3;
+    const o = f * h + pn.off, lev = [0, 1, 2].map(k => pn.eu[k] * du + pn.ev[k] * dv + n[k] * o);
+    const d = [u[6 * id], u[6 * id + 1], u[6 * id + 2]], r = [u[6 * id + 3], u[6 * id + 4], u[6 * id + 5]];
+    const rx = [r[1] * lev[2] - r[2] * lev[1], r[2] * lev[0] - r[0] * lev[2], r[0] * lev[1] - r[1] * lev[0]];
+    pos.push(P[0] + lev[0] + amp * (d[0] + rx[0]), P[1] + lev[1] + amp * (d[1] + rx[1]), P[2] + lev[2] + amp * (d[2] + rx[2]));
+    uv.push(texU((vals[j * ni + i] - vmin) / (vmax - vmin)), 0.5);
+    return pos.length / 3 - 1;
+  };
+  const top = [], bot = [];
+  for (let j = 0; j < nj; j++) for (let i = 0; i < ni; i++) top.push(vert(i, j, 1));
+  for (let j = 0; j < nj; j++) for (let i = 0; i < ni; i++) bot.push(vert(i, j, -1));
+  for (let j = 0; j < nj - 1; j++) for (let i = 0; i < ni - 1; i++) {
+    const a = j * ni + i, b = a + 1, c = a + ni + 1, d = a + ni;
+    idx.push(top[a], top[b], top[c], top[a], top[c], top[d]);
+    idx.push(bot[a], bot[c], bot[b], bot[a], bot[d], bot[c]);
+  }
+  const loop = [];
+  for (let i = 0; i < ni; i++) loop.push([i, 0]);
+  for (let j = 1; j < nj; j++) loop.push([ni - 1, j]);
+  for (let i = ni - 2; i >= 0; i--) loop.push([i, nj - 1]);
+  for (let j = nj - 2; j > 0; j--) loop.push([0, j]);
+  for (let k = 0; k < loop.length; k++) {
+    const p = loop[k], q = loop[(k + 1) % loop.length];
+    const a = vert(p[0], p[1], 1), b = vert(q[0], q[1], 1), c = vert(q[0], q[1], -1), d = vert(p[0], p[1], -1);
+    idx.push(a, b, c, a, c, d);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx); g.computeVertexNormals();
+  return g;
+}
+
+function slabPoint(S, pn, u, amp, i, j, f) {
+  const id = pn.ids[j][i], P = S.model.nodes[id], [e0, e1, e2, e3] = pn.ext, n = pn.normal;
+  let du = 0, dv = 0; if (i === 0) du = -e0; if (i === pn.ni - 1) du = e1; if (j === 0) dv = -e2; if (j === pn.nj - 1) dv = e3;
+  const o = f * pn.t / 2 + pn.off, lev = [0, 1, 2].map(k => pn.eu[k] * du + pn.ev[k] * dv + n[k] * o);
+  const r = [u[6 * id + 3], u[6 * id + 4], u[6 * id + 5]], rx = [r[1] * lev[2] - r[2] * lev[1], r[2] * lev[0] - r[0] * lev[2], r[0] * lev[1] - r[1] * lev[0]];
+  return new THREE.Vector3(...[0, 1, 2].map(k => P[k] + lev[k] + amp * (u[6 * id + k] + rx[k])));
+}
+function buildMeshLines(S, pn, u, amp) {
+  const pts = [];
+  for (const f of [1, -1]) {
+    for (let j = 0; j < pn.nj; j++) for (let i = 0; i < pn.ni - 1; i++) pts.push(slabPoint(S, pn, u, amp, i, j, f), slabPoint(S, pn, u, amp, i + 1, j, f));
+    for (let i = 0; i < pn.ni; i++) for (let j = 0; j < pn.nj - 1; j++) pts.push(slabPoint(S, pn, u, amp, i, j, f), slabPoint(S, pn, u, amp, i, j + 1, f));
+  }
+  return new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0x0f172a, transparent: true, opacity: 0.45 }));
+}
+function buildOutline(S, pn, color, opacity) {
+  const u0 = new Float64Array(6 * S.model.nodes.length), pts = [], loop = [];
+  for (let i = 0; i < pn.ni; i++) loop.push([i, 0]);
+  for (let j = 1; j < pn.nj; j++) loop.push([pn.ni - 1, j]);
+  for (let i = pn.ni - 2; i >= 0; i--) loop.push([i, pn.nj - 1]);
+  for (let j = pn.nj - 2; j > 0; j--) loop.push([0, j]);
+  for (const f of [1, -1]) for (let k = 0; k < loop.length; k++) {
+    const a = loop[k], b = loop[(k + 1) % loop.length];
+    pts.push(slabPoint(S, pn, u0, 0, a[0], a[1], f), slabPoint(S, pn, u0, 0, b[0], b[1], f));
+  }
+  [[0, 0], [pn.ni - 1, 0], [pn.ni - 1, pn.nj - 1], [0, pn.nj - 1]].forEach(c => pts.push(slabPoint(S, pn, u0, 0, c[0], c[1], 1), slabPoint(S, pn, u0, 0, c[0], c[1], -1)));
+  return new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color, transparent: true, opacity }));
+}
+function line(pts, color, opacity = 1, dashed = false) {
+  const g = new THREE.BufferGeometry().setFromPoints(pts.map(p => p.isVector3 ? p : new THREE.Vector3(...p)));
+  const m = dashed ? new THREE.LineDashedMaterial({ color, dashSize: 12, gapSize: 8, transparent: opacity < 1, opacity })
+    : new THREE.LineBasicMaterial({ color, transparent: opacity < 1, opacity });
+  const L = new THREE.Line(g, m); if (dashed) L.computeLineDistances(); return L;
+}
+
+// Gamba / piedino: tronco di cono lungo l'asse della trave, tagliato piano a terra e sotto il piano
+function buildLeg(S, l, u, amp, vals, vmin, vmax) {
+  const G = l.G, U = l.U, ne = l.ids.length - 1, seg = 24;
+  const ax = [U[0] - G[0], U[1] - G[1], U[2] - G[2]], La = Math.hypot(...ax), a = ax.map(v => v / La);
+  const ref = Math.abs(a[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
+  let e1 = [a[1] * ref[2] - a[2] * ref[1], a[2] * ref[0] - a[0] * ref[2], a[0] * ref[1] - a[1] * ref[0]];
+  const n1 = Math.hypot(...e1); e1 = e1.map(v => v / n1);
+  const e2 = [a[1] * e1[2] - a[2] * e1[1], a[2] * e1[0] - a[0] * e1[2], a[0] * e1[1] - a[1] * e1[0]];
+  const pos = [], uv = [], idx = [];
+  for (let k = 0; k <= ne; k++) {
+    const f = k / ne, c = [0, 1, 2].map(q => G[q] + ax[q] * f), r = l.rBot + (l.rTop - l.rBot) * f, id = l.ids[k];
+    const tU = texU((vals[k] - vmin) / (vmax - vmin));
+    for (let s = 0; s <= seg; s++) {
+      const ph = 2 * Math.PI * s / seg;
+      let p = [0, 1, 2].map(q => c[q] + r * (Math.cos(ph) * e1[q] + Math.sin(ph) * e2[q]));
+      if (k === 0) { const t = p[1] / a[1]; p = p.map((v, q) => v - a[q] * t); }
+      if (k === ne) { const t = (U[1] - p[1]) / a[1]; p = p.map((v, q) => v + a[q] * t); }
+      pos.push(p[0] + amp * u[6 * id], p[1] + amp * u[6 * id + 1], p[2] + amp * u[6 * id + 2]);
+      uv.push(tU, 0.5);
+    }
+  }
+  for (let k = 0; k < ne; k++) for (let s = 0; s < seg; s++) {
+    const a0 = k * (seg + 1) + s, b0 = a0 + 1, c0 = a0 + seg + 1, d0 = c0 + 1;
+    idx.push(a0, c0, b0, b0, c0, d0);
+  }
+  const ctr = pos.length / 3; pos.push(G[0], 0.2, G[2]); uv.push(texU((vals[0] - vmin) / (vmax - vmin)), 0.5);
+  for (let s = 0; s < seg; s++) idx.push(ctr, s + 1, s);
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx); g.computeVertexNormals();
+  return g;
+}
+
+function nearestNodeU(S, pn, p, u) {
+  let best = null, bd = Infinity;
+  pn.ids.flat().forEach(id => { const q = S.model.nodes[id], d = (q[0] - p[0]) ** 2 + (q[2] - p[2]) ** 2; if (d < bd) { bd = d; best = id; } });
+  return [u[6 * best], u[6 * best + 1], u[6 * best + 2]];
+}
+
+function drawOverlays(S, u, amp) {
+  const tip = lastTip, lp = S.loadPoint, du = nearestNodeU(S, S.loadPanel, lp, u);
+  const L = new THREE.Vector3(lp[0] + amp * du[0], lp[1] + amp * du[1], lp[2] + amp * du[2]);
+  // carico concentrato
+  if (S.P > 0) {
+    const red = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0x7f1d1d });
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(16, 44, 20), red); cone.position.set(L.x, L.y + 24, L.z); cone.rotation.x = Math.PI; overlayGroup.add(cone);
+    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 110, 10), red); shaft.position.set(L.x, L.y + 100, L.z); overlayGroup.add(shaft);
+  }
+  // poligono d'appoggio, baricentro proprio e baricentro con carico P
+  overlayGroup.add(line([...tip.poly, tip.poly[0]].map(q => [q[0], 2, q[1]]), 0x10b981));
+  const cog = new THREE.Mesh(new THREE.SphereGeometry(14, 16, 16), new THREE.MeshStandardMaterial({ color: 0x06b6d4, emissive: 0x0e7490 }));
+  cog.position.set(...tip.cog); overlayGroup.add(cog);
+  overlayGroup.add(line([tip.cog, [tip.cog[0], 0, tip.cog[2]]], 0x06b6d4, 1, true));
+  const ring = new THREE.Mesh(new THREE.RingGeometry(10, 18, 28), new THREE.MeshBasicMaterial({ color: tip.dC > 0 ? 0x22d3ee : 0xef4444, side: THREE.DoubleSide }));
+  ring.rotation.x = -Math.PI / 2; ring.position.set(tip.cogLoaded[0], 3, tip.cogLoaded[1]); overlayGroup.add(ring);
+  // appoggi
+  S.legs.forEach(l => {
+    const d = new THREE.Mesh(new THREE.CylinderGeometry(l.rBot * 1.5, l.rBot * 1.5, 3, 20), new THREE.MeshBasicMaterial({ color: $('fem-bc').value === 'fixed' ? 0xf59e0b : 0x10b981 }));
+    d.position.set(l.G[0], 1.5, l.G[2]); overlayGroup.add(d);
+  });
+  // ancoraggio a parete (libreria)
+  if (S.kind === 'bookcase' && S.anchored) {
+    const { xs, H, D, t, tb } = S.dims, zw = -D / 2 - (S.dims.back ? tb : 0) - 15;
+    const wall = new THREE.Mesh(new THREE.PlaneGeometry(S.dims.W + 600, H + 300), new THREE.MeshBasicMaterial({ color: 0x64748b, transparent: true, opacity: 0.12, side: THREE.DoubleSide }));
+    wall.position.set(0, (H + 300) / 2, zw); overlayGroup.add(wall);
+    [-xs, xs].forEach(x => { const b = new THREE.Mesh(new THREE.BoxGeometry(30, 30, 30), new THREE.MeshStandardMaterial({ color: 0xf59e0b })); b.position.set(x, H - t / 2, zw + 15); overlayGroup.add(b); });
+  }
+}
+
+function drawHandles() {
+  const W = lastP.W, D = lastP.D, H = lastP.H, hW = W / 2, hD = D / 2, c = lastP.ctrl;
+  const mat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, emissive: 0xd97706, emissiveIntensity: 0.6 });
+  [[0, hD + c.front, 0, hD], [0, -hD - c.back, 0, -hD], [-hW - c.left, 0, -hW, 0], [hW + c.right, 0, hW, 0]].forEach(q => {
+    const s = new THREE.Mesh(new THREE.SphereGeometry(14, 16, 16), mat); s.position.set(q[0], H + 8, q[1]); handlesGroup.add(s);
+    handlesGroup.add(line([[q[2], H, q[3]], [q[0], H + 8, q[1]]], 0xf59e0b, 1, true));
+  });
+}
+
+function tableOutline(S, n = 40) {
+  const pts = [], f = S.shape;
+  for (let i = 0; i < n; i++) pts.push(f(i / n, 0));
+  for (let i = 0; i < n; i++) pts.push(f(1, i / n));
+  for (let i = 0; i < n; i++) pts.push(f(1 - i / n, 1));
+  for (let i = 0; i < n; i++) pts.push(f(0, 1 - i / n));
+  return pts;
+}
+function drawCNC(S) {
+  if (S.kind === 'table') {
+    const pts = tableOutline(S).map(q => [q[0], S.dims.H + 1.5, q[1]]);
+    cncGroup.add(line([...pts, pts[0]], 0xeab308));
+  } else S.panels.forEach(pn => cncGroup.add(buildOutline(S, pn, 0xeab308, 1)));
+}
+
+// ---------------- RISULTATI E RELAZIONE ----------------
+function updateMetrics() {
+  const S = lastS, A = lastA, tip = lastTip, fdW = A.fd(woodDatabase[state.wood].yield);
+  const cls = (el, c) => { el.classList.remove('ok', 'warn', 'bad'); el.classList.add(c); };
+  $('val-fea-stress').innerText = `${A.vmMax.toFixed(2)} MPa`;
+  cls($('val-fea-stress'), A.vmMax <= fdW ? 'ok' : 'bad');
+  $('val-fea-yield').innerText = `${fdW.toFixed(1)} MPa`;
+  $('val-fea-deflection').innerText = `${A.wRel.toFixed(2)} mm`;
+  $('val-fea-deflim').innerText = `L/${S.kind === 'table' ? 300 : 200} = ${A.wLim.toFixed(1)} mm`;
+  cls($('val-fea-deflection'), A.wRel <= A.wLim ? 'ok' : 'bad'); cls($('val-fea-deflim'), A.wRel <= A.wLim ? 'ok' : 'bad');
+  $('lbl-legs-metric').innerText = (S.kind === 'table' ? 'Gambe' : 'Piedini') + ': σ max / compressione';
+  $('val-fea-legs').innerText = `${A.legSig.toFixed(2)} MPa / ${(A.legNc / 1000).toFixed(2)} kN`;
+  cls($('val-fea-legs'), A.legUtil <= 1 ? 'ok' : 'bad');
+  $('val-fea-sf').innerText = `${A.utilMax.toFixed(2)} ${A.utilMax <= 1 ? '(VERIFICATO)' : '(NON VERIF.)'}`;
+  cls($('val-fea-sf'), A.utilMax <= 0.7 ? 'ok' : (A.utilMax <= 1 ? 'warn' : 'bad'));
+  $('val-fea-tipping').innerText = S.anchored ? 'impedita' : `${tip.Fpush.toFixed(0)} N (~${(tip.Fpush / 9.81).toFixed(1)} kg)`;
+  const st = S.anchored ? ['ANCORATA', 'ok'] : (tip.dC > 0 ? ['STABILE', 'ok'] : ['SI RIBALTA', 'bad']);
+  $('val-fea-status').innerText = st[0]; cls($('val-fea-status'), st[1]);
+  $('hud-load-pos').innerText = `${S.P > 0 ? (S.P / 9.81).toFixed(0) + ' kg' : '—'} @ X ${lastP.loadX.toFixed(0)}, Z ${lastP.loadZ.toFixed(0)}` + (S.kind === 'bookcase' ? ` (${S.loadPanel.name})` : '');
+  $('hud-model').innerText = `${S.model.shells.length} shell + ${S.model.beams.length} beam · ${A.res.neq} gdl · ${A.res.ms.toFixed(0)} ms`;
+  lastLines = reportLines();
+  $('fem-report').innerHTML = lastLines.map(l => `<div>${l}</div>`).join('');
+}
+
+function reportLines() {
+  const S = lastS, A = lastA, tip = lastTip, p = lastP, m = S.model, fdW = A.fd(woodDatabase[state.wood].yield);
+  const G = m.loads[0].reduce((a, v, i) => a - (i % 6 === 1 ? v : 0), 0);
+  const legs = S.kind === 'table' ? 'gambe' : 'piedini', fixed = p.bc === 'fixed';
+  // instabilità euleriana delle gambe (telaio a nodi spostabili: β = 2 cerniera, 1 incastro)
+  const l0 = S.legs[0], Lg = Math.hypot(l0.U[0] - l0.G[0], l0.U[1] - l0.G[1], l0.U[2] - l0.G[2]);
+  const rmin = Math.min(l0.rTop, l0.rBot), I = Math.PI * rmin ** 4 / 4, beta = fixed ? 1 : 2;
+  const Ncr = Math.PI ** 2 * woodDatabase[state.wood].E * I / (beta * Lg) ** 2;
+  const out = [
+    `Mesh: ${m.shells.length} shell Q4 MITC4 + ${m.beams.length} beam 3D, ${m.nodes.length} nodi, ${A.res.neq} gdl${A.res.singular ? ' (ATTENZIONE: struttura labile)' : ''}`,
+    `Vincolo al piede: ${fixed ? 'incastro' : 'cerniera'} su ${S.legs.length} ${legs}${S.anchored ? ' + ancoraggio a parete (u_z = 0 in sommità)' : ''}`,
+    `Carichi: G_k = ${(G / 1000).toFixed(3)} kN (peso proprio), q = ${currentUsage().q.toFixed(1)} kN/m² su ${(S.area / 1e6).toFixed(2)} m², P = ${S.P.toFixed(0)} N`,
+    `Combinazioni: SLE = G + Q ; SLU = ${Structures.GAMMA_G} G + ${Structures.GAMMA_Q} Q`,
+    `Freccia relativa SLE (${A.wRelName}): ${A.wRel.toFixed(2)} mm, limite L/${S.kind === 'table' ? 300 : 200} = ${A.wLim.toFixed(1)} mm (L = ${S.span.toFixed(0)} mm) → ${A.wRel <= A.wLim ? 'OK' : 'NON VERIF.'}`,
+    `σ_VM max SLU: ${A.vmMax.toFixed(2)} MPa (${A.vmMaxAt}); f_d = ${Structures.KMOD}·f_m,k/${Structures.GAMMA_M} = ${fdW.toFixed(1)} MPa → ${A.vmMax <= fdW ? 'OK' : 'NON VERIF.'}`,
+    `${legs[0].toUpperCase() + legs.slice(1)}: σ max = ${A.legSig.toFixed(2)} MPa, N_Ed,max = ${(A.legNc / 1000).toFixed(2)} kN, N_cr Euler (β=${beta}, L=${Lg.toFixed(0)} mm) = ${(Ncr / 1000).toFixed(1)} kN → ${Ncr > A.legNc ? 'OK' : 'INSTABILE'}`,
+    `Reazioni verticali SLE: ${A.Rv.map(v => (v / 1000).toFixed(3)).join(' / ')} kN (somma ${(A.Rv.reduce((a, b) => a + b, 0) / 1000).toFixed(3)} kN)`,
+    `Ribaltamento (corpo rigido): peso proprio ${(tip.W / 9.81).toFixed(1)} kg; spinta orizzontale in sommità ${S.anchored ? 'contrastata dall\'ancoraggio' : tip.Fpush.toFixed(0) + ' N'}; P di ribaltamento nel punto scelto: ${isFinite(tip.Ptip) ? (tip.Ptip / 9.81).toFixed(0) + ' kg' : 'nessuno (interno al poligono)'}`
+  ];
+  return out;
+}
+
+// ---------------- UI HELPERS ----------------
+function setType(t) {
+  state.type = t;
+  $('type-table').classList.toggle('on', t === 'table'); $('type-bookcase').classList.toggle('on', t === 'bookcase');
+  const tb = t === 'table';
+  $('dims-table').classList.toggle('hidden', !tb); $('dims-bookcase').classList.toggle('hidden', tb);
+  $('shape-table').classList.toggle('hidden', !tb); $('shape-bookcase').classList.toggle('hidden', tb);
+  $('shelf-select-wrap').classList.toggle('hidden', tb); $('anchor-wrap').classList.toggle('hidden', tb);
+  $('dim-title').innerText = tb ? 'Dimensioni del tavolo' : 'Dimensioni della libreria';
+  $('preset-side').innerText = tb ? 'Bordo laterale' : 'Ripiano alto, fronte';
+  $('input-fea-load').max = tb ? 350 : 100;
+  fillUsage();
+  $('input-load-x').value = 0; $('input-load-z').value = 0;
+  solveAndDraw();
+  setCameraView('perspective');
+}
+function fillUsage() {
+  const sel = $('fem-use'); sel.innerHTML = '';
+  usageDB[state.type].forEach(u => { const o = document.createElement('option'); o.value = u.k; o.textContent = u.label; if (u.def) o.selected = true; sel.appendChild(o); });
+  $('input-fea-load').value = currentUsage().kg;
+}
+function setUsage(k) { $('input-fea-load').value = currentUsage().kg; scheduleSolve(); }
+
+function setLoadPreset(preset) {
+  const X = $('input-load-x'), Z = $('input-load-z');
+  if (state.type === 'table') {
+    const W = num('input-width'), D = num('input-depth');
+    const v = { center: [0, 0], front: [0, D / 2 - 40], corner: [W / 2 - 50, D / 2 - 50], side: [W / 2 - 40, 0] }[preset];
+    X.value = v[0]; Z.value = v[1];
+  } else {
+    const W = num('input-bw'), D = num('input-bd'), t = num('input-bt'), xs = W / 2 - t - 20, n = num('input-bn');
+    const v = { center: [0, 0], front: [0, D / 2 - 10], corner: [xs, D / 2 - 10], side: [0, D / 2 - 10] }[preset];
+    X.value = v[0]; Z.value = v[1];
+    if (preset === 'side') { refreshShelfOptions(n); $('input-shelf').value = String(n > 0 ? n : n + 1); }
+  }
+  scheduleSolve();
+}
+function setWoodMaterial(key, silent) {
+  state.wood = key;
+  document.querySelectorAll('.mat-btn').forEach(b => {
+    const on = b.id === `mat-${key}`;
+    b.className = 'mat-btn p-2.5 text-xs rounded-lg border text-left ' + (on ? 'border-amber-500 bg-amber-950/40 text-amber-200' : 'border-slateBorder bg-stone-900 text-slate-300');
+  });
+  woodMat.color.setHex(woodDatabase[key].color);
+  if (!silent) scheduleSolve();
+}
+function resetSplines() { ['front', 'back', 'left', 'right'].forEach(k => $('input-ctrl-' + k).value = 0); scheduleSolve(); }
+function setLegCount(n, silent) {
+  state.legCount = n;
+  const on = 'py-2 text-xs font-bold rounded-lg bg-woodAmber text-slateDark', off = 'py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-300 border border-slateBorder';
+  $('btn-leg-4').className = n === 4 ? on : off; $('btn-leg-3').className = n === 3 ? on : off;
+  if (!silent) scheduleSolve();
+}
+function toggleHandles(v) { state.showHandles = v; scheduleDraw(); }
+function toggleCNCPaths(v) { state.showCNCPaths = v; scheduleDraw(); }
+function switchTab(tab) {
+  state.tab = tab;
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+  document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('bg-woodAmber', 'text-slateDark'); b.classList.add('text-slate-300'); });
+  $(`panel-${tab}`).classList.remove('hidden');
+  const b = $(`tab-btn-${tab}`); if (b) { b.classList.add('bg-woodAmber', 'text-slateDark'); b.classList.remove('text-slate-300'); }
+  $('tab-mobile').value = tab;
+  scheduleDraw();
+}
+function setCameraView(view) {
+  const d = lastS ? lastS.dims : { W: 1200, D: 700, H: 450 }, s = Math.max(d.W, d.D, d.H), cy = d.H / 2;
+  const P = { perspective: [1.05 * s, cy + 0.75 * s, 1.25 * s], top: [0, cy + 2.2 * s, 1], front: [0, cy, 2.1 * s], side: [2.1 * s, cy, 0], floor: [0.2 * s, 40, 1.6 * s] }[view];
+  camera.position.set(...P); controls.target.set(0, cy, 0); controls.update();
+}
+
+// ---------------- EXPORT ----------------
+function exportOBJ() {
+  const heat = $('chk-fea-heatmap').checked, wc = new THREE.Color(woodDatabase[state.wood].color);
+  let out = `# SenseAble Wood 3D - ${state.type === 'table' ? 'tavolo' : 'libreria'} (mm)\n# colori vertice = ${heat ? 'mappa ' + FIELD_INFO[$('map-field').value].title : 'essenza'}\n`, off = 1;
+  modelGroup.children.forEach(mesh => {
+    const g = mesh.geometry, pos = g.attributes.position, uv = g.attributes.uv, ix = g.index;
+    out += `o ${mesh.name || 'Mesh'}\n`;
+    for (let i = 0; i < pos.count; i++) {
+      let c = [wc.r, wc.g, wc.b];
+      if (heat && lut) { const k = Math.round(clamp((uv.getX(i) - 0.5 / 256) * 256 / 255, 0, 1) * 255); c = [lut[4 * k] / 255, lut[4 * k + 1] / 255, lut[4 * k + 2] / 255]; }
+      out += `v ${pos.getX(i).toFixed(3)} ${pos.getY(i).toFixed(3)} ${pos.getZ(i).toFixed(3)} ${c.map(v => v.toFixed(3)).join(' ')}\n`;
+    }
+    for (let i = 0; i < ix.count; i += 3) out += `f ${ix.getX(i) + off} ${ix.getX(i + 1) + off} ${ix.getX(i + 2) + off}\n`;
+    off += pos.count;
+  });
+  downloadFile(out, `SenseAble_${state.type}.obj`, 'text/plain');
+  showToast('Esportazione completata', 'Mesh OBJ scaricata (con colori per vertice).');
+}
+function exportFEAReport() {
+  const w = woodDatabase[state.wood], p = lastP;
+  const dims = state.type === 'table'
+    ? `Tavolo ${p.W} x ${p.D} x ${p.H} mm, piano sp. ${p.T} mm, ${p.legCount} gambe Ø${p.rTop * 2}/${p.rBot * 2} mm, inclinazione ${p.legAngle}°`
+    : `Libreria ${p.W} x ${p.D} x ${p.H} mm, pannelli sp. ${p.t} mm, ${p.nShelves} ripiani, piedini h ${p.hf} mm Ø${p.footR * 2}, schienale ${p.back ? 'sì (6 mm)' : 'no'}`;
+  const txt = `====================================================
+SENSEABLE WOOD - RELAZIONE DI CALCOLO STATICO (FEM)
+====================================================
+${dims}
+Essenza: ${state.wood.toUpperCase()} (E = ${w.E} MPa, f_m,k = ${w.yield} MPa, rho = ${w.density} kg/m3)
+Modello: piastre/shell Q4 MITC4 (membrana + flessione + taglio) e travi 3D di Eulero-Bernoulli.
+Materiale lineare elastico isotropo (nu = 0.3); analisi statica lineare, piccoli spostamenti.
+
+${lastLines.join('\n')}
+====================================================
+Nota: verifiche indicative, non sostituiscono la progettazione secondo NTC/EC5.`;
+  downloadFile(txt, `Relazione_FEM_${state.type}.txt`, 'text/plain');
+  showToast('Relazione generata', 'File di testo scaricato.');
+}
+function exportGCode() {
+  const post = $('cnc-post').value, S = lastS, v = 10, Pw = 130;
+  let parts;
+  if (S.kind === 'table') parts = [{ name: 'Piano sagomato', t: S.dims.T, pts: tableOutline(S, 60).map(q => ({ x: q[0], y: -q[1] })) }];
+  else {
+    const { W, H, D, t, hf, back } = S.dims, inner = W - 2 * t, rect = (w, h) => [{ x: 0, y: 0 }, { x: w, y: 0 }, { x: w, y: h }, { x: 0, y: h }];
+    parts = [{ name: 'Fianco sx', t, pts: rect(D, H - hf) }, { name: 'Fianco dx', t, pts: rect(D, H - hf) }];
+    S.levels.forEach((_, k) => parts.push({ name: k === 0 ? 'Fondo' : (k === S.levels.length - 1 ? 'Cielo' : `Ripiano ${k}`), t, pts: rect(inner, D) }));
+    if (back) parts.push({ name: 'Schienale', t: 6, pts: rect(W, H - hf) });
+  }
+  let g = `; SENSEABLE WOOD - G-CODE LASER CO2 (${post})\n; Laser 150 W, piano di lavoro 2500x1350 mm, potenza ${Pw} W, v = ${v} mm/s\nG21\nG90\n`, allFit = true;
+  parts.forEach(pt => {
+    const xs = pt.pts.map(p => p.x), ys = pt.pts.map(p => p.y), x0 = Math.min(...xs), y0 = Math.min(...ys);
+    const bx = Math.max(...xs) - x0, by = Math.max(...ys) - y0, fits = (bx <= 2500 && by <= 1350) || (bx <= 1350 && by <= 2500);
+    allFit = allFit && fits;
+    const c = p => `X${(p.x - x0).toFixed(2)} Y${(p.y - y0).toFixed(2)}`;
+    g += `\n; --- ${pt.name}: ${bx.toFixed(0)} x ${by.toFixed(0)} mm, sp. ${pt.t} mm ${fits ? '' : '(FUORI CAMPO)'}\n`;
+    pt.pts.forEach((p, i) => { g += i === 0 ? `G00 ${c(p)}\nM03 S${Pw}\n` : `G01 ${c(p)} F${v * 60}\n`; });
+    g += `G01 ${c(pt.pts[0])} F${v * 60}\nM05\n`;
+  });
+  g += 'M30\n';
+  downloadFile(g, `SenseAble_${state.type}_${post}.nc`, 'text/plain');
+  showToast('G-code esportato', allFit ? `${parts.length} contorni di taglio generati.` : 'Attenzione: almeno un pezzo supera il campo 2500x1350.');
+}
+function downloadFile(content, filename, type) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content], { type })); a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+function showToast(title, msg) {
+  const t = $('toast'); $('toast-title').innerText = title; $('toast-msg').innerText = msg;
+  t.classList.remove('-translate-y-20', 'opacity-0'); t.classList.add('translate-y-0', 'opacity-100');
+  setTimeout(() => { t.classList.remove('translate-y-0', 'opacity-100'); t.classList.add('-translate-y-20', 'opacity-0'); }, 3500);
+}
+function onWindowResize() {
+  const c = $('canvas-container'); camera.aspect = c.clientWidth / c.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(c.clientWidth, c.clientHeight);
+}
+function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3cad Studio 3D - Salotto & Living Room</title>
+  <style>
+    :root {
+      --bg-main: #0a0f1d;
+      --panel-bg: #1e293b;
+      --panel-border: #334155;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --active: #10b981;
+      --danger: #ef4444;
+      --rhino-color: #d97706;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+    /* Header */
+    header {
+      background: #060913;
+      border-bottom: 1px solid var(--panel-border);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+    }
+    .brand { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .brand span { background: var(--accent); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; }
+
+    .header-actions { display: flex; gap: 10px; }
+
+    /* Layout Principale */
+    .app-container { flex: 1; display: flex; overflow: hidden; position: relative; }
+
+    /* Sidebars */
+    .sidebar {
+      width: 320px;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      overflow-y: auto;
+    }
+    .sidebar-right { border-right: none; border-left: 1px solid var(--panel-border); }
+
+    .panel-section { padding: 16px; border-bottom: 1px solid var(--panel-border); }
+    .panel-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.05em; }
+
+    /* Controls UI */
+    .btn {
+      background: var(--panel-border);
+      color: var(--text);
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      width: 100%;
+      margin-bottom: 8px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn:hover { background: var(--accent); color: white; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-success { background: #059669; color: white; }
+    .btn-success:hover { background: #047857; }
+    .btn-rhino { background: var(--rhino-color); color: white; }
+    .btn-rhino:hover { background: #b45309; }
+    .btn-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: white; }
+
+    .catalog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .catalog-btn {
+      background: #0f172a; border: 1px solid var(--panel-border); color: var(--text);
+      padding: 10px; border-radius: 6px; font-size: 0.78rem; text-align: center; cursor: pointer;
+    }
+    .catalog-btn:hover { border-color: var(--accent); background: #1a2744; }
+
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+    .form-control {
+      width: 100%; background: #0f172a; border: 1px solid var(--panel-border);
+      color: var(--text); padding: 6px 10px; border-radius: 4px; font-size: 0.85rem;
+    }
+    input[type="file"].form-control { padding: 4px; font-size: 0.75rem; cursor: pointer; }
+
+    /* 3D Viewport */
+    .viewport { flex: 1; position: relative; background: #050811; }
+
+    /* Overlay Controls */
+    .viewport-overlay {
+      position: absolute; top: 15px; left: 15px; display: flex; gap: 8px; z-index: 5;
+      background: rgba(15, 23, 42, 0.85); padding: 6px; border-radius: 8px; backdrop-filter: blur(8px);
+      border: 1px solid var(--panel-border);
+    }
+    .tool-chip {
+      background: transparent; color: var(--text-muted); border: none; padding: 6px 12px;
+      font-size: 0.8rem; border-radius: 4px; cursor: pointer; font-weight: 600;
+    }
+    .tool-chip.active, .tool-chip:hover { background: var(--accent); color: white; }
+
+    .nav-help {
+      position: absolute; bottom: 15px; left: 15px; background: rgba(15, 23, 42, 0.85);
+      padding: 10px 14px; border-radius: 6px; border: 1px solid var(--panel-border);
+      font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; pointer-events: none;
+    }
+
+    /* Quote Box */
+    .quote-box { background: #0f172a; padding: 12px; border-radius: 6px; border: 1px solid var(--panel-border); }
+    .quote-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px; }
+    .quote-total { font-weight: bold; color: var(--active); font-size: 1.05rem; border-top: 1px solid var(--panel-border); padding-top: 6px; margin-top: 6px; }
+
+    /* MODALE ESPLORAZIONE ED EDITING MODULO */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+      display: none; justify-content: center; align-items: center; z-index: 100;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-container {
+      background: var(--panel-bg); border: 1px solid var(--panel-border);
+      border-radius: 12px; width: 95vw; max-width: 1250px; height: 90vh;
+      display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+    .modal-header {
+      padding: 15px 20px; background: #0d1322; border-bottom: 1px solid var(--panel-border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-body { flex: 1; display: grid; grid-template-columns: 320px 1fr 1fr; gap: 15px; padding: 15px; overflow: hidden; }
+    .modal-close { background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    .modal-close:hover { color: white; }
+
+    .modal-sidebar { background: #0d1322; border: 1px solid var(--panel-border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+
+    .modal-view-box { background: #080c18; border: 1px solid var(--panel-border); border-radius: 8px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+    .view-title { position: absolute; top: 10px; left: 10px; background: rgba(15,23,42,0.85); padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; z-index: 2; border: 1px solid var(--panel-border); }
+
+    /* Griglia parti piane */
+    .plane-views-grid { display: grid; grid-template-rows: 1fr 1fr 1fr; gap: 10px; height: 100%; }
+    .plane-canvas-card { background: #080c18; border: 1px solid var(--panel-border); border-radius: 8px; position: relative; display: flex; justify-content: center; align-items: center; }
+    canvas.plane-canvas { width: 100%; height: 100%; display: block; }
+
+    .badge-surface { display: inline-block; background: var(--accent); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px; }
+  </style>
+
+  <!-- Three.js + OrbitControls + TransformControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+</head>
+<body>
+
+  <header>
+    <div class="brand">3cad Studio 3D <span>Salotto & Living Room</span></div>
+    <div class="header-actions">
+      <button class="btn btn-rhino" style="width: auto; margin-bottom:0;" onclick="exportSceneToRhino()">🦏 Esporta Scena per Rhino 7 (.OBJ)</button>
+      <button class="btn btn-primary" style="width: auto; margin-bottom:0;" onclick="resetToDefaultLiving()">📂 Reset Salotto</button>
+    </div>
+  </header>
+
+  <div class="app-container">
+    
+    <!-- Sidebar Sinistra: Catalogo & Viste -->
+    <aside class="sidebar">
+      <div class="panel-section">
+        <div class="panel-title">Inquadrature Telecamera</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+          <button class="btn" onclick="setCameraView('perspective')">📷 3D Libero</button>
+          <button class="btn" onclick="setCameraView('top')">📐 Pianta 2D</button>
+          <button class="btn" onclick="setCameraView('front')">🖼️ Frontale</button>
+          <button class="btn" onclick="setCameraView('iso')">🧊 Assonometria</button>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">Arredi Salotto & Living</div>
+        <div class="catalog-grid">
+          <div class="catalog-btn" onclick="addSofa3Seater()">🛋️ Divano 3 Posti</div>
+          <div class="catalog-btn" onclick="addArmchair()">🪑 Poltrona Design</div>
+          <div class="catalog-btn" onclick="addCoffeeTable()">☕ Tavolino Salotto</div>
+          <div class="catalog-btn" onclick="addPainting()">🖼️ Quadro Parete</div>
+          <div class="catalog-btn" onclick="addChandelier()">💡 Lampadario Ring</div>
+          <div class="catalog-btn" onclick="addTvUnit()">📺 Mobile TV</div>
+          <div class="catalog-btn" onclick="addRug()">🟫 Tappeto Soft</div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">Visibilità Struttura</div>
+        <button class="btn" onclick="toggleWalls()">👁️ Mostra/Nascondi Pareti</button>
+      </div>
+    </aside>
+
+    <!-- Viewport 3D -->
+    <main class="viewport">
+      <div class="viewport-overlay">
+        <button class="tool-chip active" id="btn-mode-translate" onclick="setTransformMode('translate')">↔️ Sposta</button>
+        <button class="tool-chip" id="btn-mode-rotate" onclick="setTransformMode('rotate')">🔄 Ruota</button>
+        <button class="tool-chip" onclick="deselectObject()" style="color:var(--danger)">✕ Deseleziona</button>
+      </div>
+
+      <div class="nav-help">
+        <strong>Salotto 3D Interattivo:</strong><br>
+        • Clicca sui <strong>Quadri</strong> per caricare la tua immagine/opera preferita.<br>
+        • Clicca su <strong>Divani, Poltrone o Pareti</strong> per personalizzarne tessuti e texture.<br>
+        • Usa <strong>"Modifica Avanzata"</strong> per scomposizione CAD e superfici piane.
+      </div>
+
+      <div id="canvas-container" style="width:100%; height:100%;"></div>
+    </main>
+
+    <!-- Sidebar Destra: Ispettore Dinamico -->
+    <aside class="sidebar sidebar-right">
+      <div class="panel-section">
+        <div class="panel-title" id="inspector-title">Ispettore Oggetto</div>
+        
+        <div id="no-selection" style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 25px 0;">
+          Nessun elemento selezionato.<br>Clicca su un arredo, quadro, lampadario o parete.
+        </div>
+
+        <div id="inspector-form" style="display: none;">
+          <div id="btn-cad-container">
+            <button class="btn btn-success" style="margin-bottom: 15px; padding: 10px; font-size: 0.88rem;" onclick="openObjectExplorer()">
+              🔍 Modifica Avanzata & CAD Superfici
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label>Nome / Identificativo Elemento</label>
+            <input type="text" id="inp-name" class="form-control" onchange="updateSelectedObjectFromInputs()">
+          </div>
+
+          <!-- CARICAMENTO TEXTURE / IMMAGINE QUADRO -->
+          <div class="form-group" style="background: rgba(37,99,235,0.1); padding: 10px; border-radius: 6px; border: 1px solid rgba(37,99,235,0.3);">
+            <label style="color: #60a5fa; font-weight: bold;" id="lbl-tex-upload">🖼️ Carica Immagine / Texture Tela</label>
+            <input type="file" id="inp-obj-tex" accept="image/*" class="form-control" onchange="applyTextureToSelectedFromInspector(event)">
+          </div>
+
+          <div class="form-group" id="group-color">
+            <label>Colore / Tonalità Tessuto</label>
+            <input type="color" id="inp-color" class="form-control" style="height:38px; padding:2px;" onchange="updateSelectedObjectFromInputs()">
+          </div>
+
+          <div id="transform-controls-group">
+            <div class="form-group">
+              <label>Posizione X (cm)</label>
+              <input type="number" id="inp-x" step="5" class="form-control" oninput="updateSelectedObjectFromInputs()">
+            </div>
+            <div class="form-group">
+              <label>Altezza Y (cm)</label>
+              <input type="number" id="inp-y" step="5" class="form-control" oninput="updateSelectedObjectFromInputs()">
+            </div>
+            <div class="form-group">
+              <label>Posizione Z (cm)</label>
+              <input type="number" id="inp-z" step="5" class="form-control" oninput="updateSelectedObjectFromInputs()">
+            </div>
+            <div class="form-group">
+              <label>Rotazione Y (Gradi)</label>
+              <input type="range" id="inp-rot" min="0" max="360" step="15" class="form-control" oninput="updateSelectedObjectFromInputs()">
+            </div>
+          </div>
+
+          <button class="btn btn-danger" id="btn-delete-obj" style="margin-top: 15px;" onclick="deleteSelectedObject()">🗑️ Elimina Elemento</button>
+        </div>
+      </div>
+
+      <div class="panel-section" style="margin-top: auto;">
+        <div class="panel-title">Preventivo Salotto</div>
+        <div class="quote-box">
+          <div class="quote-row"><span>Arredi Inseriti:</span> <strong id="q-items">0</strong></div>
+          <div class="quote-row"><span>Totale Imponibile:</span> <strong id="q-subtotal">€0</strong></div>
+          <div class="quote-row"><span>Sconto Promozionale:</span> <strong style="color:var(--danger)">-10%</strong></div>
+          <div class="quote-row quote-total"><span>Totale Netto:</span> <span id="q-total">€0</span></div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- MODALE EDITING AVANZATO & TEXTURE SUPERFICI PIANE -->
+  <div class="modal-overlay" id="exploreModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modal-title" style="color: white; font-size: 1.1rem;">Editor Avanzato Superfici e CAD</h3>
+        <button class="modal-close" onclick="closeObjectExplorer()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Colonna 1: Parametri e Gestione Texture Superfici Piane -->
+        <div class="modal-sidebar">
+          <div class="panel-title">Dimensioni e Parametri</div>
+
+          <div class="form-group">
+            <label>Larghezza L (cm)</label>
+            <input type="number" id="mod-inp-w" class="form-control" min="20" max="400" step="5" oninput="onModalParamChange()">
+          </div>
+
+          <div class="form-group">
+            <label>Altezza H (cm)</label>
+            <input type="number" id="mod-inp-h" class="form-control" min="10" max="300" step="5" oninput="onModalParamChange()">
+          </div>
+
+          <div class="form-group">
+            <label>Profondità P (cm)</label>
+            <input type="number" id="mod-inp-d" class="form-control" min="20" max="300" step="5" oninput="onModalParamChange()">
+          </div>
+
+          <hr style="border:none; border-top:1px solid var(--panel-border); margin:10px 0;">
+
+          <div class="panel-title">Texture Superfici Piane</div>
+          
+          <div class="form-group">
+            <label>Superficie Piana Target</label>
+            <select id="mod-surface-select" class="form-control" onchange="onModalSurfaceSelectChange()">
+              <option value="all">Tutte le Superfici</option>
+              <option value="top">Cuscini Seduta / Piano Superiori (Top)</option>
+              <option value="front">Schienali / Frontali (Front)</option>
+              <option value="sides">Braccioli / Struttura (Sides/Frame)</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="background: rgba(37,99,235,0.15); padding: 10px; border-radius: 6px; border: 1px solid var(--accent);">
+            <div id="selected-surface-badge" class="badge-surface">Target: Tutte le Superfici</div>
+            <label style="color:#60a5fa; font-weight:bold;">🖼️ Carica Immagine/Texture</label>
+            <input type="file" id="mod-inp-surface-tex" accept="image/*" class="form-control" onchange="onModalSurfaceTextureUpload(event)">
+          </div>
+
+          <button class="btn btn-danger" style="padding: 4px; font-size:0.75rem;" onclick="resetModalSurfaceTexture()">Rimuovi Texture Superficie Selezionata</button>
+
+          <hr style="border:none; border-top:1px solid var(--panel-border); margin:10px 0;">
+
+          <button class="btn btn-success" onclick="applyModalChangesToMainScene()">
+            💾 Applica e Mantieni Texture in Scena
+          </button>
+
+          <button class="btn btn-primary" onclick="exportPlaneViewsToCAD()">
+            📐 Esporta Parti Piane CAD (.DXF)
+          </button>
+        </div>
+
+        <!-- Colonna 2: Visualizzatore 3D Secondario -->
+        <div class="modal-view-box">
+          <div class="view-title">3D Interattivo - Clicca su una superficie piana per selezionarla</div>
+          <div id="modal-3d-canvas" style="width:100%; height:100%;"></div>
+        </div>
+
+        <!-- Colonna 3: Parti Piane 2D Ortogonali -->
+        <div class="plane-views-grid">
+          <div class="plane-canvas-card">
+            <div class="view-title">Prospetto Frontale (L x H)</div>
+            <canvas id="canvas-front" class="plane-canvas"></canvas>
+          </div>
+          <div class="plane-canvas-card">
+            <div class="view-title">Vista in Pianta (L x P)</div>
+            <canvas id="canvas-top" class="plane-canvas"></canvas>
+          </div>
+          <div class="plane-canvas-card">
+            <div class="view-title">Vista Laterale (P x H)</div>
+            <canvas id="canvas-side" class="plane-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- SCENA PRINCIPALE THREE.JS & CONTROLLI ---
+    let scene, camera, renderer, orbitControls, transformControls;
+    let raycaster, mouse;
+    let livingGroup, wallsGroup;
+    let selectedObject = null;
+    let objectsRegistry = [];
+
+    // Modal 3D scene variables
+    let modalScene, modalCamera, modalRenderer, modalOrbitControls, modalMeshGroup;
+    let modalRaycaster, modalMouse;
+    let tempModalConfig = {};
+    let selectedModalSurfaceKey = 'all';
+
+    // Palette Materiali Living Room
+    const MATERIALS = {
+      oakWood: 0xb58253,
+      walnutDark: 0x4a2e1b,
+      fabricBeige: 0xd6cbb8,
+      fabricBlue: 0x2e4057,
+      fabricAnthracite: 0x333a42,
+      leatherCognac: 0x9e522b,
+      marbleDark: 0x22252a,
+      glassDark: 0x1e293b,
+      metalGold: 0xd4af37,
+      metalBlack: 0x111827,
+      wallColor: 0xebdcd5,
+      carpetColor: 0x9ca3af
+    };
+
+    function init() {
+      const container = document.getElementById('canvas-container');
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a0f1d);
+
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera.position.set(6.0, 4.0, 7.0);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+      orbitControls.enableDamping = true;
+      orbitControls.dampingFactor = 0.05;
+      orbitControls.target.set(3.25, 1.0, 2.5);
+
+      transformControls = new THREE.TransformControls(camera, renderer.domElement);
+      transformControls.setSize(0.85);
+      scene.add(transformControls);
+
+      transformControls.addEventListener('dragging-changed', function (event) {
+        orbitControls.enabled = !event.value;
+      });
+
+      transformControls.addEventListener('change', function () {
+        if (selectedObject && selectedObject.type === 'furniture') syncInspectorInputs();
+      });
+
+      // Luci Scena
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+      dirLight.position.set(8, 12, 10);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      scene.add(dirLight);
+
+      livingGroup = new THREE.Group();
+      wallsGroup = new THREE.Group();
+      scene.add(livingGroup);
+      scene.add(wallsGroup);
+
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2();
+
+      window.addEventListener('resize', onWindowResize);
+      renderer.domElement.addEventListener('pointerdown', onPointerDown);
+
+      buildRoomStructure();
+      resetToDefaultLiving();
+      initModal3DScene();
+
+      animate();
+    }
+
+    // --- STRUTTURA PARETI & PAVIMENTO SELEZIONABILI ---
+    function buildRoomStructure() {
+      wallsGroup.clear();
+
+      // Pavimento Parquet Rovere
+      const floorMat = new THREE.MeshStandardMaterial({ color: MATERIALS.oakWood, roughness: 0.4 });
+      const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(8, 6.5), floorMat);
+      floorMesh.rotation.x = -Math.PI / 2;
+      floorMesh.position.set(3.25, 0, 2.5);
+      floorMesh.receiveShadow = true;
+      wallsGroup.add(floorMesh);
+
+      registerSelectableObject({
+        id: 'env_floor', name: 'Pavimento Parquet', type: 'floor',
+        mesh: floorMesh, mainMesh: floorMesh, config: { color: MATERIALS.oakWood, surfaceTextures: {} }
+      });
+
+      // Griglia Guida
+      const grid = new THREE.GridHelper(8, 16, 0x334155, 0x1e293b);
+      grid.position.set(3.25, 0.001, 2.5);
+      wallsGroup.add(grid);
+
+      // Parete Posteriore
+      const backWallMesh = createWallMesh(8, 3.2, 0.15);
+      backWallMesh.position.set(3.25, 1.6, -0.075);
+      wallsGroup.add(backWallMesh);
+      registerSelectableObject({
+        id: 'env_wall_back', name: 'Parete Posteriore', type: 'wall',
+        mesh: backWallMesh, mainMesh: backWallMesh, config: { color: MATERIALS.wallColor, surfaceTextures: {} }
+      });
+
+      // Parete Sinistra
+      const leftWallMesh = createWallMesh(0.15, 3.2, 6.5);
+      leftWallMesh.position.set(-0.75, 1.6, 2.5);
+      wallsGroup.add(leftWallMesh);
+      registerSelectableObject({
+        id: 'env_wall_left', name: 'Parete Sinistra', type: 'wall',
+        mesh: leftWallMesh, mainMesh: leftWallMesh, config: { color: MATERIALS.wallColor, surfaceTextures: {} }
+      });
+
+      // Parete Destra
+      const rightWallMesh = createWallMesh(0.15, 3.2, 6.5);
+      rightWallMesh.position.set(7.25, 1.6, 2.5);
+      wallsGroup.add(rightWallMesh);
+      registerSelectableObject({
+        id: 'env_wall_right', name: 'Parete Destra', type: 'wall',
+        mesh: rightWallMesh, mainMesh: rightWallMesh, config: { color: MATERIALS.wallColor, surfaceTextures: {} }
+      });
+    }
+
+    function createWallMesh(w, h, d) {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, d),
+        new THREE.MeshStandardMaterial({ color: MATERIALS.wallColor, roughness: 0.85 })
+      );
+      mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    function registerSelectableObject(objData) {
+      objData.mainMesh.userData = { registryId: objData.id };
+      objectsRegistry.push(objData);
+    }
+
+    // --- CARICAMENTO TEXTURE & GESTIONE IMMAGINI ---
+    function loadTextureFromFile(file, callback) {
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      const loader = new THREE.TextureLoader();
+      loader.load(url, (texture) => {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        callback(texture, url);
+      });
+    }
+
+    // --- COSTRUTTORE ARREDI LIVING ROOM NON SCHEMATICI ---
+    function buildFurnitureGroup(config) {
+      const group = new THREE.Group();
+      const surfaceTextures = config.surfaceTextures || {};
+      const defaultColor = config.color || MATERIALS.fabricBeige;
+
+      function getSurfaceMaterial(surfaceKey, fallbackColor, roughness = 0.6) {
+        const texUrl = surfaceTextures[surfaceKey] || surfaceTextures['all'] || config.textureUrl;
+        const mat = new THREE.MeshStandardMaterial({
+          color: texUrl ? 0xffffff : (fallbackColor || defaultColor),
+          roughness: roughness
+        });
+
+        if (texUrl) {
+          new THREE.TextureLoader().load(texUrl, (tex) => {
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(1, 1);
+            mat.map = tex;
+            mat.needsUpdate = true;
+          });
+        }
+        return mat;
+      }
+
+      const w = config.w, h = config.h, d = config.d;
+      let topMesh, frontMesh, sidesMesh;
+
+      if (config.type === 'sofa') {
+        // DIVANO 3 POSTI STRUTTURATO
+        const seatMat = getSurfaceMaterial('top', defaultColor, 0.7);
+        const backMat = getSurfaceMaterial('front', defaultColor, 0.7);
+        const frameMat = getSurfaceMaterial('sides', config.frameColor || MATERIALS.walnutDark, 0.5);
+
+        // Basamento e Piedini
+        const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(w, 0.12, d), frameMat);
+        baseMesh.position.set(0, 0.06, 0);
+        baseMesh.castShadow = true;
+        group.add(baseMesh);
+
+        // 3 Cuscini Seduta Morbidi (Top)
+        const seatGroup = new THREE.Group();
+        const cushionW = (w - 0.36) / 3;
+        for (let i = 0; i < 3; i++) {
+          const cuscino = new THREE.Mesh(new THREE.BoxGeometry(cushionW - 0.02, 0.22, d - 0.22), seatMat);
+          cuscino.position.set(-w/2 + 0.18 + cushionW/2 + i*cushionW, 0.23, 0.05);
+          cuscino.castShadow = true;
+          cuscino.userData = { surfaceKey: 'top', surfaceName: 'Cuscini Seduta' };
+          seatGroup.add(cuscino);
+        }
+        topMesh = seatGroup.children[1] || baseMesh;
+        group.add(seatGroup);
+
+        // 3 Cuscini Schienale Inclinati (Front)
+        const backGroup = new THREE.Group();
+        for (let i = 0; i < 3; i++) {
+          const schienale = new THREE.Mesh(new THREE.BoxGeometry(cushionW - 0.02, h - 0.35, 0.22), backMat);
+          schienale.position.set(-w/2 + 0.18 + cushionW/2 + i*cushionW, h/2 + 0.05, -d/2 + 0.14);
+          schienale.rotation.x = -0.08;
+          schienale.castShadow = true;
+          schienale.userData = { surfaceKey: 'front', surfaceName: 'Cuscini Schienale' };
+          backGroup.add(schienale);
+        }
+        frontMesh = backGroup.children[1];
+        group.add(backGroup);
+
+        // Braccioli Laterali Sagomati (Sides)
+        const armLeft = new THREE.Mesh(new THREE.BoxGeometry(0.18, h - 0.18, d), frameMat);
+        armLeft.position.set(-w/2 + 0.09, h/2 - 0.03, 0);
+        armLeft.castShadow = true;
+        armLeft.userData = { surfaceKey: 'sides', surfaceName: 'Braccioli' };
+        
+        const armRight = armLeft.clone();
+        armRight.position.x = w/2 - 0.09;
+
+        sidesMesh = armLeft;
+        group.add(armLeft);
+        group.add(armRight);
+
+      } else if (config.type === 'armchair') {
+        // POLTRONA DESIGN ERGONOMICA
+        const seatMat = getSurfaceMaterial('top', defaultColor, 0.7);
+        const backMat = getSurfaceMaterial('front', defaultColor, 0.7);
+        const legMat = getSurfaceMaterial('sides', MATERIALS.metalGold, 0.2);
+
+        // Seduta Imbottita (Top)
+        topMesh = new THREE.Mesh(new THREE.BoxGeometry(w - 0.16, 0.20, d - 0.16), seatMat);
+        topMesh.position.set(0, 0.25, 0.02);
+        topMesh.userData = { surfaceKey: 'top', surfaceName: 'Cuscino Seduta Poltrona' };
+        topMesh.castShadow = true;
+        group.add(topMesh);
+
+        // Schienale Avvolgente (Front)
+        frontMesh = new THREE.Mesh(new THREE.BoxGeometry(w - 0.1, h - 0.3, 0.16), backMat);
+        frontMesh.position.set(0, h/2 + 0.08, -d/2 + 0.12);
+        frontMesh.rotation.x = -0.06;
+        frontMesh.userData = { surfaceKey: 'front', surfaceName: 'Schienale Poltrona' };
+        frontMesh.castShadow = true;
+        group.add(frontMesh);
+
+        // Braccioli
+        const armL = new THREE.Mesh(new THREE.BoxGeometry(0.1, h - 0.28, d - 0.08), backMat);
+        armL.position.set(-w/2 + 0.05, h/2 - 0.02, 0);
+        const armR = armL.clone();
+        armR.position.x = w/2 - 0.05;
+        group.add(armL); group.add(armR);
+
+        // Gambe Coniche in Metallo/Legno
+        const legGeo = new THREE.CylinderGeometry(0.02, 0.01, 0.22);
+        const legsPos = [
+          [-w/2 + 0.1, 0.11, -d/2 + 0.1], [w/2 - 0.1, 0.11, -d/2 + 0.1],
+          [-w/2 + 0.1, 0.11, d/2 - 0.1],  [w/2 - 0.1, 0.11, d/2 - 0.1]
+        ];
+        legsPos.forEach(p => {
+          const leg = new THREE.Mesh(legGeo, legMat);
+          leg.position.set(p[0], p[1], p[2]);
+          leg.castShadow = true;
+          group.add(leg);
+        });
+        sidesMesh = armL;
+
+      } else if (config.type === 'coffeeTable') {
+        // TAVOLINO DA SALOTTO
+        const topMat = getSurfaceMaterial('top', config.topColor || MATERIALS.marbleDark, 0.2);
+        const legMat = getSurfaceMaterial('sides', MATERIALS.metalGold, 0.3);
+
+        // Piano Tavolino (Top)
+        topMesh = new THREE.Mesh(new THREE.BoxGeometry(w, 0.04, d), topMat);
+        topMesh.position.set(0, h - 0.02, 0);
+        topMesh.userData = { surfaceKey: 'top', surfaceName: 'Piano Marmo/Legno' };
+        topMesh.castShadow = true;
+        group.add(topMesh);
+
+        frontMesh = topMesh;
+
+        // Struttura a Gabbia Metallica
+        const frameBox = new THREE.Mesh(new THREE.BoxGeometry(w - 0.08, h - 0.04, d - 0.08), legMat);
+        frameBox.position.set(0, (h - 0.04)/2, 0);
+        sidesMesh = frameBox;
+        group.add(frameBox);
+
+      } else if (config.type === 'painting') {
+        // QUADRO DA PARETE CON TELA PERSONALIZZABILE
+        const frameMat = new THREE.MeshStandardMaterial({ color: MATERIALS.walnutDark, roughness: 0.5 });
+        const canvasMat = getSurfaceMaterial('front', 0xffffff, 0.9);
+
+        // Cornice
+        const frameMesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.04), frameMat);
+        frameMesh.position.set(0, 0, 0);
+        frameMesh.castShadow = true;
+        group.add(frameMesh);
+
+        // Tela Pittorica (Front)
+        frontMesh = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.1, h - 0.1), canvasMat);
+        frontMesh.position.set(0, 0, 0.022);
+        frontMesh.userData = { surfaceKey: 'front', surfaceName: 'Immagine Quadro / Opera' };
+        group.add(frontMesh);
+
+        topMesh = frontMesh;
+        sidesMesh = frameMesh;
+
+      } else if (config.type === 'chandelier') {
+        // LAMPADARIO MODERN RING A SOSPENSIONE
+        const goldMat = new THREE.MeshStandardMaterial({ color: MATERIALS.metalGold, metalness: 0.8, roughness: 0.2 });
+        const bulbMat = new THREE.MeshBasicMaterial({ color: 0xfffbeb });
+
+        // Cavo di sospensione
+        const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, h), goldMat);
+        wire.position.set(0, -h/2, 0);
+        group.add(wire);
+
+        // Anello Principale
+        const ringGeo = new THREE.TorusGeometry(w/2, 0.025, 16, 32);
+        topMesh = new THREE.Mesh(ringGeo, goldMat);
+        topMesh.rotation.x = Math.PI / 2;
+        topMesh.position.set(0, -h, 0);
+        topMesh.userData = { surfaceKey: 'top', surfaceName: 'Anello Lampadario' };
+        group.add(topMesh);
+
+        // 4 Sfere Luminose
+        for (let i = 0; i < 4; i++) {
+          const angle = (i * Math.PI) / 2;
+          const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 16), bulbMat);
+          bulb.position.set((w/2) * Math.cos(angle), -h, (w/2) * Math.sin(angle));
+          group.add(bulb);
+        }
+
+        // Luce Puntiforme Reale emanata dal Lampadario
+        const pointLight = new THREE.PointLight(0xfff5d6, 1.2, 8);
+        pointLight.position.set(0, -h - 0.1, 0);
+        group.add(pointLight);
+
+        frontMesh = topMesh;
+        sidesMesh = topMesh;
+
+      } else if (config.type === 'tvUnit') {
+        // MOBILE TV / PARETE ATTREZZATA
+        const bodyMat = getSurfaceMaterial('sides', defaultColor, 0.5);
+        const topMat = getSurfaceMaterial('top', config.topColor || MATERIALS.walnutDark, 0.4);
+        const frontMat = getSurfaceMaterial('front', defaultColor, 0.5);
+
+        // Corpo Mobile
+        sidesMesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), bodyMat);
+        sidesMesh.position.set(0, h/2, 0);
+        sidesMesh.castShadow = true;
+        group.add(sidesMesh);
+
+        // Top Superiore
+        topMesh = new THREE.Mesh(new THREE.BoxGeometry(w + 0.02, 0.03, d + 0.02), topMat);
+        topMesh.position.set(0, h + 0.015, 0);
+        group.add(topMesh);
+
+        // Ante Frontali
+        frontMesh = new THREE.Mesh(new THREE.BoxGeometry(w - 0.04, h - 0.06, 0.02), frontMat);
+        frontMesh.position.set(0, h/2, d/2 + 0.01);
+        frontMesh.userData = { surfaceKey: 'front', surfaceName: 'Ante Frontali TV' };
+        group.add(frontMesh);
+
+      } else {
+        // Tappeto Soft
+        topMesh = new THREE.Mesh(new THREE.BoxGeometry(w, 0.01, d), getSurfaceMaterial('top', defaultColor, 0.9));
+        topMesh.position.set(0, 0.005, 0);
+        topMesh.userData = { surfaceKey: 'top', surfaceName: 'Superficie Tappeto' };
+        topMesh.receiveShadow = true;
+        group.add(topMesh);
+
+        frontMesh = topMesh; sidesMesh = topMesh;
+      }
+
+      return { group, mainMesh: topMesh || frontMesh, frontMesh, topMesh, sidesMesh };
+    }
+
+    function addFurnitureObject(config) {
+      config.surfaceTextures = config.surfaceTextures || {};
+      const { group, mainMesh } = buildFurnitureGroup(config);
+      group.position.set(config.x, config.y, config.z);
+      livingGroup.add(group);
+
+      const objData = {
+        id: 'obj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        name: config.name,
+        price: config.price || 350,
+        type: 'furniture',
+        mesh: group,
+        mainMesh: mainMesh,
+        config: { ...config }
+      };
+
+      registerSelectableObject(objData);
+      return objData;
+    }
+
+    function resetToDefaultLiving() {
+      deselectObject();
+      objectsRegistry.filter(o => o.type === 'furniture').forEach(obj => livingGroup.remove(obj.mesh));
+      objectsRegistry = objectsRegistry.filter(o => o.type !== 'furniture');
+
+      // 1. Tappeto Central Living
+      addFurnitureObject({
+        name: 'Tappeto Soft 250x350', type: 'rug', price: 420,
+        w: 3.5, h: 0.01, d: 2.5, x: 3.25, y: 0.0, z: 2.5, color: MATERIALS.carpetColor
+      });
+
+      // 2. Divano 3 Posti
+      addFurnitureObject({
+        name: 'Divano 3 Posti Design', type: 'sofa', price: 1650,
+        w: 2.3, h: 0.85, d: 0.95, x: 3.25, y: 0.0, z: 3.2, color: MATERIALS.fabricBlue
+      });
+
+      // 3. Poltrona Cognac
+      const armchair = addFurnitureObject({
+        name: 'Poltrona Pelle Cognac', type: 'armchair', price: 680,
+        w: 0.85, h: 0.82, d: 0.85, x: 1.1, y: 0.0, z: 2.3, color: MATERIALS.leatherCognac
+      });
+      armchair.mesh.rotation.y = Math.PI / 3;
+
+      // 4. Tavolino Central Marmo
+      addFurnitureObject({
+        name: 'Tavolino Marmo Nero', type: 'coffeeTable', price: 490,
+        w: 1.2, h: 0.38, d: 0.7, x: 3.25, y: 0.0, z: 2.2, color: MATERIALS.marbleDark
+      });
+
+      // 5. Quadro Parete Posteriore
+      addFurnitureObject({
+        name: 'Quadro Parete Art 160x100', type: 'painting', price: 320,
+        w: 1.6, h: 1.0, d: 0.04, x: 3.25, y: 1.9, z: 0.03, color: 0xf8fafc
+      });
+
+      // 6. Lampadario Ring Sospeso al Soffitto
+      addFurnitureObject({
+        name: 'Lampadario Ring Oro', type: 'chandelier', price: 550,
+        w: 0.9, h: 1.0, d: 0.9, x: 3.25, y: 3.1, z: 2.3, color: MATERIALS.metalGold
+      });
+
+      // 7. Mobile TV Parete
+      addFurnitureObject({
+        name: 'Mobile TV 200cm', type: 'tvUnit', price: 890,
+        w: 2.0, h: 0.45, d: 0.45, x: 3.25, y: 0.0, z: 0.25, color: MATERIALS.fabricAnthracite
+      });
+
+      updateQuoteUI();
+    }
+
+    // --- SELEZIONE CON MOUSE SCENA PRINCIPALE ---
+    function onPointerDown(event) {
+      if (transformControls.dragging) return;
+      if (event.button !== 0) return;
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+
+      const candidateMeshes = [];
+      objectsRegistry.forEach(o => {
+        if (o.type === 'furniture') {
+          o.mesh.traverse(c => { if (c.isMesh) candidateMeshes.push(c); });
+        } else {
+          candidateMeshes.push(o.mainMesh);
+        }
+      });
+
+      const intersects = raycaster.intersectObjects(candidateMeshes);
+
+      if (intersects.length > 0) {
+        let hit = intersects[0].object;
+        let regObj = null;
+
+        while (hit && !regObj) {
+          if (hit.userData && hit.userData.registryId) {
+            regObj = objectsRegistry.find(o => o.id === hit.userData.registryId);
+          }
+          hit = hit.parent;
+        }
+
+        if (regObj) selectObjectById(regObj.id);
+      }
+    }
+
+    function selectObjectById(id) {
+      if (selectedObject) clearHighlight(selectedObject);
+
+      selectedObject = objectsRegistry.find(o => o.id === id);
+
+      if (selectedObject) {
+        setHighlight(selectedObject);
+
+        if (selectedObject.type === 'furniture') {
+          transformControls.attach(selectedObject.mesh);
+        } else {
+          transformControls.detach();
+        }
+
+        syncInspectorInputs();
+        updateInspectorUI(true);
+      }
+    }
+
+    function setHighlight(obj) {
+      if (obj.mainMesh.material) {
+        obj.mainMesh.material.emissive = obj.mainMesh.material.emissive || new THREE.Color(0x000000);
+        obj.mainMesh.material.emissive.setHex(0x10b981);
+        obj.mainMesh.material.emissiveIntensity = 0.35;
+      }
+    }
+
+    function clearHighlight(obj) {
+      if (obj.mainMesh.material && obj.mainMesh.material.emissive) {
+        obj.mainMesh.material.emissive.setHex(0x000000);
+      }
+    }
+
+    function deselectObject() {
+      if (selectedObject) clearHighlight(selectedObject);
+      selectedObject = null;
+      transformControls.detach();
+      updateInspectorUI(false);
+    }
+
+    function setTransformMode(mode) {
+      transformControls.setMode(mode);
+      document.getElementById('btn-mode-translate').classList.toggle('active', mode === 'translate');
+      document.getElementById('btn-mode-rotate').classList.toggle('active', mode === 'rotate');
+    }
+
+    function syncInspectorInputs() {
+      if (!selectedObject) return;
+      document.getElementById('inp-name').value = selectedObject.name;
+      document.getElementById('inp-obj-tex').value = '';
+
+      const isFurniture = (selectedObject.type === 'furniture');
+      const isPainting = isFurniture && selectedObject.config.type === 'painting';
+
+      document.getElementById('lbl-tex-upload').innerText = isPainting ? '🖼️ Carica Immagine Opera / Quadro' : '🖼️ Carica Texture Tessuto/Superficie';
+      document.getElementById('btn-cad-container').style.display = isFurniture ? 'block' : 'none';
+      document.getElementById('transform-controls-group').style.display = isFurniture ? 'block' : 'none';
+      document.getElementById('btn-delete-obj').style.display = isFurniture ? 'block' : 'none';
+
+      if (isFurniture) {
+        document.getElementById('inspector-title').innerText = `Ispettore ${selectedObject.name}`;
+        document.getElementById('inp-x').value = Math.round(selectedObject.mesh.position.x * 100);
+        document.getElementById('inp-y').value = Math.round(selectedObject.mesh.position.y * 100);
+        document.getElementById('inp-z').value = Math.round(selectedObject.mesh.position.z * 100);
+        document.getElementById('inp-rot').value = Math.round(THREE.MathUtils.radToDeg(selectedObject.mesh.rotation.y));
+        document.getElementById('inp-color').value = '#' + new THREE.Color(selectedObject.config.color).getHexString();
+      } else {
+        document.getElementById('inspector-title').innerText = `Ispettore ${selectedObject.name}`;
+        document.getElementById('inp-color').value = '#' + selectedObject.mainMesh.material.color.getHexString();
+      }
+    }
+
+    function updateSelectedObjectFromInputs() {
+      if (!selectedObject) return;
+
+      selectedObject.name = document.getElementById('inp-name').value;
+
+      if (selectedObject.type === 'furniture') {
+        selectedObject.mesh.position.x = parseFloat(document.getElementById('inp-x').value) / 100;
+        selectedObject.mesh.position.y = parseFloat(document.getElementById('inp-y').value) / 100;
+        selectedObject.mesh.position.z = parseFloat(document.getElementById('inp-z').value) / 100;
+
+        const deg = parseFloat(document.getElementById('inp-rot').value);
+        selectedObject.mesh.rotation.y = THREE.MathUtils.degToRad(deg);
+        selectedObject.config.color = document.getElementById('inp-color').value;
+      } else {
+        const colHex = document.getElementById('inp-color').value;
+        selectedObject.mainMesh.material.color.set(colHex);
+        selectedObject.mainMesh.material.map = null;
+        selectedObject.mainMesh.material.needsUpdate = true;
+      }
+    }
+
+    function applyTextureToSelectedFromInspector(e) {
+      if (!selectedObject) return;
+      const file = e.target.files[0];
+
+      loadTextureFromFile(file, (texture, url) => {
+        if (selectedObject.type === 'furniture') {
+          const targetKey = (selectedObject.config.type === 'painting') ? 'front' : 'all';
+          selectedObject.config.surfaceTextures[targetKey] = url;
+          selectedObject.config.textureUrl = url;
+          rebuildMainObjectMesh(selectedObject);
+        } else {
+          texture.repeat.set(2, 2);
+          selectedObject.mainMesh.material.map = texture;
+          selectedObject.mainMesh.material.color.setHex(0xffffff);
+          selectedObject.mainMesh.material.needsUpdate = true;
+          selectedObject.config.surfaceTextures['all'] = url;
+        }
+      });
+    }
+
+    function rebuildMainObjectMesh(objData) {
+      livingGroup.remove(objData.mesh);
+      const { group, mainMesh } = buildFurnitureGroup(objData.config);
+      group.position.copy(objData.mesh.position);
+      group.rotation.copy(objData.mesh.rotation);
+
+      objData.mesh = group;
+      objData.mainMesh = mainMesh;
+      registerSelectableObject(objData);
+
+      livingGroup.add(group);
+      transformControls.attach(group);
+      setHighlight(objData);
+    }
+
+    function updateInspectorUI(hasSelection) {
+      document.getElementById('inspector-form').style.display = hasSelection ? 'block' : 'none';
+      document.getElementById('no-selection').style.display = hasSelection ? 'none' : 'block';
+    }
+
+    function deleteSelectedObject() {
+      if (!selectedObject || selectedObject.type !== 'furniture') return;
+      livingGroup.remove(selectedObject.mesh);
+      transformControls.detach();
+      objectsRegistry = objectsRegistry.filter(o => o.id !== selectedObject.id);
+      selectedObject = null;
+      updateInspectorUI(false);
+      updateQuoteUI();
+    }
+
+    // --- MODALE: EDITING AVANZATO & SELEZIONE SUPERFICI PIANE ---
+    function initModal3DScene() {
+      const modalContainer = document.getElementById('modal-3d-canvas');
+      modalScene = new THREE.Scene();
+      modalScene.background = new THREE.Color(0x080c18);
+
+      modalCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 50);
+      modalCamera.position.set(2.0, 1.5, 2.2);
+
+      modalRenderer = new THREE.WebGLRenderer({ antialias: true });
+      modalRenderer.setSize(380, 380);
+      modalContainer.appendChild(modalRenderer.domElement);
+
+      modalOrbitControls = new THREE.OrbitControls(modalCamera, modalRenderer.domElement);
+      modalOrbitControls.enableDamping = true;
+
+      const light1 = new THREE.DirectionalLight(0xffffff, 1);
+      light1.position.set(5, 5, 5);
+      modalScene.add(light1);
+      modalScene.add(new THREE.AmbientLight(0xffffff, 0.65));
+
+      modalMeshGroup = new THREE.Group();
+      modalScene.add(modalMeshGroup);
+
+      modalRaycaster = new THREE.Raycaster();
+      modalMouse = new THREE.Vector2();
+
+      modalRenderer.domElement.addEventListener('pointerdown', onModalCanvasPointerDown);
+    }
+
+    function openObjectExplorer() {
+      if (!selectedObject || selectedObject.type !== 'furniture') return;
+
+      const modal = document.getElementById('exploreModal');
+      modal.classList.add('active');
+      document.getElementById('modal-title').innerText = `Editor Avanzato Superfici: ${selectedObject.name}`;
+
+      tempModalConfig = JSON.parse(JSON.stringify(selectedObject.config));
+      tempModalConfig.surfaceTextures = { ...selectedObject.config.surfaceTextures };
+
+      document.getElementById('mod-inp-w').value = Math.round(tempModalConfig.w * 100);
+      document.getElementById('mod-inp-h').value = Math.round(tempModalConfig.h * 100);
+      document.getElementById('mod-inp-d').value = Math.round(tempModalConfig.d * 100);
+
+      selectedModalSurfaceKey = 'all';
+      document.getElementById('mod-surface-select').value = 'all';
+      updateSurfaceBadgeUI();
+
+      refreshModalPreview();
+    }
+
+    function onModalCanvasPointerDown(event) {
+      if (event.button !== 0) return;
+      const rect = modalRenderer.domElement.getBoundingClientRect();
+      modalMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      modalMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      modalRaycaster.setFromCamera(modalMouse, modalCamera);
+      const intersects = modalRaycaster.intersectObjects(modalMeshGroup.children, true);
+
+      if (intersects.length > 0) {
+        const hitMesh = intersects[0].object;
+        if (hitMesh.userData && hitMesh.userData.surfaceKey) {
+          selectedModalSurfaceKey = hitMesh.userData.surfaceKey;
+          document.getElementById('mod-surface-select').value = selectedModalSurfaceKey;
+          updateSurfaceBadgeUI();
+          highlightModalSurfaceMesh(hitMesh);
+        }
+      }
+    }
+
+    function highlightModalSurfaceMesh(mesh) {
+      modalMeshGroup.traverse(c => {
+        if (c.isMesh && c.material && c.material.emissive) c.material.emissive.setHex(0x000000);
+      });
+      if (mesh.material && mesh.material.emissive) {
+        mesh.material.emissive.setHex(0x2563eb);
+        mesh.material.emissiveIntensity = 0.5;
+      }
+    }
+
+    function onModalSurfaceSelectChange() {
+      selectedModalSurfaceKey = document.getElementById('mod-surface-select').value;
+      updateSurfaceBadgeUI();
+    }
+
+    function updateSurfaceBadgeUI() {
+      const names = {
+        'all': 'Tutte le Superfici',
+        'top': 'Cuscini Seduta / Piano Superiori (Top)',
+        'front': 'Schienali / Frontali / Tela (Front)',
+        'sides': 'Braccioli / Struttura (Sides)'
+      };
+      document.getElementById('selected-surface-badge').innerText = `Target: ${names[selectedModalSurfaceKey]}`;
+      document.getElementById('mod-inp-surface-tex').value = '';
+    }
+
+    function onModalParamChange() {
+      tempModalConfig.w = parseFloat(document.getElementById('mod-inp-w').value) / 100;
+      tempModalConfig.h = parseFloat(document.getElementById('mod-inp-h').value) / 100;
+      tempModalConfig.d = parseFloat(document.getElementById('mod-inp-d').value) / 100;
+      refreshModalPreview();
+    }
+
+    function onModalSurfaceTextureUpload(e) {
+      const file = e.target.files[0];
+      loadTextureFromFile(file, (texture, url) => {
+        if (selectedModalSurfaceKey === 'all') {
+          tempModalConfig.surfaceTextures = { 'all': url };
+        } else {
+          tempModalConfig.surfaceTextures[selectedModalSurfaceKey] = url;
+        }
+        refreshModalPreview();
+      });
+    }
+
+    function resetModalSurfaceTexture() {
+      if (selectedModalSurfaceKey === 'all') {
+        tempModalConfig.surfaceTextures = {};
+      } else {
+        delete tempModalConfig.surfaceTextures[selectedModalSurfaceKey];
+      }
+      refreshModalPreview();
+    }
+
+    function refreshModalPreview() {
+      modalMeshGroup.clear();
+      const { group } = buildFurnitureGroup(tempModalConfig);
+      modalMeshGroup.add(group);
+
+      const modalBox = document.getElementById('modal-3d-canvas');
+      modalCamera.aspect = modalBox.clientWidth / modalBox.clientHeight;
+      modalCamera.updateProjectionMatrix();
+      modalRenderer.setSize(modalBox.clientWidth, modalBox.clientHeight);
+
+      drawPlaneViews2D(tempModalConfig);
+    }
+
+    function applyModalChangesToMainScene() {
+      if (!selectedObject) return;
+      selectedObject.config = { ...tempModalConfig };
+      rebuildMainObjectMesh(selectedObject);
+      updateQuoteUI();
+      closeObjectExplorer();
+    }
+
+    function closeObjectExplorer() {
+      document.getElementById('exploreModal').classList.remove('active');
+    }
+
+    // --- DISEGNO E ESPORTAZIONE VETTORIALE CAD (.DXF) ---
+    function drawPlaneViews2D(cfg) {
+      const color = '#' + new THREE.Color(cfg.color).getHexString();
+
+      drawSinglePlaneCanvas('canvas-front', (ctx, w, h) => {
+        const mw = w * 0.5, mh = h * 0.6;
+        const x = (w - mw) / 2, y = (h - mh) / 2;
+        ctx.fillStyle = color; ctx.fillRect(x, y, mw, mh);
+        ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 2; ctx.strokeRect(x, y, mw, mh);
+        drawQuotaLabel(ctx, x, y + mh + 15, x + mw, y + mh + 15, `L: ${(cfg.w*100)} cm`);
+        drawQuotaLabel(ctx, x - 15, y, x - 15, y + mh, `H: ${(cfg.h*100)} cm`);
+      });
+
+      drawSinglePlaneCanvas('canvas-top', (ctx, w, h) => {
+        const mw = w * 0.5, md = h * 0.5;
+        const x = (w - mw) / 2, y = (h - md) / 2;
+        ctx.fillStyle = color; ctx.fillRect(x, y, mw, md);
+        ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2; ctx.strokeRect(x, y, mw, md);
+        drawQuotaLabel(ctx, x, y + md + 15, x + mw, y + md + 15, `L: ${(cfg.w*100)} cm`);
+        drawQuotaLabel(ctx, x - 15, y, x - 15, y + md, `P: ${(cfg.d*100)} cm`);
+      });
+
+      drawSinglePlaneCanvas('canvas-side', (ctx, w, h) => {
+        const md = w * 0.4, mh = h * 0.6;
+        const x = (w - md) / 2, y = (h - mh) / 2;
+        ctx.fillStyle = color; ctx.fillRect(x, y, md, mh);
+        ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2; ctx.strokeRect(x, y, md, mh);
+        drawQuotaLabel(ctx, x, y + mh + 15, x + md, y + mh + 15, `P: ${(cfg.d*100)} cm`);
+        drawQuotaLabel(ctx, x - 15, y, x - 15, y + mh, `H: ${(cfg.h*100)} cm`);
+      });
+    }
+
+    function drawSinglePlaneCanvas(canvasId, drawFn) {
+      const c = document.getElementById(canvasId);
+      const rect = c.parentElement.getBoundingClientRect();
+      c.width = rect.width; c.height = rect.height;
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, c.width, c.height);
+      drawFn(ctx, c.width, c.height);
+    }
+
+    function drawQuotaLabel(ctx, x1, y1, x2, y2, text) {
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.fillStyle = '#f8fafc'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(text, (x1 + x2) / 2, (y1 + y2) / 2 - 4);
+    }
+
+    function exportPlaneViewsToCAD() {
+      const cfg = tempModalConfig;
+      const w = cfg.w * 100, h = cfg.h * 100, d = cfg.d * 100;
+      let dxf = `0\nSECTION\n2\nHEADER\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n`;
+
+      function addRectDXF(x1, y1, x2, y2, layer) {
+        return `0\nLWPOLYLINE\n100\nAcDbEntity\n8\n${layer}\n100\nAcDbPolyline\n90\n4\n70\n1\n` +
+               `10\n${x1}\n20\n${y1}\n10\n${x2}\n20\n${y1}\n10\n${x2}\n20\n${y2}\n10\n${x1}\n20\n${y2}\n`;
+      }
+
+      dxf += addRectDXF(0, 0, w, h, "PROSPETTO_FRONTALE");
+      const topX = w + 50; dxf += addRectDXF(topX, 0, topX + w, d, "VISTA_IN_PIANTA");
+      const sideX = topX + w + 50; dxf += addRectDXF(sideX, 0, sideX + d, h, "FIANCO_LATERALE");
+      dxf += `0\nENDSEC\n0\nEOF\n`;
+
+      const blob = new Blob([dxf], { type: 'application/dxf' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${cfg.name.replace(/\s+/g, '_')}_PartiPiane_CAD.dxf`;
+      link.click();
+    }
+
+    // --- ESPORTAZIONE RHINO 7 ---
+    function exportSceneToRhino() {
+      let objData = `# 3cad Studio 3D - Esportazione Salotto per Rhino 7\n`;
+      let vertexOffset = 1;
+
+      livingGroup.traverse((child) => {
+        if (child.isMesh && child.geometry) {
+          const geometry = child.geometry.clone();
+          geometry.applyMatrix4(child.matrixWorld);
+          objData += `o Modulo_${child.id}\n`;
+          const pos = geometry.attributes.position;
+          for (let i = 0; i < pos.count; i++) {
+            objData += `v ${pos.getX(i).toFixed(4)} ${pos.getY(i).toFixed(4)} ${pos.getZ(i).toFixed(4)}\n`;
+          }
+          const index = geometry.index;
+          if (index) {
+            for (let i = 0; i < index.count; i += 3) {
+              objData += `f ${index.getX(i) + vertexOffset} ${index.getX(i+1) + vertexOffset} ${index.getX(i+2) + vertexOffset}\n`;
+            }
+            vertexOffset += pos.count;
+          }
+        }
+      });
+
+      const blob = new Blob([objData], { type: 'model/obj' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Progetto_Salotto_Rhino7.obj`;
+      link.click();
+    }
+
+    // --- CATALOGO LIVING ROOM ---
+    function addSofa3Seater() {
+      const obj = addFurnitureObject({ name: 'Divano 3 Posti', type: 'sofa', price: 1650, w: 2.3, h: 0.85, d: 0.95, x: 3.25, y: 0.0, z: 3.2, color: MATERIALS.fabricBlue });
+      selectObjectById(obj.id); updateQuoteUI();
+    }
+    function addArmchair() {
+      const obj = addFurnitureObject({ name: 'Poltrona Design', type: 'armchair', price: 680, w: 0.85, h: 0.82, d: 0.85, x: 1.5, y: 0.0, z: 2.5, color: MATERIALS.leatherCognac });
+      selectObjectById(obj.id); updateQuoteUI();
+    }
+    function addCoffeeTable() {
+      const obj = addFurnitureObject({ name: 'Tavolino Marmo', type: 'coffeeTable', price: 490, w: 1.2, h: 0.38, d: 0.7, x: 3.25, y: 0.0, z: 2.2, color: MATERIALS.marbleDark });
+      selectObjectById(obj.id); updateQuoteUI();
+    }
+    function addPainting() {
+      const obj = addFurnitureObject({ name: 'Quadro Parete', type: 'painting', price: 320, w: 1.6, h: 1.0, d: 0.04, x: 3.25, y: 1.9, z: 0.03, color: 0xf8fafc });
+      selectObjectById(obj.id); updateQuoteUI();
+    }
+    function addChandelier() {
+      const obj = addFurnitureObject({ name: 'Lampadario Ring', type: 'chandelier', price: 550, w: 0.9, h: 1.0, d: 0.9, x: 3.25, y: 3.1, z: 2.3, color: MATERIALS.metalGold });
+      selectObjectById(obj.id); updateQuoteUI();
+    }
+    function addTvUnit() {
+      const obj = addFurnitureObject({ name: 'Mobile TV 200cm', type: 'tvUnit', price: 890, w: 2.0, h: 0.45, d: 0.45, x: 3.25, y: 0.0, z: 0.25, color: MATERIALS.fabricAnthracite });
+      selectObjectById(obj.id); updateQuoteUI();
+    }
+    function addRug() {
+      const obj = addFurnitureObject({ name: 'Tappeto Soft', type: 'rug', price: 420, w: 3.5, h: 0.01, d: 2.5, x: 3.25, y: 0.0, z: 2.5, color: MATERIALS.carpetColor });
+      selectObjectById(obj.id); updateQuoteUI();
+    }
+
+    function setCameraView(viewType) {
+      orbitControls.reset();
+      if (viewType === 'top') {
+        camera.position.set(3.25, 8.0, 2.5); orbitControls.target.set(3.25, 0, 2.5);
+      } else if (viewType === 'front') {
+        camera.position.set(3.25, 1.6, 7.0); orbitControls.target.set(3.25, 1.6, 0);
+      } else if (viewType === 'iso') {
+        camera.position.set(7.5, 6.0, 7.0); orbitControls.target.set(3.25, 1.0, 2.5);
+      } else {
+        camera.position.set(6.0, 4.0, 7.0); orbitControls.target.set(3.25, 1.0, 2.5);
+      }
+    }
+
+    function toggleWalls() { wallsGroup.visible = !wallsGroup.visible; }
+
+    function updateQuoteUI() {
+      const furnitureList = objectsRegistry.filter(o => o.type === 'furniture');
+      const count = furnitureList.length;
+      const subtotal = furnitureList.reduce((acc, o) => acc + o.price, 0);
+      const total = subtotal * 0.9;
+      document.getElementById('q-items').innerText = count;
+      document.getElementById('q-subtotal').innerText = `€${subtotal.toFixed(2)}`;
+      document.getElementById('q-total').innerText = `€${total.toFixed(2)}`;
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      orbitControls.update();
+      renderer.render(scene, camera);
+
+      if (document.getElementById('exploreModal').classList.contains('active')) {
+        modalOrbitControls.update();
+        modalRenderer.render(modalScene, modalCamera);
+      }
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

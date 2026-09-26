@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulatore 3D Pavimenti in Legno - Tassellature & Mosaici</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  
+  <style>
+    :root {
+      --bg: #06090e;
+      --panel: #0c121d;
+      --panel-card: #141d2f;
+      --accent: #d97706;
+      --accent-light: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #223046;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+    /* Sidebar Controlli */
+    .sidebar { width: 450px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; height: 100%; z-index: 10; }
+    .sidebar-header { padding: 18px 20px; border-bottom: 1px solid var(--border); background: #05070a; }
+    .sidebar-header h2 { font-size: 1.08rem; color: var(--accent-light); letter-spacing: 0.02em; }
+    .sidebar-header p { font-size: 0.74rem; color: var(--text-muted); margin-top: 3px; }
+    .sidebar-content { flex: 1; overflow-y: auto; padding: 16px; }
+
+    .control-group { margin-bottom: 16px; background: var(--panel-card); padding: 14px; border-radius: 8px; border: 1px solid var(--border); }
+    .control-group h3 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent-light); margin-bottom: 12px; }
+    .control-item { margin-bottom: 10px; }
+    .control-item:last-child { margin-bottom: 0; }
+    .control-item label { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 500; margin-bottom: 4px; color: #e2e8f0; }
+    .control-item label span.val { color: var(--accent-light); font-weight: 600; }
+    .control-item input[type="range"] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+    .control-item select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: #090e17; color: var(--text); font-size: 0.82rem; }
+    .control-item optgroup { font-weight: bold; color: var(--accent-light); background: #06090e; }
+
+    /* Viewport 3D */
+    .viewport-area { flex: 1; position: relative; height: 100%; }
+    #canvas-container { width: 100%; height: 100%; background: radial-gradient(circle at center, #141d2f 0%, #05070a 100%); }
+
+    /* HUD Bar */
+    .hud-bar { position: absolute; top: 16px; right: 16px; display: flex; gap: 8px; background: rgba(5, 7, 10, 0.88); padding: 8px; border-radius: 8px; border: 1px solid var(--border); backdrop-filter: blur(8px); }
+    .hud-btn { background: var(--panel-card); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
+    .hud-btn:hover { background: var(--accent); color: #000; font-weight: bold; }
+
+    .stats-card { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: rgba(5, 7, 10, 0.92); border: 1px solid var(--border); padding: 8px 24px; border-radius: 20px; font-size: 0.78rem; display: flex; gap: 24px; backdrop-filter: blur(8px); }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Mosaici in Legno & Tassellature 3D</h2>
+      <p>Geometrie Non Convenzionali & Cassettoni Classici</p>
+    </div>
+
+    <div class="sidebar-content">
+      
+      <!-- 1. Dimensioni Stanza -->
+      <div class="control-group">
+        <h3>📐 Geometria Stanza & Moduli</h3>
+        <div class="control-item">
+          <label>Larghezza Stanza (X): <span class="val" id="val-roomWidth">4.8 m</span></label>
+          <input type="range" id="roomWidth" min="2.4" max="8.0" step="0.4" value="4.8">
+        </div>
+        <div class="control-item">
+          <label>Lunghezza Stanza (Z): <span class="val" id="val-roomLength">4.8 m</span></label>
+          <input type="range" id="roomLength" min="2.4" max="8.0" step="0.4" value="4.8">
+        </div>
+        <div class="control-item">
+          <label>Dimensione Modulo Tassello: <span class="val" id="val-tileSize">80 cm</span></label>
+          <input type="range" id="tileSize" min="40" max="120" step="10" value="80">
+        </div>
+        <div class="control-item">
+          <label>Rotazione Schema: <span class="val" id="val-tileAngle">0° (Dritto)</span></label>
+          <select id="tileAngle">
+            <option value="0" selected>Dritto (Parallelo alle Pareti)</option>
+            <option value="45">Diagonale (Ruotato 45°)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 2. Motivo della Tassellatura -->
+      <div class="control-group">
+        <h3>🧩 Disegno Tassellatura</h3>
+        <div class="control-item">
+          <label>Modello Geometrico</label>
+          <select id="patternType">
+            <optgroup label="CASSETTONI CLASSICI & STORICI">
+              <option value="hex_sq_tri" selected>Esagoni, Quadrati e Triangoli (3.4.6.4)</option>
+              <option value="versailles">Parquet de Versailles (Classico)</option>
+              <option value="aremberg">Parquet d'Aremberg (Quadri & Stella)</option>
+              <option value="star8">Arabesco (Stella a 8 Punte)</option>
+              <option value="rhombille">Cube 3D / Rhombille Intarsiato</option>
+            </optgroup>
+            <optgroup label="TASSELLATURE NON CONVENZIONALI">
+              <option value="cairo">Tassellatura Pentagonale di Cairo</option>
+              <option value="truchet">Labirinto Curvo di Truchet</option>
+              <option value="penrose">Aperiodic Penrose (Quasicristallo)</option>
+              <option value="escher">Incastro Geometrico d'Escher (Feather)</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Bordura Perimetrale</label>
+          <select id="borderStyle">
+            <option value="double" selected>Doppia Fascia con Filetto</option>
+            <option value="single">Fascia Semplice Massello</option>
+            <option value="none">Senza Bordura (Mosaico a Filo)</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Filetti / Intarsi Metallici</label>
+          <select id="brassInlay">
+            <option value="none">Solo Legno (Classico)</option>
+            <option value="gold" selected>Filetti in Ottone Spazzolato</option>
+            <option value="bronze">Filetti in Bronzo Anticato</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 3. Essenze di Legno -->
+      <div class="control-group">
+        <h3>🪵 Selezione Essenze Legno</h3>
+        <div class="control-item">
+          <label>Legno Principale (Esagoni / Telaio)</label>
+          <select id="woodPrimary">
+            <option value="noce" selected>Noce Canaletto (Scuro Nobile)</option>
+            <option value="rovere">Rovere Naturale Dorato</option>
+            <option value="ebano">Ebano / Wengé Scuro</option>
+            <option value="ciliegio">Ciliegio Caldo</option>
+            <option value="frassino">Frassino Chiaro Desaturato</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Legno Secondario (Quadrati / Intarsio A)</label>
+          <select id="woodSecondary">
+            <option value="rovere" selected>Rovere Naturale Dorato</option>
+            <option value="noce">Noce Canaletto</option>
+            <option value="ebano">Ebano / Wengé Scuro</option>
+            <option value="frassino">Frassino Chiaro</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Legno Terziario (Triangoli / Accenti B)</label>
+          <select id="woodTertiary">
+            <option value="ebano" selected>Ebano / Wengé Scuro</option>
+            <option value="ciliegio">Ciliegio Caldo</option>
+            <option value="frassino">Frassino Chiaro</option>
+            <option value="rovere">Rovere Naturale</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 4. Finitura Superficie -->
+      <div class="control-group">
+        <h3>✨ Finitura Superficiale & Smussi 3D</h3>
+        <div class="control-item">
+          <label>Grado di Lucidatura</label>
+          <select id="glossLevel">
+            <option value="matt">Opaco Olio Naturale</option>
+            <option value="satin" selected>Satinato / Cerato Tradizionale</option>
+            <option value="gloss">Lucido Verniciato a Specchio</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Profondità Smusso 3D: <span class="val" id="val-bevelDepth">1.5 mm</span></label>
+          <input type="range" id="bevelDepth" min="0.5" max="3.0" step="0.5" value="1.5">
+        </div>
+        <div class="control-item">
+          <label>Direzione Luce Solare: <span class="val" id="val-lightAngle">45°</span></label>
+          <input type="range" id="lightAngle" min="0" max="360" step="5" value="45">
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <main class="viewport-area">
+    <div class="hud-bar">
+      <button class="hud-btn" onclick="setCam('top')">Vista dall'Alto (Planimetria)</button>
+      <button class="hud-btn" onclick="setCam('persp')">Prospettiva Stanza</button>
+      <button class="hud-btn" onclick="setCam('macro')">Dettaglio Intarsio 3D</button>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div class="stats-card">
+      <div>Stanza: <strong id="info-room-size">4.8m x 4.8m</strong></div>
+      <div>Modello: <strong id="info-pattern" style="color:var(--accent-light)">ESAGONI, QUADRATI E TRIANGOLI</strong></div>
+      <div>Modulo: <strong id="info-tile-size">80x80 cm</strong></div>
+    </div>
+  </main>
+
+  <script>
+    const state = {
+      roomWidth: 4.8,
+      roomLength: 4.8,
+      tileSize: 0.8,
+      tileAngle: '0',
+      patternType: 'hex_sq_tri',
+      borderStyle: 'double',
+      brassInlay: 'gold',
+      woodPrimary: 'noce',
+      woodSecondary: 'rovere',
+      woodTertiary: 'ebano',
+      glossLevel: 'satin',
+      bevelDepth: 0.0015,
+      lightAngle: 45
+    };
+
+    let scene, camera, renderer, controls;
+    let floorGroup, dirLight, textures = {};
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+
+      camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera.position.set(0, 4.2, 5.0);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.maxPolarAngle = Math.PI / 2 - 0.02;
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+
+      dirLight = new THREE.DirectionalLight(0xfffaed, 1.35);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      scene.add(dirLight);
+
+      updateLight();
+      generateWoodTextures();
+      rebuildFloor();
+
+      window.addEventListener('resize', onResize);
+      animate();
+    }
+
+    function updateLight() {
+      const rad = (state.lightAngle * Math.PI) / 180;
+      dirLight.position.set(Math.cos(rad) * 6, 5, Math.sin(rad) * 6);
+    }
+
+    function createWoodCanvas(baseHex, grainHex) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512; canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = baseHex;
+      ctx.fillRect(0, 0, 512, 512);
+
+      ctx.fillStyle = grainHex;
+      for (let i = 0; i < 700; i++) {
+        const y = Math.random() * 512;
+        const h = Math.random() * 2 + 0.8;
+        ctx.globalAlpha = Math.random() * 0.15;
+        ctx.fillRect(0, y, 512, h);
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    function generateWoodTextures() {
+      textures.rovere = createWoodCanvas('#c8965d', '#6e441f');
+      textures.noce = createWoodCanvas('#422a1d', '#1a0e08');
+      textures.ebano = createWoodCanvas('#1c1715', '#080605');
+      textures.ciliegio = createWoodCanvas('#8c432b', '#421a0e');
+      textures.frassino = createWoodCanvas('#dbcaa9', '#96815c');
+    }
+
+    function getWoodMaterial(woodKey) {
+      let roughness = 0.4;
+      let metalness = 0.02;
+
+      if (state.glossLevel === 'matt') roughness = 0.65;
+      else if (state.glossLevel === 'satin') roughness = 0.32;
+      else if (state.glossLevel === 'gloss') { roughness = 0.12; metalness = 0.1; }
+
+      return new THREE.MeshStandardMaterial({
+        map: textures[woodKey],
+        roughness: roughness,
+        metalness: metalness
+      });
+    }
+
+    function getMetalMaterial() {
+      if (state.brassInlay === 'gold') {
+        return new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.2, metalness: 0.9 });
+      } else if (state.brassInlay === 'bronze') {
+        return new THREE.MeshStandardMaterial({ color: 0x8c6239, roughness: 0.3, metalness: 0.85 });
+      }
+      return null;
+    }
+
+    function createTilePiece(shape, thickness, material) {
+      const extrudeSettings = {
+        steps: 1,
+        depth: thickness,
+        bevelEnabled: true,
+        bevelThickness: state.bevelDepth,
+        bevelSize: state.bevelDepth,
+        bevelOffset: 0,
+        bevelSegments: 2
+      };
+
+      const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      geo.rotateX(Math.PI / 2);
+      const mesh = new THREE.Mesh(geo, material);
+      mesh.receiveShadow = true;
+      mesh.castShadow = true;
+      return mesh;
+    }
+
+    // --- NUOVA TASSELLATURA CLASSICA: ESAGONI, QUADRATI E TRIANGOLI (3.4.6.4) ---
+    function buildHexSqTriTile(size, matP, matS, matT, matMetal) {
+      const group = new THREE.Group();
+      const thick = 0.015;
+
+      // Dimensione del lato proporzionata al modulo complessivo
+      const s = size / (1 + Math.sqrt(3));
+
+      // 1. Esagono Centrale
+      const hexShape = new THREE.Shape();
+      for (let i = 0; i < 6; i++) {
+        const ang = (i * Math.PI) / 3;
+        const x = s * Math.cos(ang);
+        const y = s * Math.sin(ang);
+        if (i === 0) hexShape.moveTo(x, y);
+        else hexShape.lineTo(x, y);
+      }
+      group.add(createTilePiece(hexShape, thick, matP));
+
+      // 2. Sei Quadrati sui lati dell'esagono e Sei Triangoli tra i quadrati
+      for (let i = 0; i < 6; i++) {
+        const a1 = (i * Math.PI) / 3;
+        const a2 = ((i + 1) * Math.PI) / 3;
+
+        const v1 = { x: s * Math.cos(a1), y: s * Math.sin(a1) };
+        const v2 = { x: s * Math.cos(a2), y: s * Math.sin(a2) };
+
+        const midA = (a1 + a2) / 2;
+        const nx = Math.cos(midA);
+        const ny = Math.sin(midA);
+
+        const v3 = { x: v2.x + nx * s, y: v2.y + ny * s };
+        const v4 = { x: v1.x + nx * s, y: v1.y + ny * s };
+
+        // Quadrato
+        const sqShape = new THREE.Shape();
+        sqShape.moveTo(v1.x, v1.y);
+        sqShape.lineTo(v2.x, v2.y);
+        sqShape.lineTo(v3.x, v3.y);
+        sqShape.lineTo(v4.x, v4.y);
+        group.add(createTilePiece(sqShape, thick, matS));
+
+        // Triangolo equilatero di raccordo
+        const nextMidA = (((i + 1) * 2 + 1) * Math.PI) / 6;
+        const nxNext = Math.cos(nextMidA);
+        const nyNext = Math.sin(nextMidA);
+        const v4_next = { x: v2.x + nxNext * s, y: v2.y + nyNext * s };
+
+        const triShape = new THREE.Shape();
+        triShape.moveTo(v2.x, v2.y);
+        triShape.lineTo(v3.x, v3.y);
+        triShape.lineTo(v4_next.x, v4_next.y);
+        group.add(createTilePiece(triShape, thick, matT));
+
+        // Filetto metallico opzionale sul perimetro dell'esagono
+        if (matMetal) {
+          const brassLine = new THREE.Shape();
+          brassLine.moveTo(v1.x, v1.y);
+          brassLine.lineTo(v2.x, v2.y);
+          brassLine.lineTo(v2.x + nx * 0.003, v2.y + ny * 0.003);
+          brassLine.lineTo(v1.x + nx * 0.003, v1.y + ny * 0.003);
+          group.add(createTilePiece(brassLine, thick * 1.12, matMetal));
+        }
+      }
+
+      return group;
+    }
+
+    // --- COSTRUTTORI DELLE TASSELLATURE NON CONVENZIONALI ---
+
+    function buildCairoTile(size, matP, matS, matT, matMetal) {
+      const group = new THREE.Group();
+      const thick = 0.015;
+      const s2 = size / 2;
+      const d = size * 0.18;
+
+      const pentagonPoints = [
+        [ {x:0, y:d}, {x:s2-d, y:s2}, {x:s2, y:s2}, {x:s2, y:d}, {x:d, y:0} ],
+        [ {x:0, y:d}, {x:d, y:0}, {x:s2, y:-d}, {x:s2, y:-s2}, {x:s2-d, y:-s2} ],
+        [ {x:0, y:-d}, {x:-s2+d, y:-s2}, {x:-s2, y:-s2}, {x:-s2, y:-d}, {x:-d, y:0} ],
+        [ {x:0, y:-d}, {x:-d, y:0}, {x:-s2, y:d}, {x:-s2, y:s2}, {x:-s2+d, y:s2} ]
+      ];
+
+      pentagonPoints.forEach((pts, idx) => {
+        const shape = new THREE.Shape();
+        shape.moveTo(pts[0].x, pts[0].y);
+        for(let i=1; i<pts.length; i++) shape.lineTo(pts[i].x, pts[i].y);
+
+        const mat = (idx % 2 === 0) ? matP : matS;
+        group.add(createTilePiece(shape, thick, mat));
+      });
+
+      const centerShape = new THREE.Shape();
+      centerShape.moveTo(0, d); centerShape.lineTo(d, 0);
+      centerShape.lineTo(0, -d); centerShape.lineTo(-d, 0);
+      group.add(createTilePiece(centerShape, thick * 1.1, matMetal || matT));
+
+      return group;
+    }
+
+    function buildTruchetTile(size, col, row, matP, matS, matT, matMetal) {
+      const group = new THREE.Group();
+      const thick = 0.015;
+      const s2 = size / 2;
+      const rInner = size * 0.22;
+      const rOuter = size * 0.42;
+
+      const bgShape = new THREE.Shape();
+      bgShape.moveTo(-s2, -s2); bgShape.lineTo(s2, -s2);
+      bgShape.lineTo(s2, s2); bgShape.lineTo(-s2, s2);
+      group.add(createTilePiece(bgShape, thick, matP));
+
+      const rot = ((col * 17 + row * 31) % 2 === 0) ? 0 : Math.PI / 2;
+      const arcGroup = new THREE.Group();
+      
+      const createArcShape = (cx, cy, r1, r2) => {
+        const shape = new THREE.Shape();
+        const segs = 16;
+        for (let i = 0; i <= segs; i++) {
+          const a = (i / segs) * Math.PI * 0.5;
+          const x = cx + Math.cos(a) * r2;
+          const y = cy + Math.sin(a) * r2;
+          if (i === 0) shape.moveTo(x, y); else shape.lineTo(x, y);
+        }
+        for (let i = segs; i >= 0; i--) {
+          const a = (i / segs) * Math.PI * 0.5;
+          const x = cx + Math.cos(a) * r1;
+          const y = cy + Math.sin(a) * r1;
+          shape.lineTo(x, y);
+        }
+        return shape;
+      };
+
+      arcGroup.add(createTilePiece(createArcShape(-s2, -s2, rInner, rOuter), thick * 1.08, matS));
+      arcGroup.add(createTilePiece(createArcShape(s2, s2, rInner, rOuter), thick * 1.08, matS));
+
+      if (matMetal) {
+        arcGroup.add(createTilePiece(createArcShape(-s2, -s2, rOuter - 0.01, rOuter), thick * 1.15, matMetal));
+        arcGroup.add(createTilePiece(createArcShape(s2, s2, rOuter - 0.01, rOuter), thick * 1.15, matMetal));
+      }
+
+      arcGroup.rotation.y = rot;
+      group.add(arcGroup);
+      return group;
+    }
+
+    function buildPenroseTile(size, matP, matS, matT, matMetal) {
+      const group = new THREE.Group();
+      const thick = 0.015;
+      const numRays = 10;
+      const rOuter = size * 0.48;
+
+      for (let i = 0; i < numRays; i++) {
+        const a1 = (i * Math.PI * 2) / numRays;
+        const a2 = ((i + 1) * Math.PI * 2) / numRays;
+        const aMid = (a1 + a2) / 2;
+
+        const fatShape = new THREE.Shape();
+        fatShape.moveTo(0, 0);
+        fatShape.lineTo(Math.cos(a1) * rOuter * 0.55, Math.sin(a1) * rOuter * 0.55);
+        fatShape.lineTo(Math.cos(aMid) * rOuter, Math.sin(aMid) * rOuter);
+        fatShape.lineTo(Math.cos(a2) * rOuter * 0.55, Math.sin(a2) * rOuter * 0.55);
+        group.add(createTilePiece(fatShape, thick, (i % 2 === 0) ? matS : matT));
+
+        const thinShape = new THREE.Shape();
+        thinShape.moveTo(Math.cos(aMid) * rOuter, Math.sin(aMid) * rOuter);
+        thinShape.lineTo(Math.cos(aMid + 0.2) * rOuter * 1.25, Math.sin(aMid + 0.2) * rOuter * 1.25);
+        thinShape.lineTo(Math.cos(a2) * rOuter * 1.1, Math.sin(a2) * rOuter * 1.1);
+        thinShape.lineTo(Math.cos(aMid) * rOuter * 0.8, Math.sin(aMid) * rOuter * 0.8);
+        group.add(createTilePiece(thinShape, thick * 1.05, matP));
+      }
+
+      if (matMetal) {
+        const starGeo = new THREE.TorusGeometry(rOuter * 0.55, 0.003, 8, 10);
+        const starMesh = new THREE.Mesh(starGeo, matMetal);
+        starMesh.rotation.x = Math.PI / 2;
+        starMesh.position.y = thick;
+        group.add(starMesh);
+      }
+
+      return group;
+    }
+
+    function buildEscherTile(size, matP, matS, matT, matMetal) {
+      const group = new THREE.Group();
+      const thick = 0.015;
+      const s2 = size / 2;
+      const w = size * 0.22;
+
+      for (let i = -2; i <= 2; i++) {
+        const yOffset = i * w;
+        const featherShape = new THREE.Shape();
+        featherShape.moveTo(-s2, yOffset);
+        featherShape.lineTo(-s2 * 0.2, yOffset + w * 0.6);
+        featherShape.lineTo(s2, yOffset);
+        featherShape.lineTo(s2 * 0.2, yOffset - w * 0.6);
+
+        const mat = (Math.abs(i) % 2 === 0) ? matP : matS;
+        group.add(createTilePiece(featherShape, thick, mat));
+
+        if (matMetal && i % 2 === 0) {
+          const lineShape = new THREE.Shape();
+          lineShape.moveTo(-s2, yOffset);
+          lineShape.lineTo(s2, yOffset);
+          lineShape.lineTo(s2, yOffset + 0.004);
+          lineShape.lineTo(-s2, yOffset + 0.004);
+          group.add(createTilePiece(lineShape, thick * 1.12, matMetal));
+        }
+      }
+
+      return group;
+    }
+
+    // --- ALTRO CASSETTONE CLASSICO ---
+
+    function buildVersaillesTile(size, matP, matS, matT, matMetal) {
+      const group = new THREE.Group();
+      const thick = 0.015;
+      const frameW = size * 0.12;
+      const s2 = size / 2;
+
+      const borderStrips = [
+        { x: 0, y: s2 - frameW/2, w: size, h: frameW },
+        { x: 0, y: -s2 + frameW/2, w: size, h: frameW },
+        { x: s2 - frameW/2, y: 0, w: frameW, h: size - frameW*2 },
+        { x: -s2 + frameW/2, y: 0, w: frameW, h: size - frameW*2 }
+      ];
+
+      borderStrips.forEach(st => {
+        const shape = new THREE.Shape();
+        shape.moveTo(-st.w/2, -st.h/2); shape.lineTo(st.w/2, -st.h/2);
+        shape.lineTo(st.w/2, st.h/2); shape.lineTo(-st.w/2, st.h/2);
+        const mesh = createTilePiece(shape, thick, matP);
+        mesh.position.set(st.x, 0, st.y);
+        group.add(mesh);
+      });
+
+      const innerSize = size - frameW * 2;
+      const stripW = innerSize * 0.08;
+
+      [-1, 1].forEach(dir => {
+        const diagShape = new THREE.Shape();
+        const len = innerSize * 1.35;
+        diagShape.moveTo(-len/2, -stripW/2); diagShape.lineTo(len/2, -stripW/2);
+        diagShape.lineTo(len/2, stripW/2); diagShape.lineTo(-len/2, stripW/2);
+        const diagMesh = createTilePiece(diagShape, thick * 1.05, matS);
+        diagMesh.rotation.y = Math.PI / 4 * dir;
+        group.add(diagMesh);
+      });
+
+      const centerBoxSize = innerSize * 0.35;
+      const centerShape = new THREE.Shape();
+      centerShape.moveTo(-centerBoxSize/2, -centerBoxSize/2); centerShape.lineTo(centerBoxSize/2, -centerBoxSize/2);
+      centerShape.lineTo(centerBoxSize/2, centerBoxSize/2); centerShape.lineTo(-centerBoxSize/2, centerBoxSize/2);
+      group.add(createTilePiece(centerShape, thick * 1.1, matT));
+
+      return group;
+    }
+
+    function buildArembergTile(size, matP, matS, matT) {
+      const group = new THREE.Group();
+      const thick = 0.015;
+      const starR = size * 0.32;
+
+      for (let i = 0; i < 4; i++) {
+        const ang = (i * Math.PI) / 2;
+        const shape = new THREE.Shape();
+        shape.moveTo(0, 0);
+        shape.lineTo(Math.cos(ang - 0.35) * starR, Math.sin(ang - 0.35) * starR);
+        shape.lineTo(Math.cos(ang) * starR * 1.3, Math.sin(ang) * starR * 1.3);
+        shape.lineTo(Math.cos(ang + 0.35) * starR, Math.sin(ang + 0.35) * starR);
+        group.add(createTilePiece(shape, thick, i % 2 === 0 ? matS : matT));
+      }
+
+      return group;
+    }
+
+    function buildStar8Tile(size, matP, matS, matT, matMetal) {
+      const group = new THREE.Group();
+      const thick = 0.015;
+      const numPoints = 8;
+      const outerR = size * 0.42;
+      const innerR = size * 0.18;
+
+      for (let i = 0; i < numPoints; i++) {
+        const a1 = (i * Math.PI * 2) / numPoints;
+        const a2 = ((i + 1) * Math.PI * 2) / numPoints;
+        const aMid = (a1 + a2) / 2;
+
+        const shape = new THREE.Shape();
+        shape.moveTo(0, 0);
+        shape.lineTo(Math.cos(a1) * innerR, Math.sin(a1) * innerR);
+        shape.lineTo(Math.cos(aMid) * outerR, Math.sin(aMid) * outerR);
+        shape.lineTo(Math.cos(a2) * innerR, Math.sin(a2) * innerR);
+        group.add(createTilePiece(shape, thick, (i % 2 === 0) ? matS : matT));
+      }
+
+      return group;
+    }
+
+    function buildRhombilleTile(size, matP, matS, matT) {
+      const group = new THREE.Group();
+      const thick = 0.015;
+      const r = size * 0.45;
+
+      for (let i = 0; i < 3; i++) {
+        const ang = (i * Math.PI * 2) / 3;
+        const shape = new THREE.Shape();
+        shape.moveTo(0, 0);
+        shape.lineTo(Math.cos(ang) * r, Math.sin(ang) * r);
+        shape.lineTo(Math.cos(ang) * r + Math.cos(ang + Math.PI/3) * r, Math.sin(ang) * r + Math.sin(ang + Math.PI/3) * r);
+        shape.lineTo(Math.cos(ang + Math.PI/3) * r, Math.sin(ang + Math.PI/3) * r);
+        group.add(createTilePiece(shape, thick, i === 0 ? matP : (i === 1 ? matS : matT)));
+      }
+
+      return group;
+    }
+
+    // --- RICOSTRUZIONE PAVIMENTO COMPLETO ---
+
+    function rebuildFloor() {
+      if (floorGroup) scene.remove(floorGroup);
+      floorGroup = new THREE.Group();
+
+      const RW = state.roomWidth;
+      const RL = state.roomLength;
+      const TS = state.tileSize;
+
+      const matP = getWoodMaterial(state.woodPrimary);
+      const matS = getWoodMaterial(state.woodSecondary);
+      const matT = getWoodMaterial(state.woodTertiary);
+      const matMetal = getMetalMaterial();
+
+      // Battiscopa
+      const skirtH = 0.12;
+      const skirtGeo = new THREE.BoxGeometry(RW, skirtH, 0.02);
+
+      const skirt1 = new THREE.Mesh(skirtGeo, matP);
+      skirt1.position.set(0, skirtH/2, -RL/2);
+      floorGroup.add(skirt1);
+
+      const skirt2 = new THREE.Mesh(skirtGeo, matP);
+      skirt2.position.set(0, skirtH/2, RL/2);
+      floorGroup.add(skirt2);
+
+      // Bordura Perimetrale
+      let borderW = 0;
+      if (state.borderStyle !== 'none') {
+        borderW = state.borderStyle === 'double' ? 0.35 : 0.22;
+
+        const borderShape = new THREE.Shape();
+        borderShape.moveTo(-RW/2, -RL/2); borderShape.lineTo(RW/2, -RL/2);
+        borderShape.lineTo(RW/2, RL/2); borderShape.lineTo(-RW/2, RL/2);
+
+        const hole = new THREE.Path();
+        const inW = RW - borderW * 2; const inL = RL - borderW * 2;
+        hole.moveTo(-inW/2, -inL/2); hole.lineTo(inW/2, -inL/2);
+        hole.lineTo(inW/2, inL/2); hole.lineTo(-inW/2, inL/2);
+        borderShape.holes.push(hole);
+
+        floorGroup.add(createTilePiece(borderShape, 0.015, matP));
+
+        if (state.borderStyle === 'double' || matMetal) {
+          const filletShape = new THREE.Shape();
+          const fW = inW + 0.02; const fL = inL + 0.02;
+          filletShape.moveTo(-fW/2, -fL/2); filletShape.lineTo(fW/2, -fL/2);
+          filletShape.lineTo(fW/2, fL/2); filletShape.lineTo(-fW/2, fL/2);
+
+          const fHole = new THREE.Path();
+          fHole.moveTo(-inW/2, -inL/2); fHole.lineTo(inW/2, -inL/2);
+          fHole.lineTo(inW/2, inL/2); fHole.lineTo(-inW/2, inL/2);
+          filletShape.holes.push(fHole);
+
+          floorGroup.add(createTilePiece(filletShape, 0.016, matMetal || matT));
+        }
+      }
+
+      // Campo Centrale Tassellato
+      const fieldW = RW - borderW * 2;
+      const fieldL = RL - borderW * 2;
+
+      const cols = Math.ceil(fieldW / TS);
+      const rows = Math.ceil(fieldL / TS);
+
+      const mosaicContainer = new THREE.Group();
+      if (state.tileAngle === '45') {
+        mosaicContainer.rotation.y = Math.PI / 4;
+      }
+
+      const startX = -((cols - 1) * TS) / 2;
+      const startZ = -((rows - 1) * TS) / 2;
+
+      for (let c = 0; c < cols; c++) {
+        for (let r = 0; r < rows; r++) {
+          const posX = startX + c * TS;
+          const posZ = startZ + r * TS;
+
+          if (Math.abs(posX) > fieldW/2 + TS/2 || Math.abs(posZ) > fieldL/2 + TS/2) continue;
+
+          let tile;
+          if (state.patternType === 'hex_sq_tri') {
+            tile = buildHexSqTriTile(TS, matP, matS, matT, matMetal);
+          } else if (state.patternType === 'cairo') {
+            tile = buildCairoTile(TS, matP, matS, matT, matMetal);
+          } else if (state.patternType === 'truchet') {
+            tile = buildTruchetTile(TS, c, r, matP, matS, matT, matMetal);
+          } else if (state.patternType === 'penrose') {
+            tile = buildPenroseTile(TS, matP, matS, matT, matMetal);
+          } else if (state.patternType === 'escher') {
+            tile = buildEscherTile(TS, matP, matS, matT, matMetal);
+          } else if (state.patternType === 'versailles') {
+            tile = buildVersaillesTile(TS, matP, matS, matT, matMetal);
+          } else if (state.patternType === 'aremberg') {
+            tile = buildArembergTile(TS, matP, matS, matT);
+          } else if (state.patternType === 'star8') {
+            tile = buildStar8Tile(TS, matP, matS, matT, matMetal);
+          } else if (state.patternType === 'rhombille') {
+            tile = buildRhombilleTile(TS, matP, matS, matT);
+          }
+
+          tile.position.set(posX, 0, posZ);
+          mosaicContainer.add(tile);
+        }
+      }
+
+      floorGroup.add(mosaicContainer);
+      scene.add(floorGroup);
+
+      // Info HUD
+      document.getElementById('info-room-size').textContent = `${RW.toFixed(1)}m x ${RL.toFixed(1)}m`;
+      document.getElementById('info-pattern').textContent = state.patternType.replace(/_/g, ' ').toUpperCase();
+      document.getElementById('info-tile-size').textContent = `${Math.round(TS * 100)}x${Math.round(TS * 100)} cm`;
+    }
+
+    // --- EVENTI E LISTENERS ---
+
+    const inputs = [
+      'roomWidth', 'roomLength', 'tileSize', 'tileAngle', 'patternType',
+      'borderStyle', 'brassInlay', 'woodPrimary', 'woodSecondary', 'woodTertiary',
+      'glossLevel', 'bevelDepth', 'lightAngle'
+    ];
+
+    function initListeners() {
+      inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        el.addEventListener('input', (e) => {
+          let val = e.target.value;
+          if (e.target.type === 'range') val = parseFloat(val);
+
+          state[id] = val;
+
+          const lbl = document.getElementById(`val-${id}`);
+          if (lbl) {
+            if (id === 'roomWidth' || id === 'roomLength') lbl.textContent = `${state[id]} m`;
+            else if (id === 'tileSize') lbl.textContent = `${state[id] * 100} cm`;
+            else if (id === 'bevelDepth') lbl.textContent = `${state[id] * 1000} mm`;
+            else if (id === 'lightAngle') lbl.textContent = `${state[id]}°`;
+          }
+
+          if (id === 'lightAngle') {
+            updateLight();
+          } else {
+            rebuildFloor();
+          }
+        });
+      });
+    }
+
+    function setCam(mode) {
+      if (mode === 'top') {
+        camera.position.set(0, state.roomWidth * 1.3, 0.01);
+        controls.target.set(0, 0, 0);
+      } else if (mode === 'persp') {
+        camera.position.set(0, state.roomWidth * 0.8, state.roomLength * 0.9);
+        controls.target.set(0, 0, 0);
+      } else if (mode === 'macro') {
+        camera.position.set(0.6, 0.45, 0.6);
+        controls.target.set(0, 0, 0);
+      }
+      controls.update();
+    }
+
+    function onResize() {
+      const container = document.getElementById('canvas-container');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    init3D();
+    initListeners();
+  </script>
+</body>
+</html>

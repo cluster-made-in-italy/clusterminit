@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="it" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wood & Algorithm — Falegnameria Creativa & Progettazione IA</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandBg: '#0b0c0e',
+            brandCard: '#13151a',
+            brandPanel: '#1a1d24',
+            brandBorder: '#2a2e3a',
+            brandAccent: '#d97706',
+            brandAccentHover: '#b45309'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0c0e; color: #f3f4f6; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #0b0c0e; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #2a2e3a; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #d97706; }
+  </style>
+</head>
+<body class="custom-scrollbar selection:bg-amber-500 selection:text-black">
+
+  <!-- BARRA DI NAVIGAZIONE -->
+  <nav class="sticky top-0 z-40 bg-brandBg/90 backdrop-blur-md border-b border-brandBorder px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="#" class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+          <i class="fa-solid fa-torii-gate text-lg"></i>
+        </div>
+        <div>
+          <span class="text-base font-extrabold text-white tracking-wider block">WOOD & ALGORITHM</span>
+          <span class="text-[10px] text-amber-400 font-semibold tracking-widest uppercase">Falegnameria Creativa IA</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <div class="hidden md:flex items-center space-x-8 text-xs font-semibold text-slate-300">
+        <a href="#filosofia" class="hover:text-amber-400 transition">Filosofia</a>
+        <a href="#simulatore" class="hover:text-amber-400 transition">Simulatore 3D</a>
+        <a href="#portfolio" class="hover:text-amber-400 transition">Portfolio Prodotti</a>
+        <a href="#storie" class="hover:text-amber-400 transition">Storie & Social</a>
+      </div>
+
+      <a href="#contatti" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs transition shadow-lg shadow-amber-500/20 flex items-center gap-2">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Progetta con l'IA
+      </a>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <header class="relative pt-20 pb-16 px-6 overflow-hidden border-b border-brandBorder">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold mb-6">
+          <i class="fa-solid fa-microchip"></i> L'Artigianato Aumentato del Legno Massello
+        </div>
+        <h1 class="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight mb-6">
+          La pialla e l'algoritmo: <br>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-200 to-amber-500">
+            L'arredo su misura del futuro.
+          </span>
+        </h1>
+        <p class="text-slate-400 text-base leading-relaxed mb-8">
+          Uniamo la precisione della progettazione parametrica e dell'Intelligenza Artificiale con la tradizione dell'ebanisteria e il calore del legno massello. Dalla simulazione 3D in stile Japandi alla finitura ad olio fatta a mano.
+        </p>
+        <div class="flex flex-wrap gap-4">
+          <a href="#portfolio" class="px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-sm transition shadow-lg shadow-amber-500/20">
+            Esplora il Portfolio Prodotti
+          </a>
+          <a href="#simulatore" class="px-6 py-3.5 rounded-xl bg-brandPanel border border-brandBorder text-slate-200 hover:text-white hover:border-slate-500 font-bold text-sm transition">
+            Scopri il Simulatore 3D
+          </a>
+        </div>
+      </div>
+
+      <!-- Feature Card Showcase -->
+      <div class="relative bg-brandCard border border-brandBorder rounded-3xl p-6 shadow-2xl">
+        <div class="aspect-video rounded-2xl overflow-hidden relative mb-4 bg-black">
+          <img src="https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?auto=format&fit=crop&w=1200&q=80" alt="Studio Japandi" class="w-full h-full object-cover opacity-90">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-6">
+            <div>
+              <span class="px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-lg text-[10px] font-bold uppercase tracking-wider mb-2 inline-block">Design Japandi 3D</span>
+              <h3 class="text-lg font-bold text-white">Tavolo Massello & Scrivania Operativa Dual-Use</h3>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="bg-black/40 p-3 rounded-xl border border-brandBorder">
+            <span class="text-amber-400 text-base font-bold font-mono block">100%</span>
+            <span class="text-[10px] text-slate-400 uppercase">Su Misura</span>
+          </div>
+          <div class="bg-black/40 p-3 rounded-xl border border-brandBorder">
+            <span class="text-emerald-400 text-base font-bold font-mono block">-35%</span>
+            <span class="text-[10px] text-slate-400 uppercase">Sprechi Legno</span>
+          </div>
+          <div class="bg-black/40 p-3 rounded-xl border border-brandBorder">
+            <span class="text-amber-400 text-base font-bold font-mono block">85+ cm</span>
+            <span class="text-[10px] text-slate-400 uppercase">Passaggio HUD</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 1. FILOSOFIA & VALORI -->
+  <section id="filosofia" class="py-20 px-6 max-w-7xl mx-auto border-b border-brandBorder">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <h2 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-2">Il Nostro Metodo</h2>
+      <p class="text-3xl font-extrabold text-white">Tre pilastri per la Falegnameria del Futuro</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="bg-brandCard border border-brandBorder p-8 rounded-3xl relative">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center text-xl mb-6">
+          <i class="fa-solid fa-brain"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-3">1. Design Algoritmo & IA</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          Sfruttiamo l'IA per esplorare forme organiche, ottimizzare le sezioni di carico e calcolare al millimetro gli ingombri ambientali prima di tagliare il primo asse.
+        </p>
+      </div>
+
+      <div class="bg-brandCard border border-brandBorder p-8 rounded-3xl relative">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-xl mb-6">
+          <i class="fa-solid fa-tree"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-3">2. Materia Prima & Sostenibilità</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          Utilizziamo solo legni masselli certificati (rovere, noce, frassino). L'ottimizzazione dei tagli via computer riduce gli scarti fino al 35%.
+        </p>
+      </div>
+
+      <div class="bg-brandCard border border-brandBorder p-8 rounded-3xl relative">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center text-xl mb-6">
+          <i class="fa-solid fa-hands-holding-circle"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-3">3. Ebanisteria Artigianale</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          Quando la simulazione è perfetta, spegniamo il computer. Gli incastri, la carteggiatura e l'olio protettivo sono realizzati interamente dalle nostre mani.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. SHOWCASE SIMULATORE 3D JAPANDI -->
+  <section id="simulatore" class="py-20 px-6 bg-brandCard/50 border-b border-brandBorder">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <span class="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold inline-block mb-4">
+          <i class="fa-solid fa-cube"></i> Innovazione Digitale
+        </span>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-6">
+          Simulatore Studio 3D: <br>
+          Annulla l'incertezza dello spazio.
+        </h2>
+        <p class="text-slate-400 text-sm md:text-base leading-relaxed mb-6">
+          Il nostro simulatore HTML/Three.js consente di visualizzare la stanza, testare arredi in stile **Japandi (Giapponese-Scandinavo)** e simulare scenari reali prima della costruzione.
+        </p>
+
+        <ul class="space-y-3 text-sm text-slate-300 mb-8">
+          <li class="flex items-center gap-3">
+            <i class="fa-solid fa-circle-check text-amber-400"></i>
+            <span><strong>Tavolo Japandi Convertibile:</strong> Passa da tavolo da riunione a scrivania operativa con 2 laptop e accessori.</span>
+          </li>
+          <li class="flex items-center gap-3">
+            <i class="fa-solid fa-circle-check text-amber-400"></i>
+            <span><strong>Librerie Iper-Realistiche:</strong> Generazione di volumi inclinati, faldoni d'archivio e custodie per simulare il carico reale.</span>
+          </li>
+          <li class="flex items-center gap-3">
+            <i class="fa-solid fa-circle-check text-emerald-400"></i>
+            <span><strong>Calcolo Ergonomico HUD:</strong> Verifica in tempo reale dei corridoi di passaggio (es. >85 cm per la massima comodità).</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Feature Grid Box -->
+      <div class="bg-brandPanel border border-brandBorder p-6 rounded-3xl shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-brandBorder pb-4">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-ruler-combined text-amber-400 text-xl"></i>
+            <div>
+              <h4 class="text-sm font-bold text-white">Specifiche Progettazione Japandi</h4>
+              <p class="text-xs text-slate-400">Parametri configurabili in tempo reale</p>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-mono rounded-lg border border-emerald-500/30">Attivo</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div class="bg-black/40 p-3 rounded-xl border border-brandBorder">
+            <span class="text-slate-400 block mb-1">Gambe Japandi</span>
+            <span class="font-bold text-white">A-Frame / Listelli 格子 / Coniche</span>
+          </div>
+          <div class="bg-black/40 p-3 rounded-xl border border-brandBorder">
+            <span class="text-slate-400 block mb-1">Essenza Legno</span>
+            <span class="font-bold text-white">Rovere / Noce Zen / Frassino</span>
+          </div>
+          <div class="bg-black/40 p-3 rounded-xl border border-brandBorder">
+            <span class="text-slate-400 block mb-1">Sedie Abbinate</span>
+            <span class="font-bold text-white">Stile Wishbone / Hiroshima</span>
+          </div>
+          <div class="bg-black/40 p-3 rounded-xl border border-brandBorder">
+            <span class="text-slate-400 block mb-1">Librerie Archivi</span>
+            <span class="font-bold text-amber-400">Densità Libri e Faldoni</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. PORTFOLIO PRODOTTI CON FILTER & LIGHTBOX -->
+  <section id="portfolio" class="py-20 px-6 max-w-7xl mx-auto border-b border-brandBorder">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
+      <div>
+        <h2 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-2">Galleria Esclusiva</h2>
+        <p class="text-3xl font-extrabold text-white">Portfolio Prodotti & Ambienti</p>
+      </div>
+
+      <!-- Filtri Categoria -->
+      <div class="flex items-center gap-2 bg-brandCard p-1.5 rounded-2xl border border-brandBorder text-xs overflow-x-auto max-w-full">
+        <button onclick="filterCategory('all')" id="btn-all" class="filter-btn px-4 py-2 rounded-xl font-semibold transition bg-amber-500 text-slate-950 shadow">Tutti i Progetti</button>
+        <button onclick="filterCategory('tavoli')" id="btn-tavoli" class="filter-btn px-4 py-2 rounded-xl font-semibold text-slate-400 hover:text-white transition">Tavoli Masselli</button>
+        <button onclick="filterCategory('scrivanie')" id="btn-scrivanie" class="filter-btn px-4 py-2 rounded-xl font-semibold text-slate-400 hover:text-white transition">Scrivanie Smart</button>
+        <button onclick="filterCategory('ambienti')" id="btn-ambienti" class="filter-btn px-4 py-2 rounded-xl font-semibold text-slate-400 hover:text-white transition">Ambienti Multifunzionali</button>
+      </div>
+    </div>
+
+    <!-- Gallery Grid -->
+    <div id="gallery-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Generato dinamicamente via JS -->
+    </div>
+  </section>
+
+  <!-- 4. SEZIONE SOCIAL & CONTENUTI -->
+  <section id="storie" class="py-20 px-6 bg-brandCard/30 border-b border-brandBorder">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-2">Social & Content Hub</h2>
+        <p class="text-3xl font-extrabold text-white">Raccontiamo la nostra passione</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Post 1: Filosofia -->
+        <div class="bg-brandCard border border-brandBorder rounded-3xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-4">
+              <span class="flex items-center gap-1.5 font-bold text-amber-400"><i class="fa-brands fa-instagram"></i> Instagram / FB</span>
+              <span>Filosofia</span>
+            </div>
+            <h4 class="text-lg font-bold text-white mb-2">La pialla e l'algoritmo</h4>
+            <p class="text-slate-400 text-xs leading-relaxed italic mb-4">
+              "C'è chi pensa che l'IA e l'artigianato siano opposti. Noi crediamo sia l'evoluzione naturale della matita da falegname..."
+            </p>
+          </div>
+          <div class="pt-4 border-t border-brandBorder/60 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+            <span>#FalegnameriaCreativa</span>
+            <span>#DesignAI</span>
+          </div>
+        </div>
+
+        <!-- Post 2: Caso Studio -->
+        <div class="bg-brandCard border border-brandBorder rounded-3xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-4">
+              <span class="flex items-center gap-1.5 font-bold text-blue-400"><i class="fa-brands fa-linkedin"></i> LinkedIn Case Study</span>
+              <span>Studio Japandi</span>
+            </div>
+            <h4 class="text-lg font-bold text-white mb-2">Dalla Simulazione al Reale</h4>
+            <p class="text-slate-400 text-xs leading-relaxed italic mb-4">
+              "Come l'IA risolve i problemi di spazio: il controllo dinamico del passaggio (HUD Clearance) e le librerie ad alta densità..."
+            </p>
+          </div>
+          <div class="pt-4 border-t border-brandBorder/60 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+            <span>#Ergonomia3D</span>
+            <span>#B2BDesign</span>
+          </div>
+        </div>
+
+        <!-- Post 3: Reel Script -->
+        <div class="bg-brandCard border border-brandBorder rounded-3xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-4">
+              <span class="flex items-center gap-1.5 font-bold text-rose-400"><i class="fa-brands fa-tiktok"></i> TikTok / Reels</span>
+              <span>Behind The Scenes</span>
+            </div>
+            <h4 class="text-lg font-bold text-white mb-2">Audio Voiceover Video</h4>
+            <p class="text-slate-400 text-xs leading-relaxed italic mb-4">
+              "E se ti dicessi che questo tavolo in puro legno massello è stato prima immaginato da un'Intelligenza Artificiale?..."
+            </p>
+          </div>
+          <div class="pt-4 border-t border-brandBorder/60 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+            <span>#BehindTheScenes</span>
+            <span>#WoodworkingTikTok</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. FORM DI CONTATTO / RICHIEDI PREVENTIVO -->
+  <section id="contatti" class="py-20 px-6 max-w-4xl mx-auto">
+    <div class="bg-brandPanel border border-brandBorder rounded-3xl p-8 md:p-12 shadow-2xl">
+      <div class="text-center mb-10">
+        <span class="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold inline-block mb-3">Inizia il tuo Progetto</span>
+        <h2 class="text-3xl font-extrabold text-white">Trasforma la tua idea in materia viva</h2>
+        <p class="text-slate-400 text-xs md:text-sm mt-2">Compila il form per richiedere una simulazione 3D e un preventivo personalizzato.</p>
+      </div>
+
+      <form onsubmit="event.preventDefault(); alert('Grazie! Ti contatteremo entro 24 ore con una prima proposta di design IA.');" class="space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Nome e Cognome</label>
+            <input type="text" required placeholder="Mario Rossi" class="w-full bg-black/50 border border-brandBorder rounded-xl p-3 text-sm text-white focus:border-amber-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Email</label>
+            <input type="email" required placeholder="mario@esempio.it" class="w-full bg-black/50 border border-brandBorder rounded-xl p-3 text-sm text-white focus:border-amber-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Tipologia Arredo</label>
+            <select class="w-full bg-black/50 border border-brandBorder rounded-xl p-3 text-sm text-white focus:border-amber-500 focus:outline-none">
+              <option value="tavolo">Tavolo Massello Japandi</option>
+              <option value="scrivania">Postazione Scrivania Smart</option>
+              <option value="ambiente">Ambiente Multifunzionale / Parete Studio</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Essenza Legno Preferita</label>
+            <select class="w-full bg-black/50 border border-brandBorder rounded-xl p-3 text-sm text-white focus:border-amber-500 focus:outline-none">
+              <option value="rovere">Rovere Massello Nodato</option>
+              <option value="noce">Noce Scurissimo Zen</option>
+              <option value="frassino">Frassino Sbiancato Koto</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-2">Descrivi la tua idea o le dimensioni della stanza</label>
+          <textarea rows="4" placeholder="Es. Cerco un tavolo Japandi da 180x90 cm per il mio studio con librerie piene di faldoni..." class="w-full bg-black/50 border border-brandBorder rounded-xl p-3 text-sm text-white focus:border-amber-500 focus:outline-none"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-amber-500/20">
+          Invia Richiesta & Ricevi Anteprima IA
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- LIGHTBOX MODAL SFOGLIABILE -->
+  <div id="lightbox" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl hidden flex items-center justify-center p-4">
+    <button onclick="closeLightbox()" class="absolute top-6 right-6 z-20 w-12 h-12 rounded-full bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 text-white flex items-center justify-center transition shadow-lg">
+      <i class="fa-solid fa-xmark text-xl"></i>
+    </button>
+    <button onclick="prevSlide()" class="absolute left-4 md:left-8 z-20 w-12 h-12 rounded-full bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 text-white flex items-center justify-center transition shadow-lg">
+      <i class="fa-solid fa-chevron-left text-lg"></i>
+    </button>
+    <button onclick="nextSlide()" class="absolute right-4 md:right-8 z-20 w-12 h-12 rounded-full bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 text-white flex items-center justify-center transition shadow-lg">
+      <i class="fa-solid fa-chevron-right text-lg"></i>
+    </button>
+
+    <div class="max-w-5xl w-full bg-brandPanel border border-brandBorder rounded-3xl overflow-hidden shadow-2xl flex flex-col lg:flex-row max-h-[90vh]">
+      <div class="lg:w-3/5 bg-black relative flex items-center justify-center overflow-hidden min-h-[300px]">
+        <img id="modal-img" src="" alt="Prodotto" class="w-full h-full object-cover transition-opacity duration-300">
+        <div class="absolute bottom-3 left-3 bg-black/60 backdrop-blur px-3 py-1 rounded-lg border border-white/10 text-[11px] text-slate-300 font-mono" id="modal-counter">1 / 6</div>
+      </div>
+      <div class="lg:w-2/5 p-6 lg:p-8 flex flex-col justify-between overflow-y-auto custom-scrollbar">
+        <div>
+          <div class="flex items-center gap-2 mb-3">
+            <span id="modal-tag" class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-md">Tavoli Masselli</span>
+            <span id="modal-wood" class="text-xs text-slate-400 font-medium">Rovere Massello</span>
+          </div>
+          <h3 id="modal-title" class="text-2xl font-bold text-white mb-2">Titolo Prodotto</h3>
+          <p id="modal-desc" class="text-slate-300 text-xs md:text-sm leading-relaxed mb-6">Descrizione del prodotto...</p>
+
+          <div class="space-y-2 bg-black/40 p-4 rounded-2xl border border-brandBorder mb-6 text-xs">
+            <div class="flex justify-between"><span class="text-slate-400">Lavorazione:</span> <span id="modal-spec-tech" class="font-medium text-white">-</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Sostenibilità:</span> <span id="modal-spec-waste" class="font-medium text-emerald-400">-</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Dimensioni:</span> <span id="modal-spec-size" class="font-medium text-white">-</span></div>
+          </div>
+        </div>
+
+        <a href="#contatti" onclick="closeLightbox()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl transition text-center shadow">
+          Richiedi Personalizzazione
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-brandCard border-t border-brandBorder py-8 px-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>© 2026 Wood & Algorithm — Falegnameria Creativa & Progettazione IA.</div>
+      <div class="flex gap-4 text-slate-400">
+        <a href="#" class="hover:text-amber-400"><i class="fa-brands fa-instagram text-base"></i></a>
+        <a href="#" class="hover:text-amber-400"><i class="fa-brands fa-linkedin text-base"></i></a>
+        <a href="#" class="hover:text-amber-400"><i class="fa-brands fa-tiktok text-base"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SCRIPT PORTFOLIO & LIGHTBOX -->
+  <script>
+    const products = [
+      {
+        id: 1,
+        category: 'tavoli',
+        categoryLabel: 'Tavoli Masselli',
+        title: 'Tavolo Japandi "Hikari"',
+        wood: 'Rovere Massello Nodato',
+        img: 'https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Tavolo da pranzo e riunione in stile Japandi. La curvatura e l\'angolazione delle gambe a slitta sono state generate via IA per distribuire perfettamente il carico strutturale.',
+        tech: 'Incastri Giapponesi a Scomparsa',
+        waste: '-35% Scarto di Taglio',
+        size: '180-240 x 90 cm'
+      },
+      {
+        id: 2,
+        category: 'scrivanie',
+        categoryLabel: 'Scrivanie Smart',
+        title: 'Postazione Operativa "Dual-Sync"',
+        wood: 'Noce Canaletto & Frassino',
+        img: 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Scrivania per home office ad alte prestazioni. Integra un vano di gestione cavi a scomparsa integrato nel massello e sottomano in cuoio naturale inserito a filo.',
+        tech: 'Passacavi Integrato Fresato CNC',
+        waste: '-28% Materiale Utilizzato',
+        size: '160 x 80 cm'
+      },
+      {
+        id: 3,
+        category: 'ambienti',
+        categoryLabel: 'Ambienti Multifunzionali',
+        title: 'Sistema Parete & Studio "Komorebi"',
+        wood: 'Rovere Naturale & Metallo Brunito',
+        img: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Soluzione d\'arredo integrata per trasformare una parete di soggiorno in postazione di lavoro attiva con librerie ad alta densità per faldoni e volumi d\'arte.',
+        tech: 'Modulazione Parametrica per Spazi Ristretti',
+        waste: '-40% Impronta di Carbonio',
+        size: 'Parete Intera Su Misura'
+      },
+      {
+        id: 4,
+        category: 'tavoli',
+        categoryLabel: 'Tavoli Masselli',
+        title: 'Tavolo Executive "Kagami"',
+        wood: 'Noce Scurissimo Zen',
+        img: 'https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Tavolo direzionale monumentale con venature specularmente contrapposte. L\'algoritmo ha selezionato e accoppiato le tavole per continuità di venatura naturale.',
+        tech: 'Taglio di Precisione a Controllo Numerico',
+        waste: '-22% Scarto Materia Prima',
+        size: '220 x 100 cm'
+      },
+      {
+        id: 5,
+        category: 'scrivanie',
+        categoryLabel: 'Scrivanie Smart',
+        title: 'Desk Organico "Ergo-Flow"',
+        wood: 'Frassino Sbiancato Koto',
+        img: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Scrivania dalle linee fluide senza spigoli vivi. Realizzata per ridurre l\'affaticamento dei polsi durante sessioni di lavoro prolungate.',
+        tech: 'Modellazione Bionica Algoritmica',
+        waste: '-30% Energia di Produzione',
+        size: '140 x 75 cm'
+      },
+      {
+        id: 6,
+        category: 'ambienti',
+        categoryLabel: 'Ambienti Multifunzionali',
+        title: 'Divisorio Frangisole "Zenith"',
+        wood: 'Listellare di Rovere & Ottone',
+        img: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Parete divisoria aperta in listelli di legno per dividere la zona living dallo studio professionale. Garantisce la trasmissione della luce naturale.',
+        tech: 'Simulazione Rendering di Luce Diurna',
+        waste: 'Zero Plastica / 100% Naturale',
+        size: 'Altezza Soffitto Su Misura'
+      }
+    ];
+
+    let currentFiltered = [...products];
+    let currentIndex = 0;
+
+    window.onload = () => {
+      renderGrid(products);
+      document.addEventListener('keydown', (e) => {
+        const lightbox = document.getElementById('lightbox');
+        if (!lightbox.classList.contains('hidden')) {
+          if (e.key === 'ArrowRight') nextSlide();
+          if (e.key === 'ArrowLeft') prevSlide();
+          if (e.key === 'Escape') closeLightbox();
+        }
+      });
+    };
+
+    function renderGrid(items) {
+      const grid = document.getElementById('gallery-grid');
+      grid.innerHTML = '';
+      items.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = "group bg-brandCard border border-brandBorder rounded-3xl overflow-hidden shadow-lg hover:border-amber-500/50 transition duration-300 flex flex-col cursor-pointer";
+        card.onclick = () => openLightbox(index);
+        card.innerHTML = `
+          <div class="relative aspect-[4/3] overflow-hidden bg-black">
+            <img src="${item.img}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90 group-hover:opacity-100">
+            <span class="absolute top-3 left-3 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-black/70 backdrop-blur text-amber-400 border border-amber-500/30 rounded-lg">
+              ${item.categoryLabel}
+            </span>
+          </div>
+          <div class="p-5 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="text-xs text-slate-400 mb-1"><i class="fa-solid fa-tree mr-1 text-amber-500"></i> ${item.wood}</div>
+              <h3 class="text-base font-bold text-white group-hover:text-amber-400 transition mb-1">${item.title}</h3>
+              <p class="text-slate-400 text-xs line-clamp-2">${item.desc}</p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-brandBorder/60 flex items-center justify-between text-xs font-semibold text-amber-400">
+              <span>Scheda IA</span>
+              <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition"></i>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function filterCategory(cat) {
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.className = "filter-btn px-4 py-2 rounded-xl font-semibold text-slate-400 hover:text-white transition";
+      });
+      const activeBtn = document.getElementById(`btn-${cat}`);
+      if (activeBtn) activeBtn.className = "filter-btn px-4 py-2 rounded-xl font-semibold transition bg-amber-500 text-slate-950 shadow";
+
+      currentFiltered = cat === 'all' ? [...products] : products.filter(p => p.category === cat);
+      renderGrid(currentFiltered);
+    }
+
+    function openLightbox(index) {
+      currentIndex = index;
+      updateModalContent();
+      document.getElementById('lightbox').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+
+    function nextSlide() {
+      currentIndex = (currentIndex + 1) % currentFiltered.length;
+      updateModalContent();
+    }
+
+    function prevSlide() {
+      currentIndex = (currentIndex - 1 + currentFiltered.length) % currentFiltered.length;
+      updateModalContent();
+    }
+
+    function updateModalContent() {
+      const item = currentFiltered[currentIndex];
+      const imgEl = document.getElementById('modal-img');
+      imgEl.style.opacity = '0.3';
+      setTimeout(() => {
+        imgEl.src = item.img;
+        imgEl.style.opacity = '1';
+      }, 120);
+
+      document.getElementById('modal-tag').innerText = item.categoryLabel;
+      document.getElementById('modal-wood').innerText = item.wood;
+      document.getElementById('modal-title').innerText = item.title;
+      document.getElementById('modal-desc').innerText = item.desc;
+      document.getElementById('modal-spec-tech').innerText = item.tech;
+      document.getElementById('modal-spec-waste').innerText = item.waste;
+      document.getElementById('modal-spec-size').innerText = item.size;
+      document.getElementById('modal-counter').innerText = `${currentIndex + 1} / ${currentFiltered.length}`;
+    }
+  </script>
+</body>
+</html>

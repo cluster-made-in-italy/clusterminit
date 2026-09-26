@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulatore 3D Mosaico Cosmatesco di Westminster</title>
+  
+  <!-- CDN Three.js r128, OrbitControls & Tailwind CSS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root {
+      --bg-dark: #070a0f;
+      --panel-bg: #0d131f;
+      --card-bg: #151d2c;
+      --accent: #d97706;
+      --accent-light: #fbbf24;
+      --accent-glow: rgba(217, 119, 6, 0.25);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #233044;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar Layout */
+    .sidebar {
+      width: 450px;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      z-index: 10;
+      box-shadow: 8px 0 30px rgba(0,0,0,0.6);
+    }
+
+    .sidebar-header {
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--border-color);
+      background: #04070c;
+    }
+
+    .sidebar-header h1 {
+      font-size: 1.15rem;
+      color: var(--accent-light);
+      letter-spacing: 0.03em;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidebar-header p {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-color) transparent;
+    }
+
+    /* Control Cards */
+    .control-group {
+      margin-bottom: 18px;
+      background: var(--card-bg);
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      transition: border-color 0.2s;
+    }
+
+    .control-group:hover {
+      border-color: #334155;
+    }
+
+    .control-group h2 {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent-light);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+
+    .control-item {
+      margin-bottom: 12px;
+    }
+
+    .control-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-item label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #e2e8f0;
+    }
+
+    .control-item label span.val {
+      color: var(--accent-light);
+      font-weight: 600;
+      font-family: monospace;
+    }
+
+    .control-item input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+      cursor: pointer;
+      height: 6px;
+      background: #090e17;
+      border-radius: 3px;
+    }
+
+    .control-item select {
+      width: 100%;
+      padding: 9px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      background: #080d16;
+      color: var(--text-main);
+      font-size: 0.84rem;
+      cursor: pointer;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .control-item select:focus {
+      border-color: var(--accent);
+    }
+
+    /* Preset Grid */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .preset-btn {
+      background: #090e17;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent);
+      background: #111827;
+      transform: translateY(-2px);
+    }
+
+    .preset-btn.active {
+      border-color: var(--accent-light);
+      background: #1e1b18;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .preset-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+
+    .preset-desc {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    .preset-swatches {
+      display: flex;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* Viewport Area */
+    .viewport-area {
+      flex: 1;
+      position: relative;
+      height: 100%;
+      background: #020408;
+    }
+
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    .hud-bar {
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      display: flex;
+      gap: 8px;
+      background: rgba(7, 10, 15, 0.85);
+      padding: 8px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    }
+
+    .hud-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .hud-btn:hover {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    .stats-card {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(7, 10, 15, 0.90);
+      border: 1px solid var(--border-color);
+      padding: 10px 28px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      display: flex;
+      gap: 28px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    }
+
+    .stats-card div {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stats-card strong {
+      color: var(--accent-light);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1>🏛️ Mosaico Cosmatesco 3D</h1>
+      <p>Simulatore di pavimenti in legno fedelmente basato sul <strong>Mosaico Cosmatesco di Westminster</strong>.</p>
+    </div>
+
+    <div class="sidebar-content">
+
+      <!-- 1. PRESET CROMATICI DA IMMAGINE -->
+      <div class="control-group">
+        <h2>🎨 Preset Cromatici dall'Immagine</h2>
+        <div class="preset-grid">
+          
+          <button class="preset-btn active" id="btn-preset-westminster" onclick="applyPreset('westminster')">
+            <span class="preset-title">1. Classico Westminster</span>
+            <span class="preset-desc">Pannello sx: Rovere, Noce, Ottone e Acero</span>
+            <div class="preset-swatches">
+              <div class="swatch" style="background: #dbcaa9;"></div>
+              <div class="swatch" style="background: #c8965d;"></div>
+              <div class="swatch" style="background: #422a1d;"></div>
+              <div class="swatch" style="background: #d4af37;"></div>
+            </div>
+          </button>
+
+          <button class="preset-btn" id="btn-preset-cherry_walnut" onclick="applyPreset('cherry_walnut')">
+            <span class="preset-title">2. Ciliegio & Noce</span>
+            <span class="preset-desc">Pannello centro: Ciliegio Caldo, Noce, Bronzo</span>
+            <div class="preset-swatches">
+              <div class="swatch" style="background: #8c432b;"></div>
+              <div class="swatch" style="background: #422a1d;"></div>
+              <div class="swatch" style="background: #c8965d;"></div>
+              <div class="swatch" style="background: #8c6239;"></div>
+            </div>
+          </button>
+
+          <button class="preset-btn" id="btn-preset-ebony_maple" onclick="applyPreset('ebony_maple')">
+            <span class="preset-title">3. Ebano & Acero Bicolore</span>
+            <span class="preset-desc">Pannello top-dx: Alto contrasto grafico Bicolore</span>
+            <div class="preset-swatches">
+              <div class="swatch" style="background: #1c1715;"></div>
+              <div class="swatch" style="background: #f1ebd9;"></div>
+              <div class="swatch" style="background: #1c1715;"></div>
+              <div class="swatch" style="background: #d1d5db;"></div>
+            </div>
+          </button>
+
+          <button class="preset-btn" id="btn-preset-monochrome" onclick="applyPreset('monochrome')">
+            <span class="preset-title">4. Monocromo Rovere</span>
+            <span class="preset-desc">Pannello bot-dx: Rovere desaturato naturale</span>
+            <div class="preset-swatches">
+              <div class="swatch" style="background: #bfa888;"></div>
+              <div class="swatch" style="background: #96815c;"></div>
+              <div class="swatch" style="background: #736142;"></div>
+            </div>
+          </button>
+
+        </div>
+      </div>
+
+      <!-- 2. GEOMETRIA E DIMENSIONI -->
+      <div class="control-group">
+        <h2>📐 Geometria & Dimensioni</h2>
+        <div class="control-item">
+          <label>Lato Stanza: <span class="val" id="val-roomSize">4.8 m</span></label>
+          <input type="range" id="roomSize" min="3.6" max="7.2" step="0.4" value="4.8">
+        </div>
+        <div class="control-item">
+          <label>Scala Quincunx Centrale: <span class="val" id="val-quincunxScale">2.6 m</span></label>
+          <input type="range" id="quincunxScale" min="1.8" max="3.4" step="0.2" value="2.6">
+        </div>
+        <div class="control-item">
+          <label>Larghezza Nastri Guilloche: <span class="val" id="val-ribbonWidth">14 cm</span></label>
+          <input type="range" id="ribbonWidth" min="8" max="22" step="2" value="14">
+        </div>
+        <div class="control-item">
+          <label>Densità Anelli Catena Esterna: <span class="val" id="val-chainCount">6 per lato</span></label>
+          <input type="range" id="chainCount" min="4" max="10" step="1" value="6">
+        </div>
+      </div>
+
+      <!-- 3. MOTIVI E INTARSI -->
+      <div class="control-group">
+        <h2>⭕ Stili Intaglio Dischi (Roundels)</h2>
+        <div class="control-item">
+          <label>Stile Disco Centrale</label>
+          <select id="centerDiscPattern">
+            <option value="concentric">Anelli Concentrici Mosaico</option>
+            <option value="mezza_luna">Mezza Luna Bicolore (Pannello 3)</option>
+            <option value="quarters" selected>Incrocio a 4 Quarti (Venature 90°)</option>
+            <option value="radiale">Stella Radiale a 8 Spicchi</option>
+            <option value="solid">Massello Pieno</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Stile 4 Dischi Satelliti</label>
+          <select id="satelliteDiscPattern">
+            <option value="mezza_luna" selected>Mezza Luna Bicolore (Pannello 3)</option>
+            <option value="quarters">Incrocio a 4 Quarti (Venature 90°)</option>
+            <option value="concentric">Anelli Concentrici Mosaico</option>
+            <option value="radiale">Stella Radiale a 8 Spicchi</option>
+            <option value="solid">Massello Pieno</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Stile Anelli Catena Perimetrale</label>
+          <select id="chainPattern">
+            <option value="split" selected>Anelli Intrecciati Bicolore (Due Toni)</option>
+            <option value="concentric">Anelli Concentrici Semplici</option>
+            <option value="radiale">Anelli a Spicchi Micro-Mosaico</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 4. ESSENZE LIGNEE E METALLI -->
+      <div class="control-group">
+        <h2>🪵 Essenze Lignee & Filetti Metallici</h2>
+        <div class="control-item">
+          <label>Fondo Stanza / Parquet Campo</label>
+          <select id="woodBackground">
+            <option value="acero" selected>Acero Chiaro / Frassino</option>
+            <option value="ciliegio">Ciliegio Caldo</option>
+            <option value="rovere">Rovere Naturale Dorato</option>
+            <option value="noce">Noce Canaletto</option>
+            <option value="ebano">Ebano / Wengé Scuro</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Nastri Guilloche Intrecciati</label>
+          <select id="woodRibbons">
+            <option value="rovere" selected>Rovere Naturale Dorato</option>
+            <option value="ebano">Ebano Scuro</option>
+            <option value="noce">Noce Canaletto</option>
+            <option value="ciliegio">Ciliegio Caldo</option>
+            <option value="acero">Acero Chiaro</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Dischi & Intarsi Scuri</label>
+          <select id="woodDark">
+            <option value="noce" selected>Noce Canaletto</option>
+            <option value="ebano">Ebano Scuro</option>
+            <option value="ciliegio">Ciliegio Caldo</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Dischi & Intarsi Chiari</label>
+          <select id="woodLight">
+            <option value="rovere" selected>Rovere Naturale Dorato</option>
+            <option value="acero">Acero Chiaro</option>
+            <option value="ciliegio">Ciliegio Caldo</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Cornice a Rombo (45°)</label>
+          <select id="woodDiamond">
+            <option value="rovere" selected>Rovere Naturale Dorato</option>
+            <option value="ebano">Ebano Scuro</option>
+            <option value="noce">Noce Canaletto</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Filetti Metallici Intarsiati</label>
+          <select id="metalInlay">
+            <option value="gold" selected>Ottone Dorato Spazzolato</option>
+            <option value="bronze">Bronzo Anticato</option>
+            <option value="steel">Acciaio Lucido / Platino</option>
+            <option value="none">Senza Filetti Metallici</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 5. RENDERING E LUCI -->
+      <div class="control-group">
+        <h2>✨ Finitura Superficiale & Luce</h2>
+        <div class="control-item">
+          <label>Grado di Lucidatura Superficie</label>
+          <select id="glossLevel">
+            <option value="satin" selected>Satinato Cerato Tradizionale</option>
+            <option value="matt">Opaco Olio Naturale</option>
+            <option value="gloss">Lucido Verniciato a Specchio</option>
+          </select>
+        </div>
+        <div class="control-item">
+          <label>Smusso 3D Tasselli (Bevel): <span class="val" id="val-bevelDepth">1.2 mm</span></label>
+          <input type="range" id="bevelDepth" min="0.5" max="2.5" step="0.1" value="1.2">
+        </div>
+        <div class="control-item">
+          <label>Angolo Luce Solare: <span class="val" id="val-lightAngle">45°</span></label>
+          <input type="range" id="lightAngle" min="0" max="360" step="5" value="45">
+        </div>
+      </div>
+
+    </div>
+  </aside>
+
+  <main class="viewport-area">
+    <div class="hud-bar">
+      <button class="hud-btn" onclick="setCam('top')">📐 Vista Planimetrica 2D</button>
+      <button class="hud-btn" onclick="setCam('persp')">🏠 Prospettiva Stanza</button>
+      <button class="hud-btn" onclick="setCam('quincunx')">🔍 Zoom Quincunx</button>
+      <button class="hud-btn" onclick="setCam('chain')">🔗 Zoom Catena Perimetrale</button>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div class="stats-card">
+      <div>Stanza: <strong id="info-room-size">4.8m x 4.8m</strong></div>
+      <div>Preset: <strong id="info-preset">Classico Westminster</strong></div>
+      <div>Anelli Catena: <strong id="info-chain-count">24 totali</strong></div>
+      <div>Tasselli Estimati: <strong id="info-tile-count">~420 pezzi</strong></div>
+    </div>
+  </main>
+
+  <script>
+    const state = {
+      roomSize: 4.8,
+      quincunxScale: 2.6,
+      ribbonWidth: 0.14,
+      chainCount: 6,
+      centerDiscPattern: 'quarters',
+      satelliteDiscPattern: 'mezza_luna',
+      chainPattern: 'split',
+      woodBackground: 'acero',
+      woodRibbons: 'rovere',
+      woodDark: 'noce',
+      woodLight: 'rovere',
+      woodDiamond: 'rovere',
+      metalInlay: 'gold',
+      glossLevel: 'satin',
+      bevelDepth: 0.0012,
+      lightAngle: 45,
+      activePreset: 'Westminster Classico'
+    };
+
+    let scene, camera, renderer, controls;
+    let floorGroup, dirLight, hemiLight, ambLight;
+    const textures = {};
+
+    function createWoodCanvas(baseHex, grainHex, direction = 'horizontal') {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512; 
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = baseHex;
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Fine grain detail
+      ctx.fillStyle = grainHex;
+      for (let i = 0; i < 1200; i++) {
+        ctx.globalAlpha = Math.random() * 0.14 + 0.02;
+        if (direction === 'horizontal') {
+          const y = Math.random() * 512;
+          const h = Math.random() * 2.5 + 0.5;
+          ctx.fillRect(0, y, 512, h);
+        } else {
+          const x = Math.random() * 512;
+          const w = Math.random() * 2.5 + 0.5;
+          ctx.fillRect(x, 0, w, 512);
+        }
+      }
+
+      // Subtle growth rings
+      ctx.globalAlpha = 0.06;
+      ctx.strokeStyle = grainHex;
+      ctx.lineWidth = 4;
+      for (let r = 20; r < 700; r += 35) {
+        ctx.beginPath();
+        if (direction === 'horizontal') {
+          ctx.arc(256, -200, r, 0, Math.PI);
+        } else {
+          ctx.arc(-200, 256, r, -Math.PI/2, Math.PI/2);
+        }
+        ctx.stroke();
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    function generateWoodTextures() {
+      // Rovere (Oak)
+      textures.rovere = createWoodCanvas('#c8965d', '#6e441f', 'horizontal');
+      textures.rovere_vert = createWoodCanvas('#c8965d', '#6e441f', 'vertical');
+      
+      // Noce (Walnut)
+      textures.noce = createWoodCanvas('#422a1d', '#1a0e08', 'horizontal');
+      textures.noce_vert = createWoodCanvas('#422a1d', '#1a0e08', 'vertical');
+      
+      // Ebano (Ebony)
+      textures.ebano = createWoodCanvas('#1c1715', '#080605', 'horizontal');
+      textures.ebano_vert = createWoodCanvas('#1c1715', '#080605', 'vertical');
+
+      // Ciliegio (Cherry)
+      textures.ciliegio = createWoodCanvas('#8c432b', '#421a0e', 'horizontal');
+      textures.ciliegio_vert = createWoodCanvas('#8c432b', '#421a0e', 'vertical');
+
+      // Acero / Frassino (Maple/Ash)
+      textures.acero = createWoodCanvas('#f1ebd9', '#bfa888', 'horizontal');
+      textures.acero_vert = createWoodCanvas('#f1ebd9', '#bfa888', 'vertical');
+    }
+
+    function getWoodMaterial(woodKey, isVertical = false) {
+      let key = woodKey;
+      if (isVertical && textures[woodKey + '_vert']) {
+        key = woodKey + '_vert';
+      }
+
+      let roughness = 0.38;
+      let metalness = 0.02;
+
+      if (state.glossLevel === 'matt') { roughness = 0.68; metalness = 0.0; }
+      else if (state.glossLevel === 'satin') { roughness = 0.38; metalness = 0.02; }
+      else if (state.glossLevel === 'gloss') { roughness = 0.15; metalness = 0.06; }
+
+      return new THREE.MeshStandardMaterial({
+        map: textures[key] || textures[woodKey],
+        roughness: roughness,
+        metalness: metalness
+      });
+    }
+
+    function getMetalMaterial() {
+      if (state.metalInlay === 'gold') {
+        return new THREE.MeshStandardMaterial({ color: 0xd4af37, roughness: 0.22, metalness: 0.90 });
+      } else if (state.metalInlay === 'bronze') {
+        return new THREE.MeshStandardMaterial({ color: 0x8c6239, roughness: 0.30, metalness: 0.80 });
+      } else if (state.metalInlay === 'steel') {
+        return new THREE.MeshStandardMaterial({ color: 0xd1d5db, roughness: 0.18, metalness: 0.92 });
+      }
+      return null;
+    }
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+
+      camera = new THREE.PerspectiveCamera(38, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera.position.set(0, 5.0, 5.5);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2 - 0.02;
+
+      // Illumazione
+      ambLight = new THREE.AmbientLight(0xffffff, 0.55);
+      scene.add(ambLight);
+
+      hemiLight = new THREE.HemisphereLight(0xfffbeb, 0x1e293b, 0.40);
+      hemiLight.position.set(0, 10, 0);
+      scene.add(hemiLight);
+
+      dirLight = new THREE.DirectionalLight(0xfffaed, 0.90);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      dirLight.shadow.camera.near = 1;
+      dirLight.shadow.camera.far = 20;
+      dirLight.shadow.camera.left = -6;
+      dirLight.shadow.camera.right = 6;
+      dirLight.shadow.camera.top = 6;
+      dirLight.shadow.camera.bottom = -6;
+      dirLight.shadow.bias = -0.0002;
+      dirLight.shadow.normalBias = 0.02;
+      scene.add(dirLight);
+
+      updateLight();
+      generateWoodTextures();
+      rebuildFloor();
+
+      window.addEventListener('resize', onResize);
+      animate();
+    }
+
+    function updateLight() {
+      const rad = (state.lightAngle * Math.PI) / 180;
+      dirLight.position.set(Math.cos(rad) * 5, 5.5, Math.sin(rad) * 5);
+    }
+
+    function createTilePiece(shape, thickness, material, yOffset = 0) {
+      const extrudeSettings = {
+        steps: 1,
+        depth: thickness,
+        bevelEnabled: true,
+        bevelThickness: state.bevelDepth,
+        bevelSize: state.bevelDepth,
+        bevelOffset: 0,
+        bevelSegments: 2
+      };
+
+      const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+      geo.rotateX(Math.PI / 2);
+      const mesh = new THREE.Mesh(geo, material);
+      mesh.position.y = yOffset;
+      mesh.receiveShadow = true;
+      mesh.castShadow = true;
+      return mesh;
+    }
+
+    function buildDiscInlay(radius, patternType, matDark, matLight, matMetal, yOffset, rotationAngle = 0) {
+      const group = new THREE.Group();
+      const thick = 0.012;
+
+      if (patternType === 'solid') {
+        const sh = new THREE.Shape();
+        sh.absarc(0, 0, radius, 0, Math.PI * 2, false);
+        group.add(createTilePiece(sh, thick, matDark, yOffset));
+      } 
+      else if (patternType === 'mezza_luna') {
+        // Mezza Luna (Semicircle split - as seen in Panel 3)
+        const sh1 = new THREE.Shape();
+        sh1.absarc(0, 0, radius, rotationAngle, rotationAngle + Math.PI, false);
+        sh1.lineTo(0, 0);
+        group.add(createTilePiece(sh1, thick, matDark, yOffset));
+
+        const sh2 = new THREE.Shape();
+        sh2.absarc(0, 0, radius, rotationAngle + Math.PI, rotationAngle + Math.PI * 2, false);
+        sh2.lineTo(0, 0);
+        group.add(createTilePiece(sh2, thick, matLight, yOffset));
+
+        // Metal dividing line
+        if (matMetal) {
+          const fW = 0.008;
+          const line = new THREE.Shape();
+          const cosA = Math.cos(rotationAngle);
+          const sinA = Math.sin(rotationAngle);
+          
+          line.moveTo(-radius * cosA - fW/2 * sinA, -radius * sinA + fW/2 * cosA);
+          line.lineTo(radius * cosA - fW/2 * sinA, radius * sinA + fW/2 * cosA);
+          line.lineTo(radius * cosA + fW/2 * sinA, radius * sinA - fW/2 * cosA);
+          line.lineTo(-radius * cosA + fW/2 * sinA, -radius * sinA - fW/2 * cosA);
+          group.add(createTilePiece(line, thick, matMetal, yOffset + 0.0004));
+        }
+      }
+      else if (patternType === 'quarters') {
+        const matLightVert = getWoodMaterial(state.woodLight, true);
+        const matDarkVert = getWoodMaterial(state.woodDark, true);
+
+        for (let i = 0; i < 4; i++) {
+          const a1 = (i * Math.PI) / 2 + rotationAngle;
+          const a2 = ((i + 1) * Math.PI) / 2 + rotationAngle;
+          const sh = new THREE.Shape();
+          sh.moveTo(0, 0);
+          sh.absarc(0, 0, radius, a1, a2, false);
+          sh.lineTo(0, 0);
+          
+          const mat = (i % 2 === 0) ? matDark : matLightVert;
+          group.add(createTilePiece(sh, thick, mat, yOffset));
+        }
+
+        if (matMetal) {
+          const fW = 0.010;
+          const line1 = new THREE.Shape();
+          line1.moveTo(-fW/2, -radius); line1.lineTo(fW/2, -radius);
+          line1.lineTo(fW/2, radius); line1.lineTo(-fW/2, radius);
+          group.add(createTilePiece(line1, thick, matMetal, yOffset + 0.0004));
+
+          const line2 = new THREE.Shape();
+          line2.moveTo(-radius, -fW/2); line2.lineTo(-radius, fW/2);
+          line2.lineTo(radius, fW/2); line2.lineTo(radius, -fW/2);
+          group.add(createTilePiece(line2, thick, matMetal, yOffset + 0.0004));
+        }
+      } 
+      else if (patternType === 'concentric') {
+        const r1 = radius * 0.42;
+        const r2 = radius * 0.78;
+
+        const coreSh = new THREE.Shape();
+        coreSh.absarc(0, 0, r1, 0, Math.PI * 2, false);
+        group.add(createTilePiece(coreSh, thick, matDark, yOffset));
+
+        const ring1 = new THREE.Shape();
+        ring1.absarc(0, 0, r2, 0, Math.PI * 2, false);
+        const h1 = new THREE.Path();
+        h1.absarc(0, 0, r1, 0, Math.PI * 2, true);
+        ring1.holes.push(h1);
+        group.add(createTilePiece(ring1, thick, matLight, yOffset));
+
+        const ring2 = new THREE.Shape();
+        ring2.absarc(0, 0, radius, 0, Math.PI * 2, false);
+        const h2 = new THREE.Path();
+        h2.absarc(0, 0, r2, 0, Math.PI * 2, true);
+        ring2.holes.push(h2);
+        group.add(createTilePiece(ring2, thick, matDark, yOffset));
+
+        if (matMetal) {
+          const mW = 0.008;
+          const m1 = new THREE.Shape();
+          m1.absarc(0, 0, r1 + mW/2, 0, Math.PI * 2, false);
+          const mh1 = new THREE.Path();
+          mh1.absarc(0, 0, r1 - mW/2, 0, Math.PI * 2, true);
+          m1.holes.push(mh1);
+          group.add(createTilePiece(m1, thick, matMetal, yOffset + 0.0004));
+
+          const m2 = new THREE.Shape();
+          m2.absarc(0, 0, r2 + mW/2, 0, Math.PI * 2, false);
+          const mh2 = new THREE.Path();
+          mh2.absarc(0, 0, r2 - mW/2, 0, Math.PI * 2, true);
+          m2.holes.push(mh2);
+          group.add(createTilePiece(m2, thick, matMetal, yOffset + 0.0004));
+        }
+      }
+      else if (patternType === 'radiale') {
+        const numWedges = 8;
+        for (let i = 0; i < numWedges; i++) {
+          const a1 = (i * Math.PI * 2) / numWedges + rotationAngle;
+          const a2 = ((i + 1) * Math.PI * 2) / numWedges + rotationAngle;
+          const sh = new THREE.Shape();
+          sh.moveTo(0, 0);
+          sh.absarc(0, 0, radius, a1, a2, false);
+          sh.lineTo(0, 0);
+
+          group.add(createTilePiece(sh, thick, (i % 2 === 0) ? matDark : matLight, yOffset));
+        }
+      }
+
+      return group;
+    }
+
+    function buildQuincunx(scale, ribW, matRibbon, matDark, matLight, matDiamond, matMetal) {
+      const group = new THREE.Group();
+      const thick = 0.012;
+      let yL = 0.002;
+
+      const rCenter = scale * 0.22;
+      const rSat = scale * 0.16;
+      const distSat = scale * 0.38;
+
+      // 1. Center Roundel
+      const centerDisc = buildDiscInlay(rCenter, state.centerDiscPattern, matDark, matLight, matMetal, yL, 0);
+      group.add(centerDisc);
+
+      // 2. 4 Satellite Roundels
+      const satPos = [
+        { x: 0, z: -distSat, rot: 0 },
+        { x: distSat, z: 0, rot: Math.PI / 2 },
+        { x: 0, z: distSat, rot: Math.PI },
+        { x: -distSat, z: 0, rot: -Math.PI / 2 }
+      ];
+
+      satPos.forEach(pos => {
+        const satDisc = buildDiscInlay(rSat, state.satelliteDiscPattern, matDark, matLight, matMetal, yL, pos.rot);
+        satDisc.position.set(pos.x, 0, pos.z);
+        group.add(satDisc);
+      });
+
+      yL += 0.001;
+
+      // 3. Guilloche Interlocking Ribbon Braid
+      satPos.forEach(pos => {
+        const midX = pos.x / 2;
+        const midZ = pos.z / 2;
+        const loopR = (distSat - rCenter + rSat) * 0.48;
+
+        const ribbonShape = new THREE.Shape();
+        ribbonShape.absarc(midX, midZ, loopR + ribW/2, 0, Math.PI * 2, false);
+
+        const hole = new THREE.Path();
+        hole.absarc(midX, midZ, loopR - ribW/2, 0, Math.PI * 2, true);
+        ribbonShape.holes.push(hole);
+
+        group.add(createTilePiece(ribbonShape, thick, matRibbon, yL));
+
+        // Metal edge borders on ribbons
+        if (matMetal) {
+          const mW = 0.008;
+
+          const metalOuter = new THREE.Shape();
+          metalOuter.absarc(midX, midZ, loopR + ribW/2 + mW/2, 0, Math.PI * 2, false);
+          const hOut = new THREE.Path();
+          hOut.absarc(midX, midZ, loopR + ribW/2 - mW/2, 0, Math.PI * 2, true);
+          metalOuter.holes.push(hOut);
+          group.add(createTilePiece(metalOuter, thick, matMetal, yL + 0.0004));
+
+          const metalInner = new THREE.Shape();
+          metalInner.absarc(midX, midZ, loopR - ribW/2 + mW/2, 0, Math.PI * 2, false);
+          const hIn = new THREE.Path();
+          hIn.absarc(midX, midZ, loopR - ribW/2 - mW/2, 0, Math.PI * 2, true);
+          metalInner.holes.push(hIn);
+          group.add(createTilePiece(metalInner, thick, matMetal, yL + 0.0004));
+        }
+      });
+
+      yL += 0.0008;
+
+      // 4. Rotated Diamond Frame (45°)
+      const diamondSide = scale * 0.90;
+      const dHalf = diamondSide / 2;
+      const dW = ribW * 1.1;
+
+      const diamondShape = new THREE.Shape();
+      diamondShape.moveTo(0, -dHalf);
+      diamondShape.lineTo(dHalf, 0);
+      diamondShape.lineTo(0, dHalf);
+      diamondShape.lineTo(-dHalf, 0);
+
+      const dHole = new THREE.Path();
+      const inD = dHalf - dW;
+      dHole.moveTo(0, -inD);
+      dHole.lineTo(inD, 0);
+      dHole.lineTo(0, inD);
+      dHole.lineTo(-inD, 0);
+      diamondShape.holes.push(dHole);
+
+      group.add(createTilePiece(diamondShape, thick, matDiamond, yL));
+
+      // 5. Corner Roundels inside Diamond Outer Triangles
+      const cornerR = scale * 0.12;
+      const cornerDist = dHalf * 0.72;
+      const cornerPos = [
+        { x: cornerDist, z: -cornerDist },
+        { x: cornerDist, z: cornerDist },
+        { x: -cornerDist, z: cornerDist },
+        { x: -cornerDist, z: -cornerDist }
+      ];
+
+      cornerPos.forEach(cp => {
+        const cornerDisc = buildDiscInlay(cornerR, 'mezza_luna', matDark, matLight, matMetal, yL + 0.0002, Math.PI/4);
+        cornerDisc.position.set(cp.x, 0, cp.z);
+        group.add(cornerDisc);
+      });
+
+      // Metal Fillets on Diamond Frame
+      if (matMetal) {
+        const mW = 0.010;
+        const mDiamond = new THREE.Shape();
+        mDiamond.moveTo(0, -dHalf);
+        mDiamond.lineTo(dHalf, 0);
+        mDiamond.lineTo(0, dHalf);
+        mDiamond.lineTo(-dHalf, 0);
+
+        const mHole = new THREE.Path();
+        const inM = dHalf - mW;
+        mHole.moveTo(0, -inM);
+        mHole.lineTo(inM, 0);
+        mHole.lineTo(0, inM);
+        mHole.lineTo(-inM, 0);
+        mDiamond.holes.push(mHole);
+
+        group.add(createTilePiece(mDiamond, thick, matMetal, yL + 0.0005));
+      }
+
+      return group;
+    }
+
+    function buildOuterGuillocheChain(roomSize, ringsPerSide, matDark, matLight, matMetal) {
+      const group = new THREE.Group();
+      const thick = 0.012;
+      let yL = 0.0025;
+
+      const margin = 0.20;
+      const borderBoxSize = roomSize - margin * 2;
+      const halfB = borderBoxSize / 2;
+      
+      const ringOuterR = 0.22;
+      const ringInnerR = 0.14;
+      
+      // Calculate spacing along side so rings overlap in a continuous chain
+      const step = borderBoxSize / (ringsPerSide + 1);
+
+      // Helper to build a two-tone overlapping ring
+      function createChainRing(cx, cz, angleOffset, layerOffset) {
+        const ringGrp = new THREE.Group();
+
+        if (state.chainPattern === 'split') {
+          // Half-moon split ring
+          const sh1 = new THREE.Shape();
+          sh1.absarc(0, 0, ringOuterR, angleOffset, angleOffset + Math.PI, false);
+          const h1 = new THREE.Path();
+          h1.absarc(0, 0, ringInnerR, angleOffset, angleOffset + Math.PI, true);
+          sh1.holes.push(h1);
+          ringGrp.add(createTilePiece(sh1, thick, matDark, yL + layerOffset));
+
+          const sh2 = new THREE.Shape();
+          sh2.absarc(0, 0, ringOuterR, angleOffset + Math.PI, angleOffset + Math.PI * 2, false);
+          const h2 = new THREE.Path();
+          h2.absarc(0, 0, ringInnerR, angleOffset + Math.PI, angleOffset + Math.PI * 2, true);
+          sh2.holes.push(h2);
+          ringGrp.add(createTilePiece(sh2, thick, matLight, yL + layerOffset));
+        } else if (state.chainPattern === 'concentric') {
+          const sh = new THREE.Shape();
+          sh.absarc(0, 0, ringOuterR, 0, Math.PI * 2, false);
+          const h = new THREE.Path();
+          h.absarc(0, 0, ringInnerR, 0, Math.PI * 2, true);
+          sh.holes.push(h);
+          ringGrp.add(createTilePiece(sh, thick, matDark, yL + layerOffset));
+        } else {
+          // Radial pie ring
+          const wedges = 6;
+          for (let w = 0; w < wedges; w++) {
+            const a1 = (w * Math.PI * 2) / wedges;
+            const a2 = ((w + 1) * Math.PI * 2) / wedges;
+            const sh = new THREE.Shape();
+            sh.absarc(0, 0, ringOuterR, a1, a2, false);
+            const h = new THREE.Path();
+            h.absarc(0, 0, ringInnerR, a1, a2, true);
+            sh.holes.push(h);
+            ringGrp.add(createTilePiece(sh, thick, (w % 2 === 0) ? matDark : matLight, yL + layerOffset));
+          }
+        }
+
+        // Metal outer & inner border
+        if (matMetal) {
+          const mW = 0.006;
+          const mOut = new THREE.Shape();
+          mOut.absarc(0, 0, ringOuterR + mW/2, 0, Math.PI * 2, false);
+          const hmOut = new THREE.Path();
+          hmOut.absarc(0, 0, ringOuterR - mW/2, 0, Math.PI * 2, true);
+          mOut.holes.push(hmOut);
+          ringGrp.add(createTilePiece(mOut, thick, matMetal, yL + layerOffset + 0.0003));
+
+          const mIn = new THREE.Shape();
+          mIn.absarc(0, 0, ringInnerR + mW/2, 0, Math.PI * 2, false);
+          const hmIn = new THREE.Path();
+          hmIn.absarc(0, 0, ringInnerR - mW/2, 0, Math.PI * 2, true);
+          mIn.holes.push(hmIn);
+          ringGrp.add(createTilePiece(mIn, thick, matMetal, yL + layerOffset + 0.0003));
+        }
+
+        ringGrp.position.set(cx, 0, cz);
+        return ringGrp;
+      }
+
+      // 1. Build 4 Sides Overlapping Chains
+      let layerIdx = 0;
+      for (let i = 1; i <= ringsPerSide; i++) {
+        const offset = -halfB + i * step;
+        const lOff = (layerIdx % 2) * 0.0002;
+
+        // Top Side
+        group.add(createChainRing(offset, -halfB, 0, lOff));
+        // Right Side
+        group.add(createChainRing(halfB, offset, Math.PI/2, lOff));
+        // Bottom Side
+        group.add(createChainRing(offset, halfB, Math.PI, lOff));
+        // Left Side
+        group.add(createChainRing(-halfB, offset, -Math.PI/2, lOff));
+
+        layerIdx++;
+      }
+
+      // 2. Corner Rosette Clusters (3-4 interlocking roundels per corner)
+      const corners = [
+        { x: -halfB, z: -halfB },
+        { x: halfB, z: -halfB },
+        { x: halfB, z: halfB },
+        { x: -halfB, z: halfB }
+      ];
+
+      corners.forEach(c => {
+        // Main Corner Disc
+        const cornerCluster = buildDiscInlay(ringOuterR * 1.1, 'mezza_luna', matDark, matLight, matMetal, yL + 0.0008, Math.PI/4);
+        cornerCluster.position.set(c.x, 0, c.z);
+        group.add(cornerCluster);
+
+        // Surrounding sub-ring accent
+        const accSh = new THREE.Shape();
+        accSh.absarc(c.x, c.z, ringOuterR * 1.35, 0, Math.PI * 2, false);
+        const accH = new THREE.Path();
+        accH.absarc(c.x, c.z, ringOuterR * 1.15, 0, Math.PI * 2, true);
+        accSh.holes.push(accH);
+        group.add(createTilePiece(accSh, thick, matDark, yL + 0.0006));
+      });
+
+      return group;
+    }
+
+    function rebuildFloor() {
+      if (floorGroup) scene.remove(floorGroup);
+      floorGroup = new THREE.Group();
+
+      const RS = state.roomSize;
+
+      // Material Assignments
+      const matBg = getWoodMaterial(state.woodBackground);
+      const matRibbon = getWoodMaterial(state.woodRibbons);
+      const matDark = getWoodMaterial(state.woodDark);
+      const matLight = getWoodMaterial(state.woodLight);
+      const matDiamond = getWoodMaterial(state.woodDiamond);
+      const matMetal = getMetalMaterial();
+
+      // 1. Base Room Floor Plane
+      const roomShape = new THREE.Shape();
+      roomShape.moveTo(-RS/2, -RS/2);
+      roomShape.lineTo(RS/2, -RS/2);
+      roomShape.lineTo(RS/2, RS/2);
+      roomShape.lineTo(-RS/2, RS/2);
+
+      const baseFloor = createTilePiece(roomShape, 0.012, matBg, 0);
+      floorGroup.add(baseFloor);
+
+      // 2. Inner Square Containment Frame
+      const inFrameSize = state.quincunxScale * 1.18;
+      const inFrameW = 0.08;
+      const sqFrame = new THREE.Shape();
+      sqFrame.moveTo(-inFrameSize/2, -inFrameSize/2);
+      sqFrame.lineTo(inFrameSize/2, -inFrameSize/2);
+      sqFrame.lineTo(inFrameSize/2, inFrameSize/2);
+      sqFrame.lineTo(-inFrameSize/2, inFrameSize/2);
+
+      const sqHole = new THREE.Path();
+      const inF = inFrameSize/2 - inFrameW;
+      sqHole.moveTo(-inF, -inF);
+      sqHole.lineTo(inF, -inF);
+      sqHole.lineTo(inF, inF);
+      sqHole.lineTo(-inF, inF);
+      sqFrame.holes.push(sqHole);
+
+      floorGroup.add(createTilePiece(sqFrame, 0.012, matDiamond, 0.0015));
+
+      // 3. Quincunx Central Mosaic
+      const quincunx = buildQuincunx(
+        state.quincunxScale,
+        state.ribbonWidth,
+        matRibbon,
+        matDark,
+        matLight,
+        matDiamond,
+        matMetal
+      );
+      floorGroup.add(quincunx);
+
+      // 4. Outer Guilloche Chain Border
+      const chainBorder = buildOuterGuillocheChain(
+        RS,
+        state.chainCount,
+        matDark,
+        matLight,
+        matMetal
+      );
+      floorGroup.add(chainBorder);
+
+      scene.add(floorGroup);
+
+      // Update HUD Labels & Stats
+      document.getElementById('info-room-size').textContent = `${RS.toFixed(1)}m x ${RS.toFixed(1)}m`;
+      document.getElementById('info-preset').textContent = state.activePreset;
+      document.getElementById('info-chain-count').textContent = `${state.chainCount * 4 + 4} anelli`;
+      
+      const estTiles = Math.round(180 + state.chainCount * 28 + (state.ribbonWidth * 100));
+      document.getElementById('info-tile-count').textContent = `~${estTiles} pezzi`;
+    }
+
+    function applyPreset(presetKey) {
+      document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+
+      if (presetKey === 'westminster') {
+        state.woodBackground = 'acero';
+        state.woodRibbons = 'rovere';
+        state.woodDark = 'noce';
+        state.woodLight = 'rovere';
+        state.woodDiamond = 'rovere';
+        state.metalInlay = 'gold';
+        state.centerDiscPattern = 'quarters';
+        state.satelliteDiscPattern = 'mezza_luna';
+        state.chainPattern = 'split';
+        state.activePreset = 'Classico Westminster';
+        document.getElementById('btn-preset-westminster').classList.add('active');
+      } 
+      else if (presetKey === 'cherry_walnut') {
+        state.woodBackground = 'ciliegio';
+        state.woodRibbons = 'noce';
+        state.woodDark = 'noce';
+        state.woodLight = 'rovere';
+        state.woodDiamond = 'rovere';
+        state.metalInlay = 'bronze';
+        state.centerDiscPattern = 'concentric';
+        state.satelliteDiscPattern = 'concentric';
+        state.chainPattern = 'split';
+        state.activePreset = 'Ciliegio & Noce';
+        document.getElementById('btn-preset-cherry_walnut').classList.add('active');
+      }
+      else if (presetKey === 'ebony_maple') {
+        state.woodBackground = 'acero';
+        state.woodRibbons = 'ebano';
+        state.woodDark = 'ebano';
+        state.woodLight = 'acero';
+        state.woodDiamond = 'ebano';
+        state.metalInlay = 'steel';
+        state.centerDiscPattern = 'mezza_luna';
+        state.satelliteDiscPattern = 'mezza_luna';
+        state.chainPattern = 'split';
+        state.activePreset = 'Ebano & Acero Bicolore';
+        document.getElementById('btn-preset-ebony_maple').classList.add('active');
+      } 
+      else if (presetKey === 'monochrome') {
+        state.woodBackground = 'acero';
+        state.woodRibbons = 'rovere';
+        state.woodDark = 'rovere';
+        state.woodLight = 'acero';
+        state.woodDiamond = 'rovere';
+        state.metalInlay = 'none';
+        state.centerDiscPattern = 'quarters';
+        state.satelliteDiscPattern = 'quarters';
+        state.chainPattern = 'concentric';
+        state.activePreset = 'Monocromo Rovere';
+        document.getElementById('btn-preset-monochrome').classList.add('active');
+      }
+
+      // Sync UI Select inputs
+      document.getElementById('woodBackground').value = state.woodBackground;
+      document.getElementById('woodRibbons').value = state.woodRibbons;
+      document.getElementById('woodDark').value = state.woodDark;
+      document.getElementById('woodLight').value = state.woodLight;
+      document.getElementById('woodDiamond').value = state.woodDiamond;
+      document.getElementById('metalInlay').value = state.metalInlay;
+      document.getElementById('centerDiscPattern').value = state.centerDiscPattern;
+      document.getElementById('satelliteDiscPattern').value = state.satelliteDiscPattern;
+      document.getElementById('chainPattern').value = state.chainPattern;
+
+      rebuildFloor();
+    }
+
+    const inputs = [
+      'roomSize', 'quincunxScale', 'ribbonWidth', 'chainCount',
+      'centerDiscPattern', 'satelliteDiscPattern', 'chainPattern',
+      'woodBackground', 'woodRibbons', 'woodDark', 'woodLight',
+      'woodDiamond', 'metalInlay', 'glossLevel', 'bevelDepth', 'lightAngle'
+    ];
+
+    function initListeners() {
+      inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        el.addEventListener('input', (e) => {
+          let val = e.target.value;
+          if (e.target.type === 'range') val = parseFloat(val);
+
+          if (id === 'ribbonWidth') val = val / 100; // Convert cm to meters
+
+          state[id] = val;
+
+          const lbl = document.getElementById(`val-${id}`);
+          if (lbl) {
+            if (id === 'roomSize' || id === 'quincunxScale') lbl.textContent = `${state[id]} m`;
+            else if (id === 'ribbonWidth') lbl.textContent = `${(state[id] * 100).toFixed(0)} cm`;
+            else if (id === 'chainCount') lbl.textContent = `${state[id]} per lato`;
+            else if (id === 'bevelDepth') lbl.textContent = `${(state[id] * 1000).toFixed(1)} mm`;
+            else if (id === 'lightAngle') lbl.textContent = `${state[id]}°`;
+          }
+
+          if (id === 'lightAngle') {
+            updateLight();
+          } else {
+            rebuildFloor();
+          }
+        });
+      });
+    }
+
+    function setCam(mode) {
+      if (mode === 'top') {
+        camera.position.set(0, state.roomSize * 1.35, 0.001);
+        controls.target.set(0, 0, 0);
+      } else if (mode === 'persp') {
+        camera.position.set(0, state.roomSize * 0.8, state.roomSize * 0.95);
+        controls.target.set(0, 0, 0);
+      } else if (mode === 'quincunx') {
+        camera.position.set(0, state.quincunxScale * 1.1, state.quincunxScale * 0.6);
+        controls.target.set(0, 0, 0);
+      } else if (mode === 'chain') {
+        camera.position.set(-state.roomSize * 0.35, 1.2, state.roomSize * 0.35);
+        controls.target.set(-state.roomSize * 0.35, 0, state.roomSize * 0.35);
+      }
+      controls.update();
+    }
+
+    function onResize() {
+      const container = document.getElementById('canvas-container');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    window.onload = function() {
+      init3D();
+      initListeners();
+    };
+  </script>
+</body>
+</html>

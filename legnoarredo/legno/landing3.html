@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IA Aziendale & Avatar Hub</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            slateDark: '#0f172a',
+            slatePanel: '#1e293b',
+            slateBorder: '#334155',
+            accentCyan: '#06b6d4',
+            accentBlue: '#3b82f6',
+            accentPurple: '#8b5cf6',
+            accentEmerald: '#10b981'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slateDark text-slate-100">
+
+  <!-- Header Banner -->
+  <header class="bg-slatePanel/90 border-b border-slateBorder sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-accentCyan to-accentBlue flex items-center justify-center shadow-lg shadow-accentCyan/20">
+          <i class="fa-solid fa-robot text-slateDark text-2xl font-black"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            IA Aziendale & Avatar Hub
+            <span class="px-2.5 py-0.5 text-xs font-semibold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-full">
+              Modulo CRM & Voice AI
+            </span>
+          </h1>
+          <p class="text-xs text-slate-400">Piattaforma Integrata di Strumenti Aziendali, Presenza Web e Assistenti Virtuali</p>
+        </div>
+      </div>
+
+      <!-- Quick Search Bar -->
+      <div class="relative w-64 md:w-80">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+        <input type="text" id="searchInput" onkeyup="filterCards()" placeholder="Cerca file o modulo..." 
+               class="w-full bg-slateDark border border-slateBorder rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-accentCyan transition">
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="bg-gradient-to-b from-slatePanel/40 to-transparent border-b border-slateBorder/50 py-10 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div class="space-y-2">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          Pannello di Controllo Progetti
+        </h2>
+        <p class="text-slate-400 text-sm max-w-2xl">
+          Accedi alle risorse aziendali, alla documentazione CRM, ai siti web interattivi e agli avatar IA ad interazione vocale.
+        </p>
+      </div>
+
+      <!-- Stats Pill -->
+      <div class="flex items-center space-x-4 bg-slatePanel p-3 rounded-2xl border border-slateBorder shadow-inner text-xs">
+        <div class="text-center px-3 border-r border-slateBorder">
+          <div class="font-bold text-cyan-400 text-base">5</div>
+          <div class="text-slate-400">Risorse Totali</div>
+        </div>
+        <div class="text-center px-3 border-r border-slateBorder">
+          <div class="font-bold text-blue-400 text-base">3</div>
+          <div class="text-slate-400">Applicazioni Web</div>
+        </div>
+        <div class="text-center px-3">
+          <div class="font-bold text-purple-400 text-base">2</div>
+          <div class="text-slate-400">Avatar IA</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Grid Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 space-y-12">
+
+    <!-- SEZIONE 1: ECOSISTEMA AZIENDALE, CRM & PRESENZA WEB -->
+    <section class="space-y-4">
+      <div class="flex items-center space-x-3 border-b border-slateBorder pb-3">
+        <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
+          <i class="fa-solid fa-briefcase"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white">1. Strategia CRM, Presenza Web & Portfolio</h3>
+          <p class="text-xs text-slate-400">Integrazione dell'IA nelle dinamiche aziendali, tradizione, innovazione e vetrine prodotto</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        
+        <!-- 28_Un CRM aziendale.pdf -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-blue-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">PDF • CRM & IA</span>
+              <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-blue-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">28. Un CRM Aziendale</h4>
+            <ul class="text-xs text-slate-400 space-y-1.5 pl-4 list-disc">
+              <li>Cosa può fare l'IA in azienda</li>
+              <li>Strumenti integrati</li>
+              <li>Azioni e workflow operativi</li>
+            </ul>
+          </div>
+          <a href="28_Un CRM aziendale.pdf" target="_blank" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-blue-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-file-pdf"></i>
+            <span>Apri Documento CRM (PDF)</span>
+          </a>
+        </div>
+
+        <!-- 29_sito.html -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-blue-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Portale Web</span>
+              <i class="fa-solid fa-globe text-slate-500 group-hover:text-cyan-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">29. Sito Web Aziendale</h4>
+            <ul class="text-xs text-slate-400 space-y-1.5 pl-4 list-disc">
+              <li>Tradizione e patrimonio artigianale</li>
+              <li>Innovazione tecnologica</li>
+              <li>Accesso ai simulatori interattivi</li>
+            </ul>
+          </div>
+          <a href="29_sito.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-cyan-500 hover:text-slateDark text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-window-maximize"></i>
+            <span>Visita il Sito Web</span>
+          </a>
+        </div>
+
+        <!-- 30_portfolio.html -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-blue-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Portfolio 3D</span>
+              <i class="fa-solid fa-layer-group text-slate-500 group-hover:text-emerald-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">30. Portfolio Prodotti</h4>
+            <ul class="text-xs text-slate-400 space-y-1.5 pl-4 list-disc">
+              <li>Catalogo prodotti avanzato</li>
+              <li>Passaggio dalle immagini ai Digital Twin</li>
+              <li>Tecniche di lavorazione computazionali</li>
+            </ul>
+          </div>
+          <a href="30_portfolio.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-emerald-600 hover:text-white text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-images"></i>
+            <span>Apri Portfolio</span>
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SEZIONE 2: AVATAR & INTERAZIONE IA -->
+    <section class="space-y-4">
+      <div class="flex items-center space-x-3 border-b border-slateBorder pb-3">
+        <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center">
+          <i class="fa-solid fa-user-astronaut"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white">2. Assistenti Virtuali & Avatar IA Interattivi</h3>
+          <p class="text-xs text-slate-400">Contatto 24/7, supporto vocale e nuove frontiere dell'interazione utente</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        <!-- 31 avatar.html -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-purple-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Avatar Base</span>
+              <i class="fa-solid fa-comments text-slate-500 group-hover:text-purple-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">31. Avatar IA — Contatto & Schede</h4>
+            <ul class="text-xs text-slate-400 space-y-1.5 pl-4 list-disc">
+              <li>Assistenza attiva e in contatto 24/7</li>
+              <li>Compilazione automatizzata della scheda utente</li>
+              <li>Raccolta ed elaborazione dati cliente</li>
+            </ul>
+          </div>
+          <a href="31 avatar.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-purple-600 text-slate-300 hover:text-white rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-headset"></i>
+            <span>Avvia Avatar (Scheda)</span>
+          </a>
+        </div>
+
+        <!-- 32 avatar finale.html -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-purple-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Voice AI Finale</span>
+              <i class="fa-solid fa-microphone text-slate-500 group-hover:text-purple-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">32. Avatar Finale — Interazione Vocale</h4>
+            <ul class="text-xs text-slate-400 space-y-1.5 pl-4 list-disc">
+              <li>Interazione vocale diretta in tempo reale</li>
+              <li>Supporto e assistenza clienti avanzata</li>
+              <li>Esperienza conversazionale IA ad alto impatto</li>
+            </ul>
+          </div>
+          <a href="32 avatar finale.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-purple-600 text-slate-300 hover:text-white rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-microphone-lines"></i>
+            <span>Avvia Avatar Vocale Finale</span>
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slatePanel/80 border-t border-slateBorder py-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p>IA Aziendale & Voice Assistant Platform</p>
+      <p class="text-slate-600">Istruzioni: salvare questo file come <code class="bg-slateDark px-1.5 py-0.5 rounded text-cyan-400">index2.html</code> o <code class="bg-slateDark px-1.5 py-0.5 rounded text-cyan-400">index.html</code> nella cartella dei file.</p>
+    </div>
+  </footer>
+
+  <!-- Search Filter Logic -->
+  <script>
+    function filterCards() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const cards = document.querySelectorAll('.card-item');
+
+      cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (text.includes(query)) {
+          card.style.display = "flex";
+        } else {
+          card.style.display = "none";
+        }
+      });
+    }
+  </script>
+</body>
+</html>

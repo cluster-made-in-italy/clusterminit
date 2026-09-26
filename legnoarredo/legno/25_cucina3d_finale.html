@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3cad Studio 3D - Multi-Texture & Multi-Parete</title>
+  <style>
+    :root {
+      --bg-main: #0a0f1d;
+      --panel-bg: #1e293b;
+      --panel-border: #334155;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --active: #10b981;
+      --danger: #ef4444;
+      --rhino-color: #d97706;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+    /* Header */
+    header {
+      background: #060913;
+      border-bottom: 1px solid var(--panel-border);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+    }
+    .brand { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .brand span { background: var(--accent); color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; }
+
+    .header-actions { display: flex; gap: 10px; }
+
+    /* Layout Principale */
+    .app-container { flex: 1; display: flex; overflow: hidden; position: relative; }
+
+    /* Sidebars */
+    .sidebar {
+      width: 320px;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      overflow-y: auto;
+    }
+    .sidebar-right { border-right: none; border-left: 1px solid var(--panel-border); }
+
+    .panel-section { padding: 16px; border-bottom: 1px solid var(--panel-border); }
+    .panel-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.05em; }
+
+    /* Controls UI */
+    .btn {
+      background: var(--panel-border);
+      color: var(--text);
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      width: 100%;
+      margin-bottom: 8px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn:hover { background: var(--accent); color: white; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-success { background: #059669; color: white; }
+    .btn-success:hover { background: #047857; }
+    .btn-rhino { background: var(--rhino-color); color: white; }
+    .btn-rhino:hover { background: #b45309; }
+    .btn-danger { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: white; }
+
+    .catalog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .catalog-btn {
+      background: #0f172a; border: 1px solid var(--panel-border); color: var(--text);
+      padding: 10px; border-radius: 6px; font-size: 0.78rem; text-align: center; cursor: pointer;
+    }
+    .catalog-btn:hover { border-color: var(--accent); background: #1a2744; }
+
+    .form-group { margin-bottom: 10px; }
+    .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+    .form-control {
+      width: 100%; background: #0f172a; border: 1px solid var(--panel-border);
+      color: var(--text); padding: 6px 10px; border-radius: 4px; font-size: 0.85rem;
+    }
+    input[type="file"].form-control { padding: 4px; font-size: 0.75rem; cursor: pointer; }
+
+    /* 3D Viewport */
+    .viewport { flex: 1; position: relative; background: #050811; }
+
+    /* Overlay Controls */
+    .viewport-overlay {
+      position: absolute; top: 15px; left: 15px; display: flex; gap: 8px; z-index: 5;
+      background: rgba(15, 23, 42, 0.85); padding: 6px; border-radius: 8px; backdrop-filter: blur(8px);
+      border: 1px solid var(--panel-border);
+    }
+    .tool-chip {
+      background: transparent; color: var(--text-muted); border: none; padding: 6px 12px;
+      font-size: 0.8rem; border-radius: 4px; cursor: pointer; font-weight: 600;
+    }
+    .tool-chip.active, .tool-chip:hover { background: var(--accent); color: white; }
+
+    .nav-help {
+      position: absolute; bottom: 15px; left: 15px; background: rgba(15, 23, 42, 0.85);
+      padding: 10px 14px; border-radius: 6px; border: 1px solid var(--panel-border);
+      font-size: 0.75rem; color: var(--text-muted); line-height: 1.5; pointer-events: none;
+    }
+
+    /* Quote Box */
+    .quote-box { background: #0f172a; padding: 12px; border-radius: 6px; border: 1px solid var(--panel-border); }
+    .quote-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px; }
+    .quote-total { font-weight: bold; color: var(--active); font-size: 1.05rem; border-top: 1px solid var(--panel-border); padding-top: 6px; margin-top: 6px; }
+
+    /* MODALE ESPLORAZIONE ED EDITING MODULO */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+      display: none; justify-content: center; align-items: center; z-index: 100;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-container {
+      background: var(--panel-bg); border: 1px solid var(--panel-border);
+      border-radius: 12px; width: 95vw; max-width: 1250px; height: 90vh;
+      display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+    .modal-header {
+      padding: 15px 20px; background: #0d1322; border-bottom: 1px solid var(--panel-border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-body { flex: 1; display: grid; grid-template-columns: 320px 1fr 1fr; gap: 15px; padding: 15px; overflow: hidden; }
+    .modal-close { background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+    .modal-close:hover { color: white; }
+
+    .modal-sidebar { background: #0d1322; border: 1px solid var(--panel-border); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+
+    .modal-view-box { background: #080c18; border: 1px solid var(--panel-border); border-radius: 8px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+    .view-title { position: absolute; top: 10px; left: 10px; background: rgba(15,23,42,0.85); padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; z-index: 2; border: 1px solid var(--panel-border); }
+
+    /* Griglia parti piane */
+    .plane-views-grid { display: grid; grid-template-rows: 1fr 1fr 1fr; gap: 10px; height: 100%; }
+    .plane-canvas-card { background: #080c18; border: 1px solid var(--panel-border); border-radius: 8px; position: relative; display: flex; justify-content: center; align-items: center; }
+    canvas.plane-canvas { width: 100%; height: 100%; display: block; }
+
+    .badge-surface { display: inline-block; background: var(--accent); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px; }
+  </style>
+
+  <!-- Three.js + OrbitControls + TransformControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TransformControls.js"></script>
+</head>
+<body>
+
+  <header>
+    <div class="brand">3cad Studio 3D <span>v4.0 Multi-Surface & Multi-Wall</span></div>
+    <div class="header-actions">
+      <button class="btn btn-rhino" style="width: auto; margin-bottom:0;" onclick="exportSceneToRhino()">🦏 Esporta Scena per Rhino 7 (.OBJ)</button>
+      <button class="btn btn-primary" style="width: auto; margin-bottom:0;" onclick="resetToDefaultCucina()">📂 Reset Scena</button>
+    </div>
+  </header>
+
+  <div class="app-container">
+    
+    <!-- Sidebar Sinistra: Catalogo & Viste -->
+    <aside class="sidebar">
+      <div class="panel-section">
+        <div class="panel-title">Inquadrature Telecamera</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+          <button class="btn" onclick="setCameraView('perspective')">📷 3D Libero</button>
+          <button class="btn" onclick="setCameraView('top')">📐 Pianta 2D</button>
+          <button class="btn" onclick="setCameraView('front')">🖼️ Frontale</button>
+          <button class="btn" onclick="setCameraView('iso')">🧊 Assonometria</button>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">Aggiungi Moduli Cucina</div>
+        <div class="catalog-grid">
+          <div class="catalog-btn" onclick="addBaseModule()">📦 Base 60cm</div>
+          <div class="catalog-btn" onclick="addOvenModule()">🔥 Base Forno</div>
+          <div class="catalog-btn" onclick="addWallModule()">🗄️ Pensile 60cm</div>
+          <div class="catalog-btn" onclick="addIslandModule()">🏝️ Isola Centrale</div>
+          <div class="catalog-btn" onclick="addTableModule()">🍽️ Tavolo Pranzo</div>
+          <div class="catalog-btn" onclick="addChairModule()">🪑 Sedia Metallo</div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-title">Visibilità Struttura</div>
+        <button class="btn" onclick="toggleWalls()">👁️ Mostra/Nascondi Pareti</button>
+      </div>
+    </aside>
+
+    <!-- Viewport 3D -->
+    <main class="viewport">
+      <div class="viewport-overlay">
+        <button class="tool-chip active" id="btn-mode-translate" onclick="setTransformMode('translate')">↔️ Sposta</button>
+        <button class="tool-chip" id="btn-mode-rotate" onclick="setTransformMode('rotate')">🔄 Ruota</button>
+        <button class="tool-chip" onclick="deselectObject()" style="color:var(--danger)">✕ Deseleziona</button>
+      </div>
+
+      <div class="nav-help">
+        <strong>Istruzioni Multi-Parete & Texture:</strong><br>
+        • Clicca su <strong>qualsiasi parete o sul pavimento</strong> per selezionarli ed inserire una texture specifica.<br>
+        • Clicca su un modulo e premi <strong>"Modifica Avanzata"</strong> per applicare texture a singole superfici piane.
+      </div>
+
+      <div id="canvas-container" style="width:100%; height:100%;"></div>
+    </main>
+
+    <!-- Sidebar Destra: Ispettore Dinamico -->
+    <aside class="sidebar sidebar-right">
+      <div class="panel-section">
+        <div class="panel-title" id="inspector-title">Ispettore Oggetto</div>
+        
+        <div id="no-selection" style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 25px 0;">
+          Nessun elemento selezionato.<br>Clicca su un modulo, una parete o sul pavimento.
+        </div>
+
+        <div id="inspector-form" style="display: none;">
+          <div id="btn-cad-container">
+            <button class="btn btn-success" style="margin-bottom: 15px; padding: 10px; font-size: 0.88rem;" onclick="openObjectExplorer()">
+              🔍 Modifica Avanzata & CAD Superfici
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label>Nome / Identificativo Elemento</label>
+            <input type="text" id="inp-name" class="form-control" onchange="updateSelectedObjectFromInputs()">
+          </div>
+
+          <!-- CARICAMENTO TEXTURE PER OGGETTO O PARETE SELEZIONATA -->
+          <div class="form-group" style="background: rgba(37,99,235,0.1); padding: 10px; border-radius: 6px; border: 1px solid rgba(37,99,235,0.3);">
+            <label style="color: #60a5fa; font-weight: bold;">🖼️ Carica Texture Immagine</label>
+            <input type="file" id="inp-obj-tex" accept="image/*" class="form-control" onchange="applyTextureToSelectedFromInspector(event)">
+          </div>
+
+          <div class="form-group" id="group-color">
+            <label>Colore Superficie</label>
+            <input type="color" id="inp-color" class="form-control" style="height:38px; padding:2px;" onchange="updateSelectedObjectFromInputs()">
+          </div>
+
+          <div id="transform-controls-group">
+            <div class="form-group">
+              <label>Posizione X (cm)</label>
+              <input type="number" id="inp-x" step="5" class="form-control" oninput="updateSelectedObjectFromInputs()">
+            </div>
+            <div class="form-group">
+              <label>Posizione Y (cm)</label>
+              <input type="number" id="inp-y" step="5" class="form-control" oninput="updateSelectedObjectFromInputs()">
+            </div>
+            <div class="form-group">
+              <label>Posizione Z (cm)</label>
+              <input type="number" id="inp-z" step="5" class="form-control" oninput="updateSelectedObjectFromInputs()">
+            </div>
+            <div class="form-group">
+              <label>Rotazione Y (Gradi)</label>
+              <input type="range" id="inp-rot" min="0" max="360" step="15" class="form-control" oninput="updateSelectedObjectFromInputs()">
+            </div>
+          </div>
+
+          <button class="btn btn-danger" id="btn-delete-obj" style="margin-top: 15px;" onclick="deleteSelectedObject()">🗑️ Elimina Elemento</button>
+        </div>
+      </div>
+
+      <div class="panel-section" style="margin-top: auto;">
+        <div class="panel-title">Preventivo Immediato</div>
+        <div class="quote-box">
+          <div class="quote-row"><span>Elementi Inseriti:</span> <strong id="q-items">0</strong></div>
+          <div class="quote-row"><span>Totale Imponibile:</span> <strong id="q-subtotal">€0</strong></div>
+          <div class="quote-row"><span>Sconto Promozionale:</span> <strong style="color:var(--danger)">-10%</strong></div>
+          <div class="quote-row quote-total"><span>Totale Netto:</span> <span id="q-total">€0</span></div>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- MODALE PER EDITING AVANZATO & TEXTURE SINGOLE SUPERFICI PIANE -->
+  <div class="modal-overlay" id="exploreModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 id="modal-title" style="color: white; font-size: 1.1rem;">Editor Avanzato Superfici e CAD</h3>
+        <button class="modal-close" onclick="closeObjectExplorer()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Colonna 1: Parametri e Gestione Texture Superfici Piane -->
+        <div class="modal-sidebar">
+          <div class="panel-title">Dimensioni e Parametri</div>
+
+          <div class="form-group">
+            <label>Larghezza L (cm)</label>
+            <input type="number" id="mod-inp-w" class="form-control" min="20" max="300" step="5" oninput="onModalParamChange()">
+          </div>
+
+          <div class="form-group">
+            <label>Altezza H (cm)</label>
+            <input type="number" id="mod-inp-h" class="form-control" min="20" max="300" step="5" oninput="onModalParamChange()">
+          </div>
+
+          <div class="form-group">
+            <label>Profondità P (cm)</label>
+            <input type="number" id="mod-inp-d" class="form-control" min="20" max="150" step="5" oninput="onModalParamChange()">
+          </div>
+
+          <hr style="border:none; border-top:1px solid var(--panel-border); margin:10px 0;">
+
+          <div class="panel-title">Texture Superfici Piane</div>
+          
+          <div class="form-group">
+            <label>Superficie Piana Target</label>
+            <select id="mod-surface-select" class="form-control" onchange="onModalSurfaceSelectChange()">
+              <option value="all">Tutte le Superfici</option>
+              <option value="front">Superficie Frontale (Ante)</option>
+              <option value="top">Piano Superiore (Top)</option>
+              <option value="sides">Fianchi e Struttura</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="background: rgba(37,99,235,0.15); padding: 10px; border-radius: 6px; border: 1px solid var(--accent);">
+            <div id="selected-surface-badge" class="badge-surface">Target: Tutte le Superfici</div>
+            <label style="color:#60a5fa; font-weight:bold;">🖼️ Carica Immagine/Texture</label>
+            <input type="file" id="mod-inp-surface-tex" accept="image/*" class="form-control" onchange="onModalSurfaceTextureUpload(event)">
+          </div>
+
+          <button class="btn btn-danger" style="padding: 4px; font-size:0.75rem;" onclick="resetModalSurfaceTexture()">Rimuovi Texture Superficie Selezionata</button>
+
+          <hr style="border:none; border-top:1px solid var(--panel-border); margin:10px 0;">
+
+          <button class="btn btn-success" onclick="applyModalChangesToMainScene()">
+            💾 Applica e Mantiere Texture in Scena
+          </button>
+
+          <button class="btn btn-primary" onclick="exportPlaneViewsToCAD()">
+            📐 Esporta Parti Piane CAD (.DXF)
+          </button>
+        </div>
+
+        <!-- Colonna 2: Visualizzatore 3D Secondario (Clicca sulle superfici per selezionarle) -->
+        <div class="modal-view-box">
+          <div class="view-title">3D Interattivo - Clicca su una superficie piana per selezionarla</div>
+          <div id="modal-3d-canvas" style="width:100%; height:100%;"></div>
+        </div>
+
+        <!-- Colonna 3: Parti Piane 2D Ortogonali -->
+        <div class="plane-views-grid">
+          <div class="plane-canvas-card">
+            <div class="view-title">Prospetto Frontale (L x H)</div>
+            <canvas id="canvas-front" class="plane-canvas"></canvas>
+          </div>
+          <div class="plane-canvas-card">
+            <div class="view-title">Vista in Pianta (L x P)</div>
+            <canvas id="canvas-top" class="plane-canvas"></canvas>
+          </div>
+          <div class="plane-canvas-card">
+            <div class="view-title">Vista Laterale (P x H)</div>
+            <canvas id="canvas-side" class="plane-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- SCENA PRINCIPALE THREE.JS & CONTROLLI ---
+    let scene, camera, renderer, orbitControls, transformControls;
+    let raycaster, mouse;
+    let kitchenGroup, wallsGroup;
+    let selectedObject = null;
+    let objectsRegistry = [];
+
+    // Modal 3D scene variables
+    let modalScene, modalCamera, modalRenderer, modalOrbitControls, modalMeshGroup;
+    let modalRaycaster, modalMouse;
+    let tempModalConfig = {};
+    let selectedModalSurfaceKey = 'all';
+
+    const MATERIALS = {
+      tortora: 0xb3aaa0,
+      topDark: 0x504c48,
+      whiteIsland: 0xf0f2f5,
+      woodFloor: 0x6a4a3a,
+      wallColor: 0xdedede,
+      metalChair: 0x94a3b8
+    };
+
+    function init() {
+      const container = document.getElementById('canvas-container');
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a0f1d);
+
+      camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera.position.set(5.5, 4.5, 6.5);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+      orbitControls.enableDamping = true;
+      orbitControls.dampingFactor = 0.05;
+      orbitControls.target.set(3, 1, 1.5);
+
+      transformControls = new THREE.TransformControls(camera, renderer.domElement);
+      transformControls.setSize(0.85);
+      scene.add(transformControls);
+
+      transformControls.addEventListener('dragging-changed', function (event) {
+        orbitControls.enabled = !event.value;
+      });
+
+      transformControls.addEventListener('change', function () {
+        if (selectedObject && selectedObject.type === 'furniture') syncInspectorInputs();
+      });
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      dirLight.position.set(8, 12, 10);
+      dirLight.castShadow = true;
+      scene.add(dirLight);
+
+      kitchenGroup = new THREE.Group();
+      wallsGroup = new THREE.Group();
+      scene.add(kitchenGroup);
+      scene.add(wallsGroup);
+
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2();
+
+      window.addEventListener('resize', onWindowResize);
+      renderer.domElement.addEventListener('pointerdown', onPointerDown);
+
+      buildRoomStructure();
+      resetToDefaultCucina();
+      initModal3DScene();
+
+      animate();
+    }
+
+    // --- STRUTTURA PARETI & PAVIMENTO SELEZIONABILI ---
+    function buildRoomStructure() {
+      wallsGroup.clear();
+
+      // Pavimento
+      const floorMat = new THREE.MeshStandardMaterial({ color: MATERIALS.woodFloor, roughness: 0.4 });
+      const floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(7.5, 6), floorMat);
+      floorMesh.rotation.x = -Math.PI / 2;
+      floorMesh.position.set(3.25, 0, 2.5);
+      floorMesh.receiveShadow = true;
+      wallsGroup.add(floorMesh);
+
+      registerSelectableObject({
+        id: 'env_floor', name: 'Pavimento Ambiente', type: 'floor',
+        mesh: floorMesh, mainMesh: floorMesh, config: { color: MATERIALS.woodFloor, surfaceTextures: {} }
+      });
+
+      // Griglia Guida
+      const grid = new THREE.GridHelper(8, 16, 0x334155, 0x1e293b);
+      grid.position.set(3.25, 0.001, 2.5);
+      wallsGroup.add(grid);
+
+      // Parete Posteriore
+      const backWallMesh = createWallMesh(7.5, 2.8, 0.15);
+      backWallMesh.position.set(3.25, 1.4, -0.075);
+      wallsGroup.add(backWallMesh);
+      registerSelectableObject({
+        id: 'env_wall_back', name: 'Parete Posteriore', type: 'wall',
+        mesh: backWallMesh, mainMesh: backWallMesh, config: { color: MATERIALS.wallColor, surfaceTextures: {} }
+      });
+
+      // Parete Sinistra
+      const leftWallMesh = createWallMesh(0.15, 2.8, 6);
+      leftWallMesh.position.set(-0.075, 1.4, 2.5);
+      wallsGroup.add(leftWallMesh);
+      registerSelectableObject({
+        id: 'env_wall_left', name: 'Parete Sinistra', type: 'wall',
+        mesh: leftWallMesh, mainMesh: leftWallMesh, config: { color: MATERIALS.wallColor, surfaceTextures: {} }
+      });
+
+      // Parete Destra
+      const rightWallMesh = createWallMesh(0.15, 2.8, 6);
+      rightWallMesh.position.set(7.075, 1.4, 2.5);
+      wallsGroup.add(rightWallMesh);
+      registerSelectableObject({
+        id: 'env_wall_right', name: 'Parete Destra', type: 'wall',
+        mesh: rightWallMesh, mainMesh: rightWallMesh, config: { color: MATERIALS.wallColor, surfaceTextures: {} }
+      });
+    }
+
+    function createWallMesh(w, h, d) {
+      const mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, d),
+        new THREE.MeshStandardMaterial({ color: MATERIALS.wallColor, roughness: 0.9 })
+      );
+      mesh.receiveShadow = true;
+      return mesh;
+    }
+
+    function registerSelectableObject(objData) {
+      objData.mainMesh.userData = { registryId: objData.id };
+      objectsRegistry.push(objData);
+    }
+
+    // --- CARICAMENTO TEXTURE & GESTIONE IMMAGINI ---
+    function loadTextureFromFile(file, callback) {
+      if (!file) return;
+      const url = URL.createObjectURL(file);
+      const loader = new THREE.TextureLoader();
+      loader.load(url, (texture) => {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        callback(texture, url);
+      });
+    }
+
+    // --- COSTROUTTORE MODULO CON SUPERFICI PIANE SEPARATE ---
+    function buildFurnitureGroup(config) {
+      const group = new THREE.Group();
+      const surfaceTextures = config.surfaceTextures || {};
+      const defaultColor = config.color || MATERIALS.tortora;
+
+      function getSurfaceMaterial(surfaceKey, fallbackColor) {
+        const texUrl = surfaceTextures[surfaceKey] || surfaceTextures['all'] || config.textureUrl;
+        const mat = new THREE.MeshStandardMaterial({
+          color: texUrl ? 0xffffff : (fallbackColor || defaultColor),
+          roughness: 0.5
+        });
+
+        if (texUrl) {
+          new THREE.TextureLoader().load(texUrl, (tex) => {
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(1, 1);
+            mat.map = tex;
+            mat.needsUpdate = true;
+          });
+        }
+        return mat;
+      }
+
+      const w = config.w, h = config.h, d = config.d;
+
+      // 1. Superficie Frontale (Ante)
+      const frontGeo = new THREE.BoxGeometry(w - 0.02, h - 0.02, 0.02);
+      const frontMesh = new THREE.Mesh(frontGeo, getSurfaceMaterial('front', config.color));
+      frontMesh.position.set(0, 0, d / 2 - 0.01);
+      frontMesh.userData = { surfaceKey: 'front', surfaceName: 'Superficie Frontale (Ante)' };
+      frontMesh.castShadow = true;
+      group.add(frontMesh);
+
+      // 2. Piano Superiore (Top)
+      const topGeo = new THREE.BoxGeometry(w, 0.03, d);
+      const topMesh = new THREE.Mesh(topGeo, getSurfaceMaterial('top', config.topColor || MATERIALS.topDark));
+      topMesh.position.set(0, h / 2 - 0.015, 0);
+      topMesh.userData = { surfaceKey: 'top', surfaceName: 'Piano Superiore (Top)' };
+      topMesh.castShadow = true;
+      group.add(topMesh);
+
+      // 3. Fianchi e Struttura
+      const sidesGeo = new THREE.BoxGeometry(w - 0.01, h - 0.03, d - 0.02);
+      const sidesMesh = new THREE.Mesh(sidesGeo, getSurfaceMaterial('sides', config.color));
+      sidesMesh.position.set(0, -0.015, -0.01);
+      sidesMesh.userData = { surfaceKey: 'sides', surfaceName: 'Fianchi e Struttura' };
+      sidesMesh.castShadow = true;
+      group.add(sidesMesh);
+
+      // Maniglia
+      if (config.type === 'base' || config.type === 'wallUnit') {
+        const handle = new THREE.Mesh(
+          new THREE.BoxGeometry(0.12, 0.02, 0.02),
+          new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.8 })
+        );
+        handle.position.set(0, 0, d / 2 + 0.015);
+        group.add(handle);
+      }
+
+      return { group, mainMesh: frontMesh, frontMesh, topMesh, sidesMesh };
+    }
+
+    function addFurnitureObject(config) {
+      config.surfaceTextures = config.surfaceTextures || {};
+      const { group, mainMesh } = buildFurnitureGroup(config);
+      group.position.set(config.x, config.y, config.z);
+      kitchenGroup.add(group);
+
+      const objData = {
+        id: 'obj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        name: config.name,
+        price: config.price || 150,
+        type: 'furniture',
+        mesh: group,
+        mainMesh: mainMesh,
+        config: { ...config }
+      };
+
+      registerSelectableObject(objData);
+      return objData;
+    }
+
+    function resetToDefaultCucina() {
+      deselectObject();
+      objectsRegistry.filter(o => o.type === 'furniture').forEach(obj => kitchenGroup.remove(obj.mesh));
+      objectsRegistry = objectsRegistry.filter(o => o.type !== 'furniture');
+
+      const basePositionsX = [1.8, 2.4, 3.0, 3.6, 4.8, 5.4];
+      basePositionsX.forEach((x, index) => {
+        const isOven = (index === 3);
+        addFurnitureObject({
+          name: isOven ? 'Base Forno 60cm' : `Base Cucina ${index + 1}`,
+          type: 'base', price: isOven ? 580 : 240,
+          w: 0.6, h: 0.85, d: 0.6,
+          x: x, y: 0.425, z: 0.3,
+          color: isOven ? 0x222222 : MATERIALS.tortora
+        });
+      });
+
+      addFurnitureObject({
+        name: 'Isola Autonoma', type: 'island', price: 890,
+        w: 1.6, h: 0.85, d: 0.9, x: 3.2, y: 0.425, z: 2.2, color: MATERIALS.whiteIsland
+      });
+
+      updateQuoteUI();
+    }
+
+    // --- SELEZIONE CON MOUSE NELLA SCENA PRINCIPALE ---
+    function onPointerDown(event) {
+      if (transformControls.dragging) return;
+      if (event.button !== 0) return;
+
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      
+      // Raccogli tutti i mesh selezionabili
+      const candidateMeshes = [];
+      objectsRegistry.forEach(o => {
+        if (o.type === 'furniture') {
+          o.mesh.traverse(c => { if (c.isMesh) candidateMeshes.push(c); });
+        } else {
+          candidateMeshes.push(o.mainMesh);
+        }
+      });
+
+      const intersects = raycaster.intersectObjects(candidateMeshes);
+
+      if (intersects.length > 0) {
+        let hit = intersects[0].object;
+        let regObj = null;
+
+        while (hit && !regObj) {
+          if (hit.userData && hit.userData.registryId) {
+            regObj = objectsRegistry.find(o => o.id === hit.userData.registryId);
+          }
+          hit = hit.parent;
+        }
+
+        if (regObj) selectObjectById(regObj.id);
+      }
+    }
+
+    function selectObjectById(id) {
+      if (selectedObject) clearHighlight(selectedObject);
+
+      selectedObject = objectsRegistry.find(o => o.id === id);
+
+      if (selectedObject) {
+        setHighlight(selectedObject);
+
+        if (selectedObject.type === 'furniture') {
+          transformControls.attach(selectedObject.mesh);
+        } else {
+          transformControls.detach();
+        }
+
+        syncInspectorInputs();
+        updateInspectorUI(true);
+      }
+    }
+
+    function setHighlight(obj) {
+      if (obj.mainMesh.material) {
+        obj.mainMesh.material.emissive = obj.mainMesh.material.emissive || new THREE.Color(0x000000);
+        obj.mainMesh.material.emissive.setHex(0x10b981);
+        obj.mainMesh.material.emissiveIntensity = 0.35;
+      }
+    }
+
+    function clearHighlight(obj) {
+      if (obj.mainMesh.material && obj.mainMesh.material.emissive) {
+        obj.mainMesh.material.emissive.setHex(0x000000);
+      }
+    }
+
+    function deselectObject() {
+      if (selectedObject) clearHighlight(selectedObject);
+      selectedObject = null;
+      transformControls.detach();
+      updateInspectorUI(false);
+    }
+
+    function setTransformMode(mode) {
+      transformControls.setMode(mode);
+      document.getElementById('btn-mode-translate').classList.toggle('active', mode === 'translate');
+      document.getElementById('btn-mode-rotate').classList.toggle('active', mode === 'rotate');
+    }
+
+    function syncInspectorInputs() {
+      if (!selectedObject) return;
+      document.getElementById('inp-name').value = selectedObject.name;
+      document.getElementById('inp-obj-tex').value = '';
+
+      const isFurniture = (selectedObject.type === 'furniture');
+      document.getElementById('btn-cad-container').style.display = isFurniture ? 'block' : 'none';
+      document.getElementById('transform-controls-group').style.display = isFurniture ? 'block' : 'none';
+      document.getElementById('btn-delete-obj').style.display = isFurniture ? 'block' : 'none';
+
+      if (isFurniture) {
+        document.getElementById('inspector-title').innerText = "Ispettore Modulo Cucina";
+        document.getElementById('inp-x').value = Math.round(selectedObject.mesh.position.x * 100);
+        document.getElementById('inp-y').value = Math.round(selectedObject.mesh.position.y * 100);
+        document.getElementById('inp-z').value = Math.round(selectedObject.mesh.position.z * 100);
+        document.getElementById('inp-rot').value = Math.round(THREE.MathUtils.radToDeg(selectedObject.mesh.rotation.y));
+        document.getElementById('inp-color').value = '#' + new THREE.Color(selectedObject.config.color).getHexString();
+      } else {
+        document.getElementById('inspector-title').innerText = `Ispettore ${selectedObject.name}`;
+        document.getElementById('inp-color').value = '#' + selectedObject.mainMesh.material.color.getHexString();
+      }
+    }
+
+    function updateSelectedObjectFromInputs() {
+      if (!selectedObject) return;
+
+      selectedObject.name = document.getElementById('inp-name').value;
+
+      if (selectedObject.type === 'furniture') {
+        selectedObject.mesh.position.x = parseFloat(document.getElementById('inp-x').value) / 100;
+        selectedObject.mesh.position.y = parseFloat(document.getElementById('inp-y').value) / 100;
+        selectedObject.mesh.position.z = parseFloat(document.getElementById('inp-z').value) / 100;
+
+        const deg = parseFloat(document.getElementById('inp-rot').value);
+        selectedObject.mesh.rotation.y = THREE.MathUtils.degToRad(deg);
+        selectedObject.config.color = document.getElementById('inp-color').value;
+      } else {
+        const colHex = document.getElementById('inp-color').value;
+        selectedObject.mainMesh.material.color.set(colHex);
+        selectedObject.mainMesh.material.map = null;
+        selectedObject.mainMesh.material.needsUpdate = true;
+      }
+    }
+
+    function applyTextureToSelectedFromInspector(e) {
+      if (!selectedObject) return;
+      const file = e.target.files[0];
+
+      loadTextureFromFile(file, (texture, url) => {
+        if (selectedObject.type === 'furniture') {
+          selectedObject.config.surfaceTextures['all'] = url;
+          selectedObject.config.textureUrl = url;
+          rebuildMainObjectMesh(selectedObject);
+        } else {
+          // Pareti o Pavimento
+          texture.repeat.set(2, 2);
+          selectedObject.mainMesh.material.map = texture;
+          selectedObject.mainMesh.material.color.setHex(0xffffff);
+          selectedObject.mainMesh.material.needsUpdate = true;
+          selectedObject.config.surfaceTextures['all'] = url;
+        }
+      });
+    }
+
+    function rebuildMainObjectMesh(objData) {
+      kitchenGroup.remove(objData.mesh);
+      const { group, mainMesh } = buildFurnitureGroup(objData.config);
+      group.position.copy(objData.mesh.position);
+      group.rotation.copy(objData.mesh.rotation);
+
+      objData.mesh = group;
+      objData.mainMesh = mainMesh;
+      registerSelectableObject(objData);
+
+      kitchenGroup.add(group);
+      transformControls.attach(group);
+      setHighlight(objData);
+    }
+
+    function updateInspectorUI(hasSelection) {
+      document.getElementById('inspector-form').style.display = hasSelection ? 'block' : 'none';
+      document.getElementById('no-selection').style.display = hasSelection ? 'none' : 'block';
+    }
+
+    function deleteSelectedObject() {
+      if (!selectedObject || selectedObject.type !== 'furniture') return;
+      kitchenGroup.remove(selectedObject.mesh);
+      transformControls.detach();
+      objectsRegistry = objectsRegistry.filter(o => o.id !== selectedObject.id);
+      selectedObject = null;
+      updateInspectorUI(false);
+      updateQuoteUI();
+    }
+
+    // --- MODALE: EDITING AVANZATO & SELEZIONE SUPERFICI PIANE ---
+    function initModal3DScene() {
+      const modalContainer = document.getElementById('modal-3d-canvas');
+      modalScene = new THREE.Scene();
+      modalScene.background = new THREE.Color(0x080c18);
+
+      modalCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 50);
+      modalCamera.position.set(1.5, 1.2, 1.8);
+
+      modalRenderer = new THREE.WebGLRenderer({ antialias: true });
+      modalRenderer.setSize(380, 380);
+      modalContainer.appendChild(modalRenderer.domElement);
+
+      modalOrbitControls = new THREE.OrbitControls(modalCamera, modalRenderer.domElement);
+      modalOrbitControls.enableDamping = true;
+
+      const light1 = new THREE.DirectionalLight(0xffffff, 1);
+      light1.position.set(5, 5, 5);
+      modalScene.add(light1);
+      modalScene.add(new THREE.AmbientLight(0xffffff, 0.6));
+
+      modalMeshGroup = new THREE.Group();
+      modalScene.add(modalMeshGroup);
+
+      modalRaycaster = new THREE.Raycaster();
+      modalMouse = new THREE.Vector2();
+
+      modalRenderer.domElement.addEventListener('pointerdown', onModalCanvasPointerDown);
+    }
+
+    function openObjectExplorer() {
+      if (!selectedObject || selectedObject.type !== 'furniture') return;
+
+      const modal = document.getElementById('exploreModal');
+      modal.classList.add('active');
+      document.getElementById('modal-title').innerText = `Editor Avanzato Superfici: ${selectedObject.name}`;
+
+      // Clona la configurazione incluso la mappa delle texture
+      tempModalConfig = JSON.parse(JSON.stringify(selectedObject.config));
+      tempModalConfig.surfaceTextures = { ...selectedObject.config.surfaceTextures };
+
+      document.getElementById('mod-inp-w').value = Math.round(tempModalConfig.w * 100);
+      document.getElementById('mod-inp-h').value = Math.round(tempModalConfig.h * 100);
+      document.getElementById('mod-inp-d').value = Math.round(tempModalConfig.d * 100);
+
+      selectedModalSurfaceKey = 'all';
+      document.getElementById('mod-surface-select').value = 'all';
+      updateSurfaceBadgeUI();
+
+      refreshModalPreview();
+    }
+
+    // Clic per selezionare la superficie piana nel visualizzatore 3D modale
+    function onModalCanvasPointerDown(event) {
+      if (event.button !== 0) return;
+      const rect = modalRenderer.domElement.getBoundingClientRect();
+      modalMouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      modalMouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      modalRaycaster.setFromCamera(modalMouse, modalCamera);
+      const intersects = modalRaycaster.intersectObjects(modalMeshGroup.children, true);
+
+      if (intersects.length > 0) {
+        const hitMesh = intersects[0].object;
+        if (hitMesh.userData && hitMesh.userData.surfaceKey) {
+          selectedModalSurfaceKey = hitMesh.userData.surfaceKey;
+          document.getElementById('mod-surface-select').value = selectedModalSurfaceKey;
+          updateSurfaceBadgeUI();
+          highlightModalSurfaceMesh(hitMesh);
+        }
+      }
+    }
+
+    function highlightModalSurfaceMesh(mesh) {
+      modalMeshGroup.traverse(c => {
+        if (c.isMesh && c.material && c.material.emissive) c.material.emissive.setHex(0x000000);
+      });
+      if (mesh.material && mesh.material.emissive) {
+        mesh.material.emissive.setHex(0x2563eb);
+        mesh.material.emissiveIntensity = 0.5;
+      }
+    }
+
+    function onModalSurfaceSelectChange() {
+      selectedModalSurfaceKey = document.getElementById('mod-surface-select').value;
+      updateSurfaceBadgeUI();
+    }
+
+    function updateSurfaceBadgeUI() {
+      const names = {
+        'all': 'Tutte le Superfici',
+        'front': 'Superficie Frontale (Ante)',
+        'top': 'Piano Superiore (Top)',
+        'sides': 'Fianchi e Struttura'
+      };
+      document.getElementById('selected-surface-badge').innerText = `Target: ${names[selectedModalSurfaceKey]}`;
+      document.getElementById('mod-inp-surface-tex').value = '';
+    }
+
+    function onModalParamChange() {
+      tempModalConfig.w = parseFloat(document.getElementById('mod-inp-w').value) / 100;
+      tempModalConfig.h = parseFloat(document.getElementById('mod-inp-h').value) / 100;
+      tempModalConfig.d = parseFloat(document.getElementById('mod-inp-d').value) / 100;
+      refreshModalPreview();
+    }
+
+    function onModalSurfaceTextureUpload(e) {
+      const file = e.target.files[0];
+      loadTextureFromFile(file, (texture, url) => {
+        if (selectedModalSurfaceKey === 'all') {
+          tempModalConfig.surfaceTextures = { 'all': url };
+        } else {
+          tempModalConfig.surfaceTextures[selectedModalSurfaceKey] = url;
+        }
+        refreshModalPreview();
+      });
+    }
+
+    function resetModalSurfaceTexture() {
+      if (selectedModalSurfaceKey === 'all') {
+        tempModalConfig.surfaceTextures = {};
+      } else {
+        delete tempModalConfig.surfaceTextures[selectedModalSurfaceKey];
+      }
+      refreshModalPreview();
+    }
+
+    function refreshModalPreview() {
+      modalMeshGroup.clear();
+      const { group } = buildFurnitureGroup(tempModalConfig);
+      modalMeshGroup.add(group);
+
+      const modalBox = document.getElementById('modal-3d-canvas');
+      modalCamera.aspect = modalBox.clientWidth / modalBox.clientHeight;
+      modalCamera.updateProjectionMatrix();
+      modalRenderer.setSize(modalBox.clientWidth, modalBox.clientHeight);
+
+      drawPlaneViews2D(tempModalConfig);
+    }
+
+    // --- APPLICAZIONE CON MANTENIMENTO TEXTURE NELLA SCENA PRINCIPALE ---
+    function applyModalChangesToMainScene() {
+      if (!selectedObject) return;
+
+      selectedObject.config = { ...tempModalConfig };
+      rebuildMainObjectMesh(selectedObject);
+
+      updateQuoteUI();
+      closeObjectExplorer();
+    }
+
+    function closeObjectExplorer() {
+      document.getElementById('exploreModal').classList.remove('active');
+    }
+
+    // --- DISEGNO E ESPORTAZIONE VETTORIALE CAD (.DXF) ---
+    function drawPlaneViews2D(cfg) {
+      const color = '#' + new THREE.Color(cfg.color).getHexString();
+
+      drawSinglePlaneCanvas('canvas-front', (ctx, w, h) => {
+        const mw = w * 0.5, mh = h * 0.6;
+        const x = (w - mw) / 2, y = (h - mh) / 2;
+        ctx.fillStyle = color; ctx.fillRect(x, y, mw, mh);
+        ctx.strokeStyle = '#60a5fa'; ctx.lineWidth = 2; ctx.strokeRect(x, y, mw, mh);
+        drawQuotaLabel(ctx, x, y + mh + 15, x + mw, y + mh + 15, `L: ${(cfg.w*100)} cm`);
+        drawQuotaLabel(ctx, x - 15, y, x - 15, y + mh, `H: ${(cfg.h*100)} cm`);
+      });
+
+      drawSinglePlaneCanvas('canvas-top', (ctx, w, h) => {
+        const mw = w * 0.5, md = h * 0.5;
+        const x = (w - mw) / 2, y = (h - md) / 2;
+        ctx.fillStyle = color; ctx.fillRect(x, y, mw, md);
+        ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2; ctx.strokeRect(x, y, mw, md);
+        drawQuotaLabel(ctx, x, y + md + 15, x + mw, y + md + 15, `L: ${(cfg.w*100)} cm`);
+        drawQuotaLabel(ctx, x - 15, y, x - 15, y + md, `P: ${(cfg.d*100)} cm`);
+      });
+
+      drawSinglePlaneCanvas('canvas-side', (ctx, w, h) => {
+        const md = w * 0.4, mh = h * 0.6;
+        const x = (w - md) / 2, y = (h - mh) / 2;
+        ctx.fillStyle = color; ctx.fillRect(x, y, md, mh);
+        ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2; ctx.strokeRect(x, y, md, mh);
+        drawQuotaLabel(ctx, x, y + mh + 15, x + md, y + mh + 15, `P: ${(cfg.d*100)} cm`);
+        drawQuotaLabel(ctx, x - 15, y, x - 15, y + mh, `H: ${(cfg.h*100)} cm`);
+      });
+    }
+
+    function drawSinglePlaneCanvas(canvasId, drawFn) {
+      const c = document.getElementById(canvasId);
+      const rect = c.parentElement.getBoundingClientRect();
+      c.width = rect.width; c.height = rect.height;
+      const ctx = c.getContext('2d');
+      ctx.clearRect(0, 0, c.width, c.height);
+      drawFn(ctx, c.width, c.height);
+    }
+
+    function drawQuotaLabel(ctx, x1, y1, x2, y2, text) {
+      ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.fillStyle = '#f8fafc'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(text, (x1 + x2) / 2, (y1 + y2) / 2 - 4);
+    }
+
+    function exportPlaneViewsToCAD() {
+      const cfg = tempModalConfig;
+      const w = cfg.w * 100, h = cfg.h * 100, d = cfg.d * 100;
+      let dxf = `0\nSECTION\n2\nHEADER\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n`;
+
+      function addRectDXF(x1, y1, x2, y2, layer) {
+        return `0\nLWPOLYLINE\n100\nAcDbEntity\n8\n${layer}\n100\nAcDbPolyline\n90\n4\n70\n1\n` +
+               `10\n${x1}\n20\n${y1}\n10\n${x2}\n20\n${y1}\n10\n${x2}\n20\n${y2}\n10\n${x1}\n20\n${y2}\n`;
+      }
+
+      dxf += addRectDXF(0, 0, w, h, "PROSPETTO_FRONTALE");
+      const topX = w + 50; dxf += addRectDXF(topX, 0, topX + w, d, "VISTA_IN_PIANTA");
+      const sideX = topX + w + 50; dxf += addRectDXF(sideX, 0, sideX + d, h, "FIANCO_LATERALE");
+      dxf += `0\nENDSEC\n0\nEOF\n`;
+
+      const blob = new Blob([dxf], { type: 'application/dxf' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${cfg.name.replace(/\s+/g, '_')}_PartiPiane_CAD.dxf`;
+      link.click();
+    }
+
+    // --- ESPORTAZIONE RHINO 7 ---
+    function exportSceneToRhino() {
+      let objData = `# 3cad Studio 3D - Esportazione per Rhino 7\n`;
+      let vertexOffset = 1;
+
+      kitchenGroup.traverse((child) => {
+        if (child.isMesh && child.geometry) {
+          const geometry = child.geometry.clone();
+          geometry.applyMatrix4(child.matrixWorld);
+          objData += `o Modulo_${child.id}\n`;
+          const pos = geometry.attributes.position;
+          for (let i = 0; i < pos.count; i++) {
+            objData += `v ${pos.getX(i).toFixed(4)} ${pos.getY(i).toFixed(4)} ${pos.getZ(i).toFixed(4)}\n`;
+          }
+          const index = geometry.index;
+          if (index) {
+            for (let i = 0; i < index.count; i += 3) {
+              objData += `f ${index.getX(i) + vertexOffset} ${index.getX(i+1) + vertexOffset} ${index.getX(i+2) + vertexOffset}\n`;
+            }
+            vertexOffset += pos.count;
+          }
+        }
+      });
+
+      const blob = new Blob([objData], { type: 'model/obj' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `Progetto_Cucina_Rhino7.obj`;
+      link.click();
+    }
+
+    // --- CATALOGO ---
+    function addBaseModule() {
+      const obj = addFurnitureObject({ name: 'Base Cucina 60', type: 'base', price: 240, w: 0.6, h: 0.85, d: 0.6, x: 2, y: 0.425, z: 2, color: MATERIALS.tortora });
+      selectObjectById(obj.id); updateQuoteUI();
+    }
+    function addOvenModule() {
+      const obj = addFurnitureObject({ name: 'Modulo Forno', type: 'base', price: 580, w: 0.6, h: 0.85, d: 0.6, x: 2, y: 0.425, z: 2, color: 0x222222 });
+      selectObjectById(obj.id); updateQuoteUI();
+    }
+    function addWallModule() {
+      const obj = addFurnitureObject({ name: 'Pensile 60', type: 'wallUnit', price: 170, w: 0.6, h: 0.72, d: 0.35, x: 2, y: 1.86, z: 2, color: MATERIALS.tortora });
+      selectObjectById(obj.id); updateQuoteUI();
+    }
+    function addIslandModule() {
+      const obj = addFurnitureObject({ name: 'Isola Cucina', type: 'island', price: 890, w: 1.6, h: 0.85, d: 0.9, x: 3, y: 0.425, z: 2.5, color: MATERIALS.whiteIsland });
+      selectObjectById(obj.id); updateQuoteUI();
+    }
+    function addTableModule() {
+      const obj = addFurnitureObject({ name: 'Tavolo', type: 'table', price: 420, w: 1.4, h: 0.75, d: 0.8, x: 2, y: 0.375, z: 3.5, color: 0xe2e8f0 });
+      selectObjectById(obj.id); updateQuoteUI();
+    }
+    function addChairModule() {
+      const obj = addFurnitureObject({ name: 'Sedia', type: 'chair', price: 85, w: 0.4, h: 0.85, d: 0.4, x: 2, y: 0.425, z: 3, color: MATERIALS.metalChair });
+      selectObjectById(obj.id); updateQuoteUI();
+    }
+
+    function setCameraView(viewType) {
+      orbitControls.reset();
+      if (viewType === 'top') {
+        camera.position.set(3.25, 7.5, 2.5); orbitControls.target.set(3.25, 0, 2.5);
+      } else if (viewType === 'front') {
+        camera.position.set(3.25, 1.4, 6.5); orbitControls.target.set(3.25, 1.4, 0);
+      } else if (viewType === 'iso') {
+        camera.position.set(7, 5, 6); orbitControls.target.set(3, 0.8, 1.5);
+      } else {
+        camera.position.set(5.5, 4.5, 6.5); orbitControls.target.set(3, 1, 1.5);
+      }
+    }
+
+    function toggleWalls() { wallsGroup.visible = !wallsGroup.visible; }
+
+    function updateQuoteUI() {
+      const furnitureList = objectsRegistry.filter(o => o.type === 'furniture');
+      const count = furnitureList.length;
+      const subtotal = furnitureList.reduce((acc, o) => acc + o.price, 0);
+      const total = subtotal * 0.9;
+      document.getElementById('q-items').innerText = count;
+      document.getElementById('q-subtotal').innerText = `€${subtotal.toFixed(2)}`;
+      document.getElementById('q-total').innerText = `€${total.toFixed(2)}`;
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      orbitControls.update();
+      renderer.render(scene, camera);
+
+      if (document.getElementById('exploreModal').classList.contains('active')) {
+        modalOrbitControls.update();
+        modalRenderer.render(modalScene, modalCamera);
+      }
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

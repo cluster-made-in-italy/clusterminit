@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="it" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wood & Algorithm — Falegnameria Creativa & Progettazione IA</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandBg: '#0b0c0e',
+            brandCard: '#13151a',
+            brandPanel: '#1a1d24',
+            brandBorder: '#2a2e3a',
+            brandAccent: '#d97706',
+            brandAccentHover: '#b45309'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0b0c0e; color: #f3f4f6; }
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #0b0c0e; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #2a2e3a; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #d97706; }
+
+    /* Animazioni Avatar */
+    @keyframes pulseAura {
+      0%, 100% { transform: scale(1); opacity: 0.3; }
+      50% { transform: scale(1.1); opacity: 0.7; }
+    }
+    .avatar-glow { animation: pulseAura 3s infinite ease-in-out; }
+
+    @keyframes waveAudio {
+      0%, 100% { height: 4px; }
+      50% { height: 20px; }
+    }
+    .wave-bar { animation: waveAudio 0.8s infinite ease-in-out; }
+    .wave-bar:nth-child(2) { animation-delay: 0.15s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.3s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.45s; }
+
+    .highlight-tour {
+      outline: 2px solid #f59e0b;
+      outline-offset: 8px;
+      transition: all 0.5s ease;
+    }
+  </style>
+</head>
+<body class="custom-scrollbar selection:bg-amber-500 selection:text-black relative">
+
+  <!-- BARRA DI NAVIGAZIONE -->
+  <nav class="sticky top-0 z-40 bg-brandBg/90 backdrop-blur-md border-b border-brandBorder px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <a href="#" class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+          <i class="fa-solid fa-torii-gate text-lg"></i>
+        </div>
+        <div>
+          <span class="text-base font-extrabold text-white tracking-wider block">WOOD & ALGORITHM</span>
+          <span class="text-[10px] text-amber-400 font-semibold tracking-widest uppercase">Falegnameria Creativa IA</span>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <div class="hidden md:flex items-center space-x-8 text-xs font-semibold text-slate-300">
+        <a href="#filosofia" class="hover:text-amber-400 transition">Filosofia</a>
+        <a href="#simulatore" class="hover:text-amber-400 transition">Simulatore 3D</a>
+        <a href="#portfolio" class="hover:text-amber-400 transition">Portfolio Prodotti</a>
+        <a href="#storie" class="hover:text-amber-400 transition">Storie & Social</a>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button onclick="toggleAvatarDrawer()" class="px-4 py-2 rounded-xl bg-amber-500/20 border border-amber-500/40 hover:bg-amber-500 hover:text-slate-950 text-amber-400 font-bold text-xs transition flex items-center gap-2">
+          <i class="fa-solid fa-robot"></i>
+          <span>Assistente Arno</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <header class="relative pt-20 pb-16 px-6 overflow-hidden border-b border-brandBorder">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold mb-6">
+          <i class="fa-solid fa-microchip"></i> L'Artigianato Aumentato del Legno Massello
+        </div>
+        <h1 class="text-4xl md:text-6xl font-black text-white leading-tight tracking-tight mb-6">
+          La pialla e l'algoritmo: <br>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-amber-200 to-amber-500">
+            L'arredo su misura del futuro.
+          </span>
+        </h1>
+        <p class="text-slate-400 text-base leading-relaxed mb-8">
+          Uniamo la precisione della progettazione parametrica e dell'Intelligenza Artificiale con la tradizione dell'ebanisteria e il calore del legno massello. Dalla simulazione 3D in stile Japandi alla finitura ad olio fatta a mano.
+        </p>
+        <div class="flex flex-wrap gap-4">
+          <a href="#portfolio" class="px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-sm transition shadow-lg shadow-amber-500/20">
+            Esplora il Portfolio Prodotti
+          </a>
+          <button onclick="startQuestionnaireDirectly()" class="px-6 py-3.5 rounded-xl bg-brandPanel border border-brandBorder text-slate-200 hover:text-white hover:border-amber-500 font-bold text-sm transition flex items-center gap-2">
+            <i class="fa-solid fa-clipboard-list text-amber-400"></i> Compila Scheda Desideri
+          </button>
+        </div>
+      </div>
+
+      <!-- Feature Card Showcase -->
+      <div class="relative bg-brandCard border border-brandBorder rounded-3xl p-6 shadow-2xl">
+        <div class="aspect-video rounded-2xl overflow-hidden relative mb-4 bg-black">
+          <img src="https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?auto=format&fit=crop&w=1200&q=80" alt="Studio Japandi" class="w-full h-full object-cover opacity-90">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-6">
+            <div>
+              <span class="px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-lg text-[10px] font-bold uppercase tracking-wider mb-2 inline-block">Design Japandi 3D</span>
+              <h3 class="text-lg font-bold text-white">Tavolo Massello & Scrivania Operativa Dual-Use</h3>
+            </div>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="bg-black/40 p-3 rounded-xl border border-brandBorder">
+            <span class="text-amber-400 text-base font-bold font-mono block">100%</span>
+            <span class="text-[10px] text-slate-400 uppercase">Su Misura</span>
+          </div>
+          <div class="bg-black/40 p-3 rounded-xl border border-brandBorder">
+            <span class="text-emerald-400 text-base font-bold font-mono block">-35%</span>
+            <span class="text-[10px] text-slate-400 uppercase">Sprechi Legno</span>
+          </div>
+          <div class="bg-black/40 p-3 rounded-xl border border-brandBorder">
+            <span class="text-amber-400 text-base font-bold font-mono block">85+ cm</span>
+            <span class="text-[10px] text-slate-400 uppercase">Passaggio HUD</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 1. FILOSOFIA & VALORI -->
+  <section id="filosofia" class="py-20 px-6 max-w-7xl mx-auto border-b border-brandBorder transition-all duration-300 rounded-3xl">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <h2 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-2">Il Nostro Metodo</h2>
+      <p class="text-3xl font-extrabold text-white">Tre pilastri per la Falegnameria del Futuro</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="bg-brandCard border border-brandBorder p-8 rounded-3xl relative">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center text-xl mb-6">
+          <i class="fa-solid fa-brain"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-3">1. Design Algoritmo & IA</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          Sfruttiamo l'IA per esplorare forme organiche, ottimizzare le sezioni di carico e calcolare al millimetro gli ingombri ambientali prima di tagliare il primo asse.
+        </p>
+      </div>
+
+      <div class="bg-brandCard border border-brandBorder p-8 rounded-3xl relative">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center text-xl mb-6">
+          <i class="fa-solid fa-tree"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-3">2. Materia Prima & Sostenibilità</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          Utilizziamo solo legni masselli certificati (rovere, noce, frassino). L'ottimizzazione dei tagli via computer riduce gli scarti fino al 35%.
+        </p>
+      </div>
+
+      <div class="bg-brandCard border border-brandBorder p-8 rounded-3xl relative">
+        <div class="w-12 h-12 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center text-xl mb-6">
+          <i class="fa-solid fa-hands-holding-circle"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-3">3. Ebanisteria Artigianale</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          Quando la simulazione è perfetta, spegniamo il computer. Gli incastri, la carteggiatura e l'olio protettivo sono realizzati interamente dalle nostre mani.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. SHOWCASE SIMULATORE 3D JAPANDI -->
+  <section id="simulatore" class="py-20 px-6 bg-brandCard/50 border-b border-brandBorder transition-all duration-300 rounded-3xl">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div>
+        <span class="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold inline-block mb-4">
+          <i class="fa-solid fa-cube"></i> Innovazione Digitale
+        </span>
+        <h2 class="text-3xl md:text-4xl font-extrabold text-white leading-tight mb-6">
+          Simulatore Studio 3D: <br>
+          Annulla l'incertezza dello spazio.
+        </h2>
+        <p class="text-slate-400 text-sm md:text-base leading-relaxed mb-6">
+          Il nostro simulatore HTML/Three.js consente di visualizzare la stanza, testare arredi in stile **Japandi (Giapponese-Scandinavo)** e simulare scenari reali prima della costruzione.
+        </p>
+
+        <ul class="space-y-3 text-sm text-slate-300 mb-8">
+          <li class="flex items-center gap-3">
+            <i class="fa-solid fa-circle-check text-amber-400"></i>
+            <span><strong>Tavolo Japandi Convertibile:</strong> Passa da tavolo da riunione a scrivania operativa con 2 laptop e accessori.</span>
+          </li>
+          <li class="flex items-center gap-3">
+            <i class="fa-solid fa-circle-check text-amber-400"></i>
+            <span><strong>Librerie Iper-Realistiche:</strong> Generazione di volumi inclinati, faldoni d'archivio e custodie per simulare il carico reale.</span>
+          </li>
+          <li class="flex items-center gap-3">
+            <i class="fa-solid fa-circle-check text-emerald-400"></i>
+            <span><strong>Calcolo Ergonomico HUD:</strong> Verifica in tempo reale dei corridoi di passaggio (es. >85 cm per la massima comodità).</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Feature Grid Box -->
+      <div class="bg-brandPanel border border-brandBorder p-6 rounded-3xl shadow-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-brandBorder pb-4">
+          <div class="flex items-center gap-3">
+            <i class="fa-solid fa-ruler-combined text-amber-400 text-xl"></i>
+            <div>
+              <h4 class="text-sm font-bold text-white">Specifiche Progettazione Japandi</h4>
+              <p class="text-xs text-slate-400">Parametri configurabili in tempo reale</p>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 text-[10px] font-mono rounded-lg border border-emerald-500/30">Attivo</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div class="bg-black/40 p-3 rounded-xl border border-brandBorder">
+            <span class="text-slate-400 block mb-1">Gambe Japandi</span>
+            <span class="font-bold text-white">A-Frame / Listelli 格子 / Coniche</span>
+          </div>
+          <div class="bg-black/40 p-3 rounded-xl border border-brandBorder">
+            <span class="text-slate-400 block mb-1">Essenza Legno</span>
+            <span class="font-bold text-white">Rovere / Noce Zen / Frassino</span>
+          </div>
+          <div class="bg-black/40 p-3 rounded-xl border border-brandBorder">
+            <span class="text-slate-400 block mb-1">Sedie Abbinate</span>
+            <span class="font-bold text-white">Stile Wishbone / Hiroshima</span>
+          </div>
+          <div class="bg-black/40 p-3 rounded-xl border border-brandBorder">
+            <span class="text-slate-400 block mb-1">Librerie Archivi</span>
+            <span class="font-bold text-amber-400">Densità Libri e Faldoni</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. PORTFOLIO PRODOTTI CON FILTER & LIGHTBOX -->
+  <section id="portfolio" class="py-20 px-6 max-w-7xl mx-auto border-b border-brandBorder transition-all duration-300 rounded-3xl">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
+      <div>
+        <h2 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-2">Galleria Esclusiva</h2>
+        <p class="text-3xl font-extrabold text-white">Portfolio Prodotti & Ambienti</p>
+      </div>
+
+      <!-- Filtri Categoria -->
+      <div class="flex items-center gap-2 bg-brandCard p-1.5 rounded-2xl border border-brandBorder text-xs overflow-x-auto max-w-full">
+        <button onclick="filterCategory('all')" id="btn-all" class="filter-btn px-4 py-2 rounded-xl font-semibold transition bg-amber-500 text-slate-950 shadow">Tutti i Progetti</button>
+        <button onclick="filterCategory('tavoli')" id="btn-tavoli" class="filter-btn px-4 py-2 rounded-xl font-semibold text-slate-400 hover:text-white transition">Tavoli Masselli</button>
+        <button onclick="filterCategory('scrivanie')" id="btn-scrivanie" class="filter-btn px-4 py-2 rounded-xl font-semibold text-slate-400 hover:text-white transition">Scrivanie Smart</button>
+        <button onclick="filterCategory('ambienti')" id="btn-ambienti" class="filter-btn px-4 py-2 rounded-xl font-semibold text-slate-400 hover:text-white transition">Ambienti Multifunzionali</button>
+      </div>
+    </div>
+
+    <!-- Gallery Grid -->
+    <div id="gallery-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Generato dinamicamente via JS -->
+    </div>
+  </section>
+
+  <!-- 4. SEZIONE SOCIAL & CONTENUTI -->
+  <section id="storie" class="py-20 px-6 bg-brandCard/30 border-b border-brandBorder transition-all duration-300 rounded-3xl">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <h2 class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-2">Social & Content Hub</h2>
+        <p class="text-3xl font-extrabold text-white">Raccontiamo la nostra passione</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Post 1 -->
+        <div class="bg-brandCard border border-brandBorder rounded-3xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-4">
+              <span class="flex items-center gap-1.5 font-bold text-amber-400"><i class="fa-brands fa-instagram"></i> Instagram / FB</span>
+              <span>Filosofia</span>
+            </div>
+            <h4 class="text-lg font-bold text-white mb-2">La pialla e l'algoritmo</h4>
+            <p class="text-slate-400 text-xs leading-relaxed italic mb-4">
+              "C'è chi pensa che l'IA e l'artigianato siano opposti. Noi crediamo sia l'evoluzione naturale della matita da falegname..."
+            </p>
+          </div>
+          <div class="pt-4 border-t border-brandBorder/60 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+            <span>#FalegnameriaCreativa</span>
+            <span>#DesignAI</span>
+          </div>
+        </div>
+
+        <!-- Post 2 -->
+        <div class="bg-brandCard border border-brandBorder rounded-3xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-4">
+              <span class="flex items-center gap-1.5 font-bold text-blue-400"><i class="fa-brands fa-linkedin"></i> LinkedIn Case Study</span>
+              <span>Studio Japandi</span>
+            </div>
+            <h4 class="text-lg font-bold text-white mb-2">Dalla Simulazione al Reale</h4>
+            <p class="text-slate-400 text-xs leading-relaxed italic mb-4">
+              "Come l'IA risolve i problemi di spazio: il controllo dinamico del passaggio (HUD Clearance) e le librerie ad alta densità..."
+            </p>
+          </div>
+          <div class="pt-4 border-t border-brandBorder/60 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+            <span>#Ergonomia3D</span>
+            <span>#B2BDesign</span>
+          </div>
+        </div>
+
+        <!-- Post 3 -->
+        <div class="bg-brandCard border border-brandBorder rounded-3xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-4">
+              <span class="flex items-center gap-1.5 font-bold text-rose-400"><i class="fa-brands fa-tiktok"></i> TikTok / Reels</span>
+              <span>Behind The Scenes</span>
+            </div>
+            <h4 class="text-lg font-bold text-white mb-2">Audio Voiceover Video</h4>
+            <p class="text-slate-400 text-xs leading-relaxed italic mb-4">
+              "E se ti dicessi che questo tavolo in puro legno massello è stato prima immaginato da un'Intelligenza Artificiale?..."
+            </p>
+          </div>
+          <div class="pt-4 border-t border-brandBorder/60 flex items-center justify-between text-[11px] text-slate-500 font-mono">
+            <span>#BehindTheScenes</span>
+            <span>#WoodworkingTikTok</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. FORM DI CONTATTO / RICHIEDI PREVENTIVO -->
+  <section id="contatti" class="py-20 px-6 max-w-4xl mx-auto transition-all duration-300 rounded-3xl">
+    <div class="bg-brandPanel border border-brandBorder rounded-3xl p-8 md:p-12 shadow-2xl">
+      <div class="text-center mb-10">
+        <span class="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-semibold inline-block mb-3">Inizia il tuo Progetto</span>
+        <h2 class="text-3xl font-extrabold text-white">Trasforma la tua idea in materia viva</h2>
+        <p class="text-slate-400 text-xs md:text-sm mt-2">Compila il form o usa l'Avatar Arno per la compilazione vocale automatica.</p>
+      </div>
+
+      <form id="landing-form" onsubmit="event.preventDefault(); alert('Grazie! Ti contatteremo entro 24 ore con una prima proposta di design IA.');" class="space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Nome e Cognome</label>
+            <input type="text" id="form-name" required placeholder="Mario Rossi" class="w-full bg-black/50 border border-brandBorder rounded-xl p-3 text-sm text-white focus:border-amber-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Email o Telefono</label>
+            <input type="text" id="form-contact" required placeholder="mario@esempio.it o +39..." class="w-full bg-black/50 border border-brandBorder rounded-xl p-3 text-sm text-white focus:border-amber-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Tipologia Arredo</label>
+            <select id="form-type" class="w-full bg-black/50 border border-brandBorder rounded-xl p-3 text-sm text-white focus:border-amber-500 focus:outline-none">
+              <option value="tavolo">Tavolo Massello Japandi</option>
+              <option value="scrivania">Postazione Scrivania Smart</option>
+              <option value="ambiente">Ambiente Multifunzionale / Parete Studio</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-2">Essenza Legno Preferita</label>
+            <select id="form-wood" class="w-full bg-black/50 border border-brandBorder rounded-xl p-3 text-sm text-white focus:border-amber-500 focus:outline-none">
+              <option value="rovere">Rovere Massello Nodato</option>
+              <option value="noce">Noce Scurissimo Zen</option>
+              <option value="frassino">Frassino Sbiancato Koto</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-2">Misure e Dettagli del Progetto</label>
+          <textarea id="form-details" rows="4" placeholder="Es. Cerco un tavolo Japandi da 180x90 cm per il mio studio..." class="w-full bg-black/50 border border-brandBorder rounded-xl p-3 text-sm text-white focus:border-amber-500 focus:outline-none"></textarea>
+        </div>
+
+        <button type="submit" class="w-full py-4 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-sm rounded-xl transition shadow-lg shadow-amber-500/20">
+          Invia Richiesta & Ricevi Anteprima IA
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <!-- LIGHTBOX MODAL SFOGLIABILE -->
+  <div id="lightbox" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl hidden flex items-center justify-center p-4">
+    <button onclick="closeLightbox()" class="absolute top-6 right-6 z-20 w-12 h-12 rounded-full bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 text-white flex items-center justify-center transition shadow-lg">
+      <i class="fa-solid fa-xmark text-xl"></i>
+    </button>
+    <button onclick="prevSlide()" class="absolute left-4 md:left-8 z-20 w-12 h-12 rounded-full bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 text-white flex items-center justify-center transition shadow-lg">
+      <i class="fa-solid fa-chevron-left text-lg"></i>
+    </button>
+    <button onclick="nextSlide()" class="absolute right-4 md:right-8 z-20 w-12 h-12 rounded-full bg-slate-800/80 hover:bg-amber-500 hover:text-slate-950 text-white flex items-center justify-center transition shadow-lg">
+      <i class="fa-solid fa-chevron-right text-lg"></i>
+    </button>
+
+    <div class="max-w-5xl w-full bg-brandPanel border border-brandBorder rounded-3xl overflow-hidden shadow-2xl flex flex-col lg:flex-row max-h-[90vh]">
+      <div class="lg:w-3/5 bg-black relative flex items-center justify-center overflow-hidden min-h-[300px]">
+        <img id="modal-img" src="" alt="Prodotto" class="w-full h-full object-cover transition-opacity duration-300">
+        <div class="absolute bottom-3 left-3 bg-black/60 backdrop-blur px-3 py-1 rounded-lg border border-white/10 text-[11px] text-slate-300 font-mono" id="modal-counter">1 / 6</div>
+      </div>
+      <div class="lg:w-2/5 p-6 lg:p-8 flex flex-col justify-between overflow-y-auto custom-scrollbar">
+        <div>
+          <div class="flex items-center gap-2 mb-3">
+            <span id="modal-tag" class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-md">Tavoli Masselli</span>
+            <span id="modal-wood" class="text-xs text-slate-400 font-medium">Rovere Massello</span>
+          </div>
+          <h3 id="modal-title" class="text-2xl font-bold text-white mb-2">Titolo Prodotto</h3>
+          <p id="modal-desc" class="text-slate-300 text-xs md:text-sm leading-relaxed mb-6">Descrizione del prodotto...</p>
+
+          <div class="space-y-2 bg-black/40 p-4 rounded-2xl border border-brandBorder mb-6 text-xs">
+            <div class="flex justify-between"><span class="text-slate-400">Lavorazione:</span> <span id="modal-spec-tech" class="font-medium text-white">-</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Sostenibilità:</span> <span id="modal-spec-waste" class="font-medium text-emerald-400">-</span></div>
+            <div class="flex justify-between"><span class="text-slate-400">Dimensioni:</span> <span id="modal-spec-size" class="font-medium text-white">-</span></div>
+          </div>
+        </div>
+
+        <a href="#contatti" onclick="closeLightbox()" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl transition text-center shadow">
+          Richiedi Personalizzazione
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-brandCard border-t border-brandBorder py-8 px-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>© 2026 Wood & Algorithm — Falegnameria Creativa & Progettazione IA.</div>
+      <div class="flex gap-4 text-slate-400">
+        <a href="#" class="hover:text-amber-400"><i class="fa-brands fa-instagram text-base"></i></a>
+        <a href="#" class="hover:text-amber-400"><i class="fa-brands fa-linkedin text-base"></i></a>
+        <a href="#" class="hover:text-amber-400"><i class="fa-brands fa-tiktok text-base"></i></a>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ================================================================= -->
+  <!-- WIDGET AVATAR INTERATTIVO (FLUTTUANTE & DRAWER PANNELLO COMPLETO) -->
+  <!-- ================================================================= -->
+
+  <!-- BOTTONE FLUTTUANTE IN BASSO A DESTRAM -->
+  <div id="avatar-trigger-btn" class="fixed bottom-6 right-6 z-50 flex items-center gap-3">
+    <button onclick="toggleAvatarDrawer()" class="group relative flex items-center gap-3 bg-brandCard border-2 border-amber-500 p-2 pr-4 rounded-full shadow-2xl hover:scale-105 transition duration-300">
+      <div class="relative w-12 h-12 rounded-full overflow-hidden bg-brandPanel border border-amber-400 flex items-center justify-center shrink-0">
+        <!-- Graphic Avatar Head -->
+        <svg class="w-full h-full text-slate-200" viewBox="0 0 200 200" fill="none">
+          <circle cx="100" cy="100" r="95" fill="#181b22" stroke="#f59e0b" stroke-width="2"/>
+          <path d="M60 75C60 50 80 35 100 35C120 35 140 50 140 75V90H60V75Z" fill="#334155"/>
+          <path d="M65 75C65 75 65 130 100 130C135 130 135 75 135 75Z" fill="#fed7aa"/>
+          <circle cx="82" cy="85" r="5" fill="#0f172a"/>
+          <circle cx="118" cy="85" r="5" fill="#0f172a"/>
+          <rect x="73" y="79" width="20" height="12" rx="3" stroke="#f59e0b" stroke-width="2" fill="none"/>
+          <rect x="107" y="79" width="20" height="12" rx="3" stroke="#f59e0b" stroke-width="2" fill="none"/>
+          <path d="M88 110 Q100 115 112 110" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="text-left hidden sm:block">
+        <span class="text-xs font-extrabold text-white block">Arno — Maestro IA</span>
+        <span class="text-[10px] text-amber-400 font-semibold flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Clicca per interagire
+        </span>
+      </div>
+    </button>
+  </div>
+
+  <!-- DRAWER PANNELLO AVATAR -->
+  <div id="avatar-drawer" class="fixed inset-y-0 right-0 z-50 w-full sm:w-[420px] bg-brandCard border-l border-brandBorder shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col justify-between">
+    
+    <!-- Header Drawer -->
+    <div class="bg-brandPanel px-5 py-4 border-b border-brandBorder flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+        <div>
+          <h3 class="text-xs font-bold text-white uppercase tracking-wider">Arno — Assistente Vocale IA</h3>
+          <span class="text-[10px] text-amber-400 font-semibold">Parla o Scrivi in tempo reale</span>
+        </div>
+      </div>
+      <button onclick="toggleAvatarDrawer()" class="text-slate-400 hover:text-white p-1 text-lg">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- AVATAR VIEWPORT ANIMATO -->
+    <div class="p-4 bg-brandPanel/50 border-b border-brandBorder flex items-center justify-center gap-4 relative overflow-hidden">
+      <div id="avatar-aura-drawer" class="absolute w-32 h-32 rounded-full bg-amber-500/10 filter blur-lg avatar-glow"></div>
+      
+      <div class="relative w-24 h-24 rounded-full border-2 border-amber-500/60 p-1 bg-brandCard shadow-xl shrink-0">
+        <svg id="drawer-avatar-svg" class="w-full h-full text-slate-200" viewBox="0 0 200 200" fill="none">
+          <circle cx="100" cy="100" r="95" fill="#181b22" stroke="#f59e0b" stroke-width="2"/>
+          <path d="M60 75C60 50 80 35 100 35C120 35 140 50 140 75V90H60V75Z" fill="#334155"/>
+          <path d="M65 75C65 75 65 130 100 130C135 130 135 75 135 75Z" fill="#fed7aa"/>
+          <circle cx="82" cy="85" r="5" fill="#0f172a"/>
+          <circle cx="118" cy="85" r="5" fill="#0f172a"/>
+          <rect x="73" y="79" width="20" height="12" rx="3" stroke="#f59e0b" stroke-width="2" fill="none"/>
+          <rect x="107" y="79" width="20" height="12" rx="3" stroke="#f59e0b" stroke-width="2" fill="none"/>
+          <path id="drawer-avatar-mouth" d="M88 110 Q100 115 112 110" stroke="#0f172a" stroke-width="3" stroke-linecap="round" fill="none"/>
+        </svg>
+      </div>
+
+      <div class="flex-1 space-y-1">
+        <div class="flex items-center justify-between">
+          <span id="drawer-avatar-status" class="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-500/20 text-amber-400 border border-amber-500/30">In Ascolto</span>
+          
+          <!-- Controlli Mute Voce -->
+          <button onclick="toggleSound()" id="btn-sound-toggle" title="Attiva/Disattiva Voce" class="text-xs text-amber-400 hover:text-white bg-black/40 p-1.5 rounded-lg border border-brandBorder">
+            <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+          </button>
+        </div>
+
+        <!-- Onda Audio Vocale -->
+        <div id="drawer-audio-wave" class="flex items-center gap-1 h-5 opacity-40 transition-opacity">
+          <div class="w-1 bg-amber-400 rounded-full wave-bar h-1"></div>
+          <div class="w-1 bg-amber-400 rounded-full wave-bar h-1"></div>
+          <div class="w-1 bg-amber-400 rounded-full wave-bar h-1"></div>
+          <div class="w-1 bg-amber-400 rounded-full wave-bar h-1"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMANDI RAPIDI INTERRUZIONE / NAVIGAZIONE -->
+    <div class="px-4 py-2 bg-black/60 border-b border-brandBorder flex items-center justify-between gap-2 text-[11px]">
+      <button onclick="startQuestionnaireDirectly()" class="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500 hover:text-slate-950 text-amber-300 font-bold rounded-lg border border-amber-500/30 transition flex items-center gap-1">
+        <i class="fa-solid fa-clipboard-list"></i> Scheda Desideri
+      </button>
+      <button onclick="stopTourAndExplore()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700 transition">
+        <i class="fa-solid fa-compass"></i> Sfoglia da Solo
+      </button>
+    </div>
+
+    <!-- AREA MESSAGGI CHAT -->
+    <div id="drawer-chat-box" class="flex-1 p-4 overflow-y-auto custom-scrollbar space-y-3 text-xs">
+      <!-- Messaggi generati via JS -->
+    </div>
+
+    <!-- OPZIONI DI RISPOSTA RAPIDA -->
+    <div id="drawer-quick-options" class="px-4 py-2 flex flex-wrap gap-1.5 border-t border-brandBorder bg-brandPanel/30 empty:hidden"></div>
+
+    <!-- FORM DI INPUT CHAT E VOCALE -->
+    <form onsubmit="handleDrawerUserSubmit(event)" class="p-3 bg-brandPanel border-t border-brandBorder flex items-center gap-2">
+      <!-- Tasto Microfono Vocale -->
+      <button type="button" onclick="toggleSpeechRecognition()" id="btn-mic" title="Parla al microfono" class="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-400 hover:border-amber-500 flex items-center justify-center transition shrink-0">
+        <i class="fa-solid fa-microphone"></i>
+      </button>
+
+      <input 
+        type="text" 
+        id="drawer-user-input" 
+        placeholder="Parla o scrivi qui..." 
+        class="flex-1 bg-black/60 border border-brandBorder rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"
+        autocomplete="off"
+      >
+
+      <button type="submit" class="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl transition flex items-center justify-center text-xs shadow-lg shadow-amber-500/20 shrink-0">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </form>
+  </div>
+
+
+  <!-- SCRIPT PORTFOLIO, LIGHTBOX & MOTORE AVATAR VOCALE INTERATTIVO -->
+  <script>
+    /* ======================================= */
+    /* 1. PORTFOLIO & LIGHTBOX DATA & LOGIC     */
+    /* ======================================= */
+    const products = [
+      {
+        id: 1,
+        category: 'tavoli',
+        categoryLabel: 'Tavoli Masselli',
+        title: 'Tavolo Japandi "Hikari"',
+        wood: 'Rovere Massello Nodato',
+        img: 'https://images.unsplash.com/photo-1615066390971-03e4e1c36ddf?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Tavolo da pranzo e riunione in stile Japandi. La curvatura e l\'angolazione delle gambe a slitta sono state generate via IA per distribuire perfettamente il carico strutturale.',
+        tech: 'Incastri Giapponesi a Scomparsa',
+        waste: '-35% Scarto di Taglio',
+        size: '180-240 x 90 cm'
+      },
+      {
+        id: 2,
+        category: 'scrivanie',
+        categoryLabel: 'Scrivanie Smart',
+        title: 'Postazione Operativa "Dual-Sync"',
+        wood: 'Noce Canaletto & Frassino',
+        img: 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Scrivania per home office ad alte prestazioni. Integra un vano di gestione cavi a scomparsa integrato nel massello e sottomano in cuoio naturale inserito a filo.',
+        tech: 'Passacavi Integrato Fresato CNC',
+        waste: '-28% Materiale Utilizzato',
+        size: '160 x 80 cm'
+      },
+      {
+        id: 3,
+        category: 'ambienti',
+        categoryLabel: 'Ambienti Multifunzionali',
+        title: 'Sistema Parete & Studio "Komorebi"',
+        wood: 'Rovere Naturale & Metallo Brunito',
+        img: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Soluzione d\'arredo integrata per trasformare una parete di soggiorno in postazione di lavoro attiva con librerie ad alta densità per faldoni e volumi d\'arte.',
+        tech: 'Modulazione Parametrica per Spazi Ristretti',
+        waste: '-40% Impronta di Carbonio',
+        size: 'Parete Intera Su Misura'
+      },
+      {
+        id: 4,
+        category: 'tavoli',
+        categoryLabel: 'Tavoli Masselli',
+        title: 'Tavolo Executive "Kagami"',
+        wood: 'Noce Scurissimo Zen',
+        img: 'https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Tavolo direzionale monumentale con venature specularmente contrapposte. L\'algoritmo ha selezionato e accoppiato le tavole per continuità di venatura naturale.',
+        tech: 'Taglio di Precisione a Controllo Numerico',
+        waste: '-22% Scarto Materia Prima',
+        size: '220 x 100 cm'
+      },
+      {
+        id: 5,
+        category: 'scrivanie',
+        categoryLabel: 'Scrivanie Smart',
+        title: 'Desk Organico "Ergo-Flow"',
+        wood: 'Frassino Sbiancato Koto',
+        img: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Scrivania dalle linee fluide senza spigoli vivi. Realizzata per ridurre l\'affaticamento dei polsi durante sessioni di lavoro prolungate.',
+        tech: 'Modellazione Bionica Algoritmica',
+        waste: '-30% Energia di Produzione',
+        size: '140 x 75 cm'
+      },
+      {
+        id: 6,
+        category: 'ambienti',
+        categoryLabel: 'Ambienti Multifunzionali',
+        title: 'Divisorio Frangisole "Zenith"',
+        wood: 'Listellare di Rovere & Ottone',
+        img: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80',
+        desc: 'Parete divisoria aperta in listelli di legno per dividere la zona living dallo studio professionale. Garantisce la trasmissione della luce naturale.',
+        tech: 'Simulazione Rendering di Luce Diurna',
+        waste: 'Zero Plastica / 100% Naturale',
+        size: 'Altezza Soffitto Su Misura'
+      }
+    ];
+
+    let currentFiltered = [...products];
+    let currentIndex = 0;
+
+    window.onload = () => {
+      renderGrid(products);
+      initAvatarSpeechSystem();
+    };
+
+    function renderGrid(items) {
+      const grid = document.getElementById('gallery-grid');
+      grid.innerHTML = '';
+      items.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = "group bg-brandCard border border-brandBorder rounded-3xl overflow-hidden shadow-lg hover:border-amber-500/50 transition duration-300 flex flex-col cursor-pointer";
+        card.onclick = () => openLightbox(index);
+        card.innerHTML = `
+          <div class="relative aspect-[4/3] overflow-hidden bg-black">
+            <img src="${item.img}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500 opacity-90 group-hover:opacity-100">
+            <span class="absolute top-3 left-3 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider bg-black/70 backdrop-blur text-amber-400 border border-amber-500/30 rounded-lg">
+              ${item.categoryLabel}
+            </span>
+          </div>
+          <div class="p-5 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="text-xs text-slate-400 mb-1"><i class="fa-solid fa-tree mr-1 text-amber-500"></i> ${item.wood}</div>
+              <h3 class="text-base font-bold text-white group-hover:text-amber-400 transition mb-1">${item.title}</h3>
+              <p class="text-slate-400 text-xs line-clamp-2">${item.desc}</p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-brandBorder/60 flex items-center justify-between text-xs font-semibold text-amber-400">
+              <span>Scheda IA</span>
+              <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition"></i>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function filterCategory(cat) {
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.className = "filter-btn px-4 py-2 rounded-xl font-semibold text-slate-400 hover:text-white transition";
+      });
+      const activeBtn = document.getElementById(`btn-${cat}`);
+      if (activeBtn) activeBtn.className = "filter-btn px-4 py-2 rounded-xl font-semibold transition bg-amber-500 text-slate-950 shadow";
+
+      currentFiltered = cat === 'all' ? [...products] : products.filter(p => p.category === cat);
+      renderGrid(currentFiltered);
+    }
+
+    function openLightbox(index) {
+      currentIndex = index;
+      updateModalContent();
+      document.getElementById('lightbox').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      document.getElementById('lightbox').classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    }
+
+    function nextSlide() {
+      currentIndex = (currentIndex + 1) % currentFiltered.length;
+      updateModalContent();
+    }
+
+    function prevSlide() {
+      currentIndex = (currentIndex - 1 + currentFiltered.length) % currentFiltered.length;
+      updateModalContent();
+    }
+
+    function updateModalContent() {
+      const item = currentFiltered[currentIndex];
+      const imgEl = document.getElementById('modal-img');
+      imgEl.style.opacity = '0.3';
+      setTimeout(() => {
+        imgEl.src = item.img;
+        imgEl.style.opacity = '1';
+      }, 120);
+
+      document.getElementById('modal-tag').innerText = item.categoryLabel;
+      document.getElementById('modal-wood').innerText = item.wood;
+      document.getElementById('modal-title').innerText = item.title;
+      document.getElementById('modal-desc').innerText = item.desc;
+      document.getElementById('modal-spec-tech').innerText = item.tech;
+      document.getElementById('modal-spec-waste').innerText = item.waste;
+      document.getElementById('modal-spec-size').innerText = item.size;
+      document.getElementById('modal-counter').innerText = `${currentIndex + 1} / ${currentFiltered.length}`;
+    }
+
+
+    /* ========================================================= */
+    /* 2. AVATAR INTERATTIVO (VOCALE + TOUR SITO + QUESTIONARIO) */
+    /* ========================================================= */
+
+    let drawerOpen = false;
+    let isSoundMuted = false;
+    let isListening = false;
+    let recognition = null;
+    let synth = window.speechSynthesis;
+
+    // Stato del flusso di dialogo
+    // Modes: 'initial', 'touring', 'questionnaire'
+    let currentMode = 'initial'; 
+    let tourStep = 0;
+    let questionnaireStep = 0;
+
+    let leadData = {
+      name: '',
+      type: '',
+      size: '',
+      wood: '',
+      details: '',
+      contact: ''
+    };
+
+    // Fasi del Tour Interattivo
+    const tourSteps = [
+      {
+        targetId: 'filosofia',
+        speech: "Ecco la nostra Filosofia: uniamo l'IA per l'ottimizzazione dei tagli e delle strutture con la lavorazione manuale in puro legno massello.",
+        text: "📍 **1. La nostra Filosofia**: Uniamo l'algoritmo parametrico all'ebanisteria artigianale per azzerare gli sprechi ed esaltare il legno massello.",
+        replies: ["Prossima Sezione", "Compila Scheda Desideri", "Sfoglia da solo"]
+      },
+      {
+        targetId: 'simulatore',
+        speech: "Questo è il nostro Simulatore 3D Japandi: ti permette di configurare tavoli e postazioni controllando i corridoi di passaggio ergonomici in tempo reale.",
+        text: "📍 **2. Simulatore Studio 3D**: Configura arredi Japandi e verifica gli spazi reali con il calcolo automatico dei corridoi di passaggio (HUD >85cm).",
+        replies: ["Prossima Sezione", "Compila Scheda Desideri", "Sfoglia da solo"]
+      },
+      {
+        targetId: 'portfolio',
+        speech: "Qui trovi il Portfolio Prodotti: puoi filtrare tra tavoli masselli, scrivanie smart e pareti arredo multifunzionali.",
+        text: "📍 **3. Portfolio Prodotti**: Sfoglia le nostre collezioni esclusive per categoria ed essenza di legno.",
+        replies: ["Prossima Sezione", "Compila Scheda Desideri", "Sfoglia da solo"]
+      },
+      {
+        targetId: 'contatti',
+        speech: "Siamo arrivati al modulo di contatto. Ora che conosci il nostro sito, vuoi che compiliamo insieme la tua scheda desideri?",
+        text: "📍 **4. Preventivo & Scheda Desideri**: Siamo pronti per progettare il tuo arredo su misura. Iniziamo?",
+        replies: ["Sì, compiliamo la Scheda", "Sfoglia da solo"]
+      }
+    ];
+
+    // Fasi del Questionario Desideri Cliente
+    const questionnaireSteps = [
+      {
+        field: 'name',
+        speech: "Piacere! Come ti chiami?",
+        text: "🪵 **Scheda Desideri Cliente**<br>Come posso chiamarti?",
+        replies: []
+      },
+      {
+        field: 'type',
+        speech: (name) => `Ottimo ${name}! Che tipo di arredo o mobile su misura stai cercando?`,
+        text: (name) => `Piacere di conoscerti, **${name}**!<br>Che tipo di arredo ti occorre?`,
+        replies: ["Tavolo Massello Japandi", "Postazione Scrivania Smart", "Parete Studio Multifunzionale"]
+      },
+      {
+        field: 'size',
+        speech: "Quali sono le dimensioni indicative del mobile o della stanza?",
+        text: "Quali sono le **misure di massima**? (Es. 180x90 cm o dimensione della parete)",
+        replies: ["180 x 90 cm", "200 x 100 cm", "Parete intera (3-4m)"]
+      },
+      {
+        field: 'wood',
+        speech: "Che essenza di legno preferisci tra Rovere, Noce o Frassino?",
+        text: "Quale **essenza di legno** preferisci per il tuo progetto?",
+        replies: ["Rovere Massello Nodato", "Noce Scurissimo Zen", "Frassino Sbiancato Koto"]
+      },
+      {
+        field: 'details',
+        speech: "Hai esigenze particolari relative a passacavi, corridoi di passaggio o carichi pesanti?",
+        text: "Hai esigenze specifiche su passacavi, corridoi di passaggio o accessori particolari?",
+        replies: ["Passacavi ed elettrificazione", "Spazi di passaggio stretti", "Nessuna esigenza particolare"]
+      },
+      {
+        field: 'contact',
+        speech: "Perfetto! Lasciami una tua email o un numero di telefono per inviarti l'anteprima 3D e il preventivo.",
+        text: "Infine, lasciaci un tuo **recapito (Email o Telefono)**:",
+        replies: []
+      }
+    ];
+
+    function toggleAvatarDrawer() {
+      drawerOpen = !drawerOpen;
+      const drawer = document.getElementById('avatar-drawer');
+      if (drawerOpen) {
+        drawer.classList.remove('translate-x-full');
+        if (currentMode === 'initial' && document.getElementById('drawer-chat-box').children.length === 0) {
+          startAvatarWelcome();
+        }
+      } else {
+        drawer.classList.add('translate-x-full');
+      }
+    }
+
+    function initAvatarSpeechSystem() {
+      // Inizializza Riconoscimento Vocale STT se supportato
+      if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'it-IT';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          document.getElementById('drawer-user-input').value = transcript;
+          processDrawerUserText(transcript);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+      }
+    }
+
+    function toggleSpeechRecognition() {
+      if (!recognition) {
+        alert("Il riconoscimento vocale non è supportato da questo browser. Puoi utilizzare la chat scritta!");
+        return;
+      }
+
+      if (isListening) {
+        recognition.stop();
+        setIsListening(false);
+      } else {
+        try {
+          recognition.start();
+          setIsListening(true);
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    }
+
+    function setIsListening(active) {
+      isListening = active;
+      const micBtn = document.getElementById('btn-mic');
+      if (active) {
+        micBtn.className = "w-9 h-9 rounded-xl bg-rose-500 text-white flex items-center justify-center transition shrink-0 animate-pulse";
+        setDrawerAvatarState('speaking');
+      } else {
+        micBtn.className = "w-9 h-9 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-amber-400 hover:border-amber-500 flex items-center justify-center transition shrink-0";
+        setDrawerAvatarState('idle');
+      }
+    }
+
+    function toggleSound() {
+      isSoundMuted = !isSoundMuted;
+      const icon = document.getElementById('sound-icon');
+      if (isSoundMuted) {
+        icon.className = "fa-solid fa-volume-xmark text-slate-500";
+        if (synth) synth.cancel();
+      } else {
+        icon.className = "fa-solid fa-volume-high text-amber-400";
+      }
+    }
+
+    function speakText(text) {
+      if (isSoundMuted || !('speechSynthesis' in window)) return;
+      synth.cancel();
+
+      // Pulisci eventuale markup HTML prima di parlare
+      const cleanText = text.replace(/<[^>]*>/g, '');
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'it-IT';
+      utterance.rate = 1.0;
+
+      utterance.onstart = () => setDrawerAvatarState('speaking');
+      utterance.onend = () => setDrawerAvatarState('idle');
+      utterance.onerror = () => setDrawerAvatarState('idle');
+
+      synth.speak(utterance);
+    }
+
+    function setDrawerAvatarState(state) {
+      const badge = document.getElementById('drawer-avatar-status');
+      const mouth = document.getElementById('drawer-avatar-mouth');
+      const wave = document.getElementById('drawer-audio-wave');
+
+      if (state === 'speaking') {
+        badge.innerText = "Sta Parlando";
+        badge.className = "px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 animate-pulse";
+        mouth.setAttribute('d', 'M88 108 Q100 125 112 108 Z');
+        wave.classList.remove('opacity-40');
+      } else if (state === 'thinking') {
+        badge.innerText = "Elaborazione";
+        badge.className = "px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-blue-500/20 text-blue-400 border border-blue-500/30";
+        mouth.setAttribute('d', 'M90 110 L110 110');
+        wave.classList.add('opacity-40');
+      } else {
+        badge.innerText = "In Ascolto";
+        badge.className = "px-2 py-0.5 rounded-full text-[9px] font-bold uppercase bg-amber-500/20 text-amber-400 border border-amber-500/30";
+        mouth.setAttribute('d', 'M88 110 Q100 115 112 110');
+        wave.classList.add('opacity-40');
+      }
+    }
+
+    // Domanda iniziale dell'Avatar
+    function startAvatarWelcome() {
+      currentMode = 'initial';
+      const welcomeText = "Ciao! Sono **Arno**, il maestro ebanista virtuale di Wood & Algorithm.<br><br>**Conosci già il nostro sito?**";
+      const welcomeSpeech = "Ciao! Sono Arno, il maestro ebanista virtuale di Wood e Algorithm. Conosci già il nostro sito?";
+      
+      appendDrawerBotMessage(welcomeText);
+      speakText(welcomeSpeech);
+      renderDrawerQuickOptions(["Sì, lo conosco già", "No, fammi una panoramica", "Voglio solo sfogliare il sito"]);
+    }
+
+    function handleDrawerUserSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('drawer-user-input');
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+      processDrawerUserText(text);
+    }
+
+    function processDrawerUserText(userText) {
+      appendDrawerUserMessage(userText);
+      document.getElementById('drawer-quick-options').innerHTML = '';
+
+      const lower = userText.toLowerCase();
+
+      // Risposte alla domanda iniziale
+      if (currentMode === 'initial') {
+        if (lower.includes('sì') || lower.includes('si') || lower.includes('conosco')) {
+          startQuestionnaireDirectly();
+        } else if (lower.includes('no') || lower.includes('panoramica') || lower.includes('mostra')) {
+          startSiteTour();
+        } else {
+          stopTourAndExplore();
+        }
+        return;
+      }
+
+      // Interruzioni o comandi globali
+      if (lower.includes('scheda') || lower.includes('compila') || lower.includes('desideri')) {
+        startQuestionnaireDirectly();
+        return;
+      }
+      if (lower.includes('sfoglia') || lower.includes('solo') || lower.includes('stop')) {
+        stopTourAndExplore();
+        return;
+      }
+
+      // Gestione Tour
+      if (currentMode === 'touring') {
+        if (lower.includes('prossima') || lower.includes('avanti') || lower.includes('continua')) {
+          tourStep++;
+          executeTourStep();
+        } else {
+          startQuestionnaireDirectly();
+        }
+        return;
+      }
+
+      // Gestione Questionario Desideri
+      if (currentMode === 'questionnaire') {
+        const currentQStep = questionnaireSteps[questionnaireStep];
+        
+        // Salva dato
+        if (currentQStep) {
+          leadData[currentQStep.field] = userText;
+        }
+
+        questionnaireStep++;
+
+        if (questionnaireStep < questionnaireSteps.length) {
+          executeQuestionnaireStep();
+        } else {
+          finishQuestionnaire();
+        }
+      }
+    }
+
+    /* TOUR DEL SITO */
+    function startSiteTour() {
+      currentMode = 'touring';
+      tourStep = 0;
+      if (!drawerOpen) toggleAvatarDrawer();
+      executeTourStep();
+    }
+
+    function executeTourStep() {
+      if (tourStep >= tourSteps.length) {
+        startQuestionnaireDirectly();
+        return;
+      }
+
+      const step = tourSteps[tourStep];
+      
+      // Highlight & Scroll to section
+      document.querySelectorAll('section').forEach(s => s.classList.remove('highlight-tour'));
+      const targetSec = document.getElementById(step.targetId);
+      if (targetSec) {
+        targetSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetSec.classList.add('highlight-tour');
+      }
+
+      appendDrawerBotMessage(step.text);
+      speakText(step.speech);
+      renderDrawerQuickOptions(step.replies);
+    }
+
+    /* QUESTIONARIO DESIDERI */
+    function startQuestionnaireDirectly() {
+      currentMode = 'questionnaire';
+      questionnaireStep = 0;
+      if (!drawerOpen) toggleAvatarDrawer();
+
+      // Rimuovi highlight tour
+      document.querySelectorAll('section').forEach(s => s.classList.remove('highlight-tour'));
+
+      // Scroll al form contatti
+      const contattiSec = document.getElementById('contatti');
+      if (contattiSec) contattiSec.scrollIntoView({ behavior: 'smooth' });
+
+      appendDrawerBotMessage("Perfetto! Creiamo subito la tua **Scheda Desideri Su Misura**.");
+      setTimeout(() => {
+        executeQuestionnaireStep();
+      }, 600);
+    }
+
+    function executeQuestionnaireStep() {
+      const qStep = questionnaireSteps[questionnaireStep];
+      if (!qStep) return;
+
+      const promptText = typeof qStep.text === 'function' ? qStep.text(leadData.name) : qStep.text;
+      const promptSpeech = typeof qStep.speech === 'function' ? qStep.speech(leadData.name) : qStep.speech;
+
+      appendDrawerBotMessage(promptText);
+      speakText(promptSpeech);
+      renderDrawerQuickOptions(qStep.replies);
+    }
+
+    function finishQuestionnaire() {
+      // Popola il form reale della landing page
+      document.getElementById('form-name').value = leadData.name || '';
+      document.getElementById('form-contact').value = leadData.contact || '';
+      document.getElementById('form-details').value = `Misure: ${leadData.size || '-'}\nPreferenza: ${leadData.wood || '-'}\nDettagli: ${leadData.details || '-'}`;
+
+      const summaryText = `🎉 **Scheda Desideri Completata!**<br><br>` +
+        `• **Nome**: ${leadData.name}<br>` +
+        `• **Arredo**: ${leadData.type}<br>` +
+        `• **Misure**: ${leadData.size}<br>` +
+        `• **Essenza**: ${leadData.wood}<br>` +
+        `• **Contatto**: ${leadData.contact}<br><br>` +
+        `Ho già popolato il modulo di contatto in fondo alla pagina per te! Clicca su **Invia Richiesta** sul form per trasmettere tutto al laboratorio.`;
+
+      appendDrawerBotMessage(summaryText);
+      speakText(`Grazie ${leadData.name}! Ho raccolto tutti i desideri per il tuo progetto e popolato il modulo contatti. Ti risponderemo con una proposta 3D!`);
+      renderDrawerQuickOptions(["Sfoglia di nuovo il sito"]);
+    }
+
+    function stopTourAndExplore() {
+      document.querySelectorAll('section').forEach(s => s.classList.remove('highlight-tour'));
+      currentMode = 'idle';
+      appendDrawerBotMessage("Certamente! Puoi sfogliare il sito in totale autonomia. Io resto qui in basso a destra se hai bisogno di me.");
+      speakText("Perfetto, esplora pure il nostro sito! Sono a tua disposizione.");
+      renderDrawerQuickOptions(["Compila Scheda Desideri"]);
+    }
+
+    /* UI CHAT MESSAGES */
+    function appendDrawerBotMessage(htmlContent) {
+      const chatBox = document.getElementById('drawer-chat-box');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = "flex gap-2 items-start animate-fade-in";
+      msgDiv.innerHTML = `
+        <div class="w-6 h-6 rounded-full bg-amber-500/20 border border-amber-500 flex items-center justify-center text-amber-400 text-[10px] shrink-0 mt-0.5">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <div class="bg-brandPanel border border-brandBorder p-3 rounded-2xl rounded-tl-none text-slate-200 leading-relaxed shadow-sm flex-1">
+          ${htmlContent}
+        </div>
+      `;
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function appendDrawerUserMessage(textContent) {
+      const chatBox = document.getElementById('drawer-chat-box');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = "flex gap-2 items-start justify-end animate-fade-in";
+      msgDiv.innerHTML = `
+        <div class="bg-amber-500 text-slate-950 font-semibold p-3 rounded-2xl rounded-tr-none leading-relaxed shadow-sm max-w-[85%]">
+          ${textContent}
+        </div>
+      `;
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function renderDrawerQuickOptions(options) {
+      const container = document.getElementById('drawer-quick-options');
+      container.innerHTML = '';
+      if (!options || options.length === 0) return;
+
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = "px-2.5 py-1.5 bg-black/50 hover:bg-amber-500 hover:text-slate-950 border border-brandBorder text-slate-300 text-xs rounded-xl transition text-left";
+        btn.innerText = opt;
+        btn.onclick = () => processDrawerUserText(opt);
+        container.appendChild(btn);
+      });
+    }
+  </script>
+</body>
+</html>

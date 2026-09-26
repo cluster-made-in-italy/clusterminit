@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulatore Stanza Studio — Inserimento Tavolo Rovere</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            roomBg: '#18191c',
+            roomPanel: '#22252a',
+            roomBorder: '#363a42',
+            oakColor: '#c89d66',
+            metalColor: '#1e1e24',
+            alertGreen: '#22c55e',
+            alertAmber: '#f59e0b',
+            alertRed: '#ef4444'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Three.js e OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #121315; color: #f3f4f6; overflow: hidden; }
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #1a1c20; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #3b3e47; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #c89d66; }
+  </style>
+</head>
+<body class="h-screen flex flex-col select-none">
+
+  <!-- Header -->
+  <header class="h-16 bg-roomPanel border-b border-roomBorder px-6 flex items-center justify-between shrink-0 z-30">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-xl bg-amber-600/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+        <i class="fa-solid fa-house-laptop text-lg"></i>
+      </div>
+      <div>
+        <h1 class="text-sm font-bold text-white flex items-center gap-2">
+          Simulatore Layout Stanza Studio
+          <span class="px-2 py-0.5 text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-full">Progetto Reale</span>
+        </h1>
+        <p class="text-xs text-slate-400">Verifica ingombri e passaggi del tavolo da pranzo/scrivania in rovere nodato</p>
+      </div>
+    </div>
+
+    <!-- Toggle Vista Stato Attuale / Nuovo Tavolo -->
+    <div class="flex items-center space-x-2 bg-black/40 p-1 rounded-xl border border-roomBorder">
+      <button onclick="setMode('photo')" id="mode-photo" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white transition">
+        <i class="fa-solid fa-camera mr-1.5"></i> Stato Attuale (Foto)
+      </button>
+      <button onclick="setMode('new_table')" id="mode-new" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 text-slate-950 font-bold shadow transition">
+        <i class="fa-solid fa-table-cells mr-1.5"></i> Nuovo Tavolo Rovere
+      </button>
+    </div>
+  </header>
+
+  <!-- Main View -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- Controls Sidebar -->
+    <aside class="w-80 lg:w-96 bg-roomPanel border-r border-roomBorder flex flex-col shrink-0 h-full overflow-y-auto custom-scrollbar z-20">
+      
+      <!-- Sezione Dimensioni Tavolo -->
+      <div class="p-5 space-y-5">
+        <div class="border-b border-roomBorder pb-3">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-ruler-combined mr-2"></i> Dimensioni Tavolo Rovere
+          </h2>
+          <p class="text-[11px] text-slate-400 mt-1">Regola la grandezza per testare l'impatto visivo e lo spazio libero.</p>
+        </div>
+
+        <div class="space-y-4 bg-black/30 p-4 rounded-xl border border-roomBorder">
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Lunghezza Piano (L):</span>
+              <span id="lbl-length" class="font-mono font-bold text-amber-400">200 cm</span>
+            </div>
+            <input type="range" id="input-length" min="140" max="240" step="5" value="200" oninput="updateScene()" class="w-full accent-amber-500 bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Larghezza Piano (P):</span>
+              <span id="lbl-width" class="font-mono font-bold text-amber-400">90 cm</span>
+            </div>
+            <input type="range" id="input-width" min="75" max="110" step="5" value="90" oninput="updateScene()" class="w-full accent-amber-500 bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Altezza Tavolo (H):</span>
+              <span id="lbl-height" class="font-mono font-bold text-amber-400">75 cm</span>
+            </div>
+            <input type="range" id="input-height" min="72" max="78" step="1" value="75" oninput="updateScene()" class="w-full accent-amber-500 bg-slate-700 h-1.5 rounded-lg">
+          </div>
+        </div>
+
+        <!-- Posizionamento nella Stanza -->
+        <div class="border-b border-roomBorder pb-3 pt-2">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-arrows-up-down-left-right mr-2"></i> Posizione & Orientamento
+          </h2>
+          <p class="text-[11px] text-slate-400 mt-1">Sposta il tavolo per trovare il centro perfetto nella stanza.</p>
+        </div>
+
+        <div class="space-y-4 bg-black/30 p-4 rounded-xl border border-roomBorder">
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Spostamento Laterale (X):</span>
+              <span id="lbl-posx" class="font-mono font-bold text-amber-400">0 cm</span>
+            </div>
+            <input type="range" id="input-posx" min="-60" max="60" step="5" value="0" oninput="updateScene()" class="w-full accent-amber-500 bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Spostamento Profondità (Z):</span>
+              <span id="lbl-posz" class="font-mono font-bold text-amber-400">0 cm</span>
+            </div>
+            <input type="range" id="input-posz" min="-60" max="60" step="5" value="0" oninput="updateScene()" class="w-full accent-amber-500 bg-slate-700 h-1.5 rounded-lg">
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs mb-1">
+              <span class="text-slate-300">Rotazione Tavolo:</span>
+              <span id="lbl-rot" class="font-mono font-bold text-amber-400">Parallelamente al Fondo (0°)</span>
+            </div>
+            <select id="select-rot" onchange="updateScene()" class="w-full bg-zinc-900 border border-roomBorder text-xs text-white rounded-lg p-2">
+              <option value="0" selected>Orizzontale (Come la scrivania attuale)</option>
+              <option value="90">Verticale (Perpendicolare alla finestra)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Stile Legno e Gambe -->
+        <div class="border-b border-roomBorder pb-3 pt-2">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center">
+            <i class="fa-solid fa-cubes mr-2"></i> Design & Dettagli
+          </h2>
+        </div>
+
+        <div class="space-y-3 bg-black/30 p-4 rounded-xl border border-roomBorder">
+          <div>
+            <span class="text-xs text-slate-300 block mb-1.5">Tonalità Rovere Massello:</span>
+            <div class="grid grid-cols-3 gap-1.5 text-xs">
+              <button onclick="setOakFinish('natural')" id="oak-natural" class="oak-btn p-1.5 rounded-lg border border-amber-500 bg-amber-950/40 text-amber-300 font-bold text-center">Naturale</button>
+              <button onclick="setOakFinish('bleached')" id="oak-bleached" class="oak-btn p-1.5 rounded-lg border border-roomBorder bg-zinc-900 text-slate-400 text-center">Sbiancato</button>
+              <button onclick="setOakFinish('smoked')" id="oak-smoked" class="oak-btn p-1.5 rounded-lg border border-roomBorder bg-zinc-900 text-slate-400 text-center">Affumicato</button>
+            </div>
+          </div>
+
+          <div>
+            <span class="text-xs text-slate-300 block mb-1.5">Geometria Gambe Metallo:</span>
+            <select id="select-legs" onchange="updateScene()" class="w-full bg-zinc-900 border border-roomBorder text-xs text-white rounded-lg p-2">
+              <option value="trapezoid">Trapezio Inclinato Japandi</option>
+              <option value="uframe">Telaio U-Frame Minimal</option>
+              <option value="spider">Stella Incrociata (Spider)</option>
+              <option value="splay">4 Gambe Angolate Coniche</option>
+            </select>
+          </div>
+
+          <label class="flex items-center space-x-2 text-xs text-slate-200 cursor-pointer pt-2">
+            <input type="checkbox" id="chk-redchair" checked onchange="updateScene()" class="rounded accent-amber-500">
+            <span>Mantieni la Sedia Rossa della Foto</span>
+          </label>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- 3D Canvas Viewport -->
+    <main class="flex-1 relative bg-zinc-950 flex flex-col h-full overflow-hidden">
+      
+      <!-- Top Preset Buttons -->
+      <div class="absolute top-4 left-4 right-4 z-10 flex items-center justify-between pointer-events-none">
+        <div class="pointer-events-auto flex items-center space-x-1.5 bg-roomPanel/90 backdrop-blur border border-roomBorder p-1.5 rounded-xl shadow-2xl">
+          <button onclick="setCamera('photo')" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 text-slate-950 shadow">
+            <i class="fa-solid fa-camera mr-1"></i> Vista Foto Reale
+          </button>
+          <button onclick="setCamera('top')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">
+            <i class="fa-solid fa-map mr-1"></i> Mappa dall'Alto (2D)
+          </button>
+          <button onclick="setCamera('free')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">
+            <i class="fa-solid fa-cube mr-1"></i> 3D Libero
+          </button>
+        </div>
+
+        <div class="pointer-events-auto bg-roomPanel/90 backdrop-blur border border-roomBorder px-3.5 py-1.5 rounded-xl shadow-2xl flex items-center space-x-2 text-xs">
+          <i class="fa-solid fa-compass text-amber-400"></i>
+          <span class="text-slate-300">Larghezza Stanza: <strong class="text-white">~4.20 metri</strong></span>
+        </div>
+      </div>
+
+      <!-- Canvas -->
+      <div id="canvas-container" class="w-full h-full relative cursor-grab active:cursor-grabbing"></div>
+
+      <!-- Realtime Distance HUD (Verifica Ergonomia e Passaggi) -->
+      <div class="absolute bottom-4 left-4 right-4 z-10 pointer-events-none">
+        <div class="pointer-events-auto max-w-4xl mx-auto bg-roomPanel/95 backdrop-blur border border-roomBorder p-4 rounded-2xl shadow-2xl grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+          
+          <div class="flex items-center space-x-3 bg-black/40 p-2.5 rounded-xl border border-roomBorder">
+            <div id="status-left-icon" class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-arrow-left-long"></i>
+            </div>
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wide">Passaggio Libreria Sinistra</div>
+              <div id="hud-clearance-left" class="font-bold font-mono text-white text-sm">85 cm (Ottimale)</div>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-3 bg-black/40 p-2.5 rounded-xl border border-roomBorder">
+            <div id="status-right-icon" class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-arrow-right-long"></i>
+            </div>
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wide">Passaggio Libreria Destra</div>
+              <div id="hud-clearance-right" class="font-bold font-mono text-white text-sm">90 cm (Ottimale)</div>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-3 bg-black/40 p-2.5 rounded-xl border border-roomBorder">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-chair"></i>
+            </div>
+            <div>
+              <div class="text-[10px] text-slate-400 uppercase tracking-wide">Posti Tavolo Comodi</div>
+              <div id="hud-capacity" class="font-bold font-mono text-amber-300 text-sm">6-8 Persone</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    // Stato Simulazione
+    const roomState = {
+      mode: 'new_table', // 'photo' o 'new_table'
+      length: 200, // cm
+      width: 90,   // cm
+      height: 75,  // cm
+      posX: 0,     // cm offset dal centro
+      posZ: 0,     // cm offset dal centro
+      rotation: 0, // gradi (0 o 90)
+      oakFinish: 'natural',
+      legStyle: 'trapezoid',
+      showRedChair: true
+    };
+
+    // Dimensioni Stanza Reale (in cm)
+    const ROOM = {
+      width: 420,  // X (-210 a +210)
+      depth: 480,  // Z (-240 a +240)
+      height: 270,
+      leftBookcaseWidth: 80,
+      rightBookcaseWidth: 70
+    };
+
+    let scene, camera, renderer, controls;
+    let roomGroup, oldDeskGroup, newTableGroup, redChairMesh;
+    let oakMaterial, metalMaterial;
+
+    window.onload = function() {
+      init3D();
+      updateScene();
+      window.addEventListener('resize', onWindowResize);
+    };
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x121315);
+
+      camera = new THREE.PerspectiveCamera(42, w / h, 10, 3000);
+      
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.1;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2 - 0.01;
+
+      // Luci per rispecchiare l'ambiente indoor della foto
+      const ambientLight = new THREE.AmbientLight(0xfff8ee, 0.75);
+      scene.add(ambientLight);
+
+      // Luce soffitto / finestra sul fondo
+      const windowLight = new THREE.DirectionalLight(0xfff2e0, 1.2);
+      windowLight.position.set(0, 220, -200);
+      windowLight.castShadow = true;
+      windowLight.shadow.mapSize.width = 2048;
+      windowLight.shadow.mapSize.height = 2048;
+      scene.add(windowLight);
+
+      const roomSpot = new THREE.PointLight(0xffedd5, 0.8, 800);
+      roomSpot.position.set(0, 240, 50);
+      scene.add(roomSpot);
+
+      roomGroup = new THREE.Group();
+      oldDeskGroup = new THREE.Group();
+      newTableGroup = new THREE.Group();
+
+      scene.add(roomGroup);
+      scene.add(oldDeskGroup);
+      scene.add(newTableGroup);
+
+      // Materiali base
+      metalMaterial = new THREE.MeshStandardMaterial({ color: 0x1a1a1e, roughness: 0.8, metalness: 0.2 });
+
+      buildRoomShell();
+      buildOldDeskSetup();
+      setCamera('photo');
+
+      animate();
+    }
+
+    // Costruzione fedele dell'ambiente dalla foto
+    function buildRoomShell() {
+      // Pavimento piastrellato beige/grigio della foto
+      const floorGeo = new THREE.PlaneGeometry(ROOM.width, ROOM.depth);
+      const canvasF = document.createElement('canvas');
+      canvasF.width = 512; canvasF.height = 512;
+      const ctxF = canvasF.getContext('2d');
+      ctxF.fillStyle = '#d3ccc0';
+      ctxF.fillRect(0, 0, 512, 512);
+      ctxF.strokeStyle = '#b5aba0';
+      ctxF.lineWidth = 3;
+      for (let i = 0; i < 512; i += 64) {
+        ctxF.strokeRect(i, 0, 64, 512);
+        ctxF.strokeRect(0, i, 512, 64);
+      }
+      const floorTex = new THREE.CanvasTexture(canvasF);
+      floorTex.wrapS = THREE.RepeatWrapping;
+      floorTex.wrapT = THREE.RepeatWrapping;
+      floorTex.repeat.set(6, 7);
+
+      const floorMat = new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.6 });
+      const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+      floorMesh.rotation.x = -Math.PI / 2;
+      floorMesh.receiveShadow = true;
+      roomGroup.add(floorMesh);
+
+      // Parete di fondo beige chiaro
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0xede8df, roughness: 0.9 });
+      const backWall = new THREE.Mesh(new THREE.PlaneGeometry(ROOM.width, ROOM.height), wallMat);
+      backWall.position.set(0, ROOM.height / 2, -ROOM.depth / 2);
+      backWall.receiveShadow = true;
+      roomGroup.add(backWall);
+
+      // Finestra sul fondo (dalla foto)
+      const windowFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(140, 80, 8),
+        new THREE.MeshStandardMaterial({ color: 0xffffff })
+      );
+      windowFrame.position.set(40, 190, -ROOM.depth / 2 + 4);
+      roomGroup.add(windowFrame);
+
+      // Radiatore sotto la finestra
+      const radiator = new THREE.Mesh(
+        new THREE.BoxGeometry(110, 50, 15),
+        new THREE.MeshStandardMaterial({ color: 0xe2e0dc })
+      );
+      radiator.position.set(40, 45, -ROOM.depth / 2 + 10);
+      roomGroup.add(radiator);
+
+      // Mensola sopra il radiatore
+      const radShelf = new THREE.Mesh(
+        new THREE.BoxGeometry(130, 6, 20),
+        new THREE.MeshStandardMaterial({ color: 0x8a5a36 })
+      );
+      radShelf.position.set(40, 80, -ROOM.depth / 2 + 12);
+      roomGroup.add(radShelf);
+
+      // Quadro / Diploma sulla parete di fondo a sinistra della finestra
+      const diploma = new THREE.Mesh(
+        new THREE.BoxGeometry(70, 50, 4),
+        new THREE.MeshStandardMaterial({ color: 0xb38b4d })
+      );
+      diploma.position.set(-90, 195, -ROOM.depth / 2 + 3);
+      roomGroup.add(diploma);
+
+      // LIBRERIA SINISTRA (Dalla foto: scaffale legno con libri e CD)
+      const leftBookcase = new THREE.Group();
+      const shelfWoodMat = new THREE.MeshStandardMaterial({ color: 0xaa7d52 });
+      const body = new THREE.Mesh(new THREE.BoxGeometry(ROOM.leftBookcaseWidth, 180, 40), shelfWoodMat);
+      body.position.set(-ROOM.width / 2 + 40, 90, -40);
+      body.castShadow = true;
+      leftBookcase.add(body);
+
+      // Pila di CD e libri colorati sulla libreria sinistra
+      for (let i = 0; i < 25; i++) {
+        const book = new THREE.Mesh(
+          new THREE.BoxGeometry(15 + Math.random() * 10, 20 + Math.random() * 15, 20),
+          new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff })
+        );
+        book.position.set(-ROOM.width / 2 + 20 + Math.random() * 40, 185 + Math.random() * 20, -50 + Math.random() * 20);
+        leftBookcase.add(book);
+      }
+      roomGroup.add(leftBookcase);
+
+      // LIBRERIA DESTRA (Dalla foto: mensole e scaffale a muro pieno di fascicoli/libri)
+      const rightBookcase = new THREE.Group();
+      const rightBody = new THREE.Mesh(new THREE.BoxGeometry(ROOM.rightBookcaseWidth, 210, 35), shelfWoodMat);
+      rightBody.position.set(ROOM.width / 2 - 35, 105, -30);
+      rightBody.castShadow = true;
+      rightBookcase.add(rightBody);
+
+      // Libri impilati a destra
+      for (let i = 0; i < 30; i++) {
+        const book = new THREE.Mesh(
+          new THREE.BoxGeometry(20, 15 + Math.random() * 20, 18),
+          new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff })
+        );
+        book.position.set(ROOM.width / 2 - 45 + Math.random() * 20, 30 + Math.random() * 160, -35 + Math.random() * 15);
+        rightBookcase.add(book);
+      }
+      roomGroup.add(rightBookcase);
+
+      // SEDIA ROSSA ICONICA DELLA FOTO (Posizionata in primo piano a sinistra)
+      buildRedChair();
+    }
+
+    // Sedia Rossa d'ufficio/design vista in primo piano nella foto
+    function buildRedChair() {
+      redChairMesh = new THREE.Group();
+      const redMat = new THREE.MeshStandardMaterial({ color: 0xd91e28, roughness: 0.5 });
+      const chromeMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.2 });
+
+      // Seduta imbottita
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(50, 12, 50), redMat);
+      seat.position.y = 48;
+      seat.castShadow = true;
+      redChairMesh.add(seat);
+
+      // Schienale alto e avvolgente
+      const back = new THREE.Mesh(new THREE.BoxGeometry(50, 60, 10), redMat);
+      back.position.set(0, 80, -22);
+      back.castShadow = true;
+      redChairMesh.add(back);
+
+      // Bracciolo sinistro
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(8, 25, 35), redMat);
+      arm.position.set(-23, 62, -5);
+      redChairMesh.add(arm);
+
+      // Piantana con ruote
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(4, 4, 30), chromeMat);
+      stem.position.y = 25;
+      redChairMesh.add(stem);
+
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(28, 28, 5, 5), chromeMat);
+      base.position.y = 10;
+      redChairMesh.add(base);
+
+      // Posizionata esattamente come nella foto
+      redChairMesh.position.set(-75, 0, 80);
+      redChairMesh.rotation.y = 0.5;
+      roomGroup.add(redChairMesh);
+    }
+
+    // Configurazione della Scrivania Attuale (Foto Reale)
+    function buildOldDeskSetup() {
+      const deskWoodMat = new THREE.MeshStandardMaterial({ color: 0x9e6a38 });
+
+      // Scrivania doppia in legno massiccio scuro
+      const deskTop = new THREE.Mesh(new THREE.BoxGeometry(190, 8, 90), deskWoodMat);
+      deskTop.position.set(10, 71, -20);
+      deskTop.castShadow = true;
+      oldDeskGroup.add(deskTop);
+
+      // Mobiletti sottostanti
+      const cab1 = new THREE.Mesh(new THREE.BoxGeometry(40, 65, 80), deskWoodMat);
+      cab1.position.set(-60, 33, -20);
+      oldDeskGroup.add(cab1);
+
+      const cab2 = new THREE.Mesh(new THREE.BoxGeometry(40, 65, 80), deskWoodMat);
+      cab2.position.set(80, 33, -20);
+      oldDeskGroup.add(cab2);
+
+      // 2 Laptop neri aperti sopra la scrivania
+      [ -20, 35 ].forEach(xOffset => {
+        const laptopBase = new THREE.Mesh(
+          new THREE.BoxGeometry(32, 2, 22),
+          new THREE.MeshStandardMaterial({ color: 0x1f2022 })
+        );
+        laptopBase.position.set(xOffset, 76, -15);
+        oldDeskGroup.add(laptopBase);
+
+        const laptopScreen = new THREE.Mesh(
+          new THREE.BoxGeometry(32, 20, 2),
+          new THREE.MeshStandardMaterial({ color: 0x0a0a0b })
+        );
+        laptopScreen.position.set(xOffset, 86, -25);
+        laptopScreen.rotation.x = -0.2;
+        oldDeskGroup.add(laptopScreen);
+      });
+
+      // Sedia dirigenziale in pelle marrone dietro la scrivania
+      const leatherMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.7 });
+      const chairBack = new THREE.Mesh(new THREE.BoxGeometry(50, 70, 10), leatherMat);
+      chairBack.position.set(-15, 80, -85);
+      oldDeskGroup.add(chairBack);
+    }
+
+    // Generatore Texture Rovere Nodato Procedurale
+    function createOakTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512; canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+
+      const palette = {
+        natural:  { base: '#c89d66', grain: '#8a5d30' },
+        bleached: { base: '#dfceb5', grain: '#ab9578' },
+        smoked:   { base: '#5e4533', grain: '#38281c' }
+      }[roomState.oakFinish];
+
+      ctx.fillStyle = palette.base;
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Venature del legno
+      ctx.strokeStyle = palette.grain;
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.3;
+      for (let i = 0; i < 100; i++) {
+        ctx.beginPath();
+        let y = (i / 100) * 512;
+        ctx.moveTo(0, y);
+        for (let x = 0; x <= 512; x += 30) {
+          let wave = Math.sin(x * 0.02 + i) * 6;
+          ctx.lineTo(x, y + wave);
+        }
+        ctx.stroke();
+      }
+
+      // Nodi caratteristici
+      ctx.globalAlpha = 0.85;
+      [{ x: 120, y: 150, r: 18 }, { x: 380, y: 320, r: 22 }].forEach(k => {
+        ctx.fillStyle = '#221a14';
+        ctx.beginPath();
+        ctx.arc(k.x, k.y, k.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.wrapS = THREE.RepeatWrapping;
+      tex.wrapT = THREE.RepeatWrapping;
+      return tex;
+    }
+
+    // Aggiornamento della Scena e Calcolo Distanze
+    function updateScene() {
+      // Lettura valori input UI
+      roomState.length = parseFloat(document.getElementById('input-length').value);
+      roomState.width = parseFloat(document.getElementById('input-width').value);
+      roomState.height = parseFloat(document.getElementById('input-height').value);
+      roomState.posX = parseFloat(document.getElementById('input-posx').value);
+      roomState.posZ = parseFloat(document.getElementById('input-posz').value);
+      roomState.rotation = parseFloat(document.getElementById('select-rot').value);
+      roomState.legStyle = document.getElementById('select-legs').value;
+      roomState.showRedChair = document.getElementById('chk-redchair').checked;
+
+      // Aggiornamento etichette
+      document.getElementById('lbl-length').innerText = `${roomState.length} cm`;
+      document.getElementById('lbl-width').innerText = `${roomState.width} cm`;
+      document.getElementById('lbl-height').innerText = `${roomState.height} cm`;
+      document.getElementById('lbl-posx').innerText = `${roomState.posX > 0 ? '+' : ''}${roomState.posX} cm`;
+      document.getElementById('lbl-posz').innerText = `${roomState.posZ > 0 ? '+' : ''}${roomState.posZ} cm`;
+      document.getElementById('lbl-rot').innerText = roomState.rotation === 0 ? 'Orizzontale (0°)' : 'Verticale (90°)';
+
+      // Visibilità Sedia Rossa
+      if (redChairMesh) redChairMesh.visible = roomState.showRedChair;
+
+      // Toggle Modalità
+      if (roomState.mode === 'photo') {
+        oldDeskGroup.visible = true;
+        newTableGroup.visible = false;
+      } else {
+        oldDeskGroup.visible = false;
+        newTableGroup.visible = true;
+
+        // Ricostruzione Tavolo Rovere
+        while (newTableGroup.children.length > 0) {
+          const child = newTableGroup.children[0];
+          newTableGroup.remove(child);
+          if (child.geometry) child.geometry.dispose();
+        }
+
+        const L = roomState.length;
+        const W = roomState.width;
+        const H = roomState.height;
+        const T = 4; // 4 cm spessore piano
+
+        oakMaterial = new THREE.MeshStandardMaterial({ map: createOakTexture(), roughness: 0.5 });
+
+        // Piano in Legno Massello
+        const topMesh = new THREE.Mesh(new THREE.BoxGeometry(L, T, W), oakMaterial);
+        topMesh.position.set(0, H - T / 2, 0);
+        topMesh.castShadow = true;
+        newTableGroup.add(topMesh);
+
+        // Gambe Metallo Nero
+        const legH = H - T;
+        const legGroup = new THREE.Group();
+
+        if (roomState.legStyle === 'trapezoid') {
+          [-L * 0.3, L * 0.3].forEach(xP => {
+            const leg = new THREE.Mesh(new THREE.BoxGeometry(6, legH, W * 0.75), metalMaterial);
+            leg.position.set(xP, legH / 2, 0);
+            leg.castShadow = true;
+            legGroup.add(leg);
+          });
+        } else if (roomState.legStyle === 'uframe') {
+          [-L * 0.35, L * 0.35].forEach(xP => {
+            const leg = new THREE.Mesh(new THREE.BoxGeometry(6, legH, W * 0.85), metalMaterial);
+            leg.position.set(xP, legH / 2, 0);
+            leg.castShadow = true;
+            legGroup.add(leg);
+          });
+        } else { // Spider / Splay
+          const spiderLeg = new THREE.Mesh(new THREE.BoxGeometry(8, legH * 1.05, 8), metalMaterial);
+          for (let i = 0; i < 4; i++) {
+            const l = spiderLeg.clone();
+            l.position.set(0, legH / 2, 0);
+            l.rotation.z = (i % 2 === 0 ? 1 : -1) * 0.45;
+            l.rotation.y = (i < 2 ? 1 : -1) * 0.5;
+            legGroup.add(l);
+          }
+        }
+
+        newTableGroup.add(legGroup);
+
+        // Posizionamento e Rotazione complessiva del tavolo
+        newTableGroup.position.set(roomState.posX, 0, roomState.posZ - 20);
+        newTableGroup.rotation.y = (roomState.rotation * Math.PI) / 180;
+      }
+
+      // CALCOLO ERGONOMIA E PASSAGGI LIBERI NELLA STANZA
+      calculateClearance();
+    }
+
+    // Calcolo preciso dello spazio rimanente ai lati del tavolo
+    function calculateClearance() {
+      const isVert = roomState.rotation === 90;
+      const effectiveWidth = isVert ? roomState.length : roomState.width;
+      const effectiveLength = isVert ? roomState.width : roomState.length;
+
+      // Limiti delle librerie a sinistra e destra
+      const leftObstacleX = -ROOM.width / 2 + ROOM.leftBookcaseWidth; // -130 cm
+      const rightObstacleX = ROOM.width / 2 - ROOM.rightBookcaseWidth; // +140 cm
+
+      const tableLeftX = roomState.posX - effectiveWidth / 2;
+      const tableRightX = roomState.posX + effectiveWidth / 2;
+
+      const passageLeft = Math.round(tableLeftX - leftObstacleX);
+      const passageRight = Math.round(rightObstacleX - tableRightX);
+
+      // Aggiornamento UI HUD
+      updateClearanceHUD('left', passageLeft, 'hud-clearance-left', 'status-left-icon');
+      updateClearanceHUD('right', passageRight, 'hud-clearance-right', 'status-right-icon');
+
+      // Stima capienza posti
+      const seats = roomState.length < 160 ? '4-6 Persone' : (roomState.length <= 210 ? '6-8 Persone' : '8-10 Persone');
+      document.getElementById('hud-capacity').innerText = seats;
+    }
+
+    function updateClearanceHUD(side, dist, textId, iconId) {
+      const el = document.getElementById(textId);
+      const icon = document.getElementById(iconId);
+
+      if (dist < 60) {
+        el.innerText = `${dist} cm (Stretto!)`;
+        el.className = "font-bold font-mono text-red-400 text-sm";
+        icon.className = "w-8 h-8 rounded-lg bg-red-500/20 text-red-400 border border-red-500/40 flex items-center justify-center shrink-0";
+      } else if (dist < 80) {
+        el.innerText = `${dist} cm (Sufficiente)`;
+        el.className = "font-bold font-mono text-amber-300 text-sm";
+        icon.className = "w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center shrink-0";
+      } else {
+        el.innerText = `${dist} cm (Ottimale)`;
+        el.className = "font-bold font-mono text-emerald-400 text-sm";
+        icon.className = "w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shrink-0";
+      }
+    }
+
+    // Modalità Switcher
+    function setMode(m) {
+      roomState.mode = m;
+      document.getElementById('mode-photo').className = m === 'photo' ? 
+        'px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 text-slate-950 font-bold shadow transition' : 
+        'px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white transition';
+      document.getElementById('mode-new').className = m === 'new_table' ? 
+        'px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 text-slate-950 font-bold shadow transition' : 
+        'px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white transition';
+      updateScene();
+    }
+
+    function setOakFinish(f) {
+      roomState.oakFinish = f;
+      document.querySelectorAll('.oak-btn').forEach(b => {
+        b.className = 'oak-btn p-1.5 rounded-lg border border-roomBorder bg-zinc-900 text-slate-400 text-center';
+      });
+      document.getElementById(`oak-${f}`).className = 'oak-btn p-1.5 rounded-lg border border-amber-500 bg-amber-950/40 text-amber-300 font-bold text-center';
+      updateScene();
+    }
+
+    function setCamera(preset) {
+      if (preset === 'photo') {
+        // Angolazione e prospettiva corrispondente alla foto scattata dall'utente
+        camera.position.set(-30, 150, 230);
+        controls.target.set(0, 70, -20);
+      } else if (preset === 'top') {
+        // Mappa tecnica 2D dall'alto per verificare passaggi
+        camera.position.set(0, 420, 0);
+        controls.target.set(0, 0, 0);
+      } else if (preset === 'free') {
+        camera.position.set(220, 180, 220);
+        controls.target.set(0, 60, 0);
+      }
+      controls.update();
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+  </script>
+</body>
+</html>

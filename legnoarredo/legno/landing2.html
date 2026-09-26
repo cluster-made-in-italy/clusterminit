@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SenseAble Wood — Digital Twin & Design Hub</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            slateDark: '#0f172a',
+            slatePanel: '#1e293b',
+            slateBorder: '#334155',
+            woodAmber: '#d97706',
+            woodLight: '#f59e0b',
+            accentBlue: '#3b82f6',
+            accentEmerald: '#10b981',
+            accentPurple: '#8b5cf6'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slateDark text-slate-100">
+
+  <!-- Header Banner -->
+  <header class="bg-slatePanel/90 border-b border-slateBorder sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-woodAmber to-woodLight flex items-center justify-center shadow-lg shadow-woodAmber/20">
+          <i class="fa-solid fa-cube text-slateDark text-2xl font-black"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            SenseAble Wood 3D
+            <span class="px-2.5 py-0.5 text-xs font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-full">
+              Hub Progetti & Digital Twin
+            </span>
+          </h1>
+          <p class="text-xs text-slate-400">Piattaforma Integrata di Simulazione, Analisi FEA & Modelli Computazionali</p>
+        </div>
+      </div>
+
+      <!-- Quick Search Bar -->
+      <div class="relative w-64 md:w-80">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+        <input type="text" id="searchInput" onkeyup="filterCards()" placeholder="Cerca file o simulatore..." 
+               class="w-full bg-slateDark border border-slateBorder rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-woodAmber transition">
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="bg-gradient-to-b from-slatePanel/40 to-transparent border-b border-slateBorder/50 py-10 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div class="space-y-2">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          Panoramica Applicazioni & Documenti
+        </h2>
+        <p class="text-slate-400 text-sm max-w-2xl">
+          Accedi ai moduli di analisi statica, ai simulatori parametrici 3D, ai report di ricerca e agli ambienti virtuali Digital Twin.
+        </p>
+      </div>
+
+      <!-- Stats Pill -->
+      <div class="flex items-center space-x-4 bg-slatePanel p-3 rounded-2xl border border-slateBorder shadow-inner text-xs">
+        <div class="text-center px-3 border-r border-slateBorder">
+          <div class="font-bold text-amber-400 text-base">16</div>
+          <div class="text-slate-400">Risorse Totali</div>
+        </div>
+        <div class="text-center px-3 border-r border-slateBorder">
+          <div class="font-bold text-emerald-400 text-base">13</div>
+          <div class="text-slate-400">Simulatori 3D</div>
+        </div>
+        <div class="text-center px-3">
+          <div class="font-bold text-purple-400 text-base">3</div>
+          <div class="text-slate-400">Report & Paper</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Grid Content -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 space-y-12">
+
+    <!-- SEZIONE 1: DOCUMENTAZIONE TECNICA E PAPER -->
+    <section class="space-y-4">
+      <div class="flex items-center space-x-3 border-b border-slateBorder pb-3">
+        <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center">
+          <i class="fa-solid fa-file-pdf"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white">1. Documentazione Tecnica, Analisi & Paper</h3>
+          <p class="text-xs text-slate-400">Relazioni di calcolo, fondamenti matematici e processi computazionali IA</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- 13_Relazione_tecnica -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-purple-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">PDF • Relazione Tecnica</span>
+              <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-purple-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">13. Relazione Tecnica SenseAble Wood 3D</h4>
+            <ul class="text-xs text-slate-400 space-y-1 pl-4 list-disc">
+              <li>Relazione tecnica completa</li>
+              <li>Concetti matematici e modelli</li>
+              <li>Risultati della simulazione</li>
+            </ul>
+          </div>
+          <a href="13_Relazione_tecnica_SenseAble_Wood_3D PP_CS.pdf" target="_blank" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-purple-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-file-pdf"></i>
+            <span>Apri Relazione (PDF)</span>
+          </a>
+        </div>
+
+        <!-- 14_Demarco_et_al_paper -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-purple-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">PDF • Research Paper</span>
+              <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-purple-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">14. Paper Demarco et al.</h4>
+            <ul class="text-xs text-slate-400 space-y-1 pl-4 list-disc">
+              <li>Studi di settore avanzati</li>
+              <li>Chaotic Design</li>
+              <li>Processi computazionali</li>
+            </ul>
+          </div>
+          <a href="14_Demarco_et_al_paper (1).pdf" target="_blank" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-purple-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-file-pdf"></i>
+            <span>Apri Paper (PDF)</span>
+          </a>
+        </div>
+
+        <!-- 20_Procedura -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-purple-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">PDF • Linee Guida</span>
+              <i class="fa-solid fa-arrow-up-right-from-square text-slate-500 group-hover:text-purple-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">20. Procedura IA</h4>
+            <ul class="text-xs text-slate-400 space-y-1 pl-4 list-disc">
+              <li>Integrazione dell'Intelligenza Artificiale</li>
+              <li>Potenziamento delle capacità generative</li>
+              <li>Workflow procedurale</li>
+            </ul>
+          </div>
+          <a href="20_Procedura.pdf" target="_blank" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-purple-600 text-slate-300 hover:text-white rounded-xl text-xs font-semibold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-file-pdf"></i>
+            <span>Apri Procedura (PDF)</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEZIONE 2: SIMULATORI PARAMETRICI E TAVOLI -->
+    <section class="space-y-4">
+      <div class="flex items-center space-x-3 border-b border-slateBorder pb-3">
+        <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+          <i class="fa-solid fa-cubes-stacked"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white">2. Simulatori Parametrici Tavoli & Generazione AI</h3>
+          <p class="text-xs text-slate-400">Configurazione geometrica, analisi delle deformazioni e modelli concettuali</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- 12_tavolo_libreria_fem -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-amber-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Simulatore FEM</span>
+              <i class="fa-solid fa-play text-slate-500 group-hover:text-amber-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">12. Tavolo Libreria FEM</h4>
+            <p class="text-xs text-slate-400">Analisi statica avanzata con visualizzazione grafica delle sollecitazioni.</p>
+          </div>
+          <a href="12_tavolo_libreria_fem.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-amber-500 hover:text-slateDark text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-cube"></i>
+            <span>Avvia Simulatore</span>
+          </a>
+        </div>
+
+        <!-- 15_tavolo -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-amber-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • CAD Parametrico</span>
+              <i class="fa-solid fa-play text-slate-500 group-hover:text-amber-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">15. Tavolo Modificabile</h4>
+            <p class="text-xs text-slate-400">Modifica geometrica della forma del piano, regolazione inclinazione e struttura piedi.</p>
+          </div>
+          <a href="15_tavolo.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-amber-500 hover:text-slateDark text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-cube"></i>
+            <span>Avvia Simulatore</span>
+          </a>
+        </div>
+
+        <!-- 16_digital twin 2 -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-amber-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Digital Twin</span>
+              <i class="fa-solid fa-play text-slate-500 group-hover:text-amber-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">16. Digital Twin 2</h4>
+            <p class="text-xs text-slate-400">Analisi statiche avanzate della struttura e simulazione delle deformazioni meccaniche.</p>
+          </div>
+          <a href="16_digital twin 2.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-amber-500 hover:text-slateDark text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-cube"></i>
+            <span>Avvia Simulatore</span>
+          </a>
+        </div>
+
+        <!-- 17_tavolo giapponese -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-amber-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Generatore AI</span>
+              <i class="fa-solid fa-play text-slate-500 group-hover:text-amber-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">17. Tavolo Giapponese (Prompt)</h4>
+            <p class="text-xs text-slate-400">Generazione procedurale 3D di un tavolo a partire da istruzioni e prompt testuali.</p>
+          </div>
+          <a href="17_tavolo giapponese.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-amber-500 hover:text-slateDark text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>Apri Modello Prompt</span>
+          </a>
+        </div>
+
+        <!-- 18_tavolo giapponese 2 -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-amber-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • AR / Visione</span>
+              <i class="fa-solid fa-play text-slate-500 group-hover:text-amber-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">18. Tavolo Giapponese in Foto</h4>
+            <p class="text-xs text-slate-400">Inserimento e contestualizzazione del tavolo 3D all'interno di un ambiente acquisito da fotografia.</p>
+          </div>
+          <a href="18_tavolo giapponese 2.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-amber-500 hover:text-slateDark text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-camera"></i>
+            <span>Apri Modello Foto</span>
+          </a>
+        </div>
+
+        <!-- 19_tavolo giapponese 3 -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-amber-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Design Multifunzione</span>
+              <i class="fa-solid fa-play text-slate-500 group-hover:text-amber-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">19. Tavolo Multifunzionale</h4>
+            <p class="text-xs text-slate-400">Evoluzione del tavolo giapponese con configurazioni dinamiche e multifunzione.</p>
+          </div>
+          <a href="19_tavolo giapponese 3.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-amber-500 hover:text-slateDark text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-sliders"></i>
+            <span>Apri Modello</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEZIONE 3: DIGITAL TWIN & AMBIENTI 3D -->
+    <section class="space-y-4">
+      <div class="flex items-center space-x-3 border-b border-slateBorder pb-3">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+          <i class="fa-solid fa-house-laptop"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white">3. Digital Twin & Ambienti Virtuali 3D</h3>
+          <p class="text-xs text-slate-400">Ricostruzioni fotogrammetriche, modelli italiani ed esplorazione di ambienti domestici</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- 21_digital_twin_tavolo_italiano -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-emerald-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Foto → Twin</span>
+              <i class="fa-solid fa-up-right-from-square text-slate-500 group-hover:text-emerald-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">21. Digital Twin Tavolo Italiano</h4>
+            <p class="text-xs text-slate-400">Procedura di generazione del gemello digitale partendo direttamente da uno scatto fotografico.</p>
+          </div>
+          <a href="21_digital_twin_tavolo_italiano.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-emerald-600 hover:text-white text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-vr-cardboard"></i>
+            <span>Visualizza Digital Twin</span>
+          </a>
+        </div>
+
+        <!-- 22_digital twin tavolo italiano (2) -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-emerald-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Analisi Avanzata</span>
+              <i class="fa-solid fa-up-right-from-square text-slate-500 group-hover:text-emerald-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">22. Digital Twin Tavolo Italiano (2)</h4>
+            <p class="text-xs text-slate-400">Estensione delle capacità di analisi e modifica parametrica del gemello digitale.</p>
+          </div>
+          <a href="22_digital twin tavolo italiano (2).html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-emerald-600 hover:text-white text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Visualizza & Analizza</span>
+          </a>
+        </div>
+
+        <!-- 23_appartamento2 -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-emerald-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Intero Immobile</span>
+              <i class="fa-solid fa-up-right-from-square text-slate-500 group-hover:text-emerald-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">23. Digital Twin Appartamento</h4>
+            <p class="text-xs text-slate-400">Modello 3D globale e navigabile dell'intero appartamento.</p>
+          </div>
+          <a href="23_appartamento2.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-emerald-600 hover:text-white text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-building"></i>
+            <span>Esplora Appartamento</span>
+          </a>
+        </div>
+
+        <!-- 24_camera da letto -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-emerald-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Stanza 3D</span>
+              <i class="fa-solid fa-up-right-from-square text-slate-500 group-hover:text-emerald-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">24. Camera da Letto</h4>
+            <p class="text-xs text-slate-400">Ambiente 3D dedicato alla zona notte per la verifica degli ingombri.</p>
+          </div>
+          <a href="24_camera da letto.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-emerald-600 hover:text-white text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-bed"></i>
+            <span>Apri Stanza 3D</span>
+          </a>
+        </div>
+
+        <!-- 25_cucina3d_finale -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-emerald-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Stanza 3D</span>
+              <i class="fa-solid fa-up-right-from-square text-slate-500 group-hover:text-emerald-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">25. Cucina 3D Finale</h4>
+            <p class="text-xs text-slate-400">Ricostruzione virtuale completa dell'ambiente cucina.</p>
+          </div>
+          <a href="25_cucina3d_finale.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-emerald-600 hover:text-white text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-utensils"></i>
+            <span>Apri Cucina 3D</span>
+          </a>
+        </div>
+
+        <!-- 26_sala pranzo -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-emerald-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Stanza 3D</span>
+              <i class="fa-solid fa-up-right-from-square text-slate-500 group-hover:text-emerald-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">26. Sala da Pranzo</h4>
+            <p class="text-xs text-slate-400">Modello tridimensionale della zona pranzo e collocazione arredi.</p>
+          </div>
+          <a href="26_sala pranzo.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-emerald-600 hover:text-white text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-chair"></i>
+            <span>Apri Sala Pranzo</span>
+          </a>
+        </div>
+
+        <!-- 27_salotto -->
+        <div class="card-item bg-slatePanel border border-slateBorder rounded-2xl p-5 hover:border-emerald-500/50 transition duration-200 flex flex-col justify-between group">
+          <div class="space-y-3">
+            <div class="flex justify-between items-start">
+              <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-bold uppercase tracking-wider">HTML • Stanza 3D</span>
+              <i class="fa-solid fa-up-right-from-square text-slate-500 group-hover:text-emerald-400 transition"></i>
+            </div>
+            <h4 class="font-bold text-white text-base">27. Salotto</h4>
+            <p class="text-xs text-slate-400">Ambiente living 3D per l'analisi e la visualizzazione del layout.</p>
+          </div>
+          <a href="27_salotto.html" class="mt-5 w-full py-2.5 px-4 bg-slateDark hover:bg-emerald-600 hover:text-white text-slate-300 rounded-xl text-xs font-bold border border-slateBorder hover:border-transparent text-center transition flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-couch"></i>
+            <span>Apri Salotto 3D</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slatePanel/80 border-t border-slateBorder py-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <p>SenseAble Wood — Digital Twin & CAD/CAM FEA Platform</p>
+      <p class="text-slate-600">Istruzioni: salvare questo file come <code class="bg-slateDark px-1.5 py-0.5 rounded text-amber-400">index.html</code> nella cartella dei file.</p>
+    </div>
+  </footer>
+
+  <!-- Search Filter Logic -->
+  <script>
+    function filterCards() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const cards = document.querySelectorAll('.card-item');
+
+      cards.forEach(card => {
+        const text = card.innerText.toLowerCase();
+        if (text.includes(query)) {
+          card.style.display = "flex";
+        } else {
+          card.style.display = "none";
+        }
+      });
+    }
+  </script>
+</body>
+</html>

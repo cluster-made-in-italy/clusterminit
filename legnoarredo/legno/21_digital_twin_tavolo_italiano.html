@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital Twin — Tavolo da pranzo</title>
+<style>
+  :root{--panel:rgba(25,25,25,.88);--line:rgba(255,255,255,.14);--text:#f4f1eb;--muted:#b9b4aa}
+  *{box-sizing:border-box} html,body{margin:0;height:100%;overflow:hidden;font-family:Inter,Segoe UI,Arial,sans-serif;background:#e8e1d5}
+  #app{width:100%;height:100%;position:relative}
+  #viewport{position:absolute;inset:0}
+  #ui{position:absolute;top:18px;left:18px;width:315px;max-height:calc(100% - 36px);overflow:auto;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:18px;backdrop-filter:blur(12px);box-shadow:0 18px 50px rgba(0,0,0,.25)}
+  h1{font-size:19px;margin:0 0 5px;font-weight:650} .sub{font-size:12px;color:var(--muted);line-height:1.45;margin-bottom:16px}
+  .section{border-top:1px solid var(--line);padding-top:13px;margin-top:13px}
+  .section h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#d7d0c3;margin:0 0 10px}
+  label{display:flex;justify-content:space-between;align-items:center;font-size:12px;margin:10px 0 5px}
+  output{color:#e6c99a;font-variant-numeric:tabular-nums}
+  input[type=range]{width:100%;accent-color:#c59658}
+  input[type=color]{width:42px;height:26px;padding:0;border:0;background:none}
+  .row{display:flex;gap:8px}.row>*{flex:1}
+  button{border:1px solid var(--line);background:#34312d;color:var(--text);padding:9px 10px;border-radius:9px;cursor:pointer;font-size:12px}
+  button:hover{background:#47423c}.primary{background:#9b7040;border-color:#b58a56}.primary:hover{background:#b1814b}
+  .check{display:flex;align-items:center;gap:8px;font-size:12px;color:#ddd}.check input{accent-color:#c59658}
+  #hint{position:absolute;right:18px;bottom:18px;background:rgba(20,20,20,.72);color:#ddd;border:1px solid rgba(255,255,255,.12);padding:9px 12px;border-radius:10px;font-size:11px;backdrop-filter:blur(8px)}
+  #badge{position:absolute;right:18px;top:18px;background:rgba(255,255,255,.88);color:#3a3024;padding:8px 12px;border-radius:10px;font-size:11px;box-shadow:0 6px 20px rgba(0,0,0,.12)}
+  @media(max-width:700px){#ui{width:280px;left:10px;top:10px;max-height:70vh}#badge{display:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="viewport"></div>
+  <div id="badge">DIGITAL TWIN · TAVOLO DA PRANZO</div>
+  <aside id="ui">
+    <h1>Tavolo in legno e laminato</h1>
+    <div class="sub">Modello parametrico ispirato al tavolo della fotografia: struttura miele/ciliegio chiaro, piano panna e bordi lignei stondati.</div>
+
+    <div class="section">
+      <h2>Dimensioni</h2>
+      <label>Lunghezza <output id="lenOut"></output></label>
+      <input id="len" type="range" min="120" max="240" value="180" step="1">
+      <label>Larghezza <output id="widOut"></output></label>
+      <input id="wid" type="range" min="70" max="120" value="95" step="1">
+      <label>Altezza <output id="heiOut"></output></label>
+      <input id="hei" type="range" min="68" max="82" value="75" step="1">
+      <label>Spessore piano <output id="topOut"></output></label>
+      <input id="top" type="range" min="2" max="7" value="3.5" step=".5">
+    </div>
+
+    <div class="section">
+      <h2>Materiali</h2>
+      <label>Legno struttura <input id="woodColor" type="color" value="#b47b43"></label>
+      <label>Laminate piano <input id="lamColor" type="color" value="#eee5cf"></label>
+      <label>Bordo in legno <input id="edgeColor" type="color" value="#ad7540"></label>
+    </div>
+
+    <div class="section">
+      <h2>Dettagli</h2>
+      <label>Arrotondamento piano <output id="roundOut"></output></label>
+      <input id="round" type="range" min="2" max="14" value="8" step="1">
+      <label>Sezione gambe <output id="legOut"></output></label>
+      <input id="leg" type="range" min="6" max="14" value="9" step=".5">
+      <label class="check"><input id="wire" type="checkbox"> Mostra struttura/wireframe</label>
+      <label class="check"><input id="auto" type="checkbox" checked> Rotazione automatica</label>
+      <label class="check"><input id="floor" type="checkbox" checked> Piano pavimento</label>
+    </div>
+
+    <div class="section row">
+      <button class="primary" id="reset">Ripristina</button>
+      <button id="front">Vista frontale</button>
+      <button id="iso">Vista isometrica</button>
+    </div>
+  </aside>
+  <div id="hint">Trascina per orbitare · rotella per zoom · tasto destro per traslare</div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+const viewport=document.getElementById('viewport');
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0xe8e1d5);
+scene.fog=new THREE.Fog(0xe8e1d5, 420, 800);
+
+const camera=new THREE.PerspectiveCamera(42, innerWidth/innerHeight,.1,2000);
+camera.position.set(230,155,250);
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.05;
+viewport.appendChild(renderer.domElement);
+
+const controls=new OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true; controls.dampingFactor=.06;
+controls.target.set(0,55,0); controls.minDistance=130; controls.maxDistance=550;
+controls.maxPolarAngle=Math.PI*.49;
+
+scene.add(new THREE.HemisphereLight(0xfff5df,0x6b6256,2.0));
+const key=new THREE.DirectionalLight(0xffe2b7,3.2);
+key.position.set(-180,300,170); key.castShadow=true;
+key.shadow.mapSize.set(2048,2048);
+key.shadow.camera.left=-300;key.shadow.camera.right=300;key.shadow.camera.top=300;key.shadow.camera.bottom=-300;
+scene.add(key);
+const fill=new THREE.DirectionalLight(0xbdd7ff,1.0); fill.position.set(220,130,-180); scene.add(fill);
+
+const group=new THREE.Group(); scene.add(group);
+const floorMat=new THREE.MeshStandardMaterial({color:0xcdbda5,roughness:.92});
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(1000,1000),floorMat);
+floor.rotation.x=-Math.PI/2; floor.position.y=0; floor.receiveShadow=true; scene.add(floor);
+
+const params={len:180,wid:95,hei:75,top:3.5,round:8,leg:9,wood:'#b47b43',lam:'#eee5cf',edge:'#ad7540'};
+const table=new THREE.Group(); group.add(table);
+
+function mat(hex,rough=.62){return new THREE.MeshStandardMaterial({color:hex,roughness:rough,metalness:0});}
+function roundedBox(w,h,d,r,material,segments=5){
+  const shape=new THREE.Shape();
+  const x=w/2,y=d/2;
+  const rr=Math.min(r,x-.01,y-.01);
+  shape.moveTo(-x+rr,-y);shape.lineTo(x-rr,-y);shape.quadraticCurveTo(x,-y,x,-y+rr);
+  shape.lineTo(x,y-rr);shape.quadraticCurveTo(x,y,x-rr,y);
+  shape.lineTo(-x+rr,y);shape.quadraticCurveTo(-x,y,-x,y-rr);
+  shape.lineTo(-x,-y+rr);shape.quadraticCurveTo(-x,-y,-x+rr,-y);
+  const geo=new THREE.ExtrudeGeometry(shape,{depth:h,bevelEnabled:true,bevelSegments:segments,bevelSize:Math.min(r*.18,h*.25),bevelThickness:Math.min(r*.12,h*.2),curveSegments:8});
+  geo.rotateX(-Math.PI/2); geo.translate(0,h,0);
+  return new THREE.Mesh(geo,material);
+}
+function dispose(obj){while(obj.children.length){dispose(obj.children[0]);obj.remove(obj.children[0])} if(obj.geometry)obj.geometry.dispose(); if(obj.material){if(Array.isArray(obj.material))obj.material.forEach(m=>m.dispose());else obj.material.dispose();}}
+function build(){
+  while(table.children.length){dispose(table.children[0]);}
+  const L=params.len,W=params.wid,H=params.hei,T=params.top,R=params.round,G=params.leg;
+  const wood=mat(params.wood,.58), laminate=mat(params.lam,.46), edge=mat(params.edge,.58);
+  // apron under the top
+  const apronH=8, apronD=5.5, inset=10;
+  const aprons=[
+    [L-2*inset,apronH,apronD,0,H-T-apronH/2,-(W/2-inset/2)],
+    [L-2*inset,apronH,apronD,0,H-T-apronH/2,(W/2-inset/2)],
+    [apronD,apronH,W-2*inset, -(L/2-inset/2),H-T-apronH/2,0],
+    [apronD,apronH,W-2*inset, (L/2-inset/2),H-T-apronH/2,0]
+  ];
+  for(const [w,h,d,x,y,z] of aprons){
+    const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),wood);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;table.add(m);
+  }
+  // wood edge frame and cream inset panel
+  const edgeH=T+1.4, edgeW=6;
+  const frameParts=[
+    [L,edgeH,edgeW,0,H-edgeH/2,-(W-edgeW)/2],
+    [L,edgeH,edgeW,0,H-edgeH/2,(W-edgeW)/2],
+    [edgeW,edgeH,W-2*edgeW,-(L-edgeW)/2,H-edgeH/2,0],
+    [edgeW,edgeH,W-2*edgeW,(L-edgeW)/2,H-edgeH/2,0]
+  ];
+  for(const [w,h,d,x,y,z] of frameParts){
+    const m=roundedBox(w,h,d,Math.min(R,5),edge,4);m.position.set(x,y-edgeH/2, z);m.castShadow=m.receiveShadow=true;table.add(m);
+  }
+  const panel=roundedBox(L-2*edgeW,T-0.5,W-2*edgeW,Math.max(2,R-4),laminate,5);
+  panel.position.y=H-T-.05; panel.castShadow=panel.receiveShadow=true;table.add(panel);
+
+  // Four shaped tapered legs, slightly splayed
+  const legInsetX=15, legInsetZ=13, legH=H-T-apronH/2;
+  const legGeo=new THREE.CylinderGeometry(G*.70,G,legH,8);
+  [[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([sx,sz])=>{
+    const leg=new THREE.Mesh(legGeo,wood);
+    leg.position.set(sx*(L/2-legInsetX),legH/2,sz*(W/2-legInsetZ));
+    leg.rotation.z=-sx*.055; leg.rotation.x=sz*.035;
+    leg.castShadow=leg.receiveShadow=true;table.add(leg);
+    // foot block gives the characteristic shaped wooden termination
+    const foot=roundedBox(G*1.35,4,G*1.35,1.5,wood,3);
+    foot.position.set(sx*(L/2-legInsetX+sx*.9),2,sz*(W/2-legInsetZ+sz*.5));
+    foot.castShadow=foot.receiveShadow=true;table.add(foot);
+  });
+  // subtle wooden underside cross rails
+  const rail=mat(params.edge,.62);
+  for(const z of [-W*.24,W*.24]){
+    const r=new THREE.Mesh(new THREE.BoxGeometry(L*.72,3.2,2.8),rail);
+    r.position.set(0,H-T-10,z);r.castShadow=true;table.add(r);
+  }
+  if(document.getElementById('wire').checked){
+    table.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.wireframe=true;o.material.opacity=.38;o.material.transparent=true;}});
+  }
+}
+function update(){
+  params.len=+len.value;params.wid=+wid.value;params.hei=+hei.value;params.top=+top.value;params.round=+round.value;params.leg=+leg.value;
+  params.wood=woodColor.value;params.lam=lamColor.value;params.edge=edgeColor.value;
+  lenOut.textContent=params.len+' cm';widOut.textContent=params.wid+' cm';heiOut.textContent=params.hei+' cm';
+  topOut.textContent=params.top+' cm';roundOut.textContent=params.round+' mm';legOut.textContent=params.leg+' cm';
+  floor.visible=floorBox.checked; build();
+}
+const ids=['len','wid','hei','top','round','leg','woodColor','lamColor','edgeColor','wire','floor'];
+ids.forEach(id=>document.getElementById(id).addEventListener('input',update));
+document.getElementById('auto').addEventListener('change',()=>{});
+document.getElementById('reset').onclick=()=>{
+  Object.assign(params,{len:180,wid:95,hei:75,top:3.5,round:8,leg:9,wood:'#b47b43',lam:'#eee5cf',edge:'#ad7540'});
+  len.value=180;wid.value=95;hei.value=75;top.value=3.5;round.value=8;leg.value=9;
+  woodColor.value=params.wood;lamColor.value=params.lam;edgeColor.value=params.edge;wire.checked=false;floorBox.checked=true;update();
+  camera.position.set(230,155,250);controls.target.set(0,55,0);
+};
+document.getElementById('front').onclick=()=>{camera.position.set(0,100,330);controls.target.set(0,55,0)};
+document.getElementById('iso').onclick=()=>{camera.position.set(230,155,250);controls.target.set(0,55,0)};
+
+const len=document.getElementById('len'),wid=document.getElementById('wid'),hei=document.getElementById('hei'),top=document.getElementById('top'),round=document.getElementById('round'),leg=document.getElementById('leg');
+const woodColor=document.getElementById('woodColor'),lamColor=document.getElementById('lamColor'),edgeColor=document.getElementById('edgeColor');
+const wire=document.getElementById('wire'),floorBox=document.getElementById('floor'),auto=document.getElementById('auto');
+const lenOut=document.getElementById('lenOut'),widOut=document.getElementById('widOut'),heiOut=document.getElementById('heiOut'),topOut=document.getElementById('topOut'),roundOut=document.getElementById('roundOut'),legOut=document.getElementById('legOut');
+update();
+
+const clock=new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=clock.getDelta();
+  if(auto.checked) table.rotation.y += dt*.12;
+  controls.update(); renderer.render(scene,camera);
+}
+animate();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script>
+</body>
+</html>

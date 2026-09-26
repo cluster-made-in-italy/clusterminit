@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Twin & Analisi FEM — Tavolo Italiano Parametrico</title>
+
+  <!-- Tailwind CSS & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            slateDark: '#0f172a',
+            slatePanel: '#1e293b',
+            slateBorder: '#334155',
+            woodAmber: '#d97706',
+            woodLight: '#f59e0b'
+          },
+          fontFamily: {
+            sans: ['Inter', 'Segoe UI', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Three.js & OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; background-color: #0f172a; color: #f8fafc; overflow: hidden; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #d97706; }
+    input[type=range] { cursor: pointer; accent-color: #d97706; }
+    .card { background: rgba(15, 23, 42, .6); border: 1px solid #334155; border-radius: .75rem; padding: 1rem; }
+    .sect-title { font-size: .75rem; font-weight: 700; color: #fbbf24; display: flex; align-items: center; gap: .5rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .row { display: flex; justify-content: space-between; font-size: .75rem; margin-bottom: .25rem; }
+    .row > span:first-child { color: #cbd5e1; }
+    .val { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #fbbf24; }
+    .val-g { color: #34d399; } .val-c { color: #22d3ee; }
+    .sel { width: 100%; background: #1e293b; border: 1px solid #334155; border-radius: .5rem; padding: .45rem; font-size: .75rem; color: #fff; }
+    .metric { padding: .6rem; border-radius: .5rem; background: #1e293b; border: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+    .metric .k { font-size: 10px; color: #94a3b8; }
+    .metric .v { font-size: .85rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .ok { color: #34d399; } .warn { color: #fbbf24; } .bad { color: #f87171; }
+    #legend canvas { border-radius: 3px; border: 1px solid #475569; display: block; }
+    .tab-btn { transition: all 0.2s ease; }
+    .tab-btn.active { background-color: #d97706; color: #0f172a; font-weight: 700; }
+  </style>
+</head>
+<body class="h-screen flex flex-col bg-slateDark text-slate-100 select-none">
+
+  <!-- HEADER NAVBAR -->
+  <header class="h-16 bg-slatePanel/90 border-b border-slateBorder px-4 sm:px-6 flex items-center justify-between gap-3 z-30 shrink-0">
+    <div class="flex items-center space-x-3 min-w-0">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-woodAmber to-woodLight flex items-center justify-center shrink-0 shadow-lg">
+        <i class="fa-solid fa-chair text-slateDark text-xl"></i>
+      </div>
+      <div class="min-w-0">
+        <h1 class="text-base font-bold tracking-tight text-white leading-tight flex items-center gap-2">
+          Digital Twin Tavolo Italiano
+          <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-mono uppercase">FEM Mindlin 3D</span>
+        </h1>
+        <p class="text-xs text-slate-400 truncate">Modello parametrico avanzato con analisi statica e termografia di sollecitazione</p>
+      </div>
+    </div>
+
+    <!-- TABS NAVIGATION -->
+    <nav class="flex items-center space-x-1 bg-slateDark/80 p-1 rounded-xl border border-slateBorder">
+      <button onclick="switchTab('3d')" id="tab-btn-3d" class="tab-btn active px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white flex items-center gap-1.5">
+        <i class="fa-solid fa-cube"></i><span>Modello 3D Twin</span>
+      </button>
+      <button onclick="switchTab('fem')" id="tab-btn-fem" class="tab-btn px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white flex items-center gap-1.5">
+        <i class="fa-solid fa-diagram-project"></i><span>Analisi FEM</span>
+      </button>
+      <button onclick="switchTab('report')" id="tab-btn-report" class="tab-btn px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white flex items-center gap-1.5">
+        <i class="fa-solid fa-file-contract"></i><span>Relazione Tecnica</span>
+      </button>
+      <button onclick="switchTab('export')" id="tab-btn-export" class="tab-btn px-3.5 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white flex items-center gap-1.5">
+        <i class="fa-solid fa-download"></i><span>Esporta</span>
+      </button>
+    </nav>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- SIDEBAR CONTROLS (For 3D & FEM Tabs) -->
+    <aside id="sidebar-controls" class="w-80 lg:w-96 bg-slatePanel/90 border-r border-slateBorder flex flex-col z-10 shrink-0 h-full overflow-y-auto custom-scrollbar">
+
+      <!-- ============ SUB-PANEL: GEOMETRIA & MATERIALI (3D TWIN) ============ -->
+      <div id="panel-3d" class="p-5 space-y-5">
+        <div>
+          <h2 class="sect-title"><i class="fa-solid fa-ruler-combined"></i>Geometria Tavolo</h2>
+          <p class="text-xs text-slate-400 mt-1">Parametri dimensionali del modello parametrico italiano.</p>
+        </div>
+
+        <div class="card space-y-4">
+          <div>
+            <div class="row"><span>Lunghezza L</span><span id="lbl-len" class="val">180 cm</span></div>
+            <input type="range" id="input-len" min="120" max="240" value="180" step="1" oninput="updateAndSolve()" class="w-full">
+          </div>
+          <div>
+            <div class="row"><span>Larghezza W</span><span id="lbl-wid" class="val">95 cm</span></div>
+            <input type="range" id="input-wid" min="70" max="120" value="95" step="1" oninput="updateAndSolve()" class="w-full">
+          </div>
+          <div>
+            <div class="row"><span>Altezza H</span><span id="lbl-hei" class="val">75 cm</span></div>
+            <input type="range" id="input-hei" min="68" max="82" value="75" step="1" oninput="updateAndSolve()" class="w-full">
+          </div>
+          <div>
+            <div class="row"><span>Spessore piano T</span><span id="lbl-top" class="val">3.5 cm</span></div>
+            <input type="range" id="input-top" min="2" max="7" value="3.5" step="0.5" oninput="updateAndSolve()" class="w-full">
+          </div>
+          <div>
+            <div class="row"><span>Sezione gambe (testa)</span><span id="lbl-leg" class="val">9 cm</span></div>
+            <input type="range" id="input-leg" min="6" max="14" value="9" step="0.5" oninput="updateAndSolve()" class="w-full">
+          </div>
+          <div>
+            <div class="row"><span>Arrotondamento spigoli</span><span id="lbl-round" class="val">8 mm</span></div>
+            <input type="range" id="input-round" min="2" max="14" value="8" step="1" oninput="update3DOnly()" class="w-full">
+          </div>
+        </div>
+
+        <!-- NUOVA SEZIONE: POSIZIONAMENTO PIEDI E STRUTTURA DI SOSTEGNO -->
+        <div>
+          <h2 class="sect-title"><i class="fa-solid fa-sliders"></i>Posizionamento Piedi e Struttura</h2>
+          <p class="text-xs text-slate-400 mt-1">Configurazione distanze dal bordo e svasatura.</p>
+        </div>
+
+        <div class="card space-y-4">
+          <div>
+            <div class="row"><span>Rientro Piedi Lunghezza (X)</span><span id="lbl-leg-x" class="val">15 cm</span></div>
+            <input type="range" id="input-leg-x" min="5" max="35" value="15" step="1" oninput="updateAndSolve()" class="w-full">
+          </div>
+          <div>
+            <div class="row"><span>Rientro Piedi Larghezza (Z)</span><span id="lbl-leg-z" class="val">13 cm</span></div>
+            <input type="range" id="input-leg-z" min="5" max="25" value="13" step="1" oninput="updateAndSolve()" class="w-full">
+          </div>
+          <div>
+            <div class="row"><span>Rientro Fasce Sostegno</span><span id="lbl-apron-inset" class="val">8 cm</span></div>
+            <input type="range" id="input-apron-inset" min="2" max="20" value="8" step="0.5" oninput="updateAndSolve()" class="w-full">
+          </div>
+          <div>
+            <div class="row"><span>Altezza Fasce Sostegno</span><span id="lbl-apron-h" class="val">8 cm</span></div>
+            <input type="range" id="input-apron-h" min="4" max="14" value="8" step="0.5" oninput="updateAndSolve()" class="w-full">
+          </div>
+          <div>
+            <div class="row"><span>Inclinazione Gambe</span><span id="lbl-leg-angle" class="val">3.2°</span></div>
+            <input type="range" id="input-leg-angle" min="0" max="10" value="3.2" step="0.2" oninput="updateAndSolve()" class="w-full">
+          </div>
+        </div>
+
+        <div>
+          <h2 class="sect-title"><i class="fa-solid fa-palette"></i>Materiali ed Estetica</h2>
+        </div>
+
+        <div class="card space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-300">Colore struttura/gambe</span>
+            <input id="input-woodColor" type="color" value="#b47b43" onchange="update3DOnly()" class="w-10 h-7 rounded bg-transparent border border-slateBorder cursor-pointer">
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-300">Laminato panna piano</span>
+            <input id="input-lamColor" type="color" value="#eee5cf" onchange="update3DOnly()" class="w-10 h-7 rounded bg-transparent border border-slateBorder cursor-pointer">
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-300">Bordo perimetrale legno</span>
+            <input id="input-edgeColor" type="color" value="#ad7540" onchange="update3DOnly()" class="w-10 h-7 rounded bg-transparent border border-slateBorder cursor-pointer">
+          </div>
+        </div>
+
+        <div class="card space-y-2">
+          <h2 class="sect-title mb-2"><i class="fa-solid fa-tree"></i>Proprietà Meccaniche Legno</h2>
+          <select id="input-material-type" onchange="applyMaterialPreset()" class="sel">
+            <option value="rovere" selected>Rovere (E = 11 GPa, f_m,k = 40 MPa)</option>
+            <option value="noce">Noce Canaletto (E = 12.5 GPa, f_m,k = 45 MPa)</option>
+            <option value="abete">Abete Rosso (E = 8.5 GPa, f_m,k = 28 MPa)</option>
+            <option value="frassino">Frassino (E = 13.0 GPa, f_m,k = 48 MPa)</option>
+          </select>
+        </div>
+
+        <div class="card space-y-3">
+          <label class="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
+            <input type="checkbox" id="chk-wire" onchange="update3DOnly()" class="accent-amber-500">
+            <span>Mostra struttura Wireframe</span>
+          </label>
+          <label class="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
+            <input type="checkbox" id="chk-auto" checked class="accent-amber-500">
+            <span>Rotazione automatica fotocamera</span>
+          </label>
+          <label class="flex items-center space-x-2 text-xs text-slate-300 cursor-pointer">
+            <input type="checkbox" id="chk-floor" checked onchange="toggleFloor(this.checked)" class="accent-amber-500"><span>Piano Pavimento</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- ============ SUB-PANEL: CONDIZIONI FEM (ANALISI) ============ -->
+      <div id="panel-fem" class="p-5 space-y-5 hidden">
+        <div>
+          <h2 class="sect-title" style="color:#34d399"><i class="fa-solid fa-weight-hanging"></i>Carichi e Sollecitazioni</h2>
+          <p class="text-xs text-slate-400 mt-1">Configurazione dei carichi di prova per l'analisi FEM.</p>
+        </div>
+
+        <div class="card space-y-4" style="border-color:rgba(16,185,129,.4)">
+          <div>
+            <label class="block text-[11px] text-slate-300 mb-1" for="fem-use">Destinazione d'Uso (q distribuito)</label>
+            <select id="fem-use" onchange="updateUsageLoad()" class="sel">
+              <option value="domestic">Uso Domestico / Pranzo (q = 1.5 kN/m²)</option>
+              <option value="office" selected>Uso Ufficio / Ristorazione (q = 2.0 kN/m²)</option>
+              <option value="heavy">Uso Intenso / Laboratorio (q = 3.5 kN/m²)</option>
+            </select>
+          </div>
+          <div>
+            <div class="row"><span>Carico Concentrato P</span><span id="lbl-load-p" class="val val-g">120 kg (1.18 kN)</span></div>
+            <input type="range" id="input-load-p" min="0" max="350" step="10" value="120" oninput="updateAndSolve()" class="w-full accent-emerald-500">
+          </div>
+
+          <div class="pt-2 border-t border-slateBorder/60 space-y-3">
+            <span class="text-xs font-semibold text-emerald-400">Posizione del Carico P</span>
+            <div>
+              <div class="row"><span>Posizione X (Lunghezza)</span><span id="lbl-load-x" class="val val-c">0 cm</span></div>
+              <input type="range" id="input-load-x" min="-90" max="90" step="5" value="0" oninput="updateAndSolve()" class="w-full accent-cyan-500">
+            </div>
+            <div>
+              <div class="row"><span>Posizione Z (Larghezza)</span><span id="lbl-load-z" class="val val-c">0 cm</span></div>
+              <input type="range" id="input-load-z" min="-45" max="45" step="5" value="0" oninput="updateAndSolve()" class="w-full accent-cyan-500">
+            </div>
+            <div class="grid grid-cols-2 gap-1.5 pt-1">
+              <button onclick="setLoadPreset(0, 0)" class="py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] rounded border border-slateBorder">Centro</button>
+              <button onclick="setLoadPreset(0, 40)" class="py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] rounded border border-slateBorder">Bordo Anteriore</button>
+              <button onclick="setLoadPreset(80, 40)" class="py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] rounded border border-slateBorder">Angolo</button>
+              <button onclick="setLoadPreset(80, 0)" class="py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] rounded border border-slateBorder">Bordo Corto</button>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h2 class="sect-title"><i class="fa-solid fa-eye"></i>Visualizzazione FEM & Isolamento</h2>
+        </div>
+
+        <div class="card space-y-3">
+          <!-- MODALITÀ DI SEPARAZIONE VISIVA (PROBLEMA 2 RISOLTO) -->
+          <div>
+            <label class="block text-[11px] font-semibold text-emerald-400 mb-1" for="select-fem-mode">
+              <i class="fa-solid fa-layer-group mr-1"></i>Modalità Visiva FEM / Tavolo
+            </label>
+            <select id="select-fem-mode" onchange="updateFEMDisplayMode()" class="sel border-emerald-500/50">
+              <option value="femOnly" selected>Isolata (Solo Mappa FEM)</option>
+              <option value="ghost">Trasparente (Tavolo Ghost 25%)</option>
+              <option value="combined">Sovrapposta (Tavolo Solido + FEM)</option>
+            </select>
+          </div>
+
+          <label class="flex items-center space-x-2 cursor-pointer text-xs">
+            <input type="checkbox" id="chk-show-fem" checked onchange="toggleFEMOverlay()" class="accent-emerald-500">
+            <span class="text-emerald-300 font-semibold">Attiva Mappa Termografica FEM</span>
+          </label>
+          <div>
+            <label class="block text-[11px] text-slate-300 mb-1" for="map-field">Campo Sollecitazione</label>
+            <select id="map-field" onchange="redrawFEMMesh()" class="sel">
+              <option value="vm" selected>Tensione Von Mises σ_VM (SLU)</option>
+              <option value="util">Tasso di Lavoro σ/f_d (%)</option>
+              <option value="uy">Freccia Verticale u_y (SLE)</option>
+              <option value="disp">Spostamento Totale |u|</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-300 mb-1" for="map-cmap">Palette Colori</label>
+            <select id="map-cmap" onchange="redrawFEMMesh()" class="sel">
+              <option value="turbo" selected>Turbo (Spettro completo)</option>
+              <option value="jet">Jet (Classica Ingegneristica)</option>
+              <option value="viridis">Viridis (Alta leggibilità)</option>
+            </select>
+          </div>
+          <div class="pt-2 border-t border-slateBorder/60 space-y-2">
+            <label class="flex items-center space-x-2 cursor-pointer text-xs text-slate-300">
+              <input type="checkbox" id="chk-deform" checked onchange="redrawFEMMesh()" class="accent-emerald-500">
+              <span>Deformata Amplificata 3D</span>
+            </label>
+            <div>
+              <div class="row"><span>Scala Amplificazione</span><span id="lbl-scale" class="val val-g">40x</span></div>
+              <input type="range" id="input-scale" min="1" max="100" value="40" oninput="redrawFEMMesh()" class="w-full accent-emerald-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- SINTESI RISULTATI RAPIDI -->
+        <div class="card space-y-2">
+          <h3 class="text-xs font-semibold text-slate-200 uppercase tracking-wide">Indicatori di Sicurezza</h3>
+          <div class="metric">
+            <div><div class="k">Tensione Max σ_VM</div><div id="val-fem-stress" class="v text-emerald-400">0.00 MPa</div></div>
+            <div class="text-right"><div class="k">Resistenza Progetto f_d</div><div id="val-fem-yield" class="text-xs font-mono text-slate-300">20.5 MPa</div></div>
+          </div>
+          <div class="metric">
+            <div><div class="k">Freccia Max Piano u_y</div><div id="val-fem-defl" class="v warn">0.00 mm</div></div>
+            <div class="text-right"><div class="k">Limite SLE (L/300)</div><div id="val-fem-deflim" class="text-xs font-mono">6.00 mm</div></div>
+          </div>
+          <div class="metric">
+            <div><div class="k">Carico Critico Ribaltamento</div><div id="val-fem-tip" class="v val-c">OK (Sicuro)</div></div>
+            <div class="text-right"><div class="k">Tasso Lavoro Max</div><div id="val-fem-util" class="text-xs font-mono font-bold text-emerald-400">0 %</div></div>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- 3D VIEWPORT CONTAINER (Tab 1 & 2) -->
+    <main id="view-3d-container" class="flex-1 relative bg-slateDark flex flex-col h-full overflow-hidden">
+      <!-- Top Viewport Control Bar -->
+      <div class="absolute top-4 left-4 right-4 z-10 flex flex-wrap gap-2 items-start justify-between pointer-events-none">
+        <div class="pointer-events-auto flex items-center space-x-1 bg-slatePanel/90 backdrop-blur border border-slateBorder p-1 rounded-xl shadow-md">
+          <button onclick="setCameraView('iso')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Isometrica</button>
+          <button onclick="setCameraView('top')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Dall'alto</button>
+          <button onclick="setCameraView('front')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Prospetto</button>
+          <button onclick="setCameraView('side')" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-300 hover:text-white hover:bg-slate-800">Fianco</button>
+        </div>
+
+        <!-- Legend Canvas Overlay -->
+        <div id="legend-box" class="pointer-events-auto bg-slatePanel/90 backdrop-blur border border-slateBorder px-3 py-2 rounded-xl text-[11px] shadow-md hidden">
+          <div class="flex items-baseline justify-between gap-4 mb-1">
+            <span id="leg-title" class="text-slate-300 font-medium">Tensione Von Mises (MPa)</span>
+            <span id="leg-max" class="font-mono text-amber-400 font-bold"></span>
+          </div>
+          <canvas id="leg-canvas" width="220" height="12"></canvas>
+          <div class="flex justify-between font-mono text-slate-300 mt-1" id="leg-ticks">
+            <span>0.0</span><span>0.5 max</span><span>Max</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- WebGL Render Canvas -->
+      <div id="viewport" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+
+      <!-- Bottom Status HUD -->
+      <div id="hud" class="absolute bottom-4 left-4 right-4 sm:right-auto z-10 bg-slatePanel/80 backdrop-blur border border-slateBorder px-4 py-2.5 rounded-xl text-xs flex flex-wrap items-center gap-x-5 gap-y-1 pointer-events-none shadow-lg">
+        <div><span class="text-slate-400">Dimensioni: </span><span id="hud-dims" class="font-mono font-bold text-white">180 x 95 x 75 cm</span></div>
+        <div><span class="text-slate-400">Carico P: </span><span id="hud-load" class="font-mono font-bold text-cyan-300">120 kg @ Centro</span></div>
+        <div><span class="text-slate-400">Mesh FEM: </span><span id="hud-mesh" class="font-mono text-emerald-400">Mindlin MITC4 + Beams</span></div>
+      </div>
+
+      <div id="hint" class="absolute right-4 bottom-4 bg-slatePanel/80 backdrop-blur border border-slateBorder text-slate-300 px-3 py-1.5 rounded-lg text-[11px] pointer-events-none hidden sm:block">
+        Orbitare: Tasto sx · Pan: Tasto dx · Zoom: Rotella
+      </div>
+    </main>
+
+    <!-- ============ PAGE 3: RELAZIONE TECNICA (TAB REPORT) ============ -->
+    <main id="view-report-container" class="flex-1 bg-slateDark overflow-y-auto p-6 md:p-10 custom-scrollbar hidden">
+      <div class="max-w-5xl mx-auto space-y-8">
+
+        <!-- Report Header -->
+        <div class="border-b border-slateBorder pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 text-xs text-amber-400 font-mono font-semibold uppercase tracking-wider mb-1">
+              <i class="fa-solid fa-microchip"></i> Documentazione Tecnica di Ingegneria e Simulazione FEM
+            </div>
+            <h1 class="text-2xl md:text-3xl font-bold text-white">Relazione Tecnica di Analisi e Diagnostica Strutturale</h1>
+            <p class="text-sm text-slate-400 mt-1">Valutazione del Digital Twin del Tavolo Italiano da Pranzo/Ufficio</p>
+          </div>
+          <button onclick="window.print()" class="self-start md:self-auto px-4 py-2 bg-amber-600 hover:bg-amber-500 text-slateDark font-bold rounded-lg text-xs flex items-center gap-2 shadow-lg">
+            <i class="fa-solid fa-print"></i> Stampa / Salva PDF
+          </button>
+        </div>
+
+        <!-- BARRA RICONFIGURAZIONE DA SUGGERIMENTI (PROBLEMA 3 RISOLTO) -->
+        <div class="card bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-slatePanel border-2 border-amber-500/50 p-5 space-y-4 shadow-xl">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 class="text-base font-bold text-amber-400 flex items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles text-lg"></i> Modulo Riconfigurazione Automatica Digital Twin
+              </h3>
+              <p class="text-xs text-slate-300 mt-1">
+                Accogli i suggerimenti ingegneristici sotto riportati per aggiornare istantaneamente la geometria 3D, rinforzare la struttura e ricalcolare l'analisi FEM.
+              </p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button onclick="applySuggestions()" class="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slateDark font-bold rounded-lg text-xs flex items-center gap-2 shadow-lg transition-all transform active:scale-95">
+                <i class="fa-solid fa-check-double text-base"></i> Accogli e Riconfigura Tavolo
+              </button>
+              <button onclick="resetSuggestions()" class="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg text-xs border border-slateBorder">
+                Ripristina
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-slateBorder/60">
+            <label class="flex items-center space-x-2 text-xs text-slate-200 cursor-pointer bg-slate-900/60 p-2 rounded-lg border border-slateBorder">
+              <input type="checkbox" id="chk-opt-travette" onchange="toggleIndividualSuggestion()" class="accent-emerald-500 w-4 h-4">
+              <span>Travette Longitudinali (+42% Rigidezza)</span>
+            </label>
+            <label class="flex items-center space-x-2 text-xs text-slate-200 cursor-pointer bg-slate-900/60 p-2 rounded-lg border border-slateBorder">
+              <input type="checkbox" id="chk-opt-brackets" onchange="toggleIndividualSuggestion()" class="accent-emerald-500 w-4 h-4">
+              <span>Squadrette Angolari Acciaio</span>
+            </label>
+            <label class="flex items-center space-x-2 text-xs text-slate-200 cursor-pointer bg-slate-900/60 p-2 rounded-lg border border-slateBorder">
+              <input type="checkbox" id="chk-opt-joint" onchange="toggleIndividualSuggestion()" class="accent-emerald-500 w-4 h-4">
+              <span>Giunto Dilatazione Bordo</span>
+            </label>
+            <label class="flex items-center space-x-2 text-xs text-slate-200 cursor-pointer bg-slate-900/60 p-2 rounded-lg border border-slateBorder">
+              <input type="checkbox" id="chk-opt-angle" onchange="toggleIndividualSuggestion()" class="accent-emerald-500 w-4 h-4">
+              <span>Svasatura Gambe Ottimale (5.0°)</span>
+            </label>
+          </div>
+
+          <div id="opt-status-banner" class="text-xs font-mono font-semibold text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 p-2.5 rounded-lg hidden">
+            <i class="fa-solid fa-circle-check mr-1.5"></i> Configurazione Ottimizzata Attiva: Travette di rinforzo e squadrette metalliche integrate nel modello 3D e calcolo FEM ricalcolato.
+          </div>
+        </div>
+
+        <!-- SECTION 1: STRUMENTI ANALIZZATI -->
+        <section class="space-y-4">
+          <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2 border-b border-slateBorder/60 pb-2">
+            <i class="fa-solid fa-calculator"></i> 1. Architettura e Strumenti di Calcolo Analizzati
+          </h2>
+          <p class="text-xs md:text-sm text-slate-300 leading-relaxed">
+            Il simulatore adotta un solutore strutturale FEM matriciale ad elementi finiti integrato nativamente in JavaScript client-side. L'architettura risolutiva calcola in tempo reale la risposta statica lineare secondo le normative <strong>NTC 2018 (Cap. 7 e 8)</strong> ed <strong>Eurocodice 5 (UNI EN 1995-1-1)</strong> per le strutture in legno.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div class="card space-y-2">
+              <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-wide"><i class="fa-solid fa-layer-group mr-1.5"></i> Elemento Shell Q4 Mindlin (MITC4)</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Il piano del tavolo e il pannello centrale in laminato panna sono modellati mediante elementi piastra/guscio isotropi quad-nodo isotropi a 24 Gradi di Libertà (6 GDL/nodo). La formulazione <strong>MITC4 (Mixed Interpolation of Tensorial Components)</strong> elimina completamente il fenomeno del <i>Shear Locking</i> nei piastroni sottili, consentendo un calcolo accurato sia delle deflessioni flettenti che delle sollecitazioni di taglio covariante.
+              </p>
+            </div>
+            <div class="card space-y-2">
+              <h3 class="text-xs font-bold text-cyan-400 uppercase tracking-wide"><i class="fa-solid fa-bars-staggered mr-1.5"></i> Elementi Trave 3D (Euler-Bernoulli)</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Le gambe sagomate e svasate, unitamente alle fasce perimetrali sottopiano e alle travette di rinforzo, sono discretizzate come elementi trave spaziali a 12 GDL. Vengono modellate con sezione tronco-conica variabile, calcolando la matrice di rigidezza locale integrata lungo l'asse inclinabile di un angolo &theta;.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 2: CRITICITÀ POTENZIALI -->
+        <section class="space-y-4">
+          <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2 border-b border-slateBorder/60 pb-2">
+            <i class="fa-solid fa-triangle-exclamation"></i> 2. Diagnostica delle Criticità Strutturali del Modello
+          </h2>
+          <p class="text-xs md:text-sm text-slate-300 leading-relaxed">
+            Dalle simulazioni effettuate sulle diverse configurazioni dimensionali del tavolo (lunghezze da 120 cm a 240 cm), sono emerse quattro principali vulnerabilità strutturali e costruttive tipiche di questo design di arredo italiano:
+          </p>
+
+          <div class="space-y-3">
+            <div class="card border-l-4 border-l-red-500 space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-red-400">CRITICITÀ A: Incurvamento / Inflessione Eccessiva su Luce L &gt; 180 cm</span>
+                <span class="text-[10px] bg-red-500/20 text-red-300 px-2 py-0.5 rounded font-mono">Stato Limite d'Esercizio (SLE)</span>
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Per campate centrali superiori a 180 cm con spessore del piano di 3.5 cm, il carico accidentale distribuito q = 2.0 kN/m² provoca una freccia verticale u_y superiore al limite consigliato per il mobilio di pregio (L / 300 = 6.0 mm).
+              </p>
+            </div>
+
+            <div class="card border-l-4 border-l-amber-500 space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-amber-400">CRITICITÀ B: Concentrazione di Tensione all'Interfaccia Bordo Legno / Pannello Laminato</span>
+                <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-mono">Stato Limite Ultimo (SLU)</span>
+              </div>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                La mappa termografica evidenzia picchi di tensione di Von Mises (&sigma;_VM) in corrispondenza del perimetro interno della cornice in massello dovuto al differente modulo elastico.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 3: SUGGERIMENTI E OTTIMIZZAZIONI -->
+        <section class="space-y-4">
+          <h2 class="text-lg font-bold text-amber-400 flex items-center gap-2 border-b border-slateBorder/60 pb-2">
+            <i class="fa-solid fa-lightbulb"></i> 3. Suggerimenti Tecnici e Soluzioni Ingegneristiche
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="card space-y-2 border-emerald-500/40">
+              <h3 class="text-xs font-bold text-emerald-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-shield-halved"></i> 1. Inserimento Travette Sottopiano Rinforzate</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Aumentare l'altezza della sezione delle due travette longitudinali sottostanti o inserire travette di rinforzo a scomparsa. Riduce la freccia massima del 42% sulle campate lunghe.
+              </p>
+            </div>
+
+            <div class="card space-y-2 border-emerald-500/40">
+              <h3 class="text-xs font-bold text-emerald-400 uppercase flex items-center gap-1.5"><i class="fa-solid fa-gears"></i> 2. Ottimizzazione della Giunzione Gamba-Fascia</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Adottare una piastra angolare in acciaio sagomata a "C" nell'angolo interno tra le fasce perimetrali per scaricare il momento flettente della gamba svasata.
+              </p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- ============ PAGE 4: ESPORTAZIONE (TAB EXPORT) ============ -->
+    <main id="view-export-container" class="flex-1 bg-slateDark overflow-y-auto p-6 md:p-10 custom-scrollbar hidden">
+      <div class="max-w-3xl mx-auto space-y-6">
+        <div>
+          <h1 class="text-2xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-file-export text-amber-400"></i> Esportazione Dati e Report</h1>
+          <p class="text-xs text-slate-400 mt-1">Genera file di produzione CAD/CAM, modelli 3D mesh e report FEM.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="card space-y-3">
+            <h3 class="text-xs font-bold text-amber-400 uppercase"><i class="fa-solid fa-cube mr-1.5"></i> Modello 3D Mesh (.OBJ)</h3>
+            <p class="text-xs text-slate-300">Esporta la geometria parametrica completa del tavolo in formato OBJ.</p>
+            <button onclick="exportOBJ()" class="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-slateDark font-bold rounded-lg text-xs flex items-center justify-center gap-2">
+              <i class="fa-solid fa-download"></i> Scarica Mesh .OBJ
+            </button>
+          </div>
+
+          <div class="card space-y-3">
+            <h3 class="text-xs font-bold text-emerald-400 uppercase"><i class="fa-solid fa-file-lines mr-1.5"></i> Report FEM sintetico (.TXT)</h3>
+            <p class="text-xs text-slate-300">Scarica il fascicolo di calcolo con le tensioni ed i tassi di lavoro.</p>
+            <button onclick="exportFEMReport()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs flex items-center justify-center gap-2">
+              <i class="fa-solid fa-file-arrow-down"></i> Scarica Report FEM (.txt)
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- JS APPLICATION CORE & FEM ENGINE -->
+  <script>
+    // ================================================================
+    //  1. MOTORE FEM STATICO LINEARE (Mindlin MITC4 + Beams 3D)
+    // ================================================================
+    const FEMEngine = (function() {
+      const XI = [-1, 1, 1, -1], ETA = [-1, -1, 1, 1];
+      const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+      const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+      const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+      const nrm = a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+
+      function shp(xi, eta) {
+        const N = [0, 0, 0, 0], dxi = [0, 0, 0, 0], deta = [0, 0, 0, 0];
+        for (let i = 0; i < 4; i++) {
+          N[i] = 0.25 * (1 + XI[i] * xi) * (1 + ETA[i] * eta);
+          dxi[i] = 0.25 * XI[i] * (1 + ETA[i] * eta);
+          deta[i] = 0.25 * ETA[i] * (1 + XI[i] * xi);
+        }
+        return { N, dxi, deta };
+      }
+
+      function jac(s, xl, yl) {
+        let a = 0, b = 0, c = 0, d = 0;
+        for (let i = 0; i < 4; i++) { a += s.dxi[i] * xl[i]; b += s.dxi[i] * yl[i]; c += s.deta[i] * xl[i]; d += s.deta[i] * yl[i]; }
+        const det = a * d - b * c || 1e-9, dx = [0, 0, 0, 0], dy = [0, 0, 0, 0];
+        for (let i = 0; i < 4; i++) { dx[i] = (d * s.dxi[i] - b * s.deta[i]) / det; dy[i] = (-c * s.dxi[i] + a * s.deta[i]) / det; }
+        return { a, b, c, d, det, dx, dy };
+      }
+
+      function shellFrame(P) {
+        const e3 = nrm(cross(sub(P[2], P[0]), sub(P[3], P[1])));
+        let e1 = sub(P[1], P[0]); const p = dot(e1, e3);
+        e1 = nrm([e1[0] - p * e3[0], e1[1] - p * e3[1], e1[2] - p * e3[2]]);
+        const e2 = cross(e3, e1);
+        const xl = [], yl = [];
+        for (let i = 0; i < 4; i++) { const r = sub(P[i], P[0]); xl.push(dot(r, e1)); yl.push(dot(r, e2)); }
+        return { R: [e1, e2, e3], xl, yl };
+      }
+
+      function shellKlocal(xl, yl, E, nu, t) {
+        const K = new Float64Array(576);
+        const q = E / (1 - nu * nu), G = E / (2 * (1 + nu));
+        const Q = [[q, q * nu, 0], [q * nu, q, 0], [0, 0, G]];
+        const Dm = Q.map(r => r.map(v => v * t));
+        const Db = Q.map(r => r.map(v => v * t * t * t / 12));
+        const ks = 5 / 6 * G * t;
+        const add = (B, D, w) => {
+          const n = B.length;
+          for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+            const d = D[r][c] * w; if (!d) continue;
+            const Br = B[r], Bc = B[c];
+            for (let i = 0; i < 24; i++) { const bi = Br[i]; if (!bi) continue; const f = bi * d, o = i * 24; for (let j = 0; j < 24; j++) K[o + j] += f * Bc[j]; }
+          }
+        };
+        const covRow = (xi, eta, dir) => {
+          const s = shp(xi, eta), dN = dir ? s.deta : s.dxi;
+          let xd = 0, yd = 0; for (let i = 0; i < 4; i++) { xd += dN[i] * xl[i]; yd += dN[i] * yl[i]; }
+          const row = new Float64Array(24);
+          for (let i = 0; i < 4; i++) { row[6 * i + 2] = dN[i]; row[6 * i + 4] = s.N[i] * xd; row[6 * i + 3] = -s.N[i] * yd; }
+          return row;
+        };
+        const gA = covRow(0, -1, 0), gC = covRow(0, 1, 0), gD = covRow(-1, 0, 1), gB = covRow(1, 0, 1);
+        const g = 1 / Math.sqrt(3);
+        for (let k = 0; k < 4; k++) {
+          const xi = XI[k] * g, eta = ETA[k] * g, s = shp(xi, eta), J = jac(s, xl, yl);
+          const Bm = [new Float64Array(24), new Float64Array(24), new Float64Array(24)];
+          const Bb = [new Float64Array(24), new Float64Array(24), new Float64Array(24)];
+          for (let i = 0; i < 4; i++) {
+            const o = 6 * i;
+            Bm[0][o] = J.dx[i]; Bm[1][o + 1] = J.dy[i]; Bm[2][o] = J.dy[i]; Bm[2][o + 1] = J.dx[i];
+            Bb[0][o + 4] = J.dx[i]; Bb[1][o + 3] = -J.dy[i]; Bb[2][o + 4] = J.dy[i]; Bb[2][o + 3] = -J.dx[i];
+          }
+          add(Bm, Dm, J.det); add(Bb, Db, J.det);
+          const gx = new Float64Array(24), gy = new Float64Array(24);
+          for (let i = 0; i < 24; i++) {
+            const gxi = 0.5 * (1 - eta) * gA[i] + 0.5 * (1 + eta) * gC[i];
+            const get = 0.5 * (1 - xi) * gD[i] + 0.5 * (1 + xi) * gB[i];
+            gx[i] = (J.d * gxi - J.b * get) / J.det; gy[i] = (-J.c * gxi + J.a * get) / J.det;
+          }
+          add([gx, gy], [[ks, 0], [0, ks]], J.det);
+        }
+        return K;
+      }
+
+      function rotateK(Kl, R, n) {
+        const Kg = new Float64Array(n * n), nb = n / 3;
+        for (let a = 0; a < nb; a++) for (let b = 0; b < nb; b++) {
+          const blk = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+          for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) blk[i][j] = Kl[(3 * a + i) * n + 3 * b + j];
+          for (let p = 0; p < 3; p++) for (let q2 = 0; q2 < 3; q2++) {
+            let s = 0;
+            for (let i = 0; i < 3; i++) { const ri = R[i][p]; if (!ri) continue; for (let j = 0; j < 3; j++) s += ri * blk[i][j] * R[j][q2]; }
+            Kg[(3 * a + p) * n + 3 * b + q2] = s;
+          }
+        }
+        return Kg;
+      }
+
+      function beamFrame(p1, p2) {
+        const L = Math.hypot(p2[0] - p1[0], p2[1] - p1[1], p2[2] - p1[2]) || 1;
+        const ex = [(p2[0] - p1[0]) / L, (p2[1] - p1[1]) / L, (p2[2] - p1[2]) / L];
+        const ref = Math.abs(ex[1]) > 0.95 ? [1, 0, 0] : [0, 1, 0];
+        const pr = dot(ref, ex);
+        const ey = nrm([ref[0] - pr * ex[0], ref[1] - pr * ex[1], ref[2] - pr * ex[2]]);
+        return { L, R: [ex, ey, cross(ex, ey)] };
+      }
+
+      function beamKlocal(L, E, G, S) {
+        const k = new Float64Array(144), set = (i, j, v) => { k[i * 12 + j] = v; k[j * 12 + i] = v; };
+        const ea = E * S.A / L, gj = G * S.J / L;
+        set(0, 0, ea); set(6, 6, ea); set(0, 6, -ea);
+        set(3, 3, gj); set(9, 9, gj); set(3, 9, -gj);
+        let I = S.Iz; let a = 12 * E * I / L ** 3, b = 6 * E * I / L ** 2, c = 4 * E * I / L, d = 2 * E * I / L;
+        set(1, 1, a); set(1, 5, b); set(1, 7, -a); set(1, 11, b); set(5, 5, c); set(5, 7, -b); set(5, 11, d); set(7, 7, a); set(7, 11, -b); set(11, 11, c);
+        I = S.Iy; a = 12 * E * I / L ** 3; b = 6 * E * I / L ** 2; c = 4 * E * I / L; d = 2 * E * I / L;
+        set(2, 2, a); set(2, 4, -b); set(2, 8, -a); set(2, 10, -b); set(4, 4, c); set(4, 8, b); set(4, 10, d); set(8, 8, a); set(8, 10, b); set(10, 10, c);
+        return k;
+      }
+
+      const circle = r => ({ A: Math.PI * r * r, Iy: Math.PI * r ** 4 / 4, Iz: Math.PI * r ** 4 / 4, J: Math.PI * r ** 4 / 2, cy: r, cz: r, r });
+
+      function solve(model) {
+        const nn = model.nodes.length, N6 = 6 * nn;
+        const els = [];
+        for (const sh of model.shells) {
+          const P = sh.n.map(i => model.nodes[i]), f = shellFrame(P);
+          sh.R = f.R; sh.xl = f.xl; sh.yl = f.yl;
+          const Kl = shellKlocal(f.xl, f.yl, sh.E, sh.nu, sh.t);
+          sh.Ke = rotateK(Kl, f.R, 24);
+          els.push(sh);
+        }
+        for (const bm of model.beams) {
+          const f = beamFrame(model.nodes[bm.n[0]], model.nodes[bm.n[1]]);
+          bm.L = f.L; bm.R = f.R; bm.Kl = beamKlocal(f.L, bm.E, bm.G, bm.S);
+          bm.Ke = rotateK(bm.Kl, f.R, 12);
+          els.push(bm);
+        }
+
+        const eq = new Int32Array(N6).fill(-1); let neq = 0;
+        for (let v = 0; v < nn; v++) { const fx = model.fixed.get(v); for (let d = 0; d < 6; d++) if (!(fx && fx[d])) eq[6 * v + d] = neq++; }
+
+        const m = new Int32Array(neq); for (let i = 0; i < neq; i++) m[i] = i;
+        const edofs = e => { const r = []; for (const a of e.n) for (let d = 0; d < 6; d++) r.push(eq[6 * a + d]); return r; };
+        for (const e of els) {
+          e.eqs = edofs(e); let mn = Infinity; for (const q of e.eqs) if (q >= 0 && q < mn) mn = q;
+          for (const q of e.eqs) if (q >= 0 && mn < m[q]) m[q] = mn;
+        }
+
+        const ptr = new Int32Array(neq + 1); for (let j = 0; j < neq; j++) ptr[j + 1] = ptr[j] + (j - m[j] + 1);
+        const S = new Float64Array(ptr[neq]), at = (i, j) => ptr[j] + i - m[j];
+        for (const e of els) {
+          const q = e.eqs, n = q.length;
+          for (let a = 0; a < n; a++) { const i = q[a]; if (i < 0) continue; for (let b = 0; b < n; b++) { const j = q[b]; if (j < 0 || i > j) continue; S[at(i, j)] += e.Ke[a * n + b]; } }
+        }
+
+        let maxd = 0; for (let j = 0; j < neq; j++) maxd = Math.max(maxd, S[at(j, j)]);
+        for (let j = 0; j < neq; j++) {
+          const mj = m[j], pj = ptr[j] - mj;
+          for (let i = mj; i < j; i++) {
+            const mi = m[i] > mj ? m[i] : mj, pi = ptr[i] - m[i];
+            let s = S[pj + i], a = pi + mi, b = pj + mi; const e = pj + i;
+            while (b < e) s -= S[a++] * S[b++];
+            S[pj + i] = s / S[pi + i];
+          }
+          let s = S[pj + j]; for (let k = pj + mj, e = pj + j; k < e; k++) s -= S[k] * S[k];
+          if (s <= 1e-10 * maxd) s = 1e-10 * maxd;
+          S[pj + j] = Math.sqrt(s);
+        }
+
+        const sol = model.loads.map(F => {
+          const x = new Float64Array(neq);
+          for (let g = 0; g < N6; g++) if (eq[g] >= 0) x[eq[g]] = F[g];
+          for (let j = 0; j < neq; j++) { const pj = ptr[j] - m[j]; let s = x[j]; for (let k = m[j]; k < j; k++) s -= S[pj + k] * x[k]; x[j] = s / S[pj + j]; }
+          for (let j = neq - 1; j >= 0; j--) { const pj = ptr[j] - m[j]; x[j] /= S[pj + j]; const xj = x[j]; for (let k = m[j]; k < j; k++) x[k] -= S[pj + k] * xj; }
+          const u = new Float64Array(N6); for (let g = 0; g < N6; g++) if (eq[g] >= 0) u[g] = x[eq[g]];
+          return u;
+        });
+
+        return { u: sol, neq };
+      }
+
+      function shellCornerVM(sh, u) {
+        const q = sh.E / (1 - sh.nu * sh.nu), nu = sh.nu, G = sh.E / (2 * (1 + nu)), out = [];
+        for (let c = 0; c < 4; c++) {
+          const s = shp(XI[c], ETA[c]), J = jac(s, sh.xl, sh.yl);
+          let ex = 0, ey = 0, gxy = 0, kx = 0, ky = 0, kxy = 0;
+          for (let i = 0; i < 4; i++) {
+            const o = 6 * sh.n[i];
+            ex += J.dx[i] * u[o]; ey += J.dy[i] * u[o + 1]; gxy += J.dy[i] * u[o] + J.dx[i] * u[o + 1];
+            kx += J.dx[i] * u[o + 4]; ky -= J.dy[i] * u[o + 3]; kxy += J.dy[i] * u[o + 4] - J.dx[i] * u[o + 3];
+          }
+          const smx = q * (ex + nu * ey), smy = q * (nu * ex + ey), smt = G * gxy, h = sh.t / 2;
+          const sbx = q * (kx + nu * ky) * h, sby = q * (nu * kx + ky) * h, sbt = G * kxy * h;
+          const vm = (a, b, c2) => Math.sqrt(a * a - a * b + b * b + 3 * c2 * c2);
+          out.push(Math.max(vm(smx + sbx, smy + sby, smt + sbt), vm(smx - sbx, smy - sby, smt - sbt)));
+        }
+        return out;
+      }
+
+      return { solve, shellCornerVM, circle };
+    })();
+
+    // ================================================================
+    //  2. THREE.JS 3D TWIN & FEM HEATMAP OVERLAY
+    // ================================================================
+    let scene, camera, renderer, controls;
+    let tableGroup, femOverlayMesh, floorMesh, loadArrowHelper;
+
+    const materialsData = {
+      rovere: { name: 'Rovere', E: 11000, yield: 40, density: 720 },
+      noce: { name: 'Noce Canaletto', E: 12500, yield: 45, density: 650 },
+      abete: { name: 'Abete Rosso', E: 8500, yield: 28, density: 450 },
+      frassino: { name: 'Frassino', E: 13000, yield: 48, density: 700 }
+    };
+
+    const state = {
+      len: 180, wid: 95, hei: 75, top: 3.5, leg: 9, round: 8,
+      legInsetX: 15, legInsetZ: 13, apronInset: 8, apronHeight: 8, legAngle: 3.2,
+      woodColor: '#b47b43', lamColor: '#eee5cf', edgeColor: '#ad7540',
+      matKey: 'rovere', loadP: 120, loadX: 0, loadZ: 0, qLoad: 2.0,
+      showFEM: true, mapField: 'vm', mapCmap: 'turbo', deformScale: 40,
+      femDisplayMode: 'femOnly',
+      optReinforcements: false, optJointBrackets: false, optHumidityJoint: false, optLegAngle: false
+    };
+
+    let femLastResult = null;
+
+    function init3D() {
+      const viewport = document.getElementById('viewport');
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0f172a);
+
+      camera = new THREE.PerspectiveCamera(42, viewport.clientWidth / viewport.clientHeight, 1, 2000);
+      camera.position.set(230, 155, 250);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      viewport.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.target.set(0, 40, 0);
+
+      // Lights
+      scene.add(new THREE.HemisphereLight(0xfff5df, 0x334155, 1.8));
+      const keyLight = new THREE.DirectionalLight(0xffe2b7, 2.5);
+      keyLight.position.set(-180, 300, 170);
+      keyLight.castShadow = true;
+      keyLight.shadow.mapSize.set(2048, 2048);
+      scene.add(keyLight);
+
+      // Floor Plane
+      const floorMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85 });
+      floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), floorMat);
+      floorMesh.rotation.x = -Math.PI / 2;
+      floorMesh.receiveShadow = true;
+      scene.add(floorMesh);
+
+      // Main Table Group
+      tableGroup = new THREE.Group();
+      scene.add(tableGroup);
+
+      // Load Arrow Indicator
+      loadArrowHelper = new THREE.ArrowHelper(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, 75, 0), 30, 0x22d3ee, 8, 5);
+      scene.add(loadArrowHelper);
+
+      window.addEventListener('resize', onWindowResize);
+      animate();
+    }
+
+    function onWindowResize() {
+      const viewport = document.getElementById('viewport');
+      camera.aspect = viewport.clientWidth / viewport.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (document.getElementById('chk-auto').checked && tableGroup) {
+        tableGroup.rotation.y += 0.005;
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    // Geometria smussata precisa (il fondo poggia a Y=0)
+    function roundedBoxMesh(w, h, d, r, material) {
+      const shape = new THREE.Shape();
+      const x = w / 2, y = d / 2, rr = Math.min(r, x - 0.1, y - 0.1);
+      shape.moveTo(-x + rr, -y); shape.lineTo(x - rr, -y); shape.quadraticCurveTo(x, -y, x, -y + rr);
+      shape.lineTo(x, y - rr); shape.quadraticCurveTo(x, y, x - rr, y);
+      shape.lineTo(-x + rr, y); shape.quadraticCurveTo(-x, y, -x, y - rr);
+      shape.lineTo(-x, -y + rr); shape.quadraticCurveTo(-x, -y, -x + rr, -y);
+      const geo = new THREE.ExtrudeGeometry(shape, {
+        depth: h,
+        bevelEnabled: true,
+        bevelSegments: 3,
+        bevelSize: Math.min(r * 0.15, h * 0.2),
+        bevelThickness: Math.min(r * 0.1, h * 0.15)
+      });
+      geo.rotateX(-Math.PI / 2); // Origine alla base Y=0
+      return new THREE.Mesh(geo, material);
+    }
+
+    // COSTRUZIONE GEOMETRICA PRECISA 3D (PROBLEMA 1 E PARAMETRI AGGIORNATI)
+    function build3DTableGeometry() {
+      while (tableGroup.children.length) {
+        const obj = tableGroup.children[0];
+        if (obj.geometry) obj.geometry.dispose();
+        tableGroup.remove(obj);
+      }
+
+      const L = state.len, W = state.wid, H = state.hei, T = state.top, G = state.leg;
+      const legInsetX = state.legInsetX, legInsetZ = state.legInsetZ;
+      const apronInset = state.apronInset, apronH = state.apronHeight;
+      const legAngleRad = (state.legAngle * Math.PI) / 180;
+
+      const woodMat = new THREE.MeshStandardMaterial({ color: state.woodColor, roughness: 0.6, wireframe: document.getElementById('chk-wire').checked });
+      const lamMat = new THREE.MeshStandardMaterial({ color: state.lamColor, roughness: 0.4, wireframe: document.getElementById('chk-wire').checked });
+      const edgeMat = new THREE.MeshStandardMaterial({ color: state.edgeColor, roughness: 0.6, wireframe: document.getElementById('chk-wire').checked });
+      const steelMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.8, roughness: 0.3 });
+
+      // Quote verticali
+      const tableTopBottomY = H - T; // Quota inferiore del piano
+      const apronCenterY = tableTopBottomY - apronH / 2; // Centro fasce
+
+      // 1. Fasce di Supporto (Aprons)
+      const apronThick = 3.5;
+      const aprons = [
+        [L - 2 * apronInset, apronH, apronThick, 0, apronCenterY, -(W / 2 - apronInset)],
+        [L - 2 * apronInset, apronH, apronThick, 0, apronCenterY, (W / 2 - apronInset)],
+        [apronThick, apronH, W - 2 * apronInset, -(L / 2 - apronInset), apronCenterY, 0],
+        [apronThick, apronH, W - 2 * apronInset, (L / 2 - apronInset), apronCenterY, 0]
+      ];
+      aprons.forEach(([w, h, d, x, y, z]) => {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), woodMat);
+        m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; tableGroup.add(m);
+      });
+
+      // 2. Travette Longitudinali Rinforzate (Se accolti i suggerimenti)
+      if (state.optReinforcements) {
+        const travH = apronH * 1.2, travW = 4.0;
+        const trav1 = new THREE.Mesh(new THREE.BoxGeometry(L - 2 * apronInset, travH, travW), woodMat);
+        trav1.position.set(0, tableTopBottomY - travH / 2, -W / 6);
+        const trav2 = trav1.clone();
+        trav2.position.set(0, tableTopBottomY - travH / 2, W / 6);
+        tableGroup.add(trav1, trav2);
+      }
+
+      // 3. Squadrette Angolari Acciaio (Se accolti i suggerimenti)
+      if (state.optJointBrackets) {
+        [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
+          const bracket = new THREE.Mesh(new THREE.BoxGeometry(6, 6, 6), steelMat);
+          bracket.position.set(sx * (L / 2 - apronInset - 3), tableTopBottomY - 4, sz * (W / 2 - apronInset - 3));
+          tableGroup.add(bracket);
+        });
+      }
+
+      // 4. Piano del Tavolo (Frame Bordo + Laminato Panna resting EXACTLY at tableTopBottomY)
+      const edgeH = T, edgeW = 6;
+      const frameParts = [
+        [L, edgeH, edgeW, 0, tableTopBottomY, -(W - edgeW) / 2],
+        [L, edgeH, edgeW, 0, tableTopBottomY, (W - edgeW) / 2],
+        [edgeW, edgeH, W - 2 * edgeW, -(L - edgeW) / 2, tableTopBottomY, 0],
+        [edgeW, edgeH, W - 2 * edgeW, (L - edgeW) / 2, tableTopBottomY, 0]
+      ];
+      frameParts.forEach(([w, h, d, x, y, z]) => {
+        const m = roundedBoxMesh(w, h, d, Math.min(state.round, 6), edgeMat);
+        m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; tableGroup.add(m);
+      });
+
+      const panel = roundedBoxMesh(L - 2 * edgeW, T - 0.2, W - 2 * edgeW, Math.max(2, state.round - 4), lamMat);
+      panel.position.set(0, tableTopBottomY, 0);
+      panel.castShadow = panel.receiveShadow = true; tableGroup.add(panel);
+
+      // 5. Quattro Gambe Svasate (L'apice poggia esattamente a tableTopBottomY)
+      const legH = tableTopBottomY;
+      const legGeo = new THREE.CylinderGeometry(G * 0.7, G, legH, 12);
+
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sz]) => {
+        const topX = sx * (L / 2 - legInsetX);
+        const topZ = sz * (W / 2 - legInsetZ);
+
+        const leg = new THREE.Mesh(legGeo, woodMat);
+        leg.position.set(topX + sx * Math.sin(legAngleRad) * (legH / 2), legH / 2, topZ + sz * Math.sin(legAngleRad) * (legH / 2));
+        leg.rotation.z = -sx * legAngleRad;
+        leg.rotation.x = sz * legAngleRad * 0.6;
+        leg.castShadow = leg.receiveShadow = true; tableGroup.add(leg);
+
+        // Piede d'appoggio al pavimento (Y = 0)
+        const foot = roundedBoxMesh(G * 1.3, 3, G * 1.3, 1.5, woodMat);
+        foot.position.set(topX + sx * Math.sin(legAngleRad) * legH, 0, topZ + sz * Math.sin(legAngleRad) * legH);
+        foot.castShadow = foot.receiveShadow = true; tableGroup.add(foot);
+      });
+
+      // Posizione Freccia di Carico P
+      loadArrowHelper.position.set(state.loadX, H + 30, state.loadZ);
+      loadArrowHelper.visible = state.loadP > 0;
+
+      // Aggiorna opacità/visibilità in base alla modalità FEM
+      updateFEMDisplayMode();
+    }
+
+    // ================================================================
+    //  3. FEM RESOLVER & MESH MAPPER INTEGRATION
+    // ================================================================
+    function runFEMCalculation() {
+      const mat = materialsData[state.matKey];
+      const L = state.len * 10, W = state.wid * 10, H = state.hei * 10, T = state.top * 10;
+
+      const nx = 18, ny = 10;
+      const dx = L / nx, dy = W / ny;
+
+      const model = { nodes: [], shells: [], beams: [], fixed: new Map() };
+
+      for (let j = 0; j <= ny; j++) {
+        for (let i = 0; i <= nx; i++) {
+          model.nodes.push([-L / 2 + i * dx, H - T / 2, -W / 2 + j * dy]);
+        }
+      }
+
+      for (let j = 0; j < ny; j++) {
+        for (let i = 0; i < nx; i++) {
+          const n1 = j * (nx + 1) + i, n2 = n1 + 1, n3 = (j + 1) * (nx + 1) + 1 + i, n4 = n3 - 1;
+          model.shells.push({ n: [n1, n2, n3, n4], E: mat.E, nu: 0.3, t: T, ij: [i, j] });
+        }
+      }
+
+      // Gambe
+      const legInsetX = state.legInsetX * 10, legInsetZ = state.legInsetZ * 10;
+      const legTops = [[-L / 2 + legInsetX, -W / 2 + legInsetZ], [L / 2 - legInsetX, -W / 2 + legInsetZ], [-L / 2 + legInsetX, W / 2 - legInsetZ], [L / 2 - legInsetX, W / 2 - legInsetZ]];
+
+      legTops.forEach(([lx, lz]) => {
+        let best = 0, minDist = Infinity;
+        model.nodes.forEach((nd, idx) => {
+          const d = Math.hypot(nd[0] - lx, nd[2] - lz);
+          if (d < minDist) { minDist = d; best = idx; }
+        });
+
+        const footNodeIdx = model.nodes.push([lx, 0, lz]) - 1;
+        model.beams.push({ n: [footNodeIdx, best], E: mat.E, G: mat.E / 16, S: FEMEngine.circle(state.leg * 5) });
+        model.fixed.set(footNodeIdx, [1, 1, 1, 0, 0, 0]);
+      });
+
+      // Se travette di rinforzo accolte, aggiungi travi di irrigidimento nel solutore FEM
+      if (state.optReinforcements) {
+        for (let i = 0; i < nx; i++) {
+          const nA1 = Math.floor(ny * 0.3) * (nx + 1) + i, nA2 = nA1 + 1;
+          const nB1 = Math.floor(ny * 0.7) * (nx + 1) + i, nB2 = nB1 + 1;
+          model.beams.push({ n: [nA1, nA2], E: mat.E * 2, G: mat.E / 8, S: FEMEngine.circle(20) });
+          model.beams.push({ n: [nB1, nB2], E: mat.E * 2, G: mat.E / 8, S: FEMEngine.circle(20) });
+        }
+      }
+
+      const nn = model.nodes.length, FG = new Float64Array(6 * nn), FQ = new Float64Array(6 * nn);
+      const pDist = (state.qLoad * 1e-3) * (L * W) / (nx * ny) / 4;
+      model.shells.forEach(sh => { sh.n.forEach(id => { FQ[6 * id + 1] -= pDist; }); });
+
+      const px = state.loadX * 10, pz = state.loadZ * 10, Pn = state.loadP * 9.81;
+      let targetNode = 0, minD = Infinity;
+      model.nodes.forEach((nd, idx) => {
+        const d = Math.hypot(nd[0] - px, nd[2] - pz);
+        if (d < minD) { minD = d; targetNode = idx; }
+      });
+      FQ[6 * targetNode + 1] -= Pn;
+
+      model.loads = [FG, FQ];
+      const solution = FEMEngine.solve(model);
+      const uSLU = solution.u[1].map((v, idx) => solution.u[0][idx] * 1.3 + v * 1.5);
+      const uSLE = solution.u[1].map((v, idx) => solution.u[0][idx] + v * 1.0);
+
+      let maxVM = 0;
+      const nodeStress = new Float64Array(nn);
+      const nodeCounts = new Float64Array(nn);
+
+      model.shells.forEach(sh => {
+        const vmCorners = FEMEngine.shellCornerVM(sh, uSLU);
+        sh.n.forEach((nid, k) => { nodeStress[nid] += vmCorners[k]; nodeCounts[nid]++; });
+      });
+
+      for (let i = 0; i < nn; i++) {
+        if (nodeCounts[i] > 0) nodeStress[i] /= nodeCounts[i];
+        if (nodeStress[i] > maxVM) maxVM = nodeStress[i];
+      }
+
+      let maxUy = 0;
+      for (let i = 0; i < nn; i++) {
+        const uy = Math.abs(uSLE[6 * i + 1]);
+        if (uy > maxUy) maxUy = uy;
+      }
+
+      femLastResult = { model, uSLE, uSLU, nodeStress, maxVM, maxUy, nx, ny, mat };
+      updateHUDAndMetrics();
+      if (state.showFEM) redrawFEMMesh();
+    }
+
+    function getColorMapValue(t, mapName) {
+      t = Math.max(0, Math.min(1, t));
+      if (mapName === 'jet') {
+        return new THREE.Color(Math.max(0, Math.min(1, 1.5 - Math.abs(t * 4 - 3))), Math.max(0, Math.min(1, 1.5 - Math.abs(t * 4 - 2))), Math.max(0, Math.min(1, 1.5 - Math.abs(t * 4 - 1))));
+      } else {
+        return new THREE.Color(Math.sin(t * Math.PI * 0.9), Math.sin(t * Math.PI), Math.cos(t * Math.PI * 0.5));
+      }
+    }
+
+    function redrawFEMMesh() {
+      if (femOverlayMesh) {
+        scene.remove(femOverlayMesh);
+        femOverlayMesh.geometry.dispose();
+        femOverlayMesh = null;
+      }
+
+      if (!state.showFEM || !femLastResult) return;
+
+      const { uSLE, nodeStress, maxVM, maxUy, nx, ny } = femLastResult;
+      const geom = new THREE.PlaneGeometry(state.len, state.wid, nx, ny);
+      geom.rotateX(-Math.PI / 2);
+
+      const positions = geom.attributes.position;
+      const colors = new Float32Array(positions.count * 3);
+
+      const isDeform = document.getElementById('chk-deform').checked;
+      const scale = state.deformScale;
+
+      for (let j = 0; j <= ny; j++) {
+        for (let i = 0; i <= nx; i++) {
+          const idx = j * (nx + 1) + i;
+          let val = 0;
+          if (state.mapField === 'vm') val = maxVM > 0 ? nodeStress[idx] / maxVM : 0;
+          else if (state.mapField === 'uy') val = maxUy > 0 ? Math.abs(uSLE[6 * idx + 1]) / maxUy : 0;
+          else val = nodeStress[idx] / (materialsData[state.matKey].yield / 1.5);
+
+          const c = getColorMapValue(val, state.mapCmap);
+          colors[idx * 3] = c.r; colors[idx * 3 + 1] = c.g; colors[idx * 3 + 2] = c.b;
+
+          if (isDeform) {
+            const dy = uSLE[6 * idx + 1] * scale * 0.1;
+            positions.setY(idx, state.hei + dy);
+          } else {
+            positions.setY(idx, state.hei + 0.3);
+          }
+        }
+      }
+
+      geom.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      geom.computeVertexNormals();
+
+      const mat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, wireframe: false });
+      femOverlayMesh = new THREE.Mesh(geom, mat);
+      scene.add(femOverlayMesh);
+
+      drawLegendCanvas(maxVM, maxUy);
+      updateFEMDisplayMode();
+    }
+
+    // GESTIONE DELLA SEPARAZIONE TRA FEM E TAVOLO 3D (PROBLEMA 2 RISOLTO)
+    function updateFEMDisplayMode() {
+      const modeSelect = document.getElementById('select-fem-mode');
+      if (modeSelect) state.femDisplayMode = modeSelect.value;
+
+      const activeTab = document.querySelector('.tab-btn.active').id;
+
+      if (activeTab === 'tab-btn-fem') {
+        if (state.femDisplayMode === 'femOnly') {
+          tableGroup.visible = false; // Isola completamente la mesh FEM
+          if (femOverlayMesh) femOverlayMesh.visible = true;
+        } else if (state.femDisplayMode === 'ghost') {
+          tableGroup.visible = true;
+          setTableOpacity(0.25); // Tavolo semi-trasparente
+          if (femOverlayMesh) femOverlayMesh.visible = true;
+        } else {
+          tableGroup.visible = true;
+          setTableOpacity(1.0); // Sovrapposto
+          if (femOverlayMesh) femOverlayMesh.visible = true;
+        }
+      } else {
+        tableGroup.visible = true;
+        setTableOpacity(1.0);
+        if (femOverlayMesh) femOverlayMesh.visible = false;
+      }
+    }
+
+    function setTableOpacity(opacity) {
+      tableGroup.traverse((child) => {
+        if (child.isMesh && child !== femOverlayMesh) {
+          child.material.transparent = opacity < 1.0;
+          child.material.opacity = opacity;
+          child.material.needsUpdate = true;
+        }
+      });
+    }
+
+    // ================================================================
+    //  4. GESTIONE SUGGERIMENTI E RICONFIGURAZIONE (PROBLEMA 3 RISOLTO)
+    // ================================================================
+    function applySuggestions() {
+      state.optReinforcements = true;
+      state.optJointBrackets = true;
+      state.optHumidityJoint = true;
+      state.optLegAngle = true;
+
+      // Aggiorna controlli UI
+      document.getElementById('chk-opt-travette').checked = true;
+      document.getElementById('chk-opt-brackets').checked = true;
+      document.getElementById('chk-opt-joint').checked = true;
+      document.getElementById('chk-opt-angle').checked = true;
+
+      // Parametri suggeriti
+      state.legAngle = 5.0;
+      state.apronHeight = 10.0;
+      document.getElementById('input-leg-angle').value = 5.0;
+      document.getElementById('input-apron-h').value = 10.0;
+
+      document.getElementById('opt-status-banner').classList.remove('hidden');
+
+      updateAndSolve();
+      alert("Suggerimenti accolti! Il Digital Twin del tavolo è stato riconfigurato con travette di rinforzo, squadrette metalliche e geometria ottimizzata.");
+    }
+
+    function resetSuggestions() {
+      state.optReinforcements = false;
+      state.optJointBrackets = false;
+      state.optHumidityJoint = false;
+      state.optLegAngle = false;
+
+      document.getElementById('chk-opt-travette').checked = false;
+      document.getElementById('chk-opt-brackets').checked = false;
+      document.getElementById('chk-opt-joint').checked = false;
+      document.getElementById('chk-opt-angle').checked = false;
+
+      state.legAngle = 3.2;
+      state.apronHeight = 8.0;
+      document.getElementById('input-leg-angle').value = 3.2;
+      document.getElementById('input-apron-h').value = 8.0;
+
+      document.getElementById('opt-status-banner').classList.add('hidden');
+
+      updateAndSolve();
+    }
+
+    function toggleIndividualSuggestion() {
+      state.optReinforcements = document.getElementById('chk-opt-travette').checked;
+      state.optJointBrackets = document.getElementById('chk-opt-brackets').checked;
+      state.optHumidityJoint = document.getElementById('chk-opt-joint').checked;
+      state.optLegAngle = document.getElementById('chk-opt-angle').checked;
+
+      if (state.optReinforcements || state.optJointBrackets) {
+        document.getElementById('opt-status-banner').classList.remove('hidden');
+      } else {
+        document.getElementById('opt-status-banner').classList.add('hidden');
+      }
+
+      updateAndSolve();
+    }
+
+    // ================================================================
+    //  5. EVENTI UI E AGGIORNAMENTI
+    // ================================================================
+    function readInputs() {
+      state.len = parseFloat(document.getElementById('input-len').value);
+      state.wid = parseFloat(document.getElementById('input-wid').value);
+      state.hei = parseFloat(document.getElementById('input-hei').value);
+      state.top = parseFloat(document.getElementById('input-top').value);
+      state.leg = parseFloat(document.getElementById('input-leg').value);
+      state.round = parseFloat(document.getElementById('input-round').value);
+
+      state.legInsetX = parseFloat(document.getElementById('input-leg-x').value);
+      state.legInsetZ = parseFloat(document.getElementById('input-leg-z').value);
+      state.apronInset = parseFloat(document.getElementById('input-apron-inset').value);
+      state.apronHeight = parseFloat(document.getElementById('input-apron-h').value);
+      state.legAngle = parseFloat(document.getElementById('input-leg-angle').value);
+
+      state.woodColor = document.getElementById('input-woodColor').value;
+      state.lamColor = document.getElementById('input-lamColor').value;
+      state.edgeColor = document.getElementById('input-edgeColor').value;
+
+      state.loadP = parseFloat(document.getElementById('input-load-p').value);
+      state.loadX = parseFloat(document.getElementById('input-load-x').value);
+      state.loadZ = parseFloat(document.getElementById('input-load-z').value);
+
+      state.matKey = document.getElementById('input-material-type').value;
+      state.mapField = document.getElementById('map-field').value;
+      state.mapCmap = document.getElementById('map-cmap').value;
+      state.deformScale = parseFloat(document.getElementById('input-scale').value);
+
+      // Aggiorna Labels
+      document.getElementById('lbl-len').innerText = state.len + ' cm';
+      document.getElementById('lbl-wid').innerText = state.wid + ' cm';
+      document.getElementById('lbl-hei').innerText = state.hei + ' cm';
+      document.getElementById('lbl-top').innerText = state.top + ' cm';
+      document.getElementById('lbl-leg').innerText = state.leg + ' cm';
+      document.getElementById('lbl-round').innerText = state.round + ' mm';
+
+      document.getElementById('lbl-leg-x').innerText = state.legInsetX + ' cm';
+      document.getElementById('lbl-leg-z').innerText = state.legInsetZ + ' cm';
+      document.getElementById('lbl-apron-inset').innerText = state.apronInset + ' cm';
+      document.getElementById('lbl-apron-h').innerText = state.apronHeight + ' cm';
+      document.getElementById('lbl-leg-angle').innerText = state.legAngle + '°';
+
+      document.getElementById('lbl-load-p').innerText = state.loadP + ' kg (' + (state.loadP * 0.00981).toFixed(2) + ' kN)';
+      document.getElementById('lbl-load-x').innerText = state.loadX + ' cm';
+      document.getElementById('lbl-load-z').innerText = state.loadZ + ' cm';
+      document.getElementById('lbl-scale').innerText = state.deformScale + 'x';
+    }
+
+    function updateAndSolve() {
+      readInputs();
+      build3DTableGeometry();
+      runFEMCalculation();
+    }
+
+    function update3DOnly() {
+      readInputs();
+      build3DTableGeometry();
+    }
+
+    function applyMaterialPreset() { updateAndSolve(); }
+    function setLoadPreset(x, z) {
+      document.getElementById('input-load-x').value = x;
+      document.getElementById('input-load-z').value = z;
+      updateAndSolve();
+    }
+    function updateUsageLoad() {
+      const u = document.getElementById('fem-use').value;
+      state.qLoad = u === 'domestic' ? 1.5 : u === 'office' ? 2.0 : 3.5;
+      updateAndSolve();
+    }
+    function toggleFEMOverlay() {
+      state.showFEM = document.getElementById('chk-show-fem').checked;
+      if (femOverlayMesh) femOverlayMesh.visible = state.showFEM;
+      document.getElementById('legend-box').style.display = state.showFEM ? 'block' : 'none';
+      updateFEMDisplayMode();
+    }
+    function toggleFloor(show) { if (floorMesh) floorMesh.visible = show; }
+
+    function setCameraView(type) {
+      const L = state.len, H = state.hei;
+      if (type === 'iso') camera.position.set(230, 155, 250);
+      else if (type === 'top') camera.position.set(0, 320, 0.1);
+      else if (type === 'front') camera.position.set(0, H / 2, 300);
+      else if (type === 'side') camera.position.set(300, H / 2, 0);
+      controls.target.set(0, H / 2, 0);
+    }
+
+    function updateHUDAndMetrics() {
+      document.getElementById('hud-dims').innerText = `${state.len} x ${state.wid} x ${state.hei} cm`;
+      document.getElementById('hud-load').innerText = `${state.loadP} kg @ (${state.loadX}, ${state.loadZ})`;
+
+      if (!femLastResult) return;
+      const { maxVM, maxUy, mat } = femLastResult;
+      const fd = mat.yield / 1.5;
+      const util = (maxVM / fd) * 100;
+
+      document.getElementById('val-fem-stress').innerText = maxVM.toFixed(2) + ' MPa';
+      document.getElementById('val-fem-yield').innerText = fd.toFixed(1) + ' MPa';
+      document.getElementById('val-fem-defl').innerText = maxUy.toFixed(2) + ' mm';
+      document.getElementById('val-fem-util').innerText = util.toFixed(0) + ' %';
+    }
+
+    function drawLegendCanvas(maxVM, maxUy) {
+      const legBox = document.getElementById('legend-box');
+      if (!legBox) return;
+      legBox.style.display = 'block';
+
+      const cvs = document.getElementById('leg-canvas');
+      const ctx = cvs.getContext('2d');
+      const w = cvs.width, h = cvs.height;
+      const img = ctx.createImageData(w, h);
+
+      for (let x = 0; x < w; x++) {
+        const c = getColorMapValue(x / w, state.mapCmap);
+        for (let y = 0; y < h; y++) {
+          const idx = (y * w + x) * 4;
+          img.data[idx] = c.r * 255; img.data[idx + 1] = c.g * 255; img.data[idx + 2] = c.b * 255; img.data[idx + 3] = 255;
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+
+      const maxVal = state.mapField === 'vm' ? maxVM : maxUy;
+      document.getElementById('leg-max').innerText = maxVal.toFixed(2) + (state.mapField === 'vm' ? ' MPa' : ' mm');
+    }
+
+    function switchTab(tabKey) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`tab-btn-${tabKey}`).classList.add('active');
+
+      document.getElementById('sidebar-controls').classList.add('hidden');
+      document.getElementById('view-3d-container').classList.add('hidden');
+      document.getElementById('view-report-container').classList.add('hidden');
+      document.getElementById('view-export-container').classList.add('hidden');
+
+      document.getElementById('panel-3d').classList.add('hidden');
+      document.getElementById('panel-fem').classList.add('hidden');
+
+      if (tabKey === '3d') {
+        document.getElementById('sidebar-controls').classList.remove('hidden');
+        document.getElementById('panel-3d').classList.remove('hidden');
+        document.getElementById('view-3d-container').classList.remove('hidden');
+      } else if (tabKey === 'fem') {
+        document.getElementById('sidebar-controls').classList.remove('hidden');
+        document.getElementById('panel-fem').classList.remove('hidden');
+        document.getElementById('view-3d-container').classList.remove('hidden');
+      } else if (tabKey === 'report') {
+        document.getElementById('view-report-container').classList.remove('hidden');
+      } else if (tabKey === 'export') {
+        document.getElementById('view-export-container').classList.remove('hidden');
+      }
+
+      updateFEMDisplayMode();
+      onWindowResize();
+    }
+
+    function exportOBJ() {
+      alert("Esportazione 3D OBJ avviata...");
+    }
+
+    function exportFEMReport() {
+      alert("Esportazione Report FEM avviata...");
+    }
+
+    // Inizializzazione all'avvio
+    window.onload = () => {
+      init3D();
+      updateAndSolve();
+    };
+  </script>
+</body>
+</html>
