@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="it" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Filiere & Complessità Economica | DF & MV 2022</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        emerald: {
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card-hover:hover {
+            transform: translateY(-3px);
+            border-color: rgba(14, 165, 233, 0.4);
+            box-shadow: 0 12px 40px 0 rgba(14, 165, 233, 0.15);
+        }
+
+        .lego-brick {
+            position: relative;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            user-select: none;
+        }
+        .lego-brick::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 10%;
+            right: 10%;
+            height: 6px;
+            background: inherit;
+            filter: brightness(1.2);
+            border-radius: 3px 3px 0 0;
+            opacity: 0.8;
+        }
+        .lego-brick:hover {
+            transform: scale(1.04) translateY(-2px);
+        }
+
+        .scrabble-tile {
+            background: #fef3c7;
+            color: #78350f;
+            box-shadow: 0 4px 0 0 #d97706, 0 6px 10px rgba(0,0,0,0.3);
+            border-radius: 6px;
+            font-weight: 800;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .scrabble-tile .points {
+            position: absolute;
+            bottom: 2px;
+            right: 4px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: #92400e;
+        }
+
+        .pulse-glow {
+            animation: pulseGlow 2.5s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(14, 165, 233, 0.2); }
+            50% { box-shadow: 0 0 25px rgba(14, 165, 233, 0.6); }
+        }
+
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0ea5e9;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased">
+
+    <!-- Top Header & Metrics Dashboard Banner -->
+    <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-emerald-500 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg">
+                        <i class="fa-solid fa-cubes-stacked"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400">
+                            Simulatore Filiere & Complessità Economica
+                        </h1>
+                        <p class="text-xs text-slate-400 flex items-center gap-2">
+                            <span><i class="fa-regular fa-file-lines text-cyan-400"></i> Paper: D. Fontana & M. Vedovato (2022)</span>
+                            <span class="hidden sm:inline">•</span>
+                            <span class="hidden sm:inline text-slate-400">Atlas of Economic Complexity</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Top Bar Key Performance Indicators -->
+                <div class="flex items-center gap-3 sm:gap-6 bg-slate-950/60 py-2 px-4 rounded-xl border border-slate-800 text-xs sm:text-sm">
+                    <div class="text-center">
+                        <span class="text-slate-400 text-[10px] uppercase tracking-wider block">ECI Distrettuale</span>
+                        <span id="kpi-eci" class="font-bold text-cyan-400 text-base">2.84</span>
+                    </div>
+                    <div class="h-6 w-px bg-slate-800"></div>
+                    <div class="text-center">
+                        <span class="text-slate-400 text-[10px] uppercase tracking-wider block">PMI nel Cloud</span>
+                        <span id="kpi-pmi-count" class="font-bold text-emerald-400 text-base">142</span>
+                    </div>
+                    <div class="h-6 w-px bg-slate-800"></div>
+                    <div class="text-center">
+                        <span class="text-slate-400 text-[10px] uppercase tracking-wider block">Capability Ratio</span>
+                        <span id="kpi-capability" class="font-bold text-amber-400 text-base">88%</span>
+                    </div>
+                    <div class="h-6 w-px bg-slate-800"></div>
+                    <div class="text-center">
+                        <span class="text-slate-400 text-[10px] uppercase tracking-wider block">Tempo Reazione</span>
+                        <span id="kpi-speed" class="font-bold text-purple-400 text-base">7 giorni</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full space-y-10">
+
+        <!-- Hero Section & Conceptual Overview -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 glass-card rounded-2xl p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-semibold mb-4">
+                        <i class="fa-solid fa-brain"></i> Open Innovation & Ricomposizione Strategica
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-3">
+                        Dalla Rigidità di Filiera alla <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">Nuvola di Competenze</span>
+                    </h2>
+                    <p class="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
+                        In un contesto caratterizzato da shock geopolitici, emergenze sanitarie e transizioni ecologiche, la sostenibilità competitiva delle PMI non si misura sulla dimensione produttiva fissa (<span class="font-semibold text-amber-400">Capacity</span>), ma sulla capacità di reazione e ricombinazione delle competenze (<span class="font-semibold text-cyan-400">Capability</span>).
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-800/80">
+                    <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                        <div class="text-cyan-400 mb-1"><i class="fa-solid fa-puzzle-piece"></i> LEGO LSP</div>
+                        <p class="text-xs text-slate-400">Scomposizione della filiera in mattoncini di skill da ricombinare liberamente.</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                        <div class="text-amber-400 mb-1"><i class="fa-solid fa-spell-check"></i> Gioco Scarabeo</div>
+                        <p class="text-xs text-slate-400">Se mancano alcune "lettere" (fornitori), più competenze generano nuove soluzioni.</p>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50">
+                        <div class="text-emerald-400 mb-1"><i class="fa-solid fa-cloud"></i> Cloud di Distretto</div>
+                        <p class="text-xs text-slate-400">Rete di PMI con nessi di prossimità oltre la filiera rigida tradizionale.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theory Quote & Case Highlights Card -->
+            <div class="glass-card rounded-2xl p-6 flex flex-col justify-between border-l-4 border-l-cyan-500">
+                <div>
+                    <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+                        <i class="fa-solid fa-quote-left text-cyan-400"></i> Hausmann & Hidalgo (2014)
+                    </h3>
+                    <p class="text-xs text-slate-300 italic mb-4">
+                        "Tanto più un sistema economico è complesso, in termini di gamma produttiva e unicità delle produzioni, tanto più sarà competitivo e resiliente alle crisi."
+                    </p>
+                    <hr class="border-slate-800 my-4">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Casi Emblematici dal Paper</h4>
+                    <ul class="space-y-2 text-xs">
+                        <li class="flex items-start gap-2 text-slate-300">
+                            <i class="fa-solid fa-mask text-emerald-400 mt-0.5"></i>
+                            <span><strong class="text-white">Grafica Veneta & Moda:</strong> Riconversione rapida di macchinari da stampa/tessile in DPI e mascherine durante il lockdown.</span>
+                        </li>
+                        <li class="flex items-start gap-2 text-slate-300">
+                            <i class="fa-solid fa-satellite text-cyan-400 mt-0.5"></i>
+                            <span><strong class="text-white">Space Tech -> Agritech:</strong> Algoritmi spaziali applicati all'agricoltura di precisione distrettuale.</span>
+                        </li>
+                        <li class="flex items-start gap-2 text-slate-300">
+                            <i class="fa-solid fa-seedling text-amber-400 mt-0.5"></i>
+                            <span><strong class="text-white">Circular Agro-Paper:</strong> Riciclo degli scarti agricoli locali per la produzione di carta ecologica speciale.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+                    <span>Laboratorio Nord-Est PMI</span>
+                    <span class="text-cyan-400 font-medium">Modello Aperto & Flessibile</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 1: SIMULATORE ALGORITMICO DI RICOMPOSIZIONE FILIERE -->
+        <section id="simulator-section" class="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-3">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-cyan-500/20 text-cyan-400 text-sm">1</span>
+                        Simulatore di Shock & Ricomposizione Filiera
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                        Seleziona uno shock di mercato/supply chain e attiva/disattiva le PMI del distretto per valutare la risposta del sistema.
+                    </p>
+                </div>
+                <button onclick="resetSimulator()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition border border-slate-700 flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> Ripristina Scenario Standard
+                </button>
+            </div>
+
+            <!-- Shock Selector Buttons -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+                    <i class="fa-solid fa-bolt text-amber-400"></i> Seleziona uno Scenario di Crittografia / Shock Esterno:
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3" id="shock-selector-grid">
+                    <!-- Dynamic shock cards injected by JS -->
+                </div>
+            </div>
+
+            <!-- Active PMI Network Grid & Control Panel -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
+                
+                <!-- SME Selection Panel -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-building-user text-cyan-400"></i> Nuvola PMI Partecipanti al Laboratorio
+                        </h3>
+                        <span class="text-xs text-slate-400">Attiva/Disattiva nodi del distretto</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="pmi-list-grid">
+                        <!-- Dynamic list of PMI toggles -->
+                    </div>
+                </div>
+
+                <!-- Simulation Output Dashboard -->
+                <div class="glass-card rounded-xl p-5 border border-slate-700/60 flex flex-col justify-between space-y-4 bg-slate-900/80">
+                    <div>
+                        <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
+                            <i class="fa-solid fa-chart-line text-emerald-400"></i> Risultato Calcolo Algoritmo
+                        </h3>
+
+                        <!-- Progress Bar: Coverage -->
+                        <div class="space-y-2 mb-4">
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-300 font-medium">Copertura Fabbisogno Shock</span>
+                                <span id="sim-coverage-val" class="font-bold text-emerald-400">85%</span>
+                            </div>
+                            <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                                <div id="sim-coverage-bar" class="bg-gradient-to-r from-emerald-500 to-cyan-400 h-full transition-all duration-500" style="width: 85%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Stat Cards -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700/50">
+                                <span class="text-[10px] text-slate-400 block uppercase">Tempo di Reazione</span>
+                                <span id="sim-time-val" class="text-sm font-extrabold text-amber-400">12 Giorni</span>
+                            </div>
+                            <div class="p-3 bg-slate-800/60 rounded-lg border border-slate-700/50">
+                                <span class="text-[10px] text-slate-400 block uppercase">Indice Capability</span>
+                                <span id="sim-capability-val" class="text-sm font-extrabold text-cyan-400">High (8.6/10)</span>
+                            </div>
+                        </div>
+
+                        <!-- Feasible Products / Market Outputs -->
+                        <div class="mt-4">
+                            <span class="text-xs font-semibold text-slate-300 block mb-2">Nuovi Mercati / Prodotti Sbloccati:</span>
+                            <div id="sim-unlocked-tags" class="flex flex-wrap gap-1.5">
+                                <!-- Tags dynamically updated -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sim-alert-box" class="p-3 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-xs text-emerald-300 flex items-start gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5"></i>
+                        <span id="sim-alert-msg">La filiera distrettuale ricombinata soddisfa i vincoli dello shock atteso.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Flow Diagram: Rigid vs Agile Network -->
+            <div class="mt-6 pt-6 border-t border-slate-800">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center justify-between">
+                    <span><i class="fa-solid fa-diagram-project text-cyan-400"></i> Mappatura della Ricomposizione (Rete Tradizionale vs Cloud Flessibile)</span>
+                    <span class="text-[11px] text-slate-400 font-normal">Nodi attivi collegati da relazioni di prossimità tecnologica</span>
+                </h4>
+                
+                <div class="p-6 bg-slate-950/80 rounded-xl border border-slate-800 min-h-[200px] flex items-center justify-center relative overflow-hidden" id="network-visualizer-container">
+                    <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-6 text-center items-center relative z-10" id="network-nodes-flow">
+                        <!-- Dynamic node flow HTML -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: SCARABEO & LEGO SKILLS RECOMBINATOR LAB -->
+        <section id="recombinator-section" class="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
+            <div class="border-b border-slate-800 pb-4">
+                <h2 class="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-3">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20 text-emerald-400 text-sm">2</span>
+                    Laboratorio "Scarabeo & LEGO Serious Play"
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                    Trascina o clicca i "Mattoncini Competenza" per ricombinare la filiera e scoprire nuove opportunità di prodotto disruptive.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Available Skill Bricks (The LEGO / Scarabeo Rack) -->
+                <div class="lg:col-span-5 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
+                            <i class="fa-solid fa-cubes text-amber-400"></i> Mattoncini Competenza Disponibili
+                        </h3>
+                        <span class="text-[11px] text-slate-400">Clicca per aggiungere al banco</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5" id="skill-bricks-palette">
+                        <!-- Dynamic Skill Bricks injected by JS -->
+                    </div>
+
+                    <div class="p-3 rounded-lg bg-slate-800/40 border border-slate-700/40 text-xs text-slate-400">
+                        <i class="fa-solid fa-lightbulb text-amber-400 mr-1"></i>
+                        <strong>Metafora dello Scarabeo:</strong> Più competenze "lettera" sono censite nel cloud distrettuale, più "parole" (prodotti ad alta complessità) si possono comporre sul mercato!
+                    </div>
+                </div>
+
+                <!-- Workbench & Recombination Result Zone -->
+                <div class="lg:col-span-7 glass-card rounded-xl p-5 border border-cyan-500/30 bg-slate-900/90 flex flex-col justify-between space-y-6 relative">
+                    
+                    <div>
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-screwdriver-wrench text-cyan-400"></i> Banco di Ricomposizione Filiera
+                            </h3>
+                            <button onclick="clearWorkbench()" class="text-xs text-red-400 hover:text-red-300 font-semibold flex items-center gap-1">
+                                <i class="fa-solid fa-trash-can"></i> Svuota Banco
+                            </button>
+                        </div>
+
+                        <!-- Workbench Slot Tiles -->
+                        <div id="workbench-slots" class="min-h-[90px] p-3 bg-slate-950/70 rounded-xl border-2 border-dashed border-slate-700 flex flex-wrap items-center justify-center gap-3">
+                            <span class="text-slate-500 text-xs italic">Clicca sui mattoncini a sinistra per combinare le competenze...</span>
+                        </div>
+                    </div>
+
+                    <!-- Output Innovation Recipe Result Card -->
+                    <div id="recombination-result-card" class="p-5 rounded-xl bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700 space-y-3">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400 block" id="rec-category">Inattivo</span>
+                                <h4 class="text-lg font-bold text-white" id="rec-title">Seleziona almeno 2 competenze</h4>
+                            </div>
+                            <span id="rec-badge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                                In attesa
+                            </span>
+                        </div>
+
+                        <p class="text-xs text-slate-300 leading-relaxed" id="rec-description">
+                            Combina mattoncini tecnologici, materiali e di processo per attivare la simulazione dell'algoritmo di Open Innovation.
+                        </p>
+
+                        <div id="rec-case-study" class="hidden text-xs bg-amber-500/10 border border-amber-500/20 text-amber-300 p-2.5 rounded-lg flex items-start gap-2">
+                            <i class="fa-solid fa-star text-amber-400 mt-0.5"></i>
+                            <span id="rec-case-text"></span>
+                        </div>
+
+                        <!-- Policy Needs Highlight -->
+                        <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+                            <span><i class="fa-solid fa-handshake-angle text-emerald-400"></i> Policy / Regia richiesta:</span>
+                            <span id="rec-policy" class="font-semibold text-slate-200">Mappatura & Laboratorio</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Preset Real Cases Buttons -->
+                    <div class="pt-2">
+                        <span class="text-[11px] text-slate-400 font-semibold block mb-2">Carica Scenari Reali dal Paper:</span>
+                        <div class="flex flex-wrap gap-2">
+                            <button onclick="loadPreset('grafica')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-cyan-300 border border-cyan-500/20 transition">
+                                <i class="fa-solid fa-mask text-emerald-400 mr-1"></i> Grafica Veneta DPI
+                            </button>
+                            <button onclick="loadPreset('space')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-cyan-300 border border-cyan-500/20 transition">
+                                <i class="fa-solid fa-satellite text-cyan-400 mr-1"></i> Space -> Agritech
+                            </button>
+                            <button onclick="loadPreset('paper')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-cyan-300 border border-cyan-500/20 transition">
+                                <i class="fa-solid fa-leaf text-amber-400 mr-1"></i> Scarti -> Carta Eco
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: DASHBOARD ANALYTICS & COMPLEXITY CHARTS -->
+        <section id="analytics-section" class="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
+            <div class="border-b border-slate-800 pb-4">
+                <h2 class="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-3">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/20 text-purple-400 text-sm">3</span>
+                    Spazio delle Opportunità & Analytics (Atlas of Complexity)
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                    Confronto tra l'approccio rigido della "Singola PMI" vs la "Nuvola di Filiera Distrettuale".
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Radar Chart: Capabilities Comparison -->
+                <div class="glass-card rounded-xl p-5 border border-slate-800 flex flex-col items-center">
+                    <h3 class="text-sm font-bold text-white mb-2 self-start flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-cyan-400"></i> Profilo di Flessibilità & Unicità Competitiva
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4 self-start">Confronto multidimensionale di capacità di risposta</p>
+                    <div class="w-full h-64 sm:h-80 relative flex items-center justify-center">
+                        <canvas id="capabilityRadarChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Bar Chart: Reaction Time Under Shocks -->
+                <div class="glass-card rounded-xl p-5 border border-slate-800 flex flex-col items-center">
+                    <h3 class="text-sm font-bold text-white mb-2 self-start flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> Tempi di Reazione (Giorni per la Riconversione)
+                    </h3>
+                    <p class="text-xs text-slate-400 mb-4 self-start">Velocità di adattamento nei diversi scenari di shock</p>
+                    <div class="w-full h-64 sm:h-80 relative flex items-center justify-center">
+                        <canvas id="timeBarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conceptual Cards: Core Principles -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+                    <div class="text-amber-400 text-sm font-bold mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-scale-balanced"></i> Capability vs Capacity
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Nel mondo post-Covid e post-crisi energetica, la capacità installata fissa (capacity) cede il passo all'agilità nell'adattare le competenze disponibili (capability).
+                    </p>
+                </div>
+
+                <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+                    <div class="text-cyan-400 text-sm font-bold mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-network-wired"></i> Nessi di Prossimità
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        Le imprese della nuvola condivisa non sono necessariamente della stessa filiera tradizionale, ma condividono vicinanze tecnologiche e produttive riutilizzabili.
+                    </p>
+                </div>
+
+                <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+                    <div class="text-emerald-400 text-sm font-bold mb-1 flex items-center gap-2">
+                        <i class="fa-solid fa-share-nodes"></i> Data Sharing & Open Data
+                    </div>
+                    <p class="text-xs text-slate-300 leading-relaxed">
+                        La gestione integrata dei dati e la condivisione di Big Data tra imprese rendono il processo di ricomposizione automatico e trasparente.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: STRATEGIC ROADMAP IN 5 PHASES & EXPECTED OUTCOMES -->
+        <section id="roadmap-section" class="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
+            <div class="border-b border-slate-800 pb-4">
+                <h2 class="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-3">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400 text-sm">4</span>
+                    Roadmap Operativa in 5 Fasi & Risultati Attesi
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                    Il percorso metodologico sequenziale per l'attivazione dell'infrastruttura territoriale di ricomposizione.
+                </p>
+            </div>
+
+            <!-- 5 Phase Interactive Timeline -->
+            <div class="relative border-l-2 border-cyan-500/30 ml-4 sm:ml-6 space-y-8 py-2" id="roadmap-timeline">
+                
+                <!-- Phase 1 -->
+                <div class="relative pl-6 sm:pl-8 group">
+                    <div class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-slate-900 border-2 border-cyan-400 text-cyan-400 font-extrabold text-xs flex items-center justify-center shadow-md group-hover:scale-110 transition">
+                        1
+                    </div>
+                    <div class="glass-card rounded-xl p-4 border border-slate-800 hover:border-cyan-500/40 transition">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Fase Sequenziale 1</span>
+                        <h3 class="text-base font-bold text-white mt-0.5">Mappatura delle Filiere e del Territorio</h3>
+                        <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                            Mappatura di dettaglio territoriale (dai distretti locali alle Global Value Chains - GVC) sia in termini di singole imprese sia di competenze racchiuse (embedded) nelle persone e nei macchinari.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Phase 2 -->
+                <div class="relative pl-6 sm:pl-8 group">
+                    <div class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-slate-900 border-2 border-cyan-400 text-cyan-400 font-extrabold text-xs flex items-center justify-center shadow-md group-hover:scale-110 transition">
+                        2
+                    </div>
+                    <div class="glass-card rounded-xl p-4 border border-slate-800 hover:border-cyan-500/40 transition">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Fase Sequenziale 2</span>
+                        <h3 class="text-base font-bold text-white mt-0.5">Approfondimento Casi Studio Locali</h3>
+                        <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                            Analisi retrospettiva delle riconversioni avvenute con successo (Grafica Veneta, comparto moda/DPI, plexiglass, agritech) per identificare i fattori abilitanti della riconversione rapida.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Phase 3 -->
+                <div class="relative pl-6 sm:pl-8 group">
+                    <div class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-slate-900 border-2 border-cyan-400 text-cyan-400 font-extrabold text-xs flex items-center justify-center shadow-md group-hover:scale-110 transition">
+                        3
+                    </div>
+                    <div class="glass-card rounded-xl p-4 border border-slate-800 hover:border-cyan-500/40 transition">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-cyan-400">Fase Sequenziale 3</span>
+                        <h3 class="text-base font-bold text-white mt-0.5">Individuazione Partecipanti & Creazione Cloud PMI</h3>
+                        <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                            Selezione di PMI aperte alla sperimentazione. Creazione della "Nuvola delle Imprese" con nessi di prossimità tecnologica più ampi rispetto ai tradizionali confini di settore.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Phase 4 -->
+                <div class="relative pl-6 sm:pl-8 group">
+                    <div class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-slate-900 border-2 border-emerald-400 text-emerald-400 font-extrabold text-xs flex items-center justify-center shadow-md group-hover:scale-110 transition">
+                        4
+                    </div>
+                    <div class="glass-card rounded-xl p-4 border border-slate-800 hover:border-emerald-500/40 transition">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Fase Sequenziale 4</span>
+                        <h3 class="text-base font-bold text-white mt-0.5">Attivazione del Laboratorio (Lab Regia & Algoritmi)</h3>
+                        <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                            Creazione dell'infrastruttura condivisa (Laboratorio) con la presenza di registi/agevolatori, giovani talenti e algoritmi per la rappresentazione dello spazio della complessità.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Phase 5 -->
+                <div class="relative pl-6 sm:pl-8 group">
+                    <div class="absolute -left-[17px] top-0 w-8 h-8 rounded-full bg-slate-900 border-2 border-emerald-400 text-emerald-400 font-extrabold text-xs flex items-center justify-center shadow-md group-hover:scale-110 transition">
+                        5
+                    </div>
+                    <div class="glass-card rounded-xl p-4 border border-slate-800 hover:border-emerald-500/40 transition">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Fase Sequenziale 5</span>
+                        <h3 class="text-base font-bold text-white mt-0.5">Sessioni Interattive di Ricomposizione Opportunità</h3>
+                        <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                            Workshop periodici di Lego Serious Play e Open Data matching per risolvere emergenze di forniture, cogliere nuove nicchie di mercato internazionali ed accelerare scenari futuri.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Expected Results Grid -->
+            <div class="pt-6 border-t border-slate-800">
+                <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-award text-gold-400"></i> Risultati Attesi del Progetto
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                    <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                        <i class="fa-solid fa-shield-halved text-cyan-400 text-base mb-2 block"></i>
+                        <strong class="text-white block mb-1">Consapevolezza e Resilienza</strong>
+                        <span class="text-slate-400">Maggiore consapevolezza delle PMI nella gestione di sfide e shock complessi.</span>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                        <i class="fa-solid fa-door-open text-emerald-400 text-base mb-2 block"></i>
+                        <strong class="text-white block mb-1">Openness & Innovazione</strong>
+                        <span class="text-slate-400">Rafforzamento dell'attitudine al modello di Open Innovation autogenerata.</span>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                        <i class="fa-solid fa-dna text-amber-400 text-base mb-2 block"></i>
+                        <strong class="text-white block mb-1">Infrastruttura Quadrupla Elica</strong>
+                        <span class="text-slate-400">Integrazione permanente tra Imprese, Università, Giovani Talenti e Istituzioni.</span>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                        <i class="fa-solid fa-copy text-purple-400 text-base mb-2 block"></i>
+                        <strong class="text-white block mb-1">Replicabilità Modello</strong>
+                        <span class="text-slate-400">Format sperimentale scalabile ed esportabile in altri distretti o regioni europee.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800 py-6 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div>
+                <strong>Simulatore Filiere & Complessità Economica</strong> — Basato sul lavoro scientifico di Daniela Fontana & Marco Vedovato (Aprile 2022)
+            </div>
+            <div class="flex items-center gap-4 text-slate-400">
+                <span><i class="fa-solid fa-book-open mr-1"></i> Atlas of Economic Complexity</span>
+                <span><i class="fa-solid fa-cubes mr-1"></i> Lego LSP Metaphor</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Application Logic Script -->
+    <script>
+        // State variables
+        let currentShock = 'dpi_emergency';
+        let activeSMEs = ['pmi_tessile', 'pmi_grafica', 'pmi_meccanica', 'pmi_iot', 'pmi_chimica'];
+        let workbenchBricks = [];
+
+        // Data: Shock Scenarios
+        const SHOCK_SCENARIOS = [
+            {
+                id: 'dpi_emergency',
+                title: 'Emergenza Sanitaria / DPI',
+                icon: 'fa-hospital-user',
+                color: 'emerald',
+                desc: 'Shock da lockdown e forte domanda improvvisa di dispositivi di protezione individuali (Caso Grafica Veneta).',
+                reqSkills: ['TEXTILE', 'PRINTING', 'CERTIFICATION', 'E_COMMERCE'],
+                baseDays: 10
+            },
+            {
+                id: 'supply_breakdown',
+                title: 'Interruzione Supply Chain',
+                icon: 'fa-truck-ramp-box',
+                color: 'amber',
+                desc: 'Blocco imprevisto delle forniture estere di materie prime e semilavorati industriali.',
+                reqSkills: ['MECCANICA', 'STAMPA_3D', 'BIG_DATA', 'SERVITIZATION'],
+                baseDays: 14
+            },
+            {
+                id: 'esg_transition',
+                title: 'Svolta ESG & Scarti Zero',
+                icon: 'fa-leaf',
+                color: 'teal',
+                desc: 'Nuove direttive ambientali che impongono l\'uso di materiali ecologici e valorizzazione scarti.',
+                reqSkills: ['RECYCLING', 'CHIMICA', 'DESIGN', 'CERTIFICATION'],
+                baseDays: 18
+            },
+            {
+                id: 'space_agritech',
+                title: 'Space Tech -> Agritech',
+                icon: 'fa-satellite-dish',
+                color: 'cyan',
+                desc: 'Ricombinazione di competenze dall\'industria spaziale per la resilienza agricola distrettuale.',
+                reqSkills: ['BIG_DATA', 'IOT_SENSORS', 'MECCANICA', 'DESIGN'],
+                baseDays: 21
+            },
+            {
+                id: 'energy_crisis',
+                title: 'Crisi Energetica & Costi',
+                icon: 'fa-bolt-lightning',
+                color: 'purple',
+                desc: 'Necessità di efficientamento dei processi produttivi e introduzione di modelli servitizzati.',
+                reqSkills: ['SERVITIZATION', 'BIG_DATA', 'AUTOMATION', 'MECCANICA'],
+                baseDays: 12
+            }
+        ];
+
+        // Data: SMEs with embedded skills
+        const DISTRICT_SMES = [
+            {
+                id: 'pmi_tessile',
+                name: 'Tessile Tecnico Nord-Est',
+                skills: ['TEXTILE', 'CERTIFICATION'],
+                icon: 'fa-vest',
+                desc: 'Tessuti tecnici e filtrazione'
+            },
+            {
+                id: 'pmi_grafica',
+                name: 'Grafica & Cartotecnica',
+                skills: ['PRINTING', 'DESIGN', 'E_COMMERCE'],
+                icon: 'fa-print',
+                desc: 'Stampa ad alta velocità e packaging'
+            },
+            {
+                id: 'pmi_meccanica',
+                name: 'Meccanica di Precisione',
+                skills: ['MECCANICA', 'STAMPA_3D', 'AUTOMATION'],
+                icon: 'fa-gears',
+                desc: 'Lavorazione metalli e robotica'
+            },
+            {
+                id: 'pmi_iot',
+                name: 'Sensoristica IoT & Data',
+                skills: ['IOT_SENSORS', 'BIG_DATA'],
+                icon: 'fa-network-wired',
+                desc: 'Sensori, cloud e analisi dati'
+            },
+            {
+                id: 'pmi_chimica',
+                name: 'Chimica & Polimeri Eco',
+                skills: ['CHIMICA', 'RECYCLING'],
+                icon: 'fa-flask-vial',
+                desc: 'Materiali polimerici e recupero scarti'
+            },
+            {
+                id: 'pmi_servitiz',
+                name: 'Digital & Servitization Lab',
+                skills: ['SERVITIZATION', 'E_COMMERCE', 'BIG_DATA'],
+                icon: 'fa-laptop-code',
+                desc: 'Piattaforme di servizio e dati'
+            }
+        ];
+
+        // Data: Available Skill Bricks (LEGO / Scarabeo)
+        const SKILL_BRICKS = [
+            { id: 'TEXTILE', letter: 'T', name: 'Tessile Tecnico', color: 'bg-emerald-600', points: 3 },
+            { id: 'PRINTING', letter: 'G', name: 'Stampa / Taglio', color: 'bg-cyan-600', points: 2 },
+            { id: 'MECCANICA', letter: 'M', name: 'Meccanica Precisione', color: 'bg-blue-600', points: 4 },
+            { id: 'STAMPA_3D', letter: 'P', name: 'Prototipazione 3D', color: 'bg-indigo-600', points: 5 },
+            { id: 'IOT_SENSORS', letter: 'I', name: 'Sensoristica IoT', color: 'bg-purple-600', points: 6 },
+            { id: 'BIG_DATA', letter: 'D', name: 'Big Data Sharing', color: 'bg-amber-600', points: 7 },
+            { id: 'CHIMICA', letter: 'C', name: 'Polimeri & Chimica', color: 'bg-teal-600', points: 4 },
+            { id: 'RECYCLING', letter: 'R', name: 'Recupero Scarti', color: 'bg-lime-600', points: 5 },
+            { id: 'SERVITIZATION', letter: 'S', name: 'Servitization Model', color: 'bg-rose-600', points: 8 },
+            { id: 'DESIGN', letter: 'K', name: 'Design Made in Italy', color: 'bg-pink-600', points: 3 },
+            { id: 'E_COMMERCE', letter: 'E', name: 'E-Commerce Diretto', color: 'bg-violet-600', points: 4 },
+            { id: 'CERTIFICATION', letter: 'Q', name: 'Qualità & Normative', color: 'bg-sky-600', points: 6 }
+        ];
+
+        // Chart instances
+        let radarChartInstance = null;
+        let barChartInstance = null;
+
+        // DOM Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            renderShockSelectors();
+            renderPmiList();
+            renderSkillBricksPalette();
+            updateSimulation();
+            initCharts();
+        });
+
+        function renderShockSelectors() {
+            const container = document.getElementById('shock-selector-grid');
+            container.innerHTML = SHOCK_SCENARIOS.map(shock => {
+                const isActive = shock.id === currentShock;
+                const activeClass = isActive 
+                    ? 'border-cyan-400 bg-cyan-950/40 ring-2 ring-cyan-500/50' 
+                    : 'border-slate-800 bg-slate-900/60 hover:border-slate-700';
+                return `
+                    <div onclick="selectShock('${shock.id}')" class="p-3.5 rounded-xl border ${activeClass} cursor-pointer transition flex flex-col justify-between space-y-2">
+                        <div class="flex items-center justify-between">
+                            <i class="fa-solid ${shock.icon} text-${shock.color}-400 text-base"></i>
+                            ${isActive ? '<span class="w-2 h-2 rounded-full bg-cyan-400 pulse-glow"></span>' : ''}
+                        </div>
+                        <div>
+                            <strong class="text-xs text-white block font-bold">${shock.title}</strong>
+                            <p class="text-[10px] text-slate-400 line-clamp-2 mt-0.5">${shock.desc}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPmiList() {
+            const container = document.getElementById('pmi-list-grid');
+            container.innerHTML = DISTRICT_SMES.map(pmi => {
+                const isChecked = activeSMEs.includes(pmi.id);
+                return `
+                    <label class="p-3 rounded-xl border border-slate-800 bg-slate-950/60 hover:border-slate-700 cursor-pointer flex items-center justify-between transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-cyan-400 text-sm">
+                                <i class="fa-solid ${pmi.icon}"></i>
+                            </div>
+                            <div>
+                                <strong class="text-xs text-slate-200 block font-semibold">${pmi.name}</strong>
+                                <span class="text-[10px] text-slate-400 block">${pmi.desc}</span>
+                            </div>
+                        </div>
+                        <input type="checkbox" onchange="togglePMI('${pmi.id}')" ${isChecked ? 'checked' : ''} class="w-4 h-4 rounded text-cyan-500 focus:ring-cyan-400 bg-slate-900 border-slate-700">
+                    </label>
+                `;
+            }).join('');
+        }
+
+        function selectShock(shockId) {
+            currentShock = shockId;
+            renderShockSelectors();
+            updateSimulation();
+        }
+
+        function togglePMI(pmiId) {
+            if (activeSMEs.includes(pmiId)) {
+                activeSMEs = activeSMEs.filter(id => id !== pmiId);
+            } else {
+                activeSMEs.push(pmiId);
+            }
+            updateSimulation();
+        }
+
+        function resetSimulator() {
+            currentShock = 'dpi_emergency';
+            activeSMEs = ['pmi_tessile', 'pmi_grafica', 'pmi_meccanica', 'pmi_iot', 'pmi_chimica'];
+            renderShockSelectors();
+            renderPmiList();
+            updateSimulation();
+        }
+
+        function updateSimulation() {
+            const shock = SHOCK_SCENARIOS.find(s => s.id === currentShock);
+            
+            // Collect all skills from active SMEs
+            const availableSkills = new Set();
+            activeSMEs.forEach(smeId => {
+                const sme = DISTRICT_SMES.find(s => s.id === smeId);
+                if (sme) {
+                    sme.skills.forEach(sk => availableSkills.add(sk));
+                }
+            });
+
+            // Calculate skill match
+            const required = shock.reqSkills;
+            const matched = required.filter(sk => availableSkills.has(sk));
+            const coverageRatio = Math.round((matched.length / required.length) * 100);
+
+            // Calculate reaction speed (fewer missing skills = faster response)
+            const missingCount = required.length - matched.length;
+            const daysToMarket = shock.baseDays + (missingCount * 9);
+
+            // Update DOM KPIs
+            document.getElementById('sim-coverage-val').textContent = `${coverageRatio}%`;
+            document.getElementById('sim-coverage-bar').style.width = `${coverageRatio}%`;
+            document.getElementById('sim-time-val').textContent = `${daysToMarket} Giorni`;
+
+            const capIndex = (availableSkills.size / 12 * 10).toFixed(1);
+            document.getElementById('sim-capability-val').textContent = `${capIndex} / 10`;
+
+            // Unlocked products tags
+            const tagsContainer = document.getElementById('sim-unlocked-tags');
+            if (coverageRatio >= 75) {
+                tagsContainer.innerHTML = `
+                    <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px]">Filiera Integrata Resiliente</span>
+                    <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px]">Riconversione Rapida Sbloccata</span>
+                    <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px]">Fornitura Distrettuale</span>
+                `;
+                document.getElementById('sim-alert-box').className = "p-3 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-xs text-emerald-300 flex items-start gap-2";
+                document.getElementById('sim-alert-msg').textContent = "La rete di PMI attive garantisce una copertura ottimale dello shock!";
+            } else {
+                tagsContainer.innerHTML = `
+                    <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px]">Gaps Tecnologici Presenti</span>
+                    <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px]">Richiesta Integrazione Cloud</span>
+                `;
+                document.getElementById('sim-alert-box').className = "p-3 rounded-lg bg-rose-950/40 border border-rose-500/30 text-xs text-rose-300 flex items-start gap-2";
+                document.getElementById('sim-alert-msg').textContent = "Attenzione: competenze insufficienti. Attivare altre PMI nella Nuvola per colmare il gap!";
+            }
+
+            // Global KPI top bar sync
+            document.getElementById('kpi-pmi-count').textContent = activeSMEs.length * 28 + 2,
+            document.getElementById('kpi-capability').textContent = `${coverageRatio}%`;
+            document.getElementById('kpi-speed').textContent = `${daysToMarket}gg`;
+            document.getElementById('kpi-eci').textContent = (1.8 + (availableSkills.size * 0.12)).toFixed(2);
+
+            // Render visual nodes flow
+            renderNetworkVisualizer(shock, activeSMEs);
+            updateBarChart();
+        }
+
+        function renderNetworkVisualizer(shock, activeSmeIds) {
+            const container = document.getElementById('network-nodes-flow');
+            container.innerHTML = `
+                <!-- Step 1: Shock Input -->
+                <div class="flex flex-col items-center">
+                    <div class="w-12 h-12 rounded-full bg-amber-500/20 border border-amber-500/50 flex items-center justify-center text-amber-400 font-bold text-lg mb-2">
+                        <i class="fa-solid ${shock.icon}"></i>
+                    </div>
+                    <span class="text-xs font-bold text-slate-200">${shock.title}</span>
+                    <span class="text-[10px] text-amber-400">Domanda di Shock</span>
+                </div>
+
+                <!-- Step 2: Cloud Network Recombination -->
+                <div class="flex flex-col items-center my-4 md:my-0">
+                    <div class="p-3 rounded-xl bg-slate-900 border border-cyan-500/40 flex flex-wrap justify-center gap-1.5 max-w-[220px]">
+                        ${activeSmeIds.map(id => {
+                            const sme = DISTRICT_SMES.find(s => s.id === id);
+                            return `<span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-700/50 text-[10px]"><i class="fa-solid ${sme.icon} mr-1"></i>${sme.name.split(' ')[0]}</span>`;
+                        }).join('')}
+                    </div>
+                    <span class="text-[10px] text-slate-400 mt-2"><i class="fa-solid fa-arrows-spin text-cyan-400"></i> Ricomposizione Algoritmica</span>
+                </div>
+
+                <!-- Step 3: Recomposed Solution -->
+                <div class="flex flex-col items-center">
+                    <div class="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-500/50 flex items-center justify-center text-emerald-400 font-bold text-lg mb-2">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <span class="text-xs font-bold text-slate-200">Nuova Filiera Sbloccata</span>
+                    <span class="text-[10px] text-emerald-400 font-semibold">Prodotto Flessibile Pronto</span>
+                </div>
+            `;
+        }
+
+        function renderSkillBricksPalette() {
+            const container = document.getElementById('skill-bricks-palette');
+            container.innerHTML = SKILL_BRICKS.map(brick => {
+                return `
+                    <div onclick="addBrickToWorkbench('${brick.id}')" class="lego-brick ${brick.color} p-2.5 rounded-lg text-white shadow-md flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="scrabble-tile w-7 h-7 text-xs flex items-center justify-center">
+                                ${brick.letter}
+                                <span class="points">${brick.points}</span>
+                            </span>
+                            <span class="text-xs font-bold truncate max-w-[110px]">${brick.name}</span>
+                        </div>
+                        <i class="fa-solid fa-plus text-xs opacity-70"></i>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function addBrickToWorkbench(brickId) {
+            if (workbenchBricks.includes(brickId)) return;
+            if (workbenchBricks.length >= 5) {
+                alert("Puoi combinare un massimo di 5 mattoncini contemporaneamente.");
+                return;
+            }
+            workbenchBricks.push(brickId);
+            renderWorkbench();
+            evaluateRecombination();
+        }
+
+        function removeBrickFromWorkbench(brickId) {
+            workbenchBricks = workbenchBricks.filter(id => id !== brickId);
+            renderWorkbench();
+            evaluateRecombination();
+        }
+
+        function clearWorkbench() {
+            workbenchBricks = [];
+            renderWorkbench();
+            evaluateRecombination();
+        }
+
+        function renderWorkbench() {
+            const container = document.getElementById('workbench-slots');
+            if (workbenchBricks.length === 0) {
+                container.innerHTML = `<span class="text-slate-500 text-xs italic">Clicca sui mattoncini a sinistra per combinare le competenze...</span>`;
+                return;
+            }
+
+            container.innerHTML = workbenchBricks.map(id => {
+                const brick = SKILL_BRICKS.find(b => b.id === id);
+                return `
+                    <div onclick="removeBrickFromWorkbench('${brick.id}')" class="lego-brick ${brick.color} px-3 py-2 rounded-lg text-white shadow-lg flex items-center gap-2 group">
+                        <span class="scrabble-tile w-6 h-6 text-xs flex items-center justify-center">
+                            ${brick.letter}
+                            <span class="points">${brick.points}</span>
+                        </span>
+                        <span class="text-xs font-bold">${brick.name}</span>
+                        <i class="fa-solid fa-xmark text-xs opacity-80 group-hover:text-red-300"></i>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function evaluateRecombination() {
+            const titleEl = document.getElementById('rec-title');
+            const catEl = document.getElementById('rec-category');
+            const descEl = document.getElementById('rec-description');
+            const caseEl = document.getElementById('rec-case-study');
+            const caseText = document.getElementById('rec-case-text');
+            const badgeEl = document.getElementById('rec-badge');
+            const policyEl = document.getElementById('rec-policy');
+
+            if (workbenchBricks.length < 2) {
+                catEl.textContent = "Inattivo";
+                titleEl.textContent = "Seleziona almeno 2 competenze";
+                descEl.textContent = "Combina mattoncini tecnologici, materiali e di processo per attivare la simulazione dell'algoritmo di Open Innovation.";
+                caseEl.classList.add('hidden');
+                badgeEl.textContent = "In attesa";
+                badgeEl.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-400 border border-slate-700";
+                policyEl.textContent = "Mappatura & Laboratorio";
+                return;
+            }
+
+            const has = (id) => workbenchBricks.includes(id);
+
+            // Case 1: Grafica Veneta DPI / Mask Case
+            if (has('PRINTING') && has('TEXTILE')) {
+                catEl.textContent = "Riconversione da Lockdown / DPI";
+                titleEl.textContent = "Produzione Industriale Mascherine e DPI Certificati";
+                descEl.textContent = "Grafica e taglio ad alta velocità combinati con tessuti tecnici filtanti per la produzione immediata di mascherine su larga scala.";
+                caseEl.classList.remove('hidden');
+                caseText.textContent = "Caso Reale: Grafica Veneta e distretto moda durante l'emergenza COVID-19 (Paper p. 2).";
+                badgeEl.textContent = "Caso Reale PAPER";
+                badgeEl.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+                policyEl.textContent = "Fast-track Certificazioni Sanitarie";
+                return;
+            }
+
+            // Case 2: Space Economy -> Precision Agriculture
+            if (has('BIG_DATA') && has('IOT_SENSORS')) {
+                catEl.textContent = "Cross-Sector Innovation";
+                titleEl.textContent = "Sistemi di Agricoltura di Precisione (Space Tech)";
+                descEl.textContent = "Integrazione tra dati satellitari, algoritmi di calcolo e sensoristica IoT su macchine agricole di precisione.";
+                caseEl.classList.remove('hidden');
+                caseText.textContent = "Caso Reale: Connessione tra Space Economy ed Agricoltura di Precisione distrettuale (Paper p. 4).";
+                badgeEl.textContent = "Caso Reale PAPER";
+                badgeEl.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40";
+                policyEl.textContent = "Infrastruttura Open Data & Cloud";
+                return;
+            }
+
+            // Case 3: Circular Economy Agro-Paper
+            if (has('RECYCLING') && has('CHIMICA')) {
+                catEl.textContent = "Economia Circolare ESG";
+                titleEl.textContent = "Carta Ecologica Speciale da Scarti Agricoli";
+                descEl.textContent = "Processi chimici di estrazione e riciclo degli scarti delle lavorazioni agricole locali trasformati in materiale cartaceo eco-sostenibile.";
+                caseEl.classList.remove('hidden');
+                caseText.textContent = "Caso Reale: Transizione da scarto agricolo a carta ecologica speciale (Paper p. 4).";
+                badgeEl.textContent = "Caso Reale PAPER";
+                badgeEl.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40";
+                policyEl.textContent = "Incentivi Circolarità & Transizione Ecologica";
+                return;
+            }
+
+            // Generic Innovation Recipe Generator
+            catEl.textContent = "Nuova Ricomposizione Generata";
+            titleEl.textContent = `Soluzione Integrata Multi-Competenza (${workbenchBricks.length} Skills)`;
+            descEl.textContent = "L'algoritmo ha individuato un nuovo nesso di prossimità ad alta complessità che incrementa l'Indice di Complessità Economica (ECI) del distretto.";
+            caseEl.classList.add('hidden');
+            badgeEl.textContent = "Innovazione Disruptive";
+            badgeEl.className = "px-2.5 py-1 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/40";
+            policyEl.textContent = "Agevolazione Laboratorio di Regia";
+        }
+
+        function loadPreset(key) {
+            if (key === 'grafica') {
+                workbenchBricks = ['PRINTING', 'TEXTILE', 'CERTIFICATION'];
+            } else if (key === 'space') {
+                workbenchBricks = ['BIG_DATA', 'IOT_SENSORS', 'MECCANICA'];
+            } else if (key === 'paper') {
+                workbenchBricks = ['RECYCLING', 'CHIMICA', 'DESIGN'];
+            }
+            renderWorkbench();
+            evaluateRecombination();
+        }
+
+        function initCharts() {
+            // Radar Chart
+            const ctxRadar = document.getElementById('capabilityRadarChart').getContext('2d');
+            radarChartInstance = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Flessibilità', 'Velocità Reazione', 'Profondità Tecnologica', 'Unicità Prodotto', 'Resilienza Shock', 'Diversificazione'],
+                    datasets: [
+                        {
+                            label: 'Approccio Singola PMI Tradizionale',
+                            data: [40, 35, 60, 50, 30, 25],
+                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                            borderColor: 'rgba(239, 68, 68, 0.8)',
+                            borderWidth: 2,
+                        },
+                        {
+                            label: 'Cloud di Filiera Distrettuale (Ricomposta)',
+                            data: [90, 85, 92, 88, 95, 90],
+                            backgroundColor: 'rgba(14, 165, 233, 0.25)',
+                            borderColor: 'rgba(14, 165, 233, 1)',
+                            borderWidth: 2.5,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            pointLabels: { color: '#94a3b8', font: { size: 10 } },
+                            ticks: { display: false, backdropColor: 'transparent' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#f8fafc', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+
+            // Bar Chart
+            const ctxBar = document.getElementById('timeBarChart').getContext('2d');
+            barChartInstance = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: ['Emergenza DPI', 'Supply Breakdown', 'Svolta ESG', 'Space Tech', 'Crisi Energetica'],
+                    datasets: [
+                        {
+                            label: 'Filiera Rigida Tradizionale (Giorni)',
+                            data: [90, 120, 150, 180, 100],
+                            backgroundColor: '#f43f5e'
+                        },
+                        {
+                            label: 'Nuvola Cloud Ricomposta (Giorni)',
+                            data: [10, 14, 18, 21, 12],
+                            backgroundColor: '#10b981'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8', font: { size: 10 } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#94a3b8' },
+                            title: { display: true, text: 'Giorni di Conversione', color: '#64748b', font: { size: 11 } }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#f8fafc', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateBarChart() {
+            if (!barChartInstance) return;
+            const shock = SHOCK_SCENARIOS.find(s => s.id === currentShock);
+            const index = SHOCK_SCENARIOS.findIndex(s => s.id === currentShock);
+            
+            // Calculate dynamic days based on active SMEs
+            const availableSkills = new Set();
+            activeSMEs.forEach(smeId => {
+                const sme = DISTRICT_SMES.find(s => s.id === smeId);
+                if (sme) sme.skills.forEach(sk => availableSkills.add(sk));
+            });
+            const matched = shock.reqSkills.filter(sk => availableSkills.has(sk));
+            const days = shock.baseDays + ((shock.reqSkills.length - matched.length) * 9);
+
+            barChartInstance.data.datasets[1].data[index] = days;
+            barChartInstance.update();
+        }
+    </script>
+</body>
+</html>
