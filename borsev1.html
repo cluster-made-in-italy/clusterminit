@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="it" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le 30 Borse Più Iconiche al Mondo | Enciclopedia, Cartamodelli e Analisi 2D/3D</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            DEFAULT: '#D4AF37',
+                            light: '#F3E5AB',
+                            dark: '#AA820A',
+                            glow: 'rgba(212, 175, 55, 0.35)'
+                        },
+                        obsidian: {
+                            900: '#0A0A0C',
+                            800: '#121216',
+                            700: '#1A1A22',
+                            600: '#262632'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Playfair Display', 'Georgia', 'serif'],
+                        sans: ['Plus Jakarta Sans', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Three.js CDN for 3D Interactive Visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Chart.js CDN for 2D Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        body {
+            background-color: #0A0A0C;
+            color: #F3F3F5;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #FFF099 0%, #D4AF37 50%, #997A15 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-border-glow {
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .gold-border-glow:hover {
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.35);
+            border-color: rgba(212, 175, 55, 0.7);
+        }
+
+        .glass-panel {
+            background: rgba(18, 18, 22, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0A0A0C;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #262632;
+            border-radius: 4px;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #D4AF37;
+        }
+
+        .pattern-canvas-grid {
+            background-size: 20px 20px;
+            background-image: 
+                linear-gradient(to right, rgba(212, 175, 55, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(212, 175, 55, 0.05) 1px, transparent 1px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+    <!-- NAVIGATION BAR -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-obsidian-700/80 px-4 lg:px-8 py-3 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchSection('enciclopedia')">
+                <div class="w-10 h-10 rounded-full border border-gold flex items-center justify-center bg-obsidian-800 shadow-md shadow-gold/20">
+                    <svg class="w-5 h-5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-serif text-lg lg:text-xl font-bold tracking-wide gold-gradient-text">ARCHIVIO BORSE ICONICHE</h1>
+                    <p class="text-xs text-zinc-400 tracking-wider uppercase font-medium">Enciclopedia • Cartamodelli • Analisi 2D/3D</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="flex items-center bg-obsidian-900/90 p-1.5 rounded-full border border-obsidian-700">
+                <button id="nav-enciclopedia" onclick="switchSection('enciclopedia')" 
+                    class="nav-btn px-5 py-2 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 bg-gold text-obsidian-900 shadow-md">
+                    1. Enciclopedia (30)
+                </button>
+                <button id="nav-cartamodelli" onclick="switchSection('cartamodelli')" 
+                    class="nav-btn px-5 py-2 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 text-zinc-300 hover:text-gold">
+                    2. Cartamodelli & Technical
+                </button>
+                <button id="nav-analisi" onclick="switchSection('analisi')" 
+                    class="nav-btn px-5 py-2 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 text-zinc-300 hover:text-gold">
+                    3. Spazio 2D / 3D
+                </button>
+            </nav>
+
+            <!-- Quick Counter Badge -->
+            <div class="hidden lg:flex items-center space-x-2 text-xs text-zinc-400 bg-obsidian-800/80 px-3 py-1.5 rounded-lg border border-obsidian-700">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>30/30 Modelli Mappati</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 lg:px-8 py-8">
+
+        <!-- ========================================== -->
+        <!-- SEZIONE 1: ENCICLOPEDIA LANDING PAGE -->
+        <!-- ========================================== -->
+        <section id="section-enciclopedia" class="space-y-8 transition-opacity duration-500">
+            
+            <!-- Hero Header -->
+            <div class="text-center max-w-3xl mx-auto space-y-4 pt-4">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-gold/10 border border-gold/30 text-gold text-xs font-semibold tracking-widest uppercase">
+                    <span>Alta Pelletteria & Design Storico</span>
+                </div>
+                <h2 class="font-serif text-3xl md:text-5xl font-bold text-white leading-tight">
+                    Le 30 Borse Che Hanno <span class="gold-gradient-text italic">Riscritto la Moda</span>
+                </h2>
+                <p class="text-zinc-400 text-sm md:text-base leading-relaxed">
+                    Esplora la scheda tecnica dettagliata, i materiali d'eccellenza, le misure esatte, la storia sociale e i segreti costruttivi dei 30 capolavori di pelletteria più influenti al mondo.
+                </p>
+            </div>
+
+            <!-- Filters & Search Toolbar -->
+            <div class="glass-panel p-4 md:p-6 rounded-2xl space-y-4 gold-border-glow">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <!-- Search Text -->
+                    <div class="relative md:col-span-2">
+                        <svg class="w-5 h-5 absolute left-3.5 top-3.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input type="text" id="filter-search" oninput="applyFilters()" placeholder="Cerca borsa, maison, materiale o dettaglio..." 
+                            class="w-full bg-obsidian-900 text-sm text-white pl-10 pr-4 py-3 rounded-xl border border-obsidian-700 focus:border-gold focus:outline-none transition-colors">
+                    </div>
+
+                    <!-- Brand Filter -->
+                    <div>
+                        <select id="filter-brand" onchange="applyFilters()" class="w-full bg-obsidian-900 text-sm text-zinc-300 px-4 py-3 rounded-xl border border-obsidian-700 focus:border-gold focus:outline-none transition-colors">
+                            <option value="ALL">Tutte le Maison (Brand)</option>
+                        </select>
+                    </div>
+
+                    <!-- Decade Filter -->
+                    <div>
+                        <select id="filter-decade" onchange="applyFilters()" class="w-full bg-obsidian-900 text-sm text-zinc-300 px-4 py-3 rounded-xl border border-obsidian-700 focus:border-gold focus:outline-none transition-colors">
+                            <option value="ALL">Tutti i Decenni</option>
+                            <option value="1930-1959">1930 - 1959 (I Classici Storici)</option>
+                            <option value="1960-1989">1960 - 1989 (L'Era delle Icone)</option>
+                            <option value="1990-2009">1990 - 2009 (L'Epoca delle It-Bag)</option>
+                            <option value="2010-2025">2010 - Oggi (Il Design Contemporaneo)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Active Count & Fast Reset -->
+                <div class="flex items-center justify-between text-xs text-zinc-400 pt-2 border-t border-obsidian-700/60">
+                    <span id="filter-result-count">Visualizzazione di 30 borse su 30</span>
+                    <button onclick="resetFilters()" class="hover:text-gold transition-colors flex items-center space-x-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <span>Reimposta Filtri</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bags Grid Container -->
+            <div id="bags-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamically populated via JS -->
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SEZIONE 2: SCHEDE TECNICHE & CARTAMODELLI -->
+        <!-- ========================================== -->
+        <section id="section-cartamodelli" class="hidden space-y-8 transition-opacity duration-500">
+            
+            <!-- Section Header -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-obsidian-800/80 p-6 rounded-2xl border border-obsidian-700">
+                <div>
+                    <span class="text-xs font-semibold text-gold tracking-widest uppercase">Laboratorio di Pelletteria Avanzata</span>
+                    <h2 class="font-serif text-2xl md:text-3xl font-bold text-white mt-1">Scheda Tecnica & Cartamodello Vettoriale</h2>
+                    <p class="text-sm text-zinc-400 mt-1">Seleziona un modello per analizzare lo sviluppo in piano, i pezzi di taglio, le tolleranze e la sequenza di assemblaggio.</p>
+                </div>
+
+                <!-- Bag Selector Dropdown -->
+                <div class="w-full md:w-80">
+                    <label class="block text-xs font-medium text-zinc-400 mb-1">Seleziona Modello Borsa:</label>
+                    <select id="pattern-bag-select" onchange="loadBagPattern(this.value)" class="w-full bg-obsidian-900 text-gold text-sm font-semibold px-4 py-3 rounded-xl border border-gold/40 focus:outline-none">
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Pattern & Blueprint Visualizer Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- Left Column: Interactive Vector Pattern Blueprint (7 Cols) -->
+                <div class="lg:col-span-7 glass-panel p-6 rounded-2xl border border-obsidian-700 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-3 h-3 rounded-full bg-gold"></div>
+                            <h3 class="font-serif text-lg font-bold text-white">Sviluppo Cartamodello (Blueprint Vettoriale)</h3>
+                        </div>
+                        <button onclick="toggleExplodedPattern()" id="btn-explode-pattern" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gold/20 text-gold border border-gold/40 hover:bg-gold hover:text-obsidian-900 transition-all">
+                            Simula Esploso Pezzi 2D
+                        </button>
+                    </div>
+
+                    <!-- Canvas Container for Pattern SVG -->
+                    <div id="pattern-canvas-container" class="relative w-full h-[450px] bg-obsidian-900/90 rounded-xl border border-obsidian-700 pattern-canvas-grid overflow-hidden flex items-center justify-center p-4">
+                        <svg id="pattern-svg" class="w-full h-full transition-all duration-700" viewBox="0 0 600 400">
+                            <!-- Populated dynamically via JS -->
+                        </svg>
+                        <!-- Floating Info Tag -->
+                        <div class="absolute bottom-3 left-3 bg-obsidian-800/90 text-[10px] text-zinc-400 px-3 py-1.5 rounded-md border border-obsidian-700">
+                            Scala Proporzionale 1:1 • Tratti = Cuciture • Linee continue = Taglio Pelle
+                        </div>
+                    </div>
+
+                    <!-- List of Pattern Pieces -->
+                    <div class="space-y-2">
+                        <h4 class="text-xs font-semibold uppercase text-gold tracking-wider">Pezzi di Taglio Inclusi nel Cartamodello:</h4>
+                        <div id="pattern-pieces-list" class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Extended Technical Leather Specs (5 Cols) -->
+                <div class="lg:col-span-5 space-y-6">
+                    
+                    <!-- Material & Thickness Spec Card -->
+                    <div class="glass-panel p-6 rounded-2xl border border-obsidian-700 space-y-4">
+                        <h3 class="font-serif text-lg font-bold text-white text-gold">Distinta Base & Spessori (Technical Specs)</h3>
+                        
+                        <div class="space-y-3 text-xs">
+                            <div class="flex justify-between pb-2 border-b border-obsidian-700">
+                                <span class="text-zinc-400">Pelle Principale Outer:</span>
+                                <span id="tech-outer-leather" class="font-medium text-white text-right">-</span>
+                            </div>
+                            <div class="flex justify-between pb-2 border-b border-obsidian-700">
+                                <span class="text-zinc-400">Spessore Consigliato Pelle:</span>
+                                <span id="tech-leather-thickness" class="font-semibold text-gold text-right">-</span>
+                            </div>
+                            <div class="flex justify-between pb-2 border-b border-obsidian-700">
+                                <span class="text-zinc-400">Rinforzi Interni (Salpa/Tucson):</span>
+                                <span id="tech-reinforcements" class="font-medium text-white text-right">-</span>
+                            </div>
+                            <div class="flex justify-between pb-2 border-b border-obsidian-700">
+                                <span class="text-zinc-400">Fodera Interna (Lining):</span>
+                                <span id="tech-lining" class="font-medium text-white text-right">-</span>
+                            </div>
+                            <div class="flex justify-between pb-2 border-b border-obsidian-700">
+                                <span class="text-zinc-400">Minuterie & Hardware Metallico:</span>
+                                <span id="tech-hardware" class="font-medium text-white text-right">-</span>
+                            </div>
+                            <div class="flex justify-between pb-2 border-b border-obsidian-700">
+                                <span class="text-zinc-400">Dimensioni Esterne Reali:</span>
+                                <span id="tech-dimensions" class="font-semibold text-white text-right">-</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-zinc-400">Tolleranza Taglio / Margine Cucitura:</span>
+                                <span class="font-medium text-emerald-400 text-right">4.0 mm dal bordo (Passo 3.8mm)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step-by-Step Artisanal Operational Sequence -->
+                    <div class="glass-panel p-6 rounded-2xl border border-obsidian-700 space-y-4">
+                        <h3 class="font-serif text-lg font-bold text-white">Sequenza Operativa di Assemblaggio</h3>
+                        <div id="assembly-steps-container" class="space-y-3 text-xs text-zinc-300 max-h-[220px] overflow-y-auto pr-2">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- SEZIONE 3: SPAZIO ANALISI 2D & 3D -->
+        <!-- ========================================== -->
+        <section id="section-analisi" class="hidden space-y-8 transition-opacity duration-500">
+            
+            <!-- Sub-nav bar for 2D vs 3D -->
+            <div class="flex items-center justify-between border-b border-obsidian-700 pb-4">
+                <div>
+                    <span class="text-xs font-semibold text-gold tracking-widest uppercase">Analisi Matematica & Parametrica</span>
+                    <h2 class="font-serif text-2xl md:text-3xl font-bold text-white">Spazio Analitico Bi e Tridimensionale</h2>
+                </div>
+
+                <div class="flex items-center space-x-2 bg-obsidian-900 p-1 rounded-xl border border-obsidian-700">
+                    <button onclick="switchAnalysisSubTab('2d')" id="subnav-2d" class="px-4 py-2 rounded-lg text-xs font-semibold bg-gold text-obsidian-900 transition-all">
+                        Grafici 2D (Cartesiano & Radar)
+                    </button>
+                    <button onclick="switchAnalysisSubTab('3d')" id="subnav-3d" class="px-4 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-all">
+                        Universo 3D Interattivo (Three.js)
+                    </button>
+                </div>
+            </div>
+
+            <!-- SUB-TAB 1: 2D CARTESIANO & RADAR CHART -->
+            <div id="analysis-sub-2d" class="space-y-8">
+                
+                <!-- Controls for 2D Scatter Axis Selection -->
+                <div class="glass-panel p-5 rounded-2xl border border-obsidian-700 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                    <div>
+                        <label class="block text-xs text-zinc-400 mb-1 font-semibold">Asse X (Orizzontale):</label>
+                        <select id="axis-x-select" onchange="update2DScatterChart()" class="w-full bg-obsidian-900 text-sm text-gold px-3 py-2.5 rounded-xl border border-obsidian-700 focus:outline-none">
+                            <option value="year">Anno di Creazione (Epoca)</option>
+                            <option value="volume">Capienza In Litri (Volume)</option>
+                            <option value="craftHours" selected>Ore di Lavorazione Artigianale</option>
+                            <option value="formality">Grado di Formalità (1 - 100)</option>
+                            <option value="rigidity">Livello di Rigidità Strutturale (1 - 10)</option>
+                            <option value="versatility">Indice di Versatilità Usabile (1 - 100)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-zinc-400 mb-1 font-semibold">Asse Y (Verticale):</label>
+                        <select id="axis-y-select" onchange="update2DScatterChart()" class="w-full bg-obsidian-900 text-sm text-gold px-3 py-2.5 rounded-xl border border-obsidian-700 focus:outline-none">
+                            <option value="year">Anno di Creazione (Epoca)</option>
+                            <option value="volume" selected>Capienza In Litri (Volume)</option>
+                            <option value="craftHours">Ore di Lavorazione Artigianale</option>
+                            <option value="formality">Grado di Formalità (1 - 100)</option>
+                            <option value="rigidity">Livello di Rigidità Strutturale (1 - 10)</option>
+                            <option value="versatility">Indice di Versatilità Usabile (1 - 100)</option>
+                        </select>
+                    </div>
+
+                    <div class="text-xs text-zinc-400 bg-obsidian-900/60 p-3 rounded-xl border border-obsidian-800">
+                        <span class="text-gold font-semibold">Istruzioni:</span> Passa il mouse sopra i punti del grafico per visualizzare la scheda rapida con l'immagine e i parametri esatti della borsa.
+                    </div>
+                </div>
+
+                <!-- Canvas Scatter Plot Container -->
+                <div class="glass-panel p-6 rounded-2xl border border-obsidian-700 h-[450px] relative">
+                    <canvas id="chart-2d-scatter" class="w-full h-full"></canvas>
+                </div>
+
+                <!-- Radar Comparison Section -->
+                <div class="glass-panel p-6 rounded-2xl border border-obsidian-700 space-y-4">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h3 class="font-serif text-lg font-bold text-white">Confronto Radar tra Due Borse</h3>
+                            <p class="text-xs text-zinc-400">Seleziona due modelli per comparare il profilo prestazionale su 5 dimensioni chiave.</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <select id="radar-bag-1" onchange="updateRadarChart()" class="bg-obsidian-900 text-xs text-amber-400 px-3 py-2 rounded-xl border border-amber-500/40 focus:outline-none">
+                                <!-- Populated via JS -->
+                            </select>
+                            <span class="text-xs text-zinc-500">vs</span>
+                            <select id="radar-bag-2" onchange="updateRadarChart()" class="bg-obsidian-900 text-xs text-sky-400 px-3 py-2 rounded-xl border border-sky-500/40 focus:outline-none">
+                                <!-- Populated via JS -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="h-[350px] flex items-center justify-center">
+                        <canvas id="chart-radar" class="max-h-full"></canvas>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SUB-TAB 2: UNIVERSO 3D INTERATTIVO (THREE.JS) -->
+            <div id="analysis-sub-3d" class="hidden space-y-6">
+                
+                <!-- 3D Scene Controls Header -->
+                <div class="glass-panel p-4 rounded-2xl border border-obsidian-700 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex items-center space-x-4">
+                        <div>
+                            <span class="text-xs text-zinc-400 font-medium">Preset Spaziale 3D:</span>
+                            <select id="preset-3d-select" onchange="update3dPreset(this.value)" class="block bg-obsidian-900 text-gold text-xs font-semibold px-3 py-2 rounded-xl border border-gold/40 mt-1 focus:outline-none">
+                                <option value="p1">3D Standard: Volume (X) vs Formalità (Y) vs Anno (Z)</option>
+                                <option value="p2">3D Artigianale: Ore Lavoro (X) vs Versatilità (Y) vs Rigidità (Z)</option>
+                                <option value="p3">3D Cronologico: Anno (X) vs Volume (Y) vs Formalità (Z)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="text-xs text-zinc-400 flex items-center space-x-4">
+                        <div class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span><span>Asse X (Rosso)</span></div>
+                        <div class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>Asse Y (Verde)</span></div>
+                        <div class="flex items-center space-x-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span><span>Asse Z (Blu)</span></div>
+                    </div>
+                </div>
+
+                <!-- Three.js Viewport Container -->
+                <div class="relative w-full h-[600px] bg-obsidian-900 rounded-2xl border border-gold/30 overflow-hidden shadow-2xl">
+                    
+                    <!-- Canvas element where Three.js renders -->
+                    <div id="threejs-canvas-container" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+
+                    <!-- On-Screen 3D Interaction Hints -->
+                    <div class="absolute top-4 left-4 bg-obsidian-800/90 backdrop-blur-md px-3 py-2 rounded-xl border border-obsidian-700 text-[11px] text-zinc-300 space-y-1">
+                        <p class="text-gold font-bold">Controlli 3D:</p>
+                        <p>• <b>Click Sinistro + Trascina:</b> Ruota la vista nello spazio</p>
+                        <p>• <b>Rotellina Mouse:</b> Zoom In / Zoom Out</p>
+                        <p>• <b>Click Singolo su Nodo Sfera:</b> Seleziona Borsa</p>
+                    </div>
+
+                    <!-- Floating 3D Detail Glass Panel -->
+                    <div id="3d-floating-panel" class="hidden absolute top-4 right-4 w-80 glass-panel p-5 rounded-2xl border border-gold/50 shadow-2xl space-y-3 transition-all duration-300">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span id="3d-panel-brand" class="text-[10px] uppercase font-bold text-gold tracking-widest">-</span>
+                                <h4 id="3d-panel-title" class="font-serif text-lg font-bold text-white leading-tight">-</h4>
+                                <span id="3d-panel-year" class="text-xs text-zinc-400">-</span>
+                            </div>
+                            <button onclick="close3dPanel()" class="text-zinc-500 hover:text-white">&times;</button>
+                        </div>
+
+                        <img id="3d-panel-img" src="" alt="Bag 3D" class="w-full h-32 object-cover rounded-xl border border-obsidian-700">
+
+                        <div class="space-y-1 text-xs text-zinc-300">
+                            <div class="flex justify-between"><span>Volume:</span><span id="3d-panel-vol" class="font-semibold text-white">-</span></div>
+                            <div class="flex justify-between"><span>Formalità:</span><span id="3d-panel-form" class="font-semibold text-white">-</span></div>
+                            <div class="flex justify-between"><span>Ore Artigianali:</span><span id="3d-panel-craft" class="font-semibold text-gold">-</span></div>
+                        </div>
+
+                        <button id="3d-panel-action-btn" class="w-full py-2 bg-gold text-obsidian-900 rounded-xl text-xs font-bold hover:bg-gold-light transition-colors">
+                            Vedi Cartamodello Completo
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-obsidian-700/80 bg-obsidian-900 py-8 px-4 text-center text-xs text-zinc-500 mt-12">
+        <div class="max-w-7xl mx-auto space-y-2">
+            <p class="font-serif text-sm text-gold">Archivio Enciclopedico e Modellistico della Pelletteria Mondiale</p>
+            <p>&copy; Enciclopedia, Cartamodelli e Analisi Bi e Tridimensionale. Sviluppato per Designer, Modellisti e Appassionati di Moda.</p>
+        </div>
+    </footer>
+
+    <script>
+        /* GLOBAL BAG DATA MODEL CONTAINING ALL 30 ICONIC BAGS WITH FULL SPECS, PATTERNS & 3D COORDINATES */
+        const BAGS_DATA = [
+            {
+                id: "birkin",
+                name: "Hermès Birkin",
+                brand: "Hermès",
+                year: 1984,
+                category: "Satchel / Tote",
+                dimensions: "30 x 22 x 16 cm",
+                volume: 10.5,
+                craftHours: 20,
+                formality: 85,
+                rigidity: 8,
+                versatility: 75,
+                outerLeather: "Pelle Togo / Clemence (Vitello pieno fiore)",
+                leatherThickness: "1.4 - 1.6 mm",
+                reinforcements: "Salpa (Leatherboard) da 0.8mm sui pannelli",
+                lining: "Pelle di Capra Chevre Mysore 0.6mm",
+                hardware: "Lucchetto Touret, Cinghie Sangles e Clochette in Ottone Placcato Oro/Palladio",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Hermes_Birkin.JPG/800px-Hermes_Birkin.JPG",
+                svgFallback: "birkin",
+                description: "Realizzata interamente a mano da un singolo artigiano in circa 18-24 ore con il tradizionale punto sellaio a due aghi. Struttura trapezoidale rinforzata, patta sagomata a tre lobi e cinghie di serraggio laterali.",
+                iconicity: "Disegnata nel 1984 dal CEO Jean-Louis Dumas per l'attrice Jane Birkin dopo un incontro casuale in volo. È il simbolo supremo dello status sociale, dell'investimento luxury e della lavorazione artigianale d'alta moda.",
+                patternPieces: [
+                    { name: "Quadrante Anteriore", qty: 1, desc: "30 x 22 cm con intagli superiori per le cinghie" },
+                    { name: "Quadrante Posteriore + Patta", qty: 1, desc: "Intero sagomato con estensione flap superiore" },
+                    { name: "Soffietti Laterali", qty: 2, desc: "A fisarmonica pieghevole a V (16 x 22 cm)" },
+                    { name: "Fondo Strutturato", qty: 1, desc: "Rinforzato con salpa dura e 4 piedini clous" },
+                    { name: "Manici Rigidi Toron", qty: 2, desc: "Con anima in corda e pelle sagomata a caldo" },
+                    { name: "Cinghie Sangles & Clochette", qty: 1, desc: "Cinghie frontali regolabili con fori di bloccaggio" }
+                ],
+                assemblySteps: [
+                    "1. Scarnitura dei bordi della pelle Togo a 0.5mm per agevolare i ripieghi.",
+                    "2. Accoppiatura della salpa di rinforzo sui quadranti con colla d'impatto ad acqua.",
+                    "3. Preparazione dei manici Toron con anima in corda di canapa e cucitura manuale a punto sellaio.",
+                    "4. Montaggio della minuteria metallica (placca Touret e ponte della serratura).",
+                    "5. Assemblaggio di soffietti e quadranti con cucitura Sellier esterna e tintura a caldo delle coste (4 passaggi)."
+                ]
+            },
+            {
+                id: "kelly",
+                name: "Hermès Kelly",
+                brand: "Hermès",
+                year: 1935,
+                category: "Top-Handle",
+                dimensions: "28 x 22 x 10 cm",
+                volume: 6.1,
+                craftHours: 22,
+                formality: 95,
+                rigidity: 9,
+                versatility: 70,
+                outerLeather: "Pelle Box Calf o Epsom rigida",
+                leatherThickness: "1.3 - 1.5 mm",
+                reinforcements: "Cartone sintetico / Salpa da 1.0mm per versione Sellier",
+                lining: "Pelle di Agnello o Capra rigida",
+                hardware: "Serratura a girello, chiavi e lucchetto Hermès",
+                image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "kelly",
+                description: "Geometria rigida nettamente trapezoidale. Costruzione iconica disponibile nelle varianti Sellier (spigoli vivi con cucitura esterna) e Retourne (cucita e poi rovesciata dall'interno).",
+                iconicity: "Nata nel 1935 come 'Sac à Dépêches', divenne un'icona mondiale nel 1956 quando la Principessa Grace Kelly la usò per proteggere la pancia in gravidanza dai paparazzi. Fu ribattezzata in suo onore.",
+                patternPieces: [
+                    { name: "Quadrante Anteriore", qty: 1, desc: "Trapezio rigido con fori per placche metalliche" },
+                    { name: "Quadrante Posteriore + Flap", qty: 1, desc: "Unico pezzo prolungato per la chiusura" },
+                    { name: "Soffietti Trapezoidali", qty: 2, desc: "Soffietti laterali dritti a piega singola" },
+                    { name: "Manico Singolo Arcato", qty: 1, desc: "Anima rigida curvata e rivestita in pelle" },
+                    { name: "Tracolla Staccabile", qty: 1, desc: "Con moschettoni artigianali rifiniti a mano" }
+                ],
+                assemblySteps: [
+                    "1. Taglio e stampaggio dei pannelli in pelle Epsom o Box Calf.",
+                    "2. Applicazione dei rinforzi rigidi interni sui quadranti anteriori e posteriori.",
+                    "3. Cucitura del manico singolo arcato sul Flap superiore mediante piastre di sostegno.",
+                    "4. Assemblaggio Sellier a bordi liberi o cucitura rovesciata Retourne.",
+                    "5. Lavorazione finale delle coste: carteggiatura, tintura bordeaux/nera e lucidatura a cera d'api."
+                ]
+            },
+            {
+                id: "chanel255",
+                name: "Chanel 2.55",
+                brand: "Chanel",
+                year: 1955,
+                category: "Shoulder Bag",
+                dimensions: "24 x 16 x 7.5 cm",
+                volume: 2.8,
+                craftHours: 15,
+                formality: 90,
+                rigidity: 6,
+                versatility: 85,
+                outerLeather: "Pelle di Agnello Invecchiata o Caviar",
+                leatherThickness: "1.1 - 1.2 mm",
+                reinforcements: "Imbottitura ovattata matelassé a rombi",
+                lining: "Pelle di Agnello Bordeaux con tasca secreta",
+                hardware: "Catena metallica a maglie appiattite e chiusura rettangolare Mademoiselle",
+                image: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Chanel_2.55.jpg/800px-Chanel_2.55.jpg",
+                svgFallback: "chanel255",
+                description: "Trapuntatura matelassé d'ispirazione equestre, catena scorrevole interamente metallica, tasca interna zippata a soffietto per lettere e fodera bordeaux iconica.",
+                iconicity: "Ideata da Coco Chanel nel febbraio del 1955 (da cui il nome 2.55). Per la prima volta nella storia dell'alta moda affrancò le mani delle donne introducendo la catena a spalla.",
+                patternPieces: [
+                    { name: "Quadrante Principale Continuo", qty: 1, desc: "Anteriore, fondo e posteriore in un solo sviluppo" },
+                    { name: "Patta Esterna Matelassé", qty: 1, desc: "Trapuntata a rombi 2.5x2.5 cm" },
+                    { name: "Doppia Patta Interna", qty: 1, desc: "Fodera strutturata con logo C ricamato" },
+                    { name: "Fianchi a Soffietto", qty: 2, desc: "In pelle di agnello flessibile" }
+                ],
+                assemblySteps: [
+                    "1. Trapuntatura computerizzata o guidata a mano Matelassé su agnello e ovatta.",
+                    "2. Confezionamento della tasca con cerniera 'Love Letter' sulla patta interna.",
+                    "3. Montaggio della fodera bordeaux con cuciture a scomparsa.",
+                    "4. Inserimento degli occhielli metallici rinforzati per lo scorrimento della catena.",
+                    "5. Fissaggio della serratura rettangolare 'Mademoiselle Lock'."
+                ]
+            },
+            {
+                id: "chanel-classic",
+                name: "Chanel Classic Flap",
+                brand: "Chanel",
+                year: 1983,
+                category: "Shoulder Bag",
+                dimensions: "25.5 x 15.5 x 6.5 cm",
+                volume: 2.5,
+                craftHours: 18,
+                formality: 90,
+                rigidity: 7,
+                versatility: 85,
+                outerLeather: "Pelle Caviar Granata o Agnello Liscio",
+                leatherThickness: "1.2 - 1.3 mm",
+                reinforcements: "Gommatura e tela rigida sagomata",
+                lining: "Pelle di Agnello tono su tono o bordeaux",
+                hardware: "Catena intrecciata con nastro di pelle e chiusura Doppia C (CC)",
+                image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "chanel-classic",
+                description: "Progettata con la celebre doppia patta (Double Flap) che protegge lo scomparto interno. Catena intrecciata con striscia in pelle ed emiciclo frontale con le doppie C intrecciate.",
+                iconicity: "La rivisitazione geniale di Karl Lagerfeld negli anni '80. Introdusse la chiusura con la doppia C intrecciata, trasformandola nella borsa luxury più collezionata della storia.",
+                patternPieces: [
+                    { name: "Outer Shell Trapuntato", qty: 1, desc: "Trapuntatura a diamante Matelassé" },
+                    { name: "Inner Flap con Stampa CC", qty: 1, desc: "Patta secondaria con chiusura a bottone" },
+                    { name: "Soffietto Bordo Continuo", qty: 1, desc: "Fondo e fianchi integrati" },
+                    { name: "Striscia Intreccio Catena", qty: 1, desc: "Pelle sottile 0.8mm ripiegata in 4" }
+                ],
+                assemblySteps: [
+                    "1. Preparazione del pellame Caviar granito con supporto imbottito.",
+                    "2. Assemblaggio della struttura Double Flap con tasca a sorriso posteriore (Mona Lisa pocket).",
+                    "3. Intreccio manuale del nastro in pelle all'interno dei maglioni della catena metallica.",
+                    "4. Fissaggio dell'iconica fibbia girevole CC in ottone dorato micro-inciso.",
+                    "5. Controllo finale dei 180 passaggi artigianali."
+                ]
+            },
+            {
+                id: "speedy25",
+                name: "Louis Vuitton Speedy 25",
+                brand: "Louis Vuitton",
+                year: 1930,
+                category: "Boston Bag / Bauletto",
+                dimensions: "25 x 19 x 15 cm",
+                volume: 7.1,
+                craftHours: 6,
+                formality: 50,
+                rigidity: 4,
+                versatility: 95,
+                outerLeather: "Tela Spalmata Monogram Canvas / Damier",
+                leatherThickness: "0.9 mm (Canvas) + Vachetta 1.8mm",
+                reinforcements: "Piping cordonetto su tutte le cuciture perimetrali",
+                lining: "Tessuto di Cotone Marrone o Rosso Canvas",
+                hardware: "Lucchetto in ottone massiccio ricamato LV e cerniera con tiretto in Vachetta",
+                image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "speedy25",
+                description: "Forma a bauletto morbido e capiente con struttura in unico pezzo di tela Monogram che avvolge il fondo. Doppi manici Toron in pelle Vachetta naturale non trattata che patina nel tempo.",
+                iconicity: "Creata nel 1930 come 'Express' per l'era dei viaggi veloci. Nel 1965 Audrey Hepburn chiese una versione speciale rimpicciolita (la Speedy 25), trasformandola in una pietra miliare urbana.",
+                patternPieces: [
+                    { name: "Corpo Tela Principale", qty: 1, desc: "Unico foglio di tela spalmataMonogram (sottosopra su un lato)" },
+                    { name: "Fianchi Arrotondati", qty: 2, desc: "Ovali con finitura a cordoncino Piping" },
+                    { name: "Attacchi Manici Chapes", qty: 4, desc: "Forma a foglia/romboidale in pelle Vachetta" },
+                    { name: "Manici Toron Arcurati", qty: 2, desc: "Pelle Vachetta rigida con cuciture gialle" }
+                ],
+                assemblySteps: [
+                    "1. Taglio a fustella della tela Monogram e selezione della pelle Vachetta chiara.",
+                    "2. Assemblaggio dei 4 Chapes (supporti manico) rinforzati con rivetti metallici dorati.",
+                    "3. Applicazione del piping perimetrale in gomma rivestito di pelle sui fianchi.",
+                    "4. Cucitura della cerniera superiore con filo di lino cerato giallo impermeabile.",
+                    "5. Montaggio finale rovesciato e ribaltamento a caldo."
+                ]
+            },
+            {
+                id: "neverfull",
+                name: "Louis Vuitton Neverfull MM",
+                brand: "Louis Vuitton",
+                year: 2007,
+                category: "Tote Bag",
+                dimensions: "31 x 28 x 14 cm",
+                volume: 12.1,
+                craftHours: 5,
+                formality: 40,
+                rigidity: 2,
+                versatility: 100,
+                outerLeather: "Tela Monogram / Damier Ebene o Azur",
+                leatherThickness: "0.8 - 0.9 mm",
+                reinforcements: "Bordatura superiore in Vachetta piegata",
+                lining: "Tessuto rigato Heritage d'ispirazione bauli storici",
+                hardware: "Ganci moschettone dorati e laccetti laterali per regolazione capienza",
+                image: "https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "neverfull",
+                description: "Tote bag ultra-capiente capace di sopportare fino a 210 kg di carico pur pesando pochissimo. Laccetti stringa laterali che modificano la silhouette da aperta a trapezoidale stretta.",
+                iconicity: "Lanciata nel 2007, è diventata in pochissimo tempo la borsa shopper di lusso più venduta e vista al mondo, definendo il concetto di capienza quotidiana senza limiti.",
+                patternPieces: [
+                    { name: "Quadrante Anteriore / Posteriore", qty: 2, desc: "Grandi rettangoli con base affusolata" },
+                    { name: "Fondo Rettangolare", qty: 1, desc: "Flessibile e privo di piedini" },
+                    { name: "Sottili Manici a Spalla", qty: 2, desc: "Strisce di Vachetta da 1.2 cm raddoppiate" },
+                    { name: "Laccetti Stringhe Laterali", qty: 2, desc: "Cinturini di regolazione volume" }
+                ],
+                assemblySteps: [
+                    "1. Assemblaggio dei pannelli in tela spalmata con la fodera tessile stampata.",
+                    "2. Applicazione della bordatura superiore in Vachetta con cucitura perimetrale fitta.",
+                    "3. Inserimento e ribattitura dei manici sottili ultra-resistenti.",
+                    "4. Fissaggio della tasca interna pensile con zip e pochette rimovibile coordinata."
+                ]
+            },
+            {
+                id: "ladydior",
+                name: "Lady Dior",
+                brand: "Dior",
+                year: 1995,
+                category: "Top-Handle",
+                dimensions: "24 x 20 x 11 cm",
+                volume: 5.2,
+                craftHours: 16,
+                formality: 95,
+                rigidity: 9,
+                versatility: 65,
+                outerLeather: "Pelle di Agnello Satinata o Vernice",
+                leatherThickness: "1.2 mm",
+                reinforcements: "Scatola di rinforzo rigida termoformata",
+                lining: "Tessuto Jacquard Monogram Cannage o camoscio",
+                hardware: "Ciondoli Charms trasparenti/dorati D-I-O-R e occhielli sagomati",
+                image: "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "ladydior",
+                description: "Architettura cubica rigida impreziosita dalla celebre impuntura Cannage (ispirata alle sedie Napoleone III usate da Christian Dior nei primi defilé). Manici ad arco perfetto e pendenti metallici DIOR.",
+                iconicity: "Regalata nel 1995 dalla prima dama francese Bernadette Chirac alla Principessa Diana. Lady Di se ne innamorò a tal punto da indossarla in tutte le sue uscite ufficiali, spingendo Dior a rinominarla 'Lady Dior'.",
+                patternPieces: [
+                    { name: "Quadrante Anteriore Cannage", qty: 1, desc: "Impuntura geometrica a rete ottagonale" },
+                    { name: "Quadrante Posteriore Cannage", qty: 1, desc: "Pelle di agnello ricamata" },
+                    { name: "Fianchi e Fondo Rigidi", qty: 3, desc: "Con anima in cartone presagomato" },
+                    { name: "Manici Rigidi a Mezzaluna", qty: 2, desc: "Anima termoformata a guscio" }
+                ],
+                assemblySteps: [
+                    "1. Ricamo e impuntura Cannage trapuntata su pelle d'agnello finissima.",
+                    "2. Montaggio della struttura rigida ad anima rigida attorno al blocco centrale.",
+                    "3. Applicazione manuale degli archi manico sui perni metallici tondi.",
+                    "4. Aggancio dei 4 ciondoli charms metallici 'D-I-O-R'.",
+                    "5. Finitura della chiusura interna a patta protettiva."
+                ]
+            },
+            {
+                id: "saddle",
+                name: "Dior Saddle Bag",
+                brand: "Dior",
+                year: 1999,
+                category: "Shoulder Bag",
+                dimensions: "25.5 x 20 x 6.5 cm",
+                volume: 2.2,
+                craftHours: 12,
+                formality: 75,
+                rigidity: 7,
+                versatility: 80,
+                outerLeather: "Pelle di Vitello Liscia / Tela Oblique",
+                leatherThickness: "1.2 - 1.4 mm",
+                reinforcements: "Anima in fibra vegetale presagomata asimmetrica",
+                lining: "Microfibra effetto camoscio",
+                hardware: "Iniziali CD sulla tracolla e ciondolo a staffa D pendente",
+                image: "https://images.unsplash.com/photo-1598532163257-ae3c6b2524b6?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "saddle",
+                description: "Design rivoluzionario e organico a forma di sella da equitazione. Patta asimmetrica con ciondolo metallico a forma di staffa 'D' e attacchi tracolla con il monogramma CD.",
+                iconicity: "Disegnata nel 1999 da John Galliano. È il manifesto supremo della moda pop glamour anni 2000 (Y2K), consacrata dal personaggio di Carrie Bradshaw in Sex and the City.",
+                patternPieces: [
+                    { name: "Quadrante Anteriore Sella", qty: 1, desc: "Forma organica ricurva asimmetrica" },
+                    { name: "Patta Frontale a Caduta", qty: 1, desc: "Profilo a onda con aggancio staffa D" },
+                    { name: "Soffietto Perimetrale Sagomato", qty: 1, desc: "Striscia continua a spessore variabile" },
+                    { name: "Manico Corto Spalla", qty: 1, desc: "Con raccordi metallici CD incisi" }
+                ],
+                assemblySteps: [
+                    "1. Taglio di precisione dei pannelli asimmetrici su pelle di vitello liscia.",
+                    "2. Applicazione dell'anima interna ricurva per mantenere la forma a sella indurita.",
+                    "3. Cucitura del soffietto ricurvo perimetrale con macchina a braccio libero.",
+                    "4. Montaggio dell'hardware dorato anticato CD sulle giunture del manico.",
+                    "5. Sospensione del ciondolo a staffa 'D' sulla patta anteriore."
+                ]
+            },
+            {
+                id: "jackie",
+                name: "Gucci Jackie 1961",
+                brand: "Gucci",
+                year: 1961,
+                category: "Hobo Bag",
+                dimensions: "28 x 19 x 4.5 cm",
+                volume: 2.4,
+                craftHours: 10,
+                formality: 65,
+                rigidity: 5,
+                versatility: 90,
+                outerLeather: "Pelle di Vitello Liscia / Tela GG Supreme",
+                leatherThickness: "1.2 mm",
+                reinforcements: "Salpa morbida e nastro Web centrale",
+                lining: "Fodera in Microfibra / Cotone Jacquard",
+                hardware: "Chiusura a pistone metallico dorato lucido",
+                image: "https://images.unsplash.com/photo-1605733513597-a8f8341084e6?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "jackie",
+                description: "Borsa hobo a mezza luna morbida ma strutturata, con la distintiva chiusura a pistone metallico e la possibilità di estendere la tracolla per un uso crossbody.",
+                iconicity: "Nata nel 1961, divenne inseparabile dallo stile di Jacqueline Kennedy, che la usava regolarmente per ripararsi dai fotografi. Fu ufficialmente ribattezzata 'Jackie' da Gucci.",
+                patternPieces: [
+                    { name: "Quadranti Mezzaluna", qty: 2, desc: "Anteriore e posteriore sagomati a U" },
+                    { name: "Fondo e Fianchi Integrati", qty: 1, desc: "Fascia sottile continua" },
+                    { name: "Cinturino con Pistone", qty: 1, desc: "Cinturino centrale con serratura a scatto" },
+                    { name: "Estensione Tracolla", qty: 1, desc: "Cinturino aggiuntivo con fibbia" }
+                ],
+                assemblySteps: [
+                    "1. Assemblaggio dei quadranti a mezza luna con la striscia centrale Web o in pelle.",
+                    "2. Inserimento della chiusura a pistone in ottone lucidato al centro del flap.",
+                    "3. Cucitura dei bordi e tintura delle coste tono su tono.",
+                    "4. Fissaggio della tracolla regolabile versatile."
+                ]
+            },
+            {
+                id: "bamboo",
+                name: "Gucci Bamboo 1947",
+                brand: "Gucci",
+                year: 1947,
+                category: "Top-Handle",
+                dimensions: "21 x 15 x 7 cm",
+                volume: 2.2,
+                craftHours: 14,
+                formality: 80,
+                rigidity: 8,
+                versatility: 75,
+                outerLeather: "Pelle di Vitello Pregiata",
+                leatherThickness: "1.3 mm",
+                reinforcements: "Cartoncino sagomato rigido",
+                lining: "Pelle di Agnello o Camoscio",
+                hardware: "Manico in vero Bambù curvato a fiamma e bottone di chiusura in bambù",
+                image: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "bamboo",
+                description: "Forma a trapezio morbido con manico e chiusura a girello realizzati in vero bambù naturale importato dal Giappone, piegato e verniciato a mano sopra il fuoco.",
+                iconicity: "Creata nel dopoguerra (1947) per superare la carenza di pelle e metallo dovuta al razionamento bellico. Gli artigiani trasformarono un limite in una pietra miliare dell'italian design.",
+                patternPieces: [
+                    { name: "Quadrante Anteriore", qty: 1, desc: "Trapezio rigido con foro per girello in bambù" },
+                    { name: "Quadrante Posteriore + Patta", qty: 1, desc: "Patta morbida sagomata" },
+                    { name: "Fianchi a Fisarmonica", qty: 2, desc: "Soffietti doppi espandibili" },
+                    { name: "Manico in Bambù Curvato", qty: 1, desc: "Manico naturale unico e irrepetibile" }
+                ],
+                assemblySteps: [
+                    "1. Curvatura artigianale della canna di bambù su Fiamma libera e verniciatura protettiva.",
+                    "2. Modellatura dei quadranti in pelle di vitello e montaggio dei soffietti.",
+                    "3. Aggancio del manico in bambù mediante anelli di bronzo lavorati.",
+                    "4. Installazione della chiusura girevole con bottone in bambù intagliato."
+                ]
+            },
+            {
+                id: "baguette",
+                name: "Fendi Baguette",
+                brand: "Fendi",
+                year: 1997,
+                category: "Shoulder Bag",
+                dimensions: "27 x 15 x 6 cm",
+                volume: 2.4,
+                craftHours: 10,
+                formality: 70,
+                rigidity: 5,
+                versatility: 85,
+                outerLeather: "Pelle Nappa / Paillettes / Jacquard FF",
+                leatherThickness: "1.0 - 1.1 mm",
+                reinforcements: "Interfodera termoadesiva morbida",
+                lining: "Seta / Tessuto Satinato",
+                hardware: "Chiusura con fibbia rettangolare Logo FF rovesciato",
+                image: "https://images.unsplash.com/photo-1563178406-4cdc2923acbc?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "baguette",
+                description: "Forma rettangolare allungata e compatta, progettata per essere portata comodamente sotto il braccio. Fibbia magnetica frontale con le doppie F rovesciate.",
+                iconicity: "Creata nel 1997 da Silvia Venturini Fendi. Prende il nome dal pane francese portato informale sotto il braccio. È riconosciuta come la prima vera 'It-Bag' della storia della moda.",
+                patternPieces: [
+                    { name: "Pannello Rettangolare Principale", qty: 1, desc: "Quadrante continuo flessibile" },
+                    { name: "Patta Anteriore Corta", qty: 1, desc: "Con applicazione logo FF in metallo" },
+                    { name: "Soffietto Unico laterale/fondo", qty: 1, desc: "Fascia continua a U" },
+                    { name: "Tracolla Corta Spalla", qty: 1, desc: "Regolabile tramite fibbie laterali" }
+                ],
+                assemblySteps: [
+                    "1. Taglio della nappa di agnello o tessuti ricamati d'archivio.",
+                    "2. Applicazione della patta con la fibbia magnetica FF decorativa.",
+                    "3. Assemblaggio a punto nascosto del soffietto continuo.",
+                    "4. Fissaggio della tracollina corta coordinata."
+                ]
+            },
+            {
+                id: "peekaboo",
+                name: "Fendi Peekaboo",
+                brand: "Fendi",
+                year: 2009,
+                category: "Satchel / Top-Handle",
+                dimensions: "33.5 x 25.5 x 13 cm",
+                volume: 11.1,
+                craftHours: 16,
+                formality: 85,
+                rigidity: 8,
+                versatility: 80,
+                outerLeather: "Pelle Cuoio Romano o Nappa Liscia",
+                leatherThickness: "1.4 mm",
+                reinforcements: "Divisorio rigido centrale in alluminio/cartone rigido",
+                lining: "Pelle o Suede a contrasto con tasca zippata",
+                hardware: "Serratura a girello Twist-Lock su entrambi i lati",
+                image: "https://images.unsplash.com/photo-1594223274512-ad48027321b2?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "peekaboo",
+                description: "Struttura rigida trapezoidale divisa a metà da un setto centrale. Quando la serratura a girello viene lasciata aperta, il flap si piega verso il basso rivelando la fodera pregiata interna (effetto Peek-a-boo).",
+                iconicity: "Disegnata nel 2009 da Silvia Venturini Fendi. Rappresenta la perfetta fusione tra sobrietà formale esterna e sorpresa giocosa all'interno.",
+                patternPieces: [
+                    { name: "Quadrante Anteriore Pieghevole", qty: 1, desc: "Progettato per ripiegarsi a fontana" },
+                    { name: "Quadrante Posteriore", qty: 1, desc: "Simmetrico con chiusura a girello" },
+                    { name: "Setto Divisorio Centrale Rigido", qty: 1, desc: "Anima portante con barra metallica superiore" },
+                    { name: "Soffietti Laterali Triangolari", qty: 2, desc: "Garantiscono l'apertura a mantice" }
+                ],
+                assemblySteps: [
+                    "1. Costruzione della barra di supporto rigida centrale con serratura a girello.",
+                    "2. Fissaggio dei quadranti anteriori e posteriori al setto divisorio interno.",
+                    "3. Applicazione della lavorazione a punto Selleria fatto a mano sui bordi.",
+                    "4. Montaggio del manico superiore e della tracolla staccabile."
+                ]
+            },
+            {
+                id: "prada-nylon",
+                name: "Prada Nylon Backpack (Vela)",
+                brand: "Prada",
+                year: 1984,
+                category: "Backpack / Zaino",
+                dimensions: "28 x 32 x 15 cm",
+                volume: 13.4,
+                craftHours: 4,
+                formality: 20,
+                rigidity: 2,
+                versatility: 95,
+                outerLeather: "Nylon Pocono Impermeabile ad Alta Densità",
+                leatherThickness: "0.6 mm (Nylon) + Pelle Saffiano 1.2mm",
+                reinforcements: "Nessuno (Pieghevole ed ultra-leggero)",
+                lining: "Tessuto Nylon Siglato Prada",
+                hardware: "Placca Triangolare Smaltata Prada e fibbie ad ardiglione",
+                image: "https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "prada-nylon",
+                description: "Zaino in nylon 'Pocono' (materiale sintetico di grado militare usato per i paracadute) con finiture in pelle Saffiano, due tasche frontali con fibbia e l'iconico logo triangolare in smalto.",
+                iconicity: "Miuccia Prada scardinò il concetto tradizionale di lusso negli anni '80 introducendo un materiale industriale e utilitaristico nell'alta moda, creando l'anti-status symbol per eccellenza.",
+                patternPieces: [
+                    { name: "Corpo Zaino Nylon", qty: 1, desc: "Tessuto Pocono nero sagomato" },
+                    { name: "Tasche Frontali con Zip", qty: 2, desc: "Scomparti esterni sporgenti" },
+                    { name: "Patta Chiusura Superiore", qty: 1, desc: "Con triangolo smaltato applicato" },
+                    { name: "Spallacci e Cinghie", qty: 2, desc: "Nastro di nylon ad alta resistenza" }
+                ],
+                assemblySteps: [
+                    "1. Taglio termico del nylon Pocono impermeabile per evitare sfilacciamenti.",
+                    "2. Applicazione a rivetto della placca triangolare metallica smaltata.",
+                    "3. Montaggio delle cerniere e delle tasche frontali con rifiniture in Saffiano.",
+                    "4. Chiusura a coulisse con cordino e blocco scorrevole."
+                ]
+            },
+            {
+                id: "prada-galleria",
+                name: "Prada Galleria",
+                brand: "Prada",
+                year: 2007,
+                category: "Satchel / Tote",
+                dimensions: "32 x 24 x 13.5 cm",
+                volume: 10.3,
+                craftHours: 12,
+                formality: 85,
+                rigidity: 9,
+                versatility: 85,
+                outerLeather: "Pelle Saffiano (Trama incrociata rigida)",
+                leatherThickness: "1.4 mm",
+                reinforcements: "Anima termo-sagomata antigraffio",
+                lining: "Nylon siglato Prada Nappa rigida",
+                hardware: "Triangolo in pelle con logo in metallo e doppi scomparti con cerniera",
+                image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "prada-galleria",
+                description: "Costruzione strutturata e geometrica in pelle Saffiano a trama incrociata brevettata. Tre scomparti interni (due laterali chiusi da zip dorate) e doppi manici corti.",
+                iconicity: "Prende il nome dallo storico primo negozio aperto da Mario Prada nel 1913 nella Galleria Vittorio Emanuele II a Milano. È la borsa da lavoro e da giorno per eccellenza.",
+                patternPieces: [
+                    { name: "Quadranti Rigidi Saffiano", qty: 2, desc: "Anteriore e posteriore antigraffio" },
+                    { name: "Tasche Zippate Perimetrali", qty: 2, desc: "Scomparti di sicurezza laterali" },
+                    { name: "Soffietti con Bottoni a Pressione", qty: 2, desc: "Permettono di espandere l'apertura" },
+                    { name: "Manici Rigidi Saffiano", qty: 2, desc: "Sagomati con anima rinforzata" }
+                ],
+                assemblySteps: [
+                    "1. Lavorazione a caldo della pelle di vitello per imprimere la trama Saffiano.",
+                    "2. Assemblaggio dei tre scomparti separati con zip metalliche dorate.",
+                    "3. Applicazione del triangolo in pelle con lettere metalliche Prada su cliquet.",
+                    "4. Tintura delle coste e montaggio dei bottoni automatici sui soffietti."
+                ]
+            },
+            {
+                id: "balenciaga-city",
+                name: "Balenciaga City (Motorcycle)",
+                brand: "Balenciaga",
+                year: 2001,
+                category: "Shoulder / Tote",
+                dimensions: "38 x 24 x 14 cm",
+                volume: 12.7,
+                craftHours: 9,
+                formality: 40,
+                rigidity: 3,
+                versatility: 90,
+                outerLeather: "Pelle di Agnello Arena invecchiata e stropicciata",
+                leatherThickness: "0.9 - 1.0 mm",
+                reinforcements: "Nessuno (Effetto ultra-morbido destrutturato)",
+                lining: "Tela di cotone nera",
+                hardware: "Borchie metalliche decorative, tirazip in stringhe di pelle e specchietto",
+                image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "balenciaga-city",
+                description: "Silhouette destrutturata e ultra-morbida in pelle d'agnello conciata con finitura invecchiata. Dettagli d'ispirazione motociclistica con borchie, zip frastagliate e specchietto pendente.",
+                iconicity: "Disegnata da Nicolas Ghesquière, fu inizialmente rifiutata dai manager perché priva di struttura. Salvata dalle supermodelle (tra cui Kate Moss), divenne l'icona dello stile rock-chic anni 2000.",
+                patternPieces: [
+                    { name: "Quadranti Anteriore e Posteriore", qty: 2, desc: "In agnello stropicciato con tasca zip" },
+                    { name: "Fondo e Soffietti Morbiti", qty: 1, desc: "Pelle pieghevole ultra-morbida" },
+                    { name: "Manici Intrecciati a Mano", qty: 2, desc: "Pelle con cordino in tinta intrecciato" },
+                    { name: "Specchietto di Cortesia", qty: 1, desc: "Riquadro in pelle con specchio interno" }
+                ],
+                assemblySteps: [
+                    "1. Con concia speciale per ottenere l'effetto morbido e stropicciato Arena.",
+                    "2. Intreccio manuale dei cordoncini di pelle attorno ai manici.",
+                    "3. Applicazione delle borchie metalliche brunite e dei lunghi tiretti sfrangiati.",
+                    "4. Cucitura finale e assemblaggio dello specchietto estraibile."
+                ]
+            },
+            {
+                id: "loewe-puzzle",
+                name: "Loewe Puzzle Bag",
+                brand: "Loewe",
+                year: 2015,
+                category: "Shoulder / Crossbody",
+                dimensions: "29 x 19.5 x 14 cm",
+                volume: 7.9,
+                craftHours: 14,
+                formality: 60,
+                rigidity: 6,
+                versatility: 95,
+                outerLeather: "Pelle di Vitello Classic Calf",
+                leatherThickness: "1.2 mm",
+                reinforcements: "Pannelli geometrici sagomati singolarmente",
+                lining: "Tessuto di Cotone Canvas di Spiga",
+                hardware: "Zip posteriore di sicurezza, ganci tracolla e logo Anagram impresso a caldo",
+                image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "loewe-puzzle",
+                description: "Costruzione cubica modulare composta da 9 tessere di pelle tagliate geometricamente e riassemblate a puzzle. Permette alla borsa di piegarsi completamente piatta.",
+                iconicity: "Primo modello ideato da Jonathan Anderson per la maison spagnola Loewe. Ha ridefinito la pelletteria contemporanea unendo l'alta sartorialità a un'architettura cubista.",
+                patternPieces: [
+                    { name: "9 Tessere Geometriche Puzzle", qty: 9, desc: "Pannelli triangolari e trapezoidali incastrati" },
+                    { name: "Patta Superiore Copri-Zip", qty: 1, desc: "Con logo Anagram impresso" },
+                    { name: "Manico Rigido Pieghevole", qty: 1, desc: "Fissato con perni girevoli" },
+                    { name: "Tracolla Removibile", qty: 1, desc: "Regolabile con moschettoni" }
+                ],
+                assemblySteps: [
+                    "1. Taglio laser ad altissima precisione dei 9 pezzi di pelle asimmetrici.",
+                    "2. Scarnitura e tintura manuale dei bordi di ogni singola tessera.",
+                    "3. Assemblaggio a 'puzzle' con cuciture ad alta tenuta e fodera in tela spigata.",
+                    "4. Impressione a caldo del logo Anagram Loewe sull'angolo della patta."
+                ]
+            },
+            {
+                id: "loewe-amazona",
+                name: "Loewe Amazona",
+                brand: "Loewe",
+                year: 1975,
+                category: "Boston / Duffle",
+                dimensions: "28 x 18 x 11 cm",
+                volume: 5.5,
+                craftHours: 10,
+                formality: 70,
+                rigidity: 6,
+                versatility: 85,
+                outerLeather: "Pelle Nappa di Vitello ultra-sofficissima",
+                leatherThickness: "1.1 - 1.2 mm",
+                reinforcements: "Angolari in pelle rinforzata sulle quattro estremità",
+                lining: "Suede o Nappa dorata",
+                hardware: "Lucchetto in metallo con incisione Anagram e chiavi",
+                image: "https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "loewe-amazona",
+                description: "Bauletto morbido e flessibile privo di fodere rigide. Angoli inferiori e superiori protetti da patch in pelle rinforzata e lucchetto di sicurezza centrale.",
+                iconicity: "Creata nel 1975 durante la transizione democratica in Spagna. Nata come borsa funzionale per accompagnare l'ingresso indipendente delle donne nel mondo del lavoro.",
+                patternPieces: [
+                    { name: "Quadranti Rettangolari Morbidi", qty: 2, desc: "In Nappa di vitello sofficissima" },
+                    { name: "Angolari Protettivi di Rinforzo", qty: 4, desc: "Applicati sui quattro spigoli" },
+                    { name: "Cerniera Superiore a Doppio Cursor", qty: 1, desc: "Apertura completa a 180 gradi" },
+                    { name: "Manici Arrotondati", qty: 2, desc: "Cuciti con Chapes squadrati" }
+                ],
+                assemblySteps: [
+                    "1. Selezione delle pelli Nappa prive di qualsiasi difetto.",
+                    "2. Applicazione degli angolari in pelle cuciti a rinforzo della struttura.",
+                    "3. Inserimento del lucchetto Anagram sul cursore della zip principale.",
+                    "4. Assemblaggio finale e controllo di morbidezza."
+                ]
+            },
+            {
+                id: "bv-jodie",
+                name: "Bottega Veneta Jodie",
+                brand: "Bottega Veneta",
+                year: 2020,
+                category: "Hobo Bag",
+                dimensions: "28 x 23 x 8 cm",
+                volume: 3.5,
+                craftHours: 12,
+                formality: 70,
+                rigidity: 4,
+                versatility: 85,
+                outerLeather: "Pelle Nappa Intrecciata a Mano",
+                leatherThickness: "0.8 mm (Strisce raddoppiate)",
+                reinforcements: "Nessuno (Pelle intrecciata auto-portante)",
+                lining: "Nappa tono su tono integrata",
+                hardware: "Cerniera metallica invisibile dorata/d'argento",
+                image: "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "bv-jodie",
+                description: "Borsa hobo arrotondata realizzata interamente nell'iconico motivo 'Intrecciato' in pelle con un grosso nodo annodato a mano lungo il manico curvo.",
+                iconicity: "Disegnata da Daniel Lee nel 2020. Battezzata in omaggio a Jodie Foster, che fu fotografata mentre si proteggeva dai fotografi con una borsa Bottega Veneta.",
+                patternPieces: [
+                    { name: "Pannello Intrecciato Continuo", qty: 1, desc: "Fettucce di pelle 1cm intrecciate a mano" },
+                    { name: "Manico Integrato con Nodo", qty: 1, desc: "Estensione della borsa annodata prima della chiusura" },
+                    { name: "Cerniera Nascosta", qty: 1, desc: "Inserita lungo l'incavo interno della mezza luna" }
+                ],
+                assemblySteps: [
+                    "1. Taglio manuale delle strisce di pelle Nappa di pari larghezza.",
+                    "2. Intreccio tridimensionale manuale a scacchiera senza colla.",
+                    "3. Sagomatura della mezza luna e confezionamento della zip interna.",
+                    "4. Creazione del nodo decorativo ritorto sul manico prima del fissaggio finale."
+                ]
+            },
+            {
+                id: "bv-cabat",
+                name: "Bottega Veneta Cabat",
+                brand: "Bottega Veneta",
+                year: 2001,
+                category: "Tote Bag",
+                dimensions: "40 x 25 x 16 cm",
+                volume: 16.0,
+                craftHours: 16,
+                formality: 60,
+                rigidity: 3,
+                versatility: 90,
+                outerLeather: "Pelle Nappa Intrecciata Double-Face",
+                leatherThickness: "0.9 mm (Due strati incollati)",
+                reinforcements: "Nessuno (Completamente priva di struttura interna)",
+                lining: "Assente (L'interno è l'inverso dell'intreccio esterno)",
+                hardware: "Assente / Targa metallica argentata con numerazione limitata",
+                image: "https://images.unsplash.com/photo-1598532163257-ae3c6b2524b6?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "bv-cabat",
+                description: "Tote rettangolare aperta senza cuciture visibili né fodera. Realizzata intrecciando a mano su un telaio strisce di pelle a doppio strato in un processo che richiede due giorni interi.",
+                iconicity: "Creata da Tomas Maier nel 2001, incarna l'essenza del 'quiet luxury': un'opera d'arte artigianale priva di qualsiasi logo visibile.",
+                patternPieces: [
+                    { name: "Strisce di Leather Intrecciate", qty: 1, desc: "Cestello intrecciato tridimensionale senza tagli" },
+                    { name: "Manici Intrecciati Integrati", qty: 2, desc: "Prosecuzione naturale del corpo borsa" },
+                    { name: "Pochette Interna Rimovibile", qty: 1, desc: "Tasca con zip ancorata con cinturino" }
+                ],
+                assemblySteps: [
+                    "1. Incollatura di due pellami di Nappa per rendere le fettucce rifinite su entrambi i lati.",
+                    "2. Intreccio manuale su forma/telaio tridimensionale da parte di due artigiani.",
+                    "3. Sagomatura del fondo rettangolare auto-portante senza cuciture perimetrali.",
+                    "4. Fissaggio della pochette di cortesia zippata."
+                ]
+            },
+            {
+                id: "celine-luggage",
+                name: "Celine Luggage Tote",
+                brand: "Celine",
+                year: 2010,
+                category: "Satchel / Tote",
+                dimensions: "30 x 30 x 18 cm",
+                volume: 16.2,
+                craftHours: 14,
+                formality: 75,
+                rigidity: 8,
+                versatility: 80,
+                outerLeather: "Pelle di Vitello Nuvolato o Drummed",
+                leatherThickness: "1.3 - 1.5 mm",
+                reinforcements: "Salpa e gomma sagomata sulle ali espandibili",
+                lining: "Pelle di Camoscio Suede tono su tono",
+                hardware: "Cerniera d'ottone brunito frontale e tirazip ricurvo",
+                image: "https://images.unsplash.com/photo-1605733513597-a8f8341084e6?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "celine-luggage",
+                description: "Design architettonico inconfondibile caratterizzato da ampie 'ali' laterali espandibili, tasca frontale con cerniera ondulata e dettagli che ricordano una figura stilizzata.",
+                iconicity: "Disegnata da Phoebe Philo nel 2010. Ha segnato un'epoca nel design di moda, diventando uno dei prodotti più copiatiti e desiderati del decennio.",
+                patternPieces: [
+                    { name: "Quadrante Anteriore Scultoreo", qty: 1, desc: "Con rilievi ricurvi attorno alla zip" },
+                    { name: "Ali Laterali Espandibili", qty: 2, desc: "Soffietti sporgenti verso l'esterno" },
+                    { name: "Manici Tubolari Spessi", qty: 2, desc: "Anima rigida tonda con Chapes larghi" },
+                    { name: "Tasca Frontale a Scomparsa", qty: 1, desc: "Con cerniera a onda decorativa" }
+                ],
+                assemblySteps: [
+                    "1. Modellatura dei rilievi tubolari sul quadrante frontale mediante inserimento di corde.",
+                    "2. Assemblaggio delle 'ali' laterali flessibili ma strutturate.",
+                    "3. Cucitura dei doppi manici spessi e tintura delle coste a forte spessore.",
+                    "4. Assemblaggio finale della fodera in camoscio."
+                ]
+            },
+            {
+                id: "celine-triomphe",
+                name: "Celine Triomphe",
+                brand: "Celine",
+                year: 2018,
+                category: "Shoulder Bag",
+                dimensions: "22.5 x 16.5 x 7.5 cm",
+                volume: 2.8,
+                craftHours: 11,
+                formality: 85,
+                rigidity: 8,
+                versatility: 85,
+                outerLeather: "Pelle di Vitello Satinata / Lucida",
+                leatherThickness: "1.2 - 1.3 mm",
+                reinforcements: "Cartone rigido da pelletteria 1.0mm",
+                lining: "Pelle di Agnello Nappa ultra-morbida",
+                hardware: "Chiusura a scatto metallica dorata Cieling Triomphe",
+                image: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "celine-triomphe",
+                description: "Borsa rigida da spalla con struttura a tre scomparti fisarmonica e maestosa fibbia dorata con il doppio nodo ispirato all'Arco di Trionfo di Parigi.",
+                iconicity: "Ideata da Hedi Slimane nel 2018 recuperando il motivo d'archivio creato nel 1973 da Céline Vipiana. È diventata il nuovo classico del lusso parigino.",
+                patternPieces: [
+                    { name: "Quadrante Posteriore + Patta", qty: 1, desc: "Pannello continuo con angoli smussati" },
+                    { name: "Quadrante Anteriore", qty: 1, desc: "Con intaglio per fermaglio Triomphe" },
+                    { name: "Soffietti a 3 Scomparti", qty: 2, desc: "Divisori interni a soffietto triplo" },
+                    { name: "Tracolla Regolabile", qty: 1, desc: "In vitello liscio con fibbia dorata" }
+                ],
+                assemblySteps: [
+                    "1. Taglio e rinforzo della pelle di vitello lucida.",
+                    "2. Fissaggio della fibbia d'ottone dorato Triomphe sulla patta.",
+                    "3. Montaggio dei tre scomparti interni in pelle d'agnello.",
+                    "4. Cucitura perimetrale e lucidatura manuale dei bordi."
+                ]
+            },
+            {
+                id: "ysl-sacdejour",
+                name: "Saint Laurent Sac de Jour",
+                brand: "Saint Laurent",
+                year: 2013,
+                category: "Satchel / Tote",
+                dimensions: "32 x 25.5 x 15.5 cm",
+                volume: 12.6,
+                craftHours: 14,
+                formality: 90,
+                rigidity: 9,
+                versatility: 80,
+                outerLeather: "Pelle di Vitello Grain de Poudre o Liscio",
+                leatherThickness: "1.4 mm",
+                reinforcements: "Rinforzi rigidi termo-fissati sui quadranti",
+                lining: "Suede o Pelle di Agnello",
+                hardware: "Lucchetto in metallo con custode in pelle, cinghie laterali e piedini",
+                image: "https://images.unsplash.com/photo-1563178406-4cdc2923acbc?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "ysl-sacdejour",
+                description: "Design minimale e rigido con caratteristici fianchi a fisarmonica trattenuti da cinturini regolabili, doppi manici corti e lucchetto di sicurezza in custodia di pelle.",
+                iconicity: "Progettata da Hedi Slimane nel 2013, rappresenta l'essenza della borsa da giorno formale, amata per le sue linee pulite e l'eleganza senza tempo.",
+                patternPieces: [
+                    { name: "Quadranti Rigidi Anteriore/Posteriore", qty: 2, desc: "Con marchio Saint Laurent impresso in oro" },
+                    { name: "Soffietti Laterali a Fisarmonica", qty: 2, desc: "Pieghe multiple con passanti per cinghie" },
+                    { name: "Cinturini di Bloccaggio", qty: 2, desc: "Trattengono i soffietti laterali" },
+                    { name: "Manici Rigidi Toron", qty: 2, desc: "Montati con anelli metallici" }
+                ],
+                assemblySteps: [
+                    "1. Preparazione del pellame Grain de Poudre ad alta resistenza.",
+                    "2. Piegatura e termoformatura dei soffietti a fisarmonica.",
+                    "3. Montaggio dei cinturini di trattenuta laterale con lucchetto pendente.",
+                    "4. Cucitura di precisione e stampa a caldo del logo in oro metallizzato."
+                ]
+            },
+            {
+                id: "ysl-loulou",
+                name: "Saint Laurent Loulou",
+                brand: "Saint Laurent",
+                year: 2017,
+                category: "Shoulder Bag",
+                dimensions: "29 x 20 x 11 cm",
+                volume: 6.3,
+                craftHours: 10,
+                formality: 75,
+                rigidity: 5,
+                versatility: 90,
+                outerLeather: "Pelle di Vitello Opaca / Agnello Trapuntato",
+                leatherThickness: "1.1 mm",
+                reinforcements: "Trapuntatura morbida a forma di Y (Y-Quilting)",
+                lining: "Tessuto Grosgrain Nero con tasca zippata",
+                hardware: "Monogramma metallico YSL Cassandre e catena con salvaspalla",
+                image: "https://images.unsplash.com/photo-1594223274512-ad48027321b2?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "ysl-loulou",
+                description: "Borsa a spalla morbida caratterizzata dalla sofisticata trapuntatura a spiga d'ape 'Y', tracolla in catena scorrevole e monogramma metallico YSL Cassandre.",
+                iconicity: "Dedicata a Loulou de la Falaise, storica musa e stilista di Yves Saint Laurent. Unisce la morbidezza tattile al carattere rock-chic della maison.",
+                patternPieces: [
+                    { name: "Quadrante Principale Trapuntato Y", qty: 1, desc: "Trapuntatura continua a motivi inclinati" },
+                    { name: "Patta Frontale a Punta", qty: 1, desc: "Sede per la fibbia YSL Cassandre" },
+                    { name: "Soffietto Centrale Morbido", qty: 1, desc: "Con divisorio interno zippato" },
+                    { name: "Salvaspalla in Pelle per Catena", qty: 2, desc: "Cuscinetti di supporto per le spalle" }
+                ],
+                assemblySteps: [
+                    "1. Trapuntatura a V e Y della pelle di vitello su strato di ovatta morbida.",
+                    "2. Fissaggio dell'iconico monogramma YSL Cassandre in metallo dorato/brunito.",
+                    "3. Inserimento della fodera in grosgrain e dei passanti per la catena scorrevole.",
+                    "4. Collaudo delle finiture e dei bottoni magnetici."
+                ]
+            },
+            {
+                id: "jacquemus-chiquito",
+                name: "Jacquemus Le Chiquito",
+                brand: "Jacquemus",
+                year: 2018,
+                category: "Micro Bag",
+                dimensions: "12 x 9 x 5.5 cm",
+                volume: 0.6,
+                craftHours: 5,
+                formality: 50,
+                rigidity: 8,
+                versatility: 40,
+                outerLeather: "Pelle di Vitello Liscia / Stampata",
+                leatherThickness: "1.2 mm",
+                reinforcements: "Cartoncino rigido micro-pelletteria",
+                lining: "Tela di Cotone Beige",
+                hardware: "Logo metallico dorato Jacquemus in basso a sinistra",
+                image: "https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "jacquemus-chiquito",
+                description: "Micro-borsa dalle proporzioni estreme con manico oversize sproporzionato rispetto al corpo rettangolare rigido e logo dorato in rilievo.",
+                iconicity: "Disegnata da Simon Porte Jacquemus. Ha scardinato la funzione pratica dell'accessorio trasformandolo in un fenomeno virale globale sui social network e lanciando il trend delle micro-bags.",
+                patternPieces: [
+                    { name: "Micro Quadrante Anteriore", qty: 1, desc: "12 x 9 cm con predisposizione logo" },
+                    { name: "Micro Quadrante Posteriore + Flap", qty: 1, desc: "Patta di chiusura a bottone magnetico" },
+                    { name: "Manico Oversize Curvo", qty: 1, desc: "Manico circolare o ritorto ad alto impatto" },
+                    { name: "Micro Tracolla Removibile", qty: 1, desc: "Sottile cinturino da 0.8 cm" }
+                ],
+                assemblySteps: [
+                    "1. Taglio ad altissima precisione dei micro-pezzi in pelle di vitello.",
+                    "2. Modellatura del manico curvo sproporzionato attorno a un'anima rigida.",
+                    "3. Applicazione del logo dorato Jacquemus con perni micro-saldata.",
+                    "4. Assemblaggio dei magneti interni e cucitura dei bordi."
+                ]
+            },
+            {
+                id: "givenchy-antigona",
+                name: "Givenchy Antigona",
+                brand: "Givenchy",
+                year: 2010,
+                category: "Satchel / Boston",
+                dimensions: "33 x 28 x 19 cm",
+                volume: 17.5,
+                craftHours: 13,
+                formality: 80,
+                rigidity: 9,
+                versatility: 80,
+                outerLeather: "Pelle di Vitello Sugar o Box Calf",
+                leatherThickness: "1.4 - 1.5 mm",
+                reinforcements: "Struttura rigida scultorea termoformata",
+                lining: "Tessuto di Cotone Canvas Nero",
+                hardware: "Cerniera industriale oversize dorata/argentata e placca triangolare con logo",
+                image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "givenchy-antigona",
+                description: "Silhouette scultorea e geometrica rigorosa, con caratteristica applicazione triangolare imbottita sul fronte, cerniera metallica spessa e doppi manici robusti.",
+                iconicity: "Creata da Riccardo Tisci nel 2010 e ispirata alla figura mitologica greca Antigone. Incarna la perfetta sintesi tra estetica gotica, rigore maschile e grazia femminile.",
+                patternPieces: [
+                    { name: "Quadranti Rigidi Anteriore/Posteriore", qty: 2, desc: "Profilo a bauletto geometrico" },
+                    { name: "Patch Triangolare Imbottita", qty: 1, desc: "Applicazione frontale con incisione Givenchy" },
+                    { name: "Fianchi e Fondo Sagomati", qty: 2, desc: "Con struttura ad altissima tenuta" },
+                    { name: "Manici Rigidi a Cuneo", qty: 2, desc: "Supporti rinforzati con cuciture spesse" }
+                ],
+                assemblySteps: [
+                    "1. Formatrice a caldo dei quadranti in vitello rigido Sugar.",
+                    "2. Applicazione del triangolo imbottito Givenchy sul fronte borsa.",
+                    "3. Inserimento della grande cerniera industriale n. 10 metallica.",
+                    "4. Assemblaggio e tintura delle coste a forte spessore."
+                ]
+            },
+            {
+                id: "chloe-paddington",
+                name: "Chloé Paddington",
+                brand: "Chloé",
+                year: 2004,
+                category: "Satchel / Bauletto",
+                dimensions: "36 x 20 x 18 cm",
+                volume: 13.0,
+                craftHours: 11,
+                formality: 55,
+                rigidity: 4,
+                versatility: 80,
+                outerLeather: "Pelle di Vitello stropicciata e granata",
+                leatherThickness: "1.3 mm",
+                reinforcements: "Fasce e cinturini di contenimento",
+                lining: "Tessuto di Cotone Beige",
+                hardware: "Imponente Lucchetto in Ottone Massiccio (pesante 0.5 kg) e chiave con lazo",
+                image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "chloe-paddington",
+                description: "Bauletto morbido in pelle stropicciata, caratterizzato da un imponente lucchetto metallico in ottone massiccio posto al centro e da cinturini di chiusura perimetrali.",
+                iconicity: "Disegnata da Phoebe Philo per Chloé nel 2004. Tutti gli 8.000 esemplari della prima serie andarono sold-out prima ancora di arrivare nei negozi, definendo l'era 'boho-chic'.",
+                patternPieces: [
+                    { name: "Corpo Bauletto Morbido", qty: 1, desc: "Pelle di vitello stropicciata" },
+                    { name: "Cinturini di Chiusura Lucchetto", qty: 2, desc: "Avvolgono il centro della borsa" },
+                    { name: "Doppi Manici Tubolari", qty: 2, desc: "Poggiati su piastre con rivetti spessi" },
+                    { name: "Lucchetto in Ottone Massiccio", qty: 1, desc: "Hardware d'effetto da 500 grammi" }
+                ],
+                assemblySteps: [
+                    "1. Concia e finitura stropicciata speciale della pelle di vitello.",
+                    "2. Cucitura delle fasce di supporto centrali per sostenere il peso del lucchetto.",
+                    "3. Montaggio della cerniera a doppio cursore e inserimento del lucchetto in ottone.",
+                    "4. Fissaggio della chiave con lazo in pelle attorno al manico."
+                ]
+            },
+            {
+                id: "hermes-constance",
+                name: "Hermès Constance",
+                brand: "Hermès",
+                year: 1969,
+                category: "Shoulder Bag",
+                dimensions: "24 x 15 x 5 cm",
+                volume: 1.8,
+                craftHours: 14,
+                formality: 90,
+                rigidity: 8,
+                versatility: 85,
+                outerLeather: "Pelle Box Calf / Swift / Epsom",
+                leatherThickness: "1.3 mm",
+                reinforcements: "Cartone rigido da pelletteria 1.2mm",
+                lining: "Pelle di Agnello Mysore",
+                hardware: "Grande chiusura metallica ad 'H' sul flap frontale",
+                image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "hermes-constance",
+                description: "Borsa quadrata rigida da spalla con tracolla in pelle doppiata scorrevole e imponente chiusura metallica a forma di lettera 'H' che si apre sollevando la barra orizzontale.",
+                iconicity: "Disegnata nel 1969 da Catherine Chaillet il giorno in cui nacque la sua quinta figlia, Constance. Completa la 'Holy Trinity' delle borse Hermès insieme a Birkin e Kelly.",
+                patternPieces: [
+                    { name: "Quadrante Posteriore + Patta", qty: 1, desc: "Unico pezzo ricurvo in pelle Box" },
+                    { name: "Quadrante Anteriore", qty: 1, desc: "Con scasso per la struttura della fibbia H" },
+                    { name: "Soffietto Interno Doppio", qty: 2, desc: "Divisorio flessibile a due scomparti" },
+                    { name: "Chiusura ad 'H' Metallica", qty: 1, desc: "Ottone dorato o palladio smaltato" }
+                ],
+                assemblySteps: [
+                    "1. Taglio e preparazione della pelle Box Calf ad alta lucentezza.",
+                    "2. Montaggio preciso della fibbia metallica ad 'H' sulla patta anteriore.",
+                    "3. Assemblaggio dei due scomparti interni in agnello con cucitura manuale.",
+                    "4. Lucidatura a cera e carteggiatura manuale delle coste."
+                ]
+            },
+            {
+                id: "goyard-saintlouis",
+                name: "Goyard Saint Louis PM",
+                brand: "Goyard",
+                year: 1930,
+                category: "Tote Bag",
+                dimensions: "34 x 28 x 15 cm",
+                volume: 14.2,
+                craftHours: 6,
+                formality: 35,
+                rigidity: 1,
+                versatility: 100,
+                outerLeather: "Goyardine Canvas (Cotone, lino e canapa impermeabilizzata)",
+                leatherThickness: "0.7 mm",
+                reinforcements: "Bordatura in pelle Chevroches sui rubini",
+                lining: "Tela di Lino/Cotone Naturale Bianca (Reversibile)",
+                hardware: "Piccolo bottone a pressione sulla pochette coordinata",
+                image: "https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "goyard-saintlouis",
+                description: "Tote bag ultra-leggera e completamente reversibile realizzata in tela Goyardine con motivo a reticolo chevron stampato a mano. Include pochette interna staccabile.",
+                iconicity: "Simbolo dell'esclusività discreta. Goyard non fa pubblicità né e-commerce, rendendo questa tote un'icona cult dell'élite globale.",
+                patternPieces: [
+                    { name: "Foglio Goyardine Principale", qty: 1, desc: "Tela stampata a reticolo a punti" },
+                    { name: "Manici Sottili Chevroches", qty: 2, desc: "Pelle di vitello sagomata ad Y" },
+                    { name: "Pochette Interna di Cortesia", qty: 1, desc: "Con cinturino di ancoraggio alla borsa" }
+                ],
+                assemblySteps: [
+                    "1. Stampa serigrafica manuale a più passaggi del motivo Goyardine su tela.",
+                    "2. Taglio del corpo tote e assemblaggio a struttura reversibile.",
+                    "3. Applicazione dei manici in pelle Chevroches con cuciture fitte rinforzate.",
+                    "4. Fissaggio della pochette abbinata."
+                ]
+            },
+            {
+                id: "marni-trunk",
+                name: "Marni Trunk",
+                brand: "Marni",
+                year: 2014,
+                category: "Shoulder Bag",
+                dimensions: "23 x 16 x 11 cm",
+                volume: 4.0,
+                craftHours: 12,
+                formality: 65,
+                rigidity: 8,
+                versatility: 85,
+                outerLeather: "Pelle di Vitello Saffiano / Liscia",
+                leatherThickness: "1.3 mm",
+                reinforcements: "Divisori rigidi interni termoformati",
+                lining: "Cotone Canvas o Nappa",
+                hardware: "Chiusura a fermaglio con bottoni a pressione e tracolla allungabile",
+                image: "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "marni-trunk",
+                description: "Architettura a fisarmonica con scomparti multipli sovrapposti (fino a 5 scomparti), profili verniciati a contrasto e tracolla con bottoni d'allungamento.",
+                iconicity: "Creata da Consuelo Castiglioni nel 2014. È il pilastro del design concettuale, amata da stilisti e architetti per la sua impeccabile geometria.",
+                patternPieces: [
+                    { name: "Patta Superiore Rettangolare", qty: 1, desc: "Copre l'intera fisarmonica" },
+                    { name: "Soffietti Fisarmonica Multipli", qty: 4, desc: "4 o 5 scomparti a soffietto espandibile" },
+                    { name: "Tracolla Regolabile con Bottoni", qty: 1, desc: "Modificabile in lunghezza tramite bottoni automatici" }
+                ],
+                assemblySteps: [
+                    "1. Assemblaggio dei singoli scomparti chiusi da cerniere e tasche aperte.",
+                    "2. Unione dei soffietti a fisarmonica con cucitura laterale continua.",
+                    "3. Tintura a contrasto delle coste esterne per evidenziare la geometria.",
+                    "4. Fissaggio della chiusura metallica a fermaglio."
+                ]
+            },
+            {
+                id: "markcross-grace",
+                name: "Mark Cross Grace Box",
+                brand: "Mark Cross",
+                year: 1954,
+                category: "Box / Clutch",
+                dimensions: "19 x 14.5 x 9 cm",
+                volume: 2.5,
+                craftHours: 15,
+                formality: 95,
+                rigidity: 10,
+                versatility: 60,
+                outerLeather: "Pelle di Vitello Spazzolato Liscio",
+                leatherThickness: "1.2 mm su guscio di legno/resina",
+                reinforcements: "Guscio rigido in legno di pioppo o resina bauletto",
+                lining: "Pelle di Agnello Rossa iconica Mark Cross",
+                hardware: "Serratura a scatto in ottone dorato lucido e piedini",
+                image: "https://images.unsplash.com/photo-1598532163257-ae3c6b2524b6?auto=format&fit=crop&w=800&q=80",
+                svgFallback: "markcross-grace",
+                description: "Bauletto-scrigno rigido di forma parallelepipeda con guscio rigido, rivestimento in pelle spazzolata, chiusura a scatto in ottone e fodera interna in agnello rosso.",
+                iconicity: "Creata nel 1954 appositamente per Grace Kelly nel capolavoro di Alfred Hitchcock 'La finestra sul cortile'. Ha stabilito lo standard per le borse-scrigno da sera.",
+                patternPieces: [
+                    { name: "Guscio Rigido Anteriore", qty: 1, desc: "Struttura box in legno/resina rivestita" },
+                    { name: "Guscio Rigido Posteriore", qty: 1, desc: "Contro-guscio incernierato sul fondo" },
+                    { name: "Manico Superiore Rigido", qty: 1, desc: "Fissato con pontetti dorati" },
+                    { name: "Fodera Interna Agnello Rosso", qty: 1, desc: "Con tasca a soffietto dorata" }
+                ],
+                assemblySteps: [
+                    "1. Costruzione del guscio interno in pioppo/resina ad alta stabilità.",
+                    "2. Incollatura e tiratura della pelle di vitello liscia attorno alla scatola.",
+                    "3. Inserimento della fodera interna in pelle d'agnello rossa.",
+                    "4. Montaggio delle cerniere di apertura e della serratura a scatola in ottone."
+                ]
+            }
+        ];
+
+        let currentSection = 'enciclopedia';
+        let currentAnalysisSubTab = '2d';
+        let scatterChartInstance = null;
+        let radarChartInstance = null;
+        let isExplodedPattern = false;
+
+        // Three.js 3D Engine Variables
+        let threeScene, threeCamera, threeRenderer, threeNodesGroup;
+        let raycaster, mouseVector;
+        let is3DDragging = false;
+        let previousMousePos = { x: 0, y: 0 };
+        let targetRotationX = 0.3, targetRotationY = 0.5;
+        let targetZoom = 70;
+        let selectedNodeBag = null;
+
+        /* INITIALIZATION ON WINDOW LOAD */
+        window.onload = function() {
+            populateBrandFilterOptions();
+            renderBagsGrid(BAGS_DATA);
+            populatePatternBagSelector();
+            loadBagPattern(BAGS_DATA[0].id);
+            init2DCharts();
+            populateRadarDropdowns();
+            init3DUniverse();
+        };
+
+        /* SECTION SWITCHER (SPA NAVIGATION) */
+        function switchSection(sectionId) {
+            currentSection = sectionId;
+            
+            // Hide all main sections
+            document.getElementById('section-enciclopedia').classList.add('hidden');
+            document.getElementById('section-cartamodelli').classList.add('hidden');
+            document.getElementById('section-analisi').classList.add('hidden');
+
+            // Reset navigation button styles
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn px-5 py-2 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 text-zinc-300 hover:text-gold";
+            });
+
+            // Activate chosen section & tab style
+            if (sectionId === 'enciclopedia') {
+                document.getElementById('section-enciclopedia').classList.remove('hidden');
+                document.getElementById('nav-enciclopedia').className = "nav-btn px-5 py-2 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 bg-gold text-obsidian-900 shadow-md";
+            } else if (sectionId === 'cartamodelli') {
+                document.getElementById('section-cartamodelli').classList.remove('hidden');
+                document.getElementById('nav-cartamodelli').className = "nav-btn px-5 py-2 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 bg-gold text-obsidian-900 shadow-md";
+            } else if (sectionId === 'analisi') {
+                document.getElementById('section-analisi').classList.remove('hidden');
+                document.getElementById('nav-analisi').className = "nav-btn px-5 py-2 rounded-full text-xs md:text-sm font-semibold transition-all duration-300 bg-gold text-obsidian-900 shadow-md";
+                // Resize charts and 3D canvas on tab display
+                setTimeout(() => {
+                    if (scatterChartInstance) scatterChartInstance.resize();
+                    if (radarChartInstance) radarChartInstance.resize();
+                    onWindowResize3D();
+                }, 100);
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function populateBrandFilterOptions() {
+            const brandSelect = document.getElementById('filter-brand');
+            const brands = [...new Set(BAGS_DATA.map(b => b.brand))].sort();
+            brands.forEach(brand => {
+                const opt = document.createElement('option');
+                opt.value = brand;
+                opt.textContent = brand;
+                brandSelect.appendChild(opt);
+            });
+        }
+
+        function renderBagsGrid(bags) {
+            const grid = document.getElementById('bags-grid');
+            grid.innerHTML = '';
+
+            document.getElementById('filter-result-count').textContent = `Visualizzazione di ${bags.length} borse su ${BAGS_DATA.length}`;
+
+            if (bags.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-16 text-center text-zinc-500">
+                        <svg class="w-12 h-12 mx-auto text-zinc-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <p class="text-base font-semibold">Nessuna borsa trovata con i filtri selezionati.</p>
+                        <p class="text-xs mt-1">Prova a cambiare i criteri di ricerca o azzera i filtri.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            bags.forEach((bag, index) => {
+                const card = document.createElement('article');
+                card.className = "glass-panel rounded-2xl overflow-hidden border border-obsidian-700 hover:border-gold/60 transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between group";
+                
+                card.innerHTML = `
+                    <div>
+                        <!-- Image Container with Fallback & Badge -->
+                        <div class="relative w-full h-64 bg-obsidian-900 overflow-hidden">
+                            <span class="absolute top-3 left-3 z-10 bg-obsidian-900/90 text-gold text-xs font-serif font-bold px-3 py-1 rounded-full border border-gold/40 backdrop-blur-md">
+                                #${String(index + 1).padStart(2, '0')}
+                            </span>
+                            <span class="absolute top-3 right-3 z-10 bg-obsidian-900/90 text-zinc-300 text-[11px] font-semibold px-2.5 py-1 rounded-md border border-obsidian-700">
+                                ${bag.year}
+                            </span>
+                            <img src="${bag.image}" alt="${bag.name}" 
+                                onerror="this.onerror=null; this.src='https://placehold.co/800x600/121216/D4AF37?text=${encodeURIComponent(bag.name)}';"
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 filter brightness-90 group-hover:brightness-100">
+                        </div>
+
+                        <!-- Card Content -->
+                        <div class="p-5 space-y-4">
+                            <div>
+                                <span class="text-xs font-bold text-gold uppercase tracking-widest">${bag.brand}</span>
+                                <h3 class="font-serif text-xl font-bold text-white group-hover:text-gold transition-colors">${bag.name}</h3>
+                                <p class="text-xs text-zinc-400 mt-0.5">${bag.category} • Dim. ${bag.dimensions}</p>
+                            </div>
+
+                            <!-- Extended Technical Specs Grid -->
+                            <div class="bg-obsidian-900/90 p-3 rounded-xl border border-obsidian-800 space-y-1.5 text-xs">
+                                <div class="flex justify-between">
+                                    <span class="text-zinc-500">Materiale Principale:</span>
+                                    <span class="text-zinc-200 font-medium text-right truncate max-w-[170px]" title="${bag.outerLeather}">${bag.outerLeather}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-zinc-500">Spessore Pelle:</span>
+                                    <span class="text-gold font-semibold">${bag.leatherThickness}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-zinc-500">Ore Artigianali:</span>
+                                    <span class="text-zinc-200 font-medium">${bag.craftHours} h</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-zinc-500">Volume Capienza:</span>
+                                    <span class="text-zinc-200 font-medium">${bag.volume} Litri</span>
+                                </div>
+                            </div>
+
+                            <!-- Descriptions -->
+                            <div class="space-y-2 text-xs text-zinc-300 leading-relaxed">
+                                <p><b>Caratteristiche:</b> ${bag.description}</p>
+                                <p><b class="text-gold">Perché è Iconica:</b> ${bag.iconicity}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Footer Buttons -->
+                    <div class="p-4 bg-obsidian-900/60 border-t border-obsidian-700/80 flex items-center justify-between gap-2">
+                        <button onclick="openBagPatternDirect('${bag.id}')" class="flex-1 py-2 rounded-xl bg-gold/10 hover:bg-gold text-gold hover:text-obsidian-900 text-xs font-bold border border-gold/30 transition-all text-center">
+                            Cartamodello & Specs
+                        </button>
+                        <button onclick="openBagIn3DDirect('${bag.id}')" class="px-3 py-2 rounded-xl bg-obsidian-800 hover:bg-obsidian-700 text-zinc-300 text-xs font-semibold border border-obsidian-700 transition-all flex items-center space-x-1">
+                            <svg class="w-3.5 h-3.5 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                            <span>Analisi 3D</span>
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function applyFilters() {
+            const query = document.getElementById('filter-search').value.toLowerCase().trim();
+            const brand = document.getElementById('filter-brand').value;
+            const decade = document.getElementById('filter-decade').value;
+
+            const filtered = BAGS_DATA.filter(bag => {
+                // Text Query Filter
+                const matchQuery = !query || 
+                    bag.name.toLowerCase().includes(query) || 
+                    bag.brand.toLowerCase().includes(query) ||
+                    bag.outerLeather.toLowerCase().includes(query) ||
+                    bag.description.toLowerCase().includes(query) ||
+                    bag.iconicity.toLowerCase().includes(query);
+
+                // Brand Filter
+                const matchBrand = (brand === 'ALL') || (bag.brand === brand);
+
+                // Decade Filter
+                let matchDecade = true;
+                if (decade === '1930-1959') matchDecade = (bag.year >= 1930 && bag.year <= 1959);
+                else if (decade === '1960-1989') matchDecade = (bag.year >= 1960 && bag.year <= 1989);
+                else if (decade === '1990-2009') matchDecade = (bag.year >= 1990 && bag.year <= 2009);
+                else if (decade === '2010-2025') matchDecade = (bag.year >= 2010);
+
+                return matchQuery && matchBrand && matchDecade;
+            });
+
+            renderBagsGrid(filtered);
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-search').value = '';
+            document.getElementById('filter-brand').value = 'ALL';
+            document.getElementById('filter-decade').value = 'ALL';
+            renderBagsGrid(BAGS_DATA);
+        }
+
+        function populatePatternBagSelector() {
+            const select = document.getElementById('pattern-bag-select');
+            select.innerHTML = '';
+            BAGS_DATA.forEach(bag => {
+                const opt = document.createElement('option');
+                opt.value = bag.id;
+                opt.textContent = `${bag.brand} - ${bag.name} (${bag.year})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function loadBagPattern(bagId) {
+            const bag = BAGS_DATA.find(b => b.id === bagId) || BAGS_DATA[0];
+            document.getElementById('pattern-bag-select').value = bag.id;
+
+            // Fill Technical Leather Specs Card
+            document.getElementById('tech-outer-leather').textContent = bag.outerLeather;
+            document.getElementById('tech-leather-thickness').textContent = bag.leatherThickness;
+            document.getElementById('tech-reinforcements').textContent = bag.reinforcements;
+            document.getElementById('tech-lining').textContent = bag.lining;
+            document.getElementById('tech-hardware').textContent = bag.hardware;
+            document.getElementById('tech-dimensions').textContent = bag.dimensions;
+
+            // Render Assembly Steps
+            const stepsContainer = document.getElementById('assembly-steps-container');
+            stepsContainer.innerHTML = '';
+            bag.assemblySteps.forEach(step => {
+                const div = document.createElement('div');
+                div.className = "bg-obsidian-900/90 p-2.5 rounded-lg border border-obsidian-800 flex items-start space-x-2";
+                div.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-gold mt-1.5 shrink-0"></span><span>${step}</span>`;
+                stepsContainer.appendChild(div);
+            });
+
+            // Render Pattern Pieces Badges
+            const piecesList = document.getElementById('pattern-pieces-list');
+            piecesList.innerHTML = '';
+            bag.patternPieces.forEach(p => {
+                const item = document.createElement('div');
+                item.className = "bg-obsidian-900 p-2 rounded-lg border border-obsidian-800";
+                item.innerHTML = `<span class="font-bold text-gold">${p.name}</span> <span class="text-zinc-500">(x${p.qty})</span><br><span class="text-[10px] text-zinc-400">${p.desc}</span>`;
+                piecesList.appendChild(item);
+            });
+
+            // Render SVG Vector Blueprint
+            renderSVGPattern(bag, isExplodedPattern);
+        }
+
+        function renderSVGPattern(bag, exploded) {
+            const svg = document.getElementById('pattern-svg');
+            svg.innerHTML = '';
+
+            const offset = exploded ? 40 : 0;
+
+            // Dynamic SVG Path generation representing realistic leather pattern pieces
+            let svgContent = `
+                <!-- Background Grid Markers -->
+                <defs>
+                    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(212, 175, 55, 0.08)" stroke-width="1"/>
+                    </pattern>
+                </defs>
+
+                <!-- Blueprint Title Tag -->
+                <text x="20" y="30" fill="#D4AF37" font-family="'Playfair Display', serif" font-size="16" font-weight="bold">
+                    CARTAMODELLO TECNICO: ${bag.name.toUpperCase()}
+                </text>
+                <text x="20" y="48" fill="#8E8E9A" font-size="10">
+                    Sviluppo in piano vettoriale • Pezzi di taglio pelle outer e rinforzi
+                </text>
+            `;
+
+            // Piece 1: Front Panel
+            svgContent += `
+                <g transform="translate(${150 - offset}, ${100 - offset/2})">
+                    <rect x="0" y="0" width="140" height="110" rx="12" fill="rgba(212, 175, 55, 0.08)" stroke="#D4AF37" stroke-width="1.5" stroke-dasharray="${exploded ? 'none' : 'none'}"/>
+                    <rect x="6" y="6" width="128" height="98" rx="8" fill="none" stroke="rgba(212, 175, 55, 0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+                    <text x="70" y="55" fill="#FFFFFF" font-size="11" font-weight="bold" text-anchor="middle">QUADRANTE ANTERIORE</text>
+                    <text x="70" y="70" fill="#D4AF37" font-size="9" text-anchor="middle">Pelle ${bag.leatherThickness}</text>
+                </g>
+            `;
+
+            // Piece 2: Back Panel + Flap Extension
+            svgContent += `
+                <g transform="translate(${310 + offset}, ${100 - offset/2})">
+                    <path d="M 0,0 L 140,0 L 140,110 Q 140,140 70,140 Q 0,140 0,110 Z" fill="rgba(212, 175, 55, 0.08)" stroke="#D4AF37" stroke-width="1.5"/>
+                    <path d="M 6,6 L 134,6 L 134,106 Q 134,132 70,132 Q 6,132 6,106 Z" fill="none" stroke="rgba(212, 175, 55, 0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+                    <text x="70" y="60" fill="#FFFFFF" font-size="11" font-weight="bold" text-anchor="middle">QUADRANTE POST. + PATTA</text>
+                    <text x="70" y="75" fill="#D4AF37" font-size="9" text-anchor="middle">Sviluppo Continuo</text>
+                </g>
+            `;
+
+            // Piece 3: Side Gusset (Soffietto)
+            svgContent += `
+                <g transform="translate(${50 - offset*1.5}, ${240 + offset})">
+                    <polygon points="10,0 60,0 50,110 20,110" fill="rgba(212, 175, 55, 0.08)" stroke="#D4AF37" stroke-width="1.5"/>
+                    <text x="35" y="55" fill="#FFFFFF" font-size="10" font-weight="bold" text-anchor="middle">SOFFIETTO (x2)</text>
+                    <text x="35" y="70" fill="#8E8E9A" font-size="8" text-anchor="middle">Fianco SX/DX</text>
+                </g>
+            `;
+
+            // Piece 4: Bottom Panel (Fondo)
+            svgContent += `
+                <g transform="translate(${150}, ${250 + offset})">
+                    <rect x="0" y="0" width="140" height="50" rx="4" fill="rgba(212, 175, 55, 0.12)" stroke="#D4AF37" stroke-width="1.5"/>
+                    <!-- Piedini Metal Clous -->
+                    <circle cx="15" cy="15" r="3" fill="#D4AF37"/>
+                    <circle cx="125" cy="15" r="3" fill="#D4AF37"/>
+                    <circle cx="15" cy="35" r="3" fill="#D4AF37"/>
+                    <circle cx="125" cy="35" r="3" fill="#D4AF37"/>
+                    <text x="70" y="28" fill="#FFFFFF" font-size="10" font-weight="bold" text-anchor="middle">FONDO STRUTTURATO</text>
+                    <text x="70" y="40" fill="#D4AF37" font-size="8" text-anchor="middle">+ Salpa 0.8mm</text>
+                </g>
+            `;
+
+            // Piece 5: Handles (Manici Toron)
+            svgContent += `
+                <g transform="translate(${320 + offset*1.2}, ${260 + offset})">
+                    <path d="M 0,20 Q 60,-20 120,20" fill="none" stroke="#D4AF37" stroke-width="6" stroke-linecap="round"/>
+                    <path d="M 0,20 Q 60,-20 120,20" fill="none" stroke="#0A0A0C" stroke-width="2" stroke-linecap="round"/>
+                    <text x="60" y="38" fill="#FFFFFF" font-size="10" font-weight="bold" text-anchor="middle">MANICI (x2)</text>
+                </g>
+            `;
+
+            svg.innerHTML = svgContent;
+        }
+
+        function toggleExplodedPattern() {
+            isExplodedPattern = !isExplodedPattern;
+            const btn = document.getElementById('btn-explode-pattern');
+            btn.textContent = isExplodedPattern ? "Ricomponi Cartamodello 2D" : "Simula Esploso Pezzi 2D";
+            const currentBagId = document.getElementById('pattern-bag-select').value;
+            loadBagPattern(currentBagId);
+        }
+
+        function openBagPatternDirect(bagId) {
+            switchSection('cartamodelli');
+            loadBagPattern(bagId);
+        }
+
+        function switchAnalysisSubTab(subTab) {
+            currentAnalysisSubTab = subTab;
+            document.getElementById('analysis-sub-2d').classList.add('hidden');
+            document.getElementById('analysis-sub-3d').classList.add('hidden');
+
+            document.getElementById('subnav-2d').className = "px-4 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-all";
+            document.getElementById('subnav-3d').className = "px-4 py-2 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition-all";
+
+            if (subTab === '2d') {
+                document.getElementById('analysis-sub-2d').classList.remove('hidden');
+                document.getElementById('subnav-2d').className = "px-4 py-2 rounded-lg text-xs font-semibold bg-gold text-obsidian-900 transition-all";
+                if (scatterChartInstance) scatterChartInstance.resize();
+                if (radarChartInstance) radarChartInstance.resize();
+            } else if (subTab === '3d') {
+                document.getElementById('analysis-sub-3d').classList.remove('hidden');
+                document.getElementById('subnav-3d').className = "px-4 py-2 rounded-lg text-xs font-semibold bg-gold text-obsidian-900 transition-all";
+                setTimeout(() => { onWindowResize3D(); }, 100);
+            }
+        }
+
+        function init2DCharts() {
+            // Chart.js Scatter Plot Configuration
+            const ctxScatter = document.getElementById('chart-2d-scatter').getContext('2d');
+            scatterChartInstance = new Chart(ctxScatter, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Borse Iconiche',
+                        data: BAGS_DATA.map(b => ({ x: b.craftHours, y: b.volume, bag: b })),
+                        backgroundColor: '#D4AF37',
+                        borderColor: '#FFF099',
+                        pointRadius: 7,
+                        pointHoverRadius: 11
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#121216',
+                            borderColor: '#D4AF37',
+                            borderWidth: 1,
+                            titleColor: '#D4AF37',
+                            bodyColor: '#FFFFFF',
+                            titleFont: { family: 'Playfair Display', size: 14, weight: 'bold' },
+                            callbacks: {
+                                title: function(context) {
+                                    return context[0].raw.bag.name;
+                                },
+                                label: function(context) {
+                                    const b = context.raw.bag;
+                                    return [
+                                        `Maison: ${b.brand} (${b.year})`,
+                                        `Ore Artigianali: ${b.craftHours} h`,
+                                        `Volume Capienza: ${b.volume} Litri`,
+                                        `Formalità: ${b.formality} / 100`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Ore di Lavorazione Artigianale (h)', color: '#D4AF37', font: { weight: 'bold' } },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#8E8E9A' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Capienza In Litri (Volume)', color: '#D4AF37', font: { weight: 'bold' } },
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            ticks: { color: '#8E8E9A' }
+                        }
+                    }
+                }
+            });
+
+            // Radar Chart Configuration
+            const ctxRadar = document.getElementById('chart-radar').getContext('2d');
+            radarChartInstance = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Capienza (L)', 'Formalità (0-100)', 'Complessità Ore', 'Rigidità (1-10)', 'Versatilità (0-100)'],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                            pointLabels: { color: '#D4AF37', font: { size: 11, weight: 'bold' } },
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#FFFFFF', font: { weight: 'bold' } } }
+                    }
+                }
+            });
+
+            updateRadarChart();
+        }
+
+        function update2DScatterChart() {
+            if (!scatterChartInstance) return;
+
+            const axisXKey = document.getElementById('axis-x-select').value;
+            const axisYKey = document.getElementById('axis-y-select').value;
+
+            const labelsMap = {
+                year: 'Anno di Creazione (Epoca)',
+                volume: 'Capienza In Litri (Volume)',
+                craftHours: 'Ore di Lavorazione Artigianale (h)',
+                formality: 'Grado di Formalità (1 - 100)',
+                rigidity: 'Livello di Rigidità Strutturale (1 - 10)',
+                versatility: 'Indice di Versatilità Usabile (1 - 100)'
+            };
+
+            scatterChartInstance.data.datasets[0].data = BAGS_DATA.map(b => ({
+                x: b[axisXKey],
+                y: b[axisYKey],
+                bag: b
+            }));
+
+            scatterChartInstance.options.scales.x.title.text = labelsMap[axisXKey];
+            scatterChartInstance.options.scales.y.title.text = labelsMap[axisYKey];
+            scatterChartInstance.update();
+        }
+
+        function populateRadarDropdowns() {
+            const select1 = document.getElementById('radar-bag-1');
+            const select2 = document.getElementById('radar-bag-2');
+            select1.innerHTML = '';
+            select2.innerHTML = '';
+
+            BAGS_DATA.forEach((b, idx) => {
+                const opt1 = document.createElement('option');
+                opt1.value = b.id;
+                opt1.textContent = b.name;
+                select1.appendChild(opt1);
+
+                const opt2 = document.createElement('option');
+                opt2.value = b.id;
+                opt2.textContent = b.name;
+                select2.appendChild(opt2);
+            });
+
+            // Set default selections
+            select1.value = BAGS_DATA[0].id; // Birkin
+            select2.value = BAGS_DATA[4].id; // Speedy 25
+        }
+
+        function updateRadarChart() {
+            if (!radarChartInstance) return;
+
+            const id1 = document.getElementById('radar-bag-1').value;
+            const id2 = document.getElementById('radar-bag-2').value;
+
+            const b1 = BAGS_DATA.find(b => b.id === id1) || BAGS_DATA[0];
+            const b2 = BAGS_DATA.find(b => b.id === id2) || BAGS_DATA[1];
+
+            radarChartInstance.data.datasets = [
+                {
+                    label: b1.name,
+                    data: [b1.volume * 5, b1.formality, b1.craftHours * 4, b1.rigidity * 10, b1.versatility],
+                    backgroundColor: 'rgba(212, 175, 55, 0.25)',
+                    borderColor: '#D4AF37',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#D4AF37'
+                },
+                {
+                    label: b2.name,
+                    data: [b2.volume * 5, b2.formality, b2.craftHours * 4, b2.rigidity * 10, b2.versatility],
+                    backgroundColor: 'rgba(56, 189, 248, 0.25)',
+                    borderColor: '#38BDF8',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#38BDF8'
+                }
+            ];
+
+            radarChartInstance.update();
+        }
+
+        function init3DUniverse() {
+            const container = document.getElementById('threejs-canvas-container');
+            if (!container) return;
+
+            // 1. Scene setup
+            threeScene = new THREE.Scene();
+            threeScene.background = new THREE.Color(0x0A0A0C);
+            threeScene.fog = new THREE.FogExp2(0x0A0A0C, 0.005);
+
+            // 2. Camera setup
+            const aspect = container.clientWidth / container.clientHeight;
+            threeCamera = new THREE.PerspectiveCamera(50, aspect, 0.1, 1000);
+            
+            // 3. Renderer setup
+            threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            threeRenderer.setSize(container.clientWidth, container.clientHeight);
+            threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(threeRenderer.domElement);
+
+            // 4. Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            threeScene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xD4AF37, 1.2);
+            dirLight.position.set(50, 80, 50);
+            threeScene.add(dirLight);
+
+            const pointLight = new THREE.PointLight(0xffffff, 1);
+            pointLight.position.set(-50, -50, -50);
+            threeScene.add(pointLight);
+
+            // 5. 3D Grid & Axes Helper
+            const gridHelper = new THREE.GridHelper(120, 24, 0xD4AF37, 0x262632);
+            gridHelper.position.y = -30;
+            threeScene.add(gridHelper);
+
+            // 6. Nodes Group
+            threeNodesGroup = new THREE.Group();
+            threeScene.add(threeNodesGroup);
+
+            // Create 30 glowing 3D spheres
+            create3DNodes('p1');
+
+            // 7. Raycaster for clicking
+            raycaster = new THREE.Raycaster();
+            mouseVector = new THREE.Vector2();
+
+            // Event Listeners for 3D mouse interaction
+            const canvasEl = threeRenderer.domElement;
+            canvasEl.addEventListener('mousedown', on3DMouseDown);
+            window.addEventListener('mousemove', on3DMouseMove);
+            window.addEventListener('mouseup', on3DMouseUp);
+            canvasEl.addEventListener('wheel', on3DMouseWheel, { passive: true });
+            canvasEl.addEventListener('click', on3DCanvasClick);
+
+            window.addEventListener('resize', onWindowResize3D);
+
+            // Start Animation Loop
+            animate3D();
+        }
+
+        function create3DNodes(presetKey) {
+            // Clear existing nodes
+            while(threeNodesGroup.children.length > 0) {
+                const obj = threeNodesGroup.children[0];
+                threeNodesGroup.remove(obj);
+            }
+
+            const geometry = new THREE.SphereGeometry(1.8, 32, 32);
+
+            BAGS_DATA.forEach(bag => {
+                let x = 0, y = 0, z = 0;
+
+                if (presetKey === 'p1') {
+                    // X: Volume (Liters), Y: Formality (0-100), Z: Year (1930-2020)
+                    x = (bag.volume - 8) * 3;
+                    y = (bag.formality - 50) * 0.6;
+                    z = (bag.year - 1975) * 0.8;
+                } else if (presetKey === 'p2') {
+                    // X: Craft Hours, Y: Versatility, Z: Rigidity
+                    x = (bag.craftHours - 10) * 3;
+                    y = (bag.versatility - 50) * 0.6;
+                    z = (bag.rigidity - 5) * 6;
+                } else if (presetKey === 'p3') {
+                    // X: Year, Y: Volume, Z: Formality
+                    x = (bag.year - 1975) * 0.8;
+                    y = (bag.volume - 8) * 3;
+                    z = (bag.formality - 50) * 0.6;
+                }
+
+                // Material with gold metallic gloss
+                const material = new THREE.MeshStandardMaterial({
+                    color: 0xD4AF37,
+                    metalness: 0.8,
+                    roughness: 0.2,
+                    emissive: 0x332600
+                });
+
+                const sphere = new THREE.Mesh(geometry, material);
+                sphere.position.set(x, y, z);
+                sphere.userData = { bag: bag };
+
+                // Glowing outer ring for elegance
+                const ringGeo = new THREE.RingGeometry(2.2, 2.5, 32);
+                const ringMat = new THREE.MeshBasicMaterial({ color: 0xF3E5AB, side: THREE.DoubleSide, transparent: true, opacity: 0.4 });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = Math.PI / 2;
+                sphere.add(ring);
+
+                threeNodesGroup.add(sphere);
+            });
+        }
+
+        function update3dPreset(presetKey) {
+            create3DNodes(presetKey);
+        }
+
+        /* 3D ANIMATION LOOP & ORBIT CAMERA */
+        function animate3D() {
+            requestAnimationFrame(animate3D);
+
+            // Smooth Camera Orbit Position
+            threeCamera.position.x = targetZoom * Math.sin(targetRotationY) * Math.cos(targetRotationX);
+            threeCamera.position.y = targetZoom * Math.sin(targetRotationX);
+            threeCamera.position.z = targetZoom * Math.cos(targetRotationY) * Math.cos(targetRotationX);
+            threeCamera.lookAt(0, 0, 0);
+
+            // Subtle rotation of ring badges
+            if (threeNodesGroup) {
+                threeNodesGroup.children.forEach(node => {
+                    if (node.children[0]) node.children[0].rotation.z += 0.01;
+                });
+            }
+
+            threeRenderer.render(threeScene, threeCamera);
+        }
+
+        /* MOUSE CONTROLS FOR 3D VIEWPORT */
+        function on3DMouseDown(e) {
+            is3DDragging = true;
+            previousMousePos = { x: e.clientX, y: e.clientY };
+        }
+
+        function on3DMouseMove(e) {
+            if (!is3DDragging) return;
+
+            const deltaX = e.clientX - previousMousePos.x;
+            const deltaY = e.clientY - previousMousePos.y;
+
+            targetRotationY -= deltaX * 0.005;
+            targetRotationX += deltaY * 0.005;
+
+            // Clamp vertical rotation to avoid flip
+            targetRotationX = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, targetRotationX));
+
+            previousMousePos = { x: e.clientX, y: e.clientY };
+        }
+
+        function on3DMouseUp() {
+            is3DDragging = false;
+        }
+
+        function on3DMouseWheel(e) {
+            targetZoom += e.deltaY * 0.05;
+            targetZoom = Math.max(20, Math.min(180, targetZoom));
+        }
+
+        function on3DCanvasClick(e) {
+            const container = document.getElementById('threejs-canvas-container');
+            const rect = container.getBoundingClientRect();
+
+            mouseVector.x = ((e.clientX - rect.left) / container.clientWidth) * 2 - 1;
+            mouseVector.y = -((e.clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouseVector, threeCamera);
+            const intersects = raycaster.intersectObjects(threeNodesGroup.children);
+
+            if (intersects.length > 0) {
+                const clickedSphere = intersects[0].object;
+                const bag = clickedSphere.userData.bag;
+                show3DFloatingPanel(bag);
+            }
+        }
+
+        function show3DFloatingPanel(bag) {
+            selectedNodeBag = bag;
+            const panel = document.getElementById('3d-floating-panel');
+            document.getElementById('3d-panel-brand').textContent = bag.brand;
+            document.getElementById('3d-panel-title').textContent = bag.name;
+            document.getElementById('3d-panel-year').textContent = `Anno: ${bag.year} • ${bag.category}`;
+            document.getElementById('3d-panel-img').src = bag.image;
+            document.getElementById('3d-panel-vol').textContent = `${bag.volume} Litri`;
+            document.getElementById('3d-panel-form').textContent = `${bag.formality} / 100`;
+            document.getElementById('3d-panel-craft').textContent = `${bag.craftHours} ore`;
+
+            document.getElementById('3d-panel-action-btn').onclick = function() {
+                openBagPatternDirect(bag.id);
+            };
+
+            panel.classList.remove('hidden');
+        }
+
+        function close3dPanel() {
+            document.getElementById('3d-floating-panel').classList.add('hidden');
+        }
+
+        function openBagIn3DDirect(bagId) {
+            switchSection('analisi');
+            switchAnalysisSubTab('3d');
+            const bag = BAGS_DATA.find(b => b.id === bagId);
+            if (bag) show3DFloatingPanel(bag);
+        }
+
+        function onWindowResize3D() {
+            const container = document.getElementById('threejs-canvas-container');
+            if (!container || !threeCamera || !threeRenderer) return;
+
+            threeCamera.aspect = container.clientWidth / container.clientHeight;
+            threeCamera.updateProjectionMatrix();
+            threeRenderer.setSize(container.clientWidth, container.clientHeight);
+        }
+    </script>
+</body>
+</html>
