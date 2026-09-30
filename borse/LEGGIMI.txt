@@ -1,0 +1,65 @@
+FORME — ATLANTE DELLE BORSE
+Edizione di studio · 30 settembre 2026
+
+APERTURA
+Aprire index.html con un browser aggiornato. Se si usa lo ZIP, estrarre prima
+l’intera cartella. Conservare la struttura delle cartelle: le pagine condividono
+dati, illustrazioni e librerie. Non serve un server o una connessione per
+consultare l’atlante; i link alle fonti richiedono Internet. Le viste 3D richiedono
+WebGL. Nessuna chiave API e nessun account.
+
+PERCORSI
+index.html        catalogo ricercabile, filtri, preferiti
+schede/           200 schede individuali collegate
+mappe.html        PCA 2D e WebGL 3D; tre matrici; variabili originali
+rete.html         Gower, Pearson e Jaccard; vicinato; esportazioni
+confronto.html    confronto di due modelli, radar e CSV
+geografia.html    carta schematica delle città e fonti societarie
+laboratorio.html geometrie modificabili, esploso 3D, SVG e DXF
+metodo.html       criteri, copertura, regole dei punteggi e fonti
+
+DATI ED ESPORTAZIONI
+dati/catalogo.json    tutti i campi, le fonti e i risultati PCA
+dati/catalogo.csv     tabella del catalogo
+dati/pca-*.csv        variabili e coordinate delle tre analisi
+dati/rete.gexf        rete iniziale per Gephi
+dati/rete.graphml     rete iniziale GraphML
+dati/rete.gxl         rete iniziale GXL (interpretazione di “glx”)
+dati/archi.csv        archi e pesi
+cartamodelli/        200 SVG fisici in mm e 200 DXF in mm
+
+La rete preesportata usa Gower >= 0,84 e l’unione dei 4 migliori vicini per nodo.
+La rete della pagina HTML esporta invece lo stato effettivamente visualizzato.
+Importare GEXF in Gephi come grafo non diretto; usare Weight come peso.
+
+CARTAMODELLI
+Tutti sono ricostruzioni geometriche didattiche, non originali delle maison.
+Le tavole studiano l’involucro: due facce e una fascia con perimetro coerente.
+Il volume non simula deformazioni fisiche. Non è una replica di produzione.
+Margini concavi, fodera, spessori, rinforzi e ferramenta richiedono sviluppo.
+Per aerogel, metallo e cesti viene fornito soltanto uno schema d’ingombro.
+Stampare SVG al 100% e controllare il quadrato 50 x 50 mm. Per A4 occorre
+una stampa a mosaico; l’SVG nativo ha una tavola grande, non fogli già suddivisi.
+Il DXF contiene contorni di cucitura e taglio dell’involucro; note e tracolla
+opzionale sono nella tavola SVG. Non tagliare materiali costosi senza una tela.
+
+COPERTURA DELLA RICERCA
+La selezione di 200 famiglie è curatoriale, non una classifica universale.
+Le misure documentate sono legate a varianti precise. Molte quote sono ipotesi
+di studio e molte cronologie restano da verificare: lo stato è esplicito nelle
+schede e nei dati. Metodo riporta i conteggi aggiornati della copertura.
+Le sedi indicative non equivalgono a sedi legali verificate o fabbriche.
+Le fonti generali di maison non certificano ogni modello di quella maison.
+Le immagini sono disegni analitici originali, non fotografie dei prodotti.
+Non sono presenti prezzi o promesse di valore d’investimento.
+
+VERIFICA
+Eseguiti controlli su 200 viste di scheda e 200 geometrie usando un ambiente
+di prova delle funzioni, con geometrie Three.js effettive e disegno simulato;
+controllati calcoli PCA, filtri, confronto, rete, XML e collegamenti locali.
+L’aspetto e il comportamento nel browser reale NON sono stati verificati:
+la navigazione automatica ai file locali è stata bloccata dalla policy.
+
+LIBRERIE
+Three.js r160 incluso localmente; licenza MIT in vendor/LICENSE-three.txt.
+I marchi appartengono ai rispettivi titolari. Atlante indipendente di studio.
