@@ -1,0 +1,715 @@
+﻿Source,Target,Weight,Ponte,Relazione
+p001,p166,0.833333,False,Stessa funzione: Sedia. Materiali condivisi: frassino. Vicinanza dei codici di forma e uso.
+p001,p002,0.752083,False,Stessa funzione: Sedia. Materiali condivisi: frassino. Vicinanza dei codici di forma e uso.
+p001,p101,0.752083,False,Stessa funzione: Sedia. Materiali condivisi: canna. Vicinanza dei codici di forma e uso.
+p001,p082,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p001,p146,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p002,p049,0.8125,False,Stessa funzione: Sedia. Materiali condivisi: frassino. Vicinanza dei codici di forma e uso.
+p002,p060,0.778125,False,"Funzioni differenti. Materiali condivisi: frassino, tessuto. Vicinanza dei codici di forma e uso."
+p002,p092,0.752083,False,Stessa funzione: Sedia. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p002,p166,0.752083,False,Stessa funzione: Sedia. Materiali condivisi: frassino. Vicinanza dei codici di forma e uso.
+p003,p020,0.91875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, cuoio. Vicinanza dei codici di forma e uso."
+p003,p098,0.875,False,Stessa funzione: Poltrona. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p003,p010,0.859375,False,"Funzioni differenti. Materiali condivisi: acciaio, cuoio. Vicinanza dei codici di forma e uso."
+p003,p114,0.833333,False,Stessa funzione: Poltrona. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p003,p197,0.833333,False,Stessa funzione: Poltrona. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p004,p005,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p004,p046,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p004,p043,0.91875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p004,p141,0.916667,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, pelle. Vicinanza dei codici di forma e uso."
+p004,p104,0.875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano. Vicinanza dei codici di forma e uso."
+p005,p046,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p005,p043,0.91875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p005,p141,0.916667,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, pelle. Vicinanza dei codici di forma e uso."
+p005,p104,0.875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano. Vicinanza dei codici di forma e uso."
+p006,p141,0.81875,False,"Funzioni differenti. Materiali condivisi: acciaio, pelle. Vicinanza dei codici di forma e uso."
+p006,p043,0.816667,False,"Funzioni differenti. Materiali condivisi: acciaio, pelle. Vicinanza dei codici di forma e uso."
+p006,p113,0.792708,False,Stessa funzione: Chaise longue. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p006,p046,0.735417,False,"Funzioni differenti. Materiali condivisi: acciaio, pelle. Vicinanza dei codici di forma e uso."
+p005,p006,0.735417,False,"Funzioni differenti. Materiali condivisi: acciaio, pelle. Vicinanza dei codici di forma e uso."
+p007,p033,0.898438,False,"Stessa funzione: Poltrona. Materiali condivisi: legno, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p007,p134,0.879688,False,"Funzioni differenti. Materiali condivisi: legno, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p007,p045,0.875,False,"Stessa funzione: Poltrona. Materiali condivisi: legno, poliuretano. Vicinanza dei codici di forma e uso."
+p007,p048,0.854688,False,"Stessa funzione: Poltrona. Materiali condivisi: legno, poliuretano. Vicinanza dei codici di forma e uso."
+p007,p096,0.835417,False,"Stessa funzione: Poltrona. Materiali condivisi: legno, tessuto. Vicinanza dei codici di forma e uso."
+p008,p160,0.733333,False,Funzioni differenti. Materiali condivisi: laccato. Vicinanza dei codici di forma e uso.
+p008,p042,0.731771,False,Stessa funzione: Poltrona. Materiali condivisi: faggio. Vicinanza dei codici di forma e uso.
+p008,p041,0.710938,False,Stessa funzione: Poltrona. Materiali condivisi: faggio. Vicinanza dei codici di forma e uso.
+p008,p055,0.69375,False,Funzioni differenti. Materiali condivisi: faggio. Vicinanza dei codici di forma e uso.
+p008,p106,0.689063,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p001,p009,0.729688,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p009,p082,0.729688,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p009,p146,0.729688,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p009,p166,0.729688,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p009,p164,0.729688,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p010,p020,0.859375,False,"Funzioni differenti. Materiali condivisi: acciaio, cuoio. Vicinanza dei codici di forma e uso."
+p010,p163,0.834375,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p010,p167,0.834375,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p010,p056,0.833333,False,Stessa funzione: Sedia. Materiali condivisi: cuoio. Vicinanza dei codici di forma e uso.
+p011,p200,1.0,False,"Stessa funzione: Divano. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p011,p199,0.855729,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p011,p024,0.835417,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p011,p026,0.815104,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p011,p013,0.798438,False,"Funzioni differenti. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p012,p097,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p012,p108,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p012,p112,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p012,p115,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p012,p196,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p013,p104,0.979688,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p013,p105,0.979688,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p013,p138,0.979688,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p012,p013,0.898438,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p013,p108,0.898438,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p014,p128,0.775,False,Funzioni differenti. Materiali condivisi: rovere. Vicinanza dei codici di forma e uso.
+p014,p165,0.714063,False,Funzioni differenti. Materiali condivisi: rovere. Vicinanza dei codici di forma e uso.
+p014,p164,0.714063,False,Funzioni differenti. Materiali condivisi: rovere. Vicinanza dei codici di forma e uso.
+p014,p058,0.69375,False,Funzioni differenti. Materiali condivisi: rovere. Vicinanza dei codici di forma e uso.
+p014,p057,0.69375,False,Funzioni differenti. Materiali condivisi: rovere. Vicinanza dei codici di forma e uso.
+p015,p093,0.689063,False,Stessa funzione: Chaise longue. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p015,p113,0.66875,False,Stessa funzione: Chaise longue. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p015,p135,0.629688,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p015,p131,0.629688,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p006,p015,0.628125,False,Stessa funzione: Chaise longue. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p016,p132,0.775,False,Funzioni differenti. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p016,p037,0.752083,False,Stessa funzione: Tavolino. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p016,p019,0.75,False,Stessa funzione: Tavolino. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p016,p035,0.733333,False,Funzioni differenti. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p016,p177,0.733333,False,Funzioni differenti. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p017,p142,0.81875,False,"Funzioni differenti. Materiali condivisi: alluminio, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p004,p017,0.775,False,"Funzioni differenti. Materiali condivisi: pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p017,p046,0.775,False,"Funzioni differenti. Materiali condivisi: pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p005,p017,0.775,False,"Funzioni differenti. Materiali condivisi: pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p017,p031,0.734375,False,"Funzioni differenti. Materiali condivisi: alluminio, pelle. Vicinanza dei codici di forma e uso."
+p004,p018,0.859375,False,"Funzioni differenti. Materiali condivisi: acciaio, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p005,p018,0.859375,False,"Funzioni differenti. Materiali condivisi: acciaio, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p018,p046,0.859375,False,"Funzioni differenti. Materiali condivisi: acciaio, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p018,p024,0.8125,False,Stessa funzione: Divano. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p018,p031,0.8,False,Stessa funzione: Divano. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p019,p036,0.775,False,Funzioni differenti. Materiali condivisi: frassino. Vicinanza dei codici di forma e uso.
+p019,p170,0.772396,False,Stessa funzione: Tavolino. Materiali condivisi: marmo. Vicinanza dei codici di forma e uso.
+p019,p149,0.733333,False,Funzioni differenti. Materiali condivisi: marmo. Vicinanza dei codici di forma e uso.
+p019,p065,0.689063,False,Stessa funzione: Tavolino. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p020,p135,0.8375,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, cuoio. Vicinanza dei codici di forma e uso."
+p020,p098,0.79375,False,Stessa funzione: Poltrona. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p020,p192,0.754688,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p021,p023,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p021,p116,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p021,p122,0.979688,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p012,p021,0.916667,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p021,p097,0.916667,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p022,p107,1.0,False,"Stessa funzione: Divano. Materiali condivisi: legno, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p022,p139,1.0,False,"Stessa funzione: Divano. Materiali condivisi: legno, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p022,p134,0.898438,False,"Stessa funzione: Divano. Materiali condivisi: legno, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p022,p026,0.876042,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p022,p199,0.835417,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p023,p116,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p023,p122,0.979688,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p012,p023,0.916667,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p023,p097,0.916667,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p024,p025,0.916667,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p024,p150,0.916667,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p024,p198,0.898438,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p024,p026,0.898438,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p024,p118,0.878125,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p025,p150,1.0,False,"Stessa funzione: Divano. Materiali condivisi: alluminio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p025,p031,0.875,False,"Stessa funzione: Divano. Materiali condivisi: alluminio, tessuto. Vicinanza dei codici di forma e uso."
+p025,p134,0.834375,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p025,p026,0.815104,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p026,p199,0.959375,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p026,p107,0.876042,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p026,p139,0.876042,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p021,p027,0.916667,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p023,p027,0.916667,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p027,p116,0.916667,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p027,p122,0.896354,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p027,p097,0.875,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p012,p028,0.859375,False,"Funzioni differenti. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p028,p108,0.859375,False,"Funzioni differenti. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p028,p112,0.859375,False,"Funzioni differenti. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p028,p115,0.859375,False,"Funzioni differenti. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p028,p097,0.859375,False,"Funzioni differenti. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p029,p132,0.875,False,Stessa funzione: Tavolo. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p029,p195,0.833333,False,Stessa funzione: Tavolo. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p029,p149,0.833333,False,Stessa funzione: Tavolo. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p029,p177,0.833333,False,Stessa funzione: Tavolo. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p029,p054,0.772396,False,Stessa funzione: Tavolo. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p030,p134,0.875,False,"Stessa funzione: Divano. Materiali condivisi: legno, tessuto. Vicinanza dei codici di forma e uso."
+p030,p127,0.855729,False,"Stessa funzione: Divano. Materiali condivisi: legno, tessuto. Vicinanza dei codici di forma e uso."
+p030,p031,0.834375,False,"Stessa funzione: Divano. Materiali condivisi: pelle, tessuto. Vicinanza dei codici di forma e uso."
+p030,p047,0.8125,False,Stessa funzione: Divano. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p030,p109,0.773438,False,"Stessa funzione: Divano. Materiali condivisi: legno, tessuto. Vicinanza dei codici di forma e uso."
+p031,p150,0.875,False,"Stessa funzione: Divano. Materiali condivisi: alluminio, tessuto. Vicinanza dei codici di forma e uso."
+p024,p031,0.8125,False,Stessa funzione: Divano. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p031,p140,0.8,False,Stessa funzione: Divano. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p032,p176,0.9,False,"Funzioni differenti. Materiali condivisi: acciaio, vetro. Vicinanza dei codici di forma e uso."
+p032,p194,0.9,False,"Funzioni differenti. Materiali condivisi: acciaio, vetro. Vicinanza dei codici di forma e uso."
+p032,p178,0.9,False,"Funzioni differenti. Materiali condivisi: acciaio, vetro. Vicinanza dei codici di forma e uso."
+p032,p184,0.875,False,Stessa funzione: Tavolino. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p032,p064,0.775,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p033,p109,0.879688,False,"Funzioni differenti. Materiali condivisi: legno, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p033,p171,0.879688,False,"Funzioni differenti. Materiali condivisi: legno, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p021,p033,0.876042,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p033,p116,0.876042,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p034,p104,0.875,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p034,p105,0.875,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p034,p138,0.875,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p013,p034,0.854688,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p021,p034,0.835417,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p035,p132,0.775,False,Funzioni differenti. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p035,p124,0.772396,False,Stessa funzione: Contenitore. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p035,p125,0.751563,False,Stessa funzione: Contenitore. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p035,p050,0.735417,False,"Funzioni differenti. Materiali condivisi: legno, ottone. Vicinanza dei codici di forma e uso."
+p029,p035,0.733333,False,Funzioni differenti. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p029,p036,0.75,False,Stessa funzione: Tavolo. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p036,p128,0.75,False,Stessa funzione: Tavolo. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p036,p177,0.75,False,Stessa funzione: Tavolo. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p036,p149,0.75,False,Stessa funzione: Tavolo. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p037,p157,0.879688,False,"Funzioni differenti. Materiali condivisi: legno, vetro. Vicinanza dei codici di forma e uso."
+p037,p156,0.839063,False,"Funzioni differenti. Materiali condivisi: legno, vetro. Vicinanza dei codici di forma e uso."
+p037,p059,0.833333,False,Stessa funzione: Tavolino. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p037,p184,0.814063,False,Stessa funzione: Tavolino. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p032,p037,0.772396,False,Stessa funzione: Tavolino. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p038,p145,1.0,False,"Stessa funzione: Libreria. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p038,p147,1.0,False,"Stessa funzione: Libreria. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p038,p159,0.9,False,"Funzioni differenti. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p038,p160,0.878125,False,"Stessa funzione: Libreria. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p038,p151,0.833333,False,Stessa funzione: Libreria. Materiali condivisi: laccato. Vicinanza dei codici di forma e uso.
+p039,p195,0.839063,False,"Funzioni differenti. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p039,p177,0.839063,False,"Funzioni differenti. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p039,p126,0.81875,False,"Funzioni differenti. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p039,p179,0.817188,False,"Stessa funzione: Libreria. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p039,p144,0.817188,False,"Stessa funzione: Libreria. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p040,p154,0.879688,False,Funzioni differenti. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p040,p152,0.875,False,Stessa funzione: Tavolo. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p040,p078,0.839063,False,Funzioni differenti. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p040,p137,0.839063,False,Funzioni differenti. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p040,p155,0.778125,False,Funzioni differenti. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p041,p042,0.916667,False,"Stessa funzione: Poltrona. Materiali condivisi: faggio, pelle. Vicinanza dei codici di forma e uso."
+p041,p048,0.875,False,"Stessa funzione: Poltrona. Materiali condivisi: pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p041,p045,0.854688,False,"Stessa funzione: Poltrona. Materiali condivisi: pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p004,p041,0.834375,False,"Stessa funzione: Poltrona. Materiali condivisi: pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p041,p046,0.834375,False,"Stessa funzione: Poltrona. Materiali condivisi: pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p042,p047,0.859375,False,"Funzioni differenti. Materiali condivisi: faggio, pelle. Vicinanza dei codici di forma e uso."
+p042,p044,0.833333,False,Stessa funzione: Poltrona. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p042,p048,0.8125,False,Stessa funzione: Poltrona. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p042,p141,0.792708,False,Stessa funzione: Poltrona. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p043,p046,0.91875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p043,p169,0.91875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p043,p097,0.875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano. Vicinanza dei codici di forma e uso."
+p041,p044,0.8125,False,Stessa funzione: Poltrona. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p044,p048,0.8125,False,Stessa funzione: Poltrona. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p044,p141,0.792708,False,Stessa funzione: Poltrona. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p044,p045,0.792188,False,Stessa funzione: Poltrona. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p045,p048,0.979688,False,"Stessa funzione: Poltrona. Materiali condivisi: legno, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p004,p045,0.814063,False,"Stessa funzione: Poltrona. Materiali condivisi: pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p005,p045,0.814063,False,"Stessa funzione: Poltrona. Materiali condivisi: pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p046,p141,0.916667,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, pelle. Vicinanza dei codici di forma e uso."
+p046,p104,0.875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano. Vicinanza dei codici di forma e uso."
+p041,p047,0.776042,False,"Funzioni differenti. Materiali condivisi: faggio, pelle. Vicinanza dei codici di forma e uso."
+p018,p047,0.771875,False,Stessa funzione: Divano. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p031,p047,0.771875,False,Stessa funzione: Divano. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p004,p048,0.834375,False,"Stessa funzione: Poltrona. Materiali condivisi: pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p005,p048,0.834375,False,"Stessa funzione: Poltrona. Materiali condivisi: pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p049,p148,0.8125,False,Stessa funzione: Sedia. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p049,p088,0.779688,False,Stessa funzione: Sedia. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p044,p049,0.776042,False,"Funzioni differenti. Materiali condivisi: frassino, pelle. Vicinanza dei codici di forma e uso."
+p049,p190,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p045,p050,0.775,False,"Funzioni differenti. Materiali condivisi: legno, pelle. Vicinanza dei codici di forma e uso."
+p050,p148,0.755729,False,"Funzioni differenti. Materiali condivisi: legno, pelle. Vicinanza dei codici di forma e uso."
+p048,p050,0.754688,False,"Funzioni differenti. Materiali condivisi: legno, pelle. Vicinanza dei codici di forma e uso."
+p030,p050,0.754688,False,"Funzioni differenti. Materiali condivisi: legno, pelle. Vicinanza dei codici di forma e uso."
+p051,p122,0.833333,False,Stessa funzione: Poltrona. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p021,p051,0.813021,False,Stessa funzione: Poltrona. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p051,p116,0.813021,False,Stessa funzione: Poltrona. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p023,p051,0.813021,False,Stessa funzione: Poltrona. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p051,p097,0.792188,False,Stessa funzione: Poltrona. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p052,p082,0.778125,False,"Funzioni differenti. Materiali condivisi: acciaio, faggio. Vicinanza dei codici di forma e uso."
+p052,p100,0.753125,False,Stessa funzione: Sgabello. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p052,p053,0.751563,False,Stessa funzione: Sgabello. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p052,p125,0.7125,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p052,p081,0.711458,False,Stessa funzione: Sgabello. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p053,p100,0.772396,False,Stessa funzione: Sgabello. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p053,p081,0.751563,False,Stessa funzione: Sgabello. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p020,p053,0.735417,False,"Funzioni differenti. Materiali condivisi: acciaio, cuoio. Vicinanza dei codici di forma e uso."
+p010,p053,0.694792,False,"Funzioni differenti. Materiali condivisi: acciaio, cuoio. Vicinanza dei codici di forma e uso."
+p054,p124,0.9,False,"Funzioni differenti. Materiali condivisi: laminato, legno. Vicinanza dei codici di forma e uso."
+p054,p123,0.9,False,"Funzioni differenti. Materiali condivisi: laminato, legno. Vicinanza dei codici di forma e uso."
+p054,p125,0.816667,False,"Funzioni differenti. Materiali condivisi: laminato, legno. Vicinanza dei codici di forma e uso."
+p054,p132,0.814063,False,Stessa funzione: Tavolo. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p054,p195,0.772396,False,Stessa funzione: Tavolo. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p055,p136,0.69375,False,Funzioni differenti. Materiali condivisi: faggio. Vicinanza dei codici di forma e uso.
+p055,p082,0.632812,False,Funzioni differenti. Materiali condivisi: faggio. Vicinanza dei codici di forma e uso.
+p052,p055,0.632812,False,Funzioni differenti. Materiali condivisi: faggio. Vicinanza dei codici di forma e uso.
+p055,p133,0.632812,False,Funzioni differenti. Materiali condivisi: faggio. Vicinanza dei codici di forma e uso.
+p056,p078,0.834375,False,Stessa funzione: Sedia. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p056,p137,0.834375,False,Stessa funzione: Sedia. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p056,p063,0.813021,False,Stessa funzione: Sedia. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p056,p072,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p057,p058,0.9,False,"Funzioni differenti. Materiali condivisi: rovere, vetro. Vicinanza dei codici di forma e uso."
+p057,p181,0.814063,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p057,p156,0.772396,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p057,p176,0.772396,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p057,p178,0.772396,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p037,p058,0.733333,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p058,p059,0.733333,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p058,p064,0.714063,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p058,p186,0.714063,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p059,p184,0.814063,False,Stessa funzione: Tavolino. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p032,p059,0.772396,False,Stessa funzione: Tavolino. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p057,p059,0.733333,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p044,p060,0.752083,False,Stessa funzione: Poltrona. Materiali condivisi: frassino. Vicinanza dei codici di forma e uso.
+p007,p060,0.710938,False,Stessa funzione: Poltrona. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p060,p096,0.691146,False,Stessa funzione: Poltrona. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p060,p104,0.690625,False,Stessa funzione: Poltrona. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p061,p100,0.81875,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p061,p192,0.81875,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p061,p170,0.79375,False,Stessa funzione: Tavolino. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p061,p065,0.79375,False,Stessa funzione: Tavolino. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p061,p167,0.757812,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p062,p179,0.959375,False,"Stessa funzione: Libreria. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p062,p144,0.959375,False,"Stessa funzione: Libreria. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p038,p062,0.792708,False,Stessa funzione: Libreria. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p062,p147,0.792708,False,Stessa funzione: Libreria. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p062,p145,0.792708,False,Stessa funzione: Libreria. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p063,p078,0.854688,False,Stessa funzione: Sedia. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p063,p167,0.854688,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p063,p163,0.854688,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p063,p137,0.854688,False,Stessa funzione: Sedia. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p063,p101,0.833333,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p064,p183,1.0,False,Stessa funzione: Specchio. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p064,p181,0.9,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p064,p184,0.9,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p064,p186,0.9,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p064,p182,0.839063,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p065,p170,0.833333,False,Stessa funzione: Tavolino. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p065,p192,0.775,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p065,p100,0.775,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p032,p065,0.752083,False,Stessa funzione: Tavolino. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p066,p083,0.834375,False,Stessa funzione: Contenitore. Materiali condivisi: ABS. Vicinanza dei codici di forma e uso.
+p066,p159,0.689063,False,Stessa funzione: Contenitore. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p066,p081,0.653125,False,Funzioni differenti. Materiali condivisi: ABS. Vicinanza dei codici di forma e uso.
+p066,p103,0.65,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p066,p155,0.65,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p067,p073,1.0,False,Stessa funzione: Sedia. Materiali condivisi: policarbonato. Vicinanza dei codici di forma e uso.
+p067,p069,0.979688,False,Stessa funzione: Sedia. Materiali condivisi: policarbonato. Vicinanza dei codici di forma e uso.
+p067,p168,0.859375,False,Funzioni differenti. Materiali condivisi: policarbonato. Vicinanza dei codici di forma e uso.
+p067,p075,0.676562,False,Funzioni differenti. Materiali condivisi: policarbonato. Vicinanza dei codici di forma e uso.
+p067,p101,0.66875,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p068,p095,1.0,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p068,p091,1.0,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p068,p079,1.0,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p068,p117,0.959375,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p068,p074,0.875,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p069,p073,0.979688,False,Stessa funzione: Sedia. Materiali condivisi: policarbonato. Vicinanza dei codici di forma e uso.
+p069,p168,0.839063,False,Funzioni differenti. Materiali condivisi: policarbonato. Vicinanza dei codici di forma e uso.
+p069,p075,0.696875,False,Funzioni differenti. Materiali condivisi: policarbonato. Vicinanza dei codici di forma e uso.
+p068,p069,0.66875,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p070,p080,0.65,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p070,p089,0.56875,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p070,p075,0.548438,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p070,p111,0.548438,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p070,p102,0.548438,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p071,p074,0.898438,False,"Stessa funzione: Sedia. Materiali condivisi: acciaio, polipropilene. Vicinanza dei codici di forma e uso."
+p071,p162,0.833333,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p071,p161,0.833333,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p071,p095,0.773438,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p071,p091,0.773438,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p072,p084,0.875,False,Stessa funzione: Sedia. Materiali condivisi: polimero. Vicinanza dei codici di forma e uso.
+p072,p162,0.773438,False,Stessa funzione: Sedia. Materiali condivisi: polimero. Vicinanza dei codici di forma e uso.
+p072,p161,0.773438,False,Stessa funzione: Sedia. Materiali condivisi: polimero. Vicinanza dei codici di forma e uso.
+p010,p072,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p072,p074,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p073,p168,0.859375,False,Funzioni differenti. Materiali condivisi: policarbonato. Vicinanza dei codici di forma e uso.
+p073,p075,0.676562,False,Funzioni differenti. Materiali condivisi: policarbonato. Vicinanza dei codici di forma e uso.
+p073,p101,0.66875,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p074,p095,0.875,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p074,p079,0.875,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p074,p091,0.875,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p075,p168,0.717188,False,Funzioni differenti. Materiali condivisi: policarbonato. Vicinanza dei codici di forma e uso.
+p075,p080,0.548438,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p076,p087,0.879688,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p076,p103,0.798438,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p076,p086,0.778125,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p076,p093,0.778125,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p076,p089,0.757812,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p077,p114,0.839063,False,"Funzioni differenti. Materiali condivisi: acciaio, polimero. Vicinanza dei codici di forma e uso."
+p077,p111,0.798438,False,"Funzioni differenti. Materiali condivisi: acciaio, polimero. Vicinanza dei codici di forma e uso."
+p077,p100,0.775,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p077,p192,0.775,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p077,p161,0.7375,False,"Funzioni differenti. Materiali condivisi: acciaio, polimero. Vicinanza dei codici di forma e uso."
+p078,p137,1.0,False,Stessa funzione: Sedia. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p078,p154,0.81875,False,Funzioni differenti. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p079,p095,1.0,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p079,p091,1.0,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p079,p117,0.959375,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p080,p089,0.91875,False,Stessa funzione: Poltrona. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p080,p086,0.898438,False,Stessa funzione: Poltrona. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p080,p090,0.878125,False,Stessa funzione: Poltrona. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p080,p085,0.878125,False,Stessa funzione: Poltrona. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p080,p093,0.798438,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p081,p100,0.875,False,Stessa funzione: Sgabello. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p081,p192,0.775,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p065,p081,0.733333,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p081,p170,0.733333,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p082,p133,0.833333,False,Stessa funzione: Sedia. Materiali condivisi: faggio. Vicinanza dei codici di forma e uso.
+p082,p163,0.773438,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p082,p167,0.773438,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p074,p082,0.772396,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p083,p155,0.734375,False,Funzioni differenti. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p083,p159,0.648438,False,Stessa funzione: Contenitore. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p040,p083,0.6125,False,Funzioni differenti. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p083,p103,0.609375,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p010,p084,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p084,p095,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p056,p084,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p074,p084,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p085,p090,1.0,False,Stessa funzione: Poltrona. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p085,p086,0.979688,False,Stessa funzione: Poltrona. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p085,p089,0.959375,False,Stessa funzione: Poltrona. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p085,p093,0.879688,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p086,p090,0.979688,False,Stessa funzione: Poltrona. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p086,p089,0.979688,False,Stessa funzione: Poltrona. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p086,p093,0.9,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p086,p087,0.798438,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p087,p093,0.798438,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p087,p089,0.778125,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p087,p090,0.778125,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p088,p148,0.792188,False,Stessa funzione: Sedia. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p088,p189,0.771875,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p088,p092,0.751563,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p002,p088,0.729688,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p089,p090,0.959375,False,Stessa funzione: Poltrona. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p089,p093,0.879688,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p090,p093,0.879688,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p091,p095,1.0,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p091,p117,0.959375,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p092,p191,0.833333,False,Stessa funzione: Sedia. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p092,p189,0.813021,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p028,p092,0.794792,False,"Stessa funzione: Sedia. Materiali condivisi: acciaio, tessuto. Vicinanza dei codici di forma e uso."
+p092,p167,0.773438,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p092,p163,0.773438,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p027,p094,0.8125,False,Stessa funzione: Poltrona. Materiali condivisi: polimero. Vicinanza dei codici di forma e uso.
+p043,p094,0.8125,False,Stessa funzione: Poltrona. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p094,p142,0.8125,False,Stessa funzione: Poltrona. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p094,p141,0.752083,False,Stessa funzione: Poltrona. Materiali condivisi: pelle. Vicinanza dei codici di forma e uso.
+p021,p094,0.75,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p095,p117,0.959375,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p096,p127,0.859375,False,"Funzioni differenti. Materiali condivisi: legno, tessuto. Vicinanza dei codici di forma e uso."
+p033,p096,0.855729,False,"Stessa funzione: Poltrona. Materiali condivisi: legno, tessuto. Vicinanza dei codici di forma e uso."
+p051,p096,0.752083,False,Stessa funzione: Poltrona. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p096,p122,0.752083,False,Stessa funzione: Poltrona. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p097,p112,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p097,p115,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p097,p108,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p097,p196,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p098,p163,0.9,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p098,p167,0.9,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p098,p114,0.875,False,Stessa funzione: Poltrona. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p098,p197,0.875,False,Stessa funzione: Poltrona. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p033,p099,0.75,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p099,p113,0.733333,False,Funzioni differenti. Materiali condivisi: feltro. Vicinanza dei codici di forma e uso.
+p021,p099,0.709375,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p012,p099,0.709375,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p043,p099,0.709375,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p100,p192,0.9,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p100,p163,0.839063,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p098,p100,0.839063,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p100,p167,0.839063,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p101,p163,0.854688,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p101,p167,0.854688,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p010,p101,0.813021,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p074,p101,0.813021,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p102,p111,0.75,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p086,p102,0.75,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p089,p102,0.729688,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p085,p102,0.729688,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p090,p102,0.729688,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p087,p103,0.778125,False,Funzioni differenti. Materiali condivisi: polietilene. Vicinanza dei codici di forma e uso.
+p103,p155,0.75,False,Stessa funzione: Libreria. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p038,p103,0.689063,False,Stessa funzione: Libreria. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p103,p151,0.689063,False,Stessa funzione: Libreria. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p104,p105,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p104,p138,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p104,p112,0.91875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p104,p108,0.91875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p105,p138,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p105,p108,0.91875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p105,p112,0.91875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p003,p106,0.772396,False,Stessa funzione: Poltrona. Materiali condivisi: cuoio. Vicinanza dei codici di forma e uso.
+p106,p164,0.692708,False,Funzioni differenti. Materiali condivisi: multistrato. Vicinanza dei codici di forma e uso.
+p106,p166,0.692708,False,Funzioni differenti. Materiali condivisi: multistrato. Vicinanza dei codici di forma e uso.
+p106,p165,0.692708,False,Funzioni differenti. Materiali condivisi: multistrato. Vicinanza dei codici di forma e uso.
+p020,p106,0.691146,False,Stessa funzione: Poltrona. Materiali condivisi: cuoio. Vicinanza dei codici di forma e uso.
+p107,p139,1.0,False,"Stessa funzione: Divano. Materiali condivisi: legno, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p107,p134,0.898438,False,"Stessa funzione: Divano. Materiali condivisi: legno, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p107,p199,0.835417,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p108,p115,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p108,p112,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p108,p196,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p109,p171,1.0,False,"Stessa funzione: Divano. Materiali condivisi: legno, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p109,p134,0.898438,False,"Stessa funzione: Divano. Materiali condivisi: legno, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p109,p198,0.876042,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p109,p118,0.855729,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p110,p121,0.91875,False,Stessa funzione: Poltrona. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p110,p119,0.91875,False,Stessa funzione: Poltrona. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p004,p110,0.833333,False,Stessa funzione: Poltrona. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p005,p110,0.833333,False,Stessa funzione: Poltrona. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p104,p110,0.833333,False,Stessa funzione: Poltrona. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p111,p161,0.839063,False,"Funzioni differenti. Materiali condivisi: acciaio, polimero. Vicinanza dei codici di forma e uso."
+p111,p162,0.839063,False,"Funzioni differenti. Materiali condivisi: acciaio, polimero. Vicinanza dei codici di forma e uso."
+p111,p114,0.8375,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, polimero. Vicinanza dei codici di forma e uso."
+p020,p111,0.752083,False,Stessa funzione: Poltrona. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p112,p115,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p112,p196,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p113,p135,0.672396,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p043,p113,0.671875,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p112,p113,0.671875,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p114,p197,0.833333,False,Stessa funzione: Poltrona. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p115,p196,1.0,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p116,p122,0.979688,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p012,p116,0.916667,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p112,p116,0.916667,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p074,p117,0.834375,False,Stessa funzione: Sedia. Materiali condivisi: polipropilene. Vicinanza dei codici di forma e uso.
+p118,p198,0.979688,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p118,p122,0.879688,False,"Funzioni differenti. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p023,p118,0.859375,False,"Funzioni differenti. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p116,p118,0.859375,False,"Funzioni differenti. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p119,p121,1.0,False,Stessa funzione: Poltrona. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p119,p120,0.9,False,Funzioni differenti. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p119,p122,0.814063,False,Stessa funzione: Poltrona. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p021,p119,0.79375,False,Stessa funzione: Poltrona. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p120,p121,0.9,False,Funzioni differenti. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p110,p120,0.81875,False,Funzioni differenti. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p120,p122,0.714063,False,Funzioni differenti. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p024,p120,0.69375,False,Funzioni differenti. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p121,p122,0.814063,False,Stessa funzione: Poltrona. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p021,p121,0.79375,False,Stessa funzione: Poltrona. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p012,p122,0.896354,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p112,p122,0.896354,False,"Stessa funzione: Poltrona. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p123,p124,0.9,False,"Funzioni differenti. Materiali condivisi: laminato, legno. Vicinanza dei codici di forma e uso."
+p123,p125,0.816667,False,"Funzioni differenti. Materiali condivisi: laminato, legno. Vicinanza dei codici di forma e uso."
+p123,p160,0.772396,False,Stessa funzione: Libreria. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p123,p132,0.714063,False,Funzioni differenti. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p124,p125,0.916667,False,"Stessa funzione: Contenitore. Materiali condivisi: laminato, legno. Vicinanza dei codici di forma e uso."
+p124,p132,0.714063,False,Funzioni differenti. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p125,p126,0.776042,False,"Funzioni differenti. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p125,p195,0.755729,False,"Funzioni differenti. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p126,p177,0.798438,False,"Funzioni differenti. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p126,p195,0.798438,False,"Funzioni differenti. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p126,p146,0.79375,False,Stessa funzione: Sedia. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p127,p134,0.855729,False,"Stessa funzione: Divano. Materiali condivisi: legno, tessuto. Vicinanza dei codici di forma e uso."
+p109,p127,0.835417,False,"Stessa funzione: Divano. Materiali condivisi: legno, tessuto. Vicinanza dei codici di forma e uso."
+p127,p171,0.835417,False,"Stessa funzione: Divano. Materiali condivisi: legno, tessuto. Vicinanza dei codici di forma e uso."
+p128,p129,0.833333,False,Stessa funzione: Tavolo. Materiali condivisi: ferro. Vicinanza dei codici di forma e uso.
+p057,p128,0.752083,False,Stessa funzione: Tavolo. Materiali condivisi: rovere. Vicinanza dei codici di forma e uso.
+p128,p149,0.75,False,Stessa funzione: Tavolo. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p029,p129,0.75,False,Stessa funzione: Tavolo. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p036,p129,0.75,False,Stessa funzione: Tavolo. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p129,p195,0.75,False,Stessa funzione: Tavolo. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p129,p177,0.75,False,Stessa funzione: Tavolo. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p130,p131,0.673438,False,Funzioni differenti. Materiali condivisi: cedro. Vicinanza dei codici di forma e uso.
+p052,p130,0.65,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p123,p130,0.65,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p054,p130,0.65,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p125,p130,0.65,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p131,p135,0.75,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p033,p131,0.689063,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p085,p131,0.689063,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p099,p131,0.689063,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p090,p131,0.689063,False,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p132,p195,0.875,False,Stessa funzione: Tavolo. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p132,p177,0.875,False,Stessa funzione: Tavolo. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p132,p149,0.875,False,Stessa funzione: Tavolo. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p132,p146,0.839063,False,Funzioni differenti. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p001,p133,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p133,p166,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p133,p146,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p133,p164,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p134,p139,0.898438,False,"Stessa funzione: Divano. Materiali condivisi: legno, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p134,p171,0.898438,False,"Stessa funzione: Divano. Materiali condivisi: legno, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p003,p135,0.75625,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, cuoio. Vicinanza dei codici di forma e uso."
+p111,p135,0.752083,False,Stessa funzione: Poltrona. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p108,p135,0.710938,False,Stessa funzione: Poltrona. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p057,p136,0.752083,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p136,p181,0.732812,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p136,p156,0.691146,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p136,p178,0.691146,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p137,p154,0.81875,False,Funzioni differenti. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p012,p138,0.91875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p108,p138,0.91875,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p139,p199,0.835417,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p024,p140,0.8125,False,Stessa funzione: Divano. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p025,p140,0.8,False,Stessa funzione: Divano. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p018,p140,0.8,False,Stessa funzione: Divano. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p140,p150,0.8,False,Stessa funzione: Divano. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p043,p141,0.835417,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, pelle. Vicinanza dei codici di forma e uso."
+p043,p142,0.875,False,"Stessa funzione: Poltrona. Materiali condivisi: pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p023,p142,0.8125,False,Stessa funzione: Poltrona. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p021,p142,0.8125,False,Stessa funzione: Poltrona. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p116,p142,0.8125,False,Stessa funzione: Poltrona. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p029,p143,0.75,False,Stessa funzione: Tavolo. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p036,p143,0.75,False,Stessa funzione: Tavolo. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p128,p143,0.75,False,Stessa funzione: Tavolo. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p143,p195,0.75,False,Stessa funzione: Tavolo. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p143,p177,0.75,False,Stessa funzione: Tavolo. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p144,p179,1.0,False,"Stessa funzione: Libreria. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p144,p147,0.833333,False,Stessa funzione: Libreria. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p038,p144,0.833333,False,Stessa funzione: Libreria. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p144,p145,0.833333,False,Stessa funzione: Libreria. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p145,p147,1.0,False,"Stessa funzione: Libreria. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p145,p159,0.9,False,"Funzioni differenti. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p145,p160,0.878125,False,"Stessa funzione: Libreria. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p146,p148,0.79375,False,Stessa funzione: Sedia. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p146,p190,0.79375,False,Stessa funzione: Sedia. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p146,p153,0.773438,False,Stessa funzione: Sedia. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p147,p159,0.9,False,"Funzioni differenti. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p147,p160,0.878125,False,"Stessa funzione: Libreria. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p148,p190,0.833333,False,Stessa funzione: Sedia. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p048,p148,0.776042,False,"Funzioni differenti. Materiali condivisi: legno, pelle. Vicinanza dei codici di forma e uso."
+p149,p177,0.833333,False,Stessa funzione: Tavolo. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p149,p195,0.833333,False,Stessa funzione: Tavolo. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p054,p149,0.772396,False,Stessa funzione: Tavolo. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p134,p150,0.834375,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p150,p198,0.815104,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p147,p151,0.833333,False,Stessa funzione: Libreria. Materiali condivisi: laccato. Vicinanza dei codici di forma e uso.
+p145,p151,0.833333,False,Stessa funzione: Libreria. Materiali condivisi: laccato. Vicinanza dei codici di forma e uso.
+p144,p151,0.75,False,Stessa funzione: Libreria. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p151,p179,0.75,False,Stessa funzione: Libreria. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p152,p193,0.833333,False,Stessa funzione: Tavolo. Materiali condivisi: composito. Vicinanza dei codici di forma e uso.
+p152,p154,0.754688,False,Funzioni differenti. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p078,p152,0.714063,False,Funzioni differenti. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p137,p152,0.714063,False,Funzioni differenti. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p153,p161,0.772396,False,Stessa funzione: Sedia. Materiali condivisi: polimero. Vicinanza dei codici di forma e uso.
+p153,p162,0.772396,False,Stessa funzione: Sedia. Materiali condivisi: polimero. Vicinanza dei codici di forma e uso.
+p126,p153,0.731771,False,Stessa funzione: Sedia. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p072,p153,0.7125,False,Stessa funzione: Sedia. Materiali condivisi: polimero. Vicinanza dei codici di forma e uso.
+p154,p155,0.757812,False,Funzioni differenti. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p137,p155,0.717188,False,Funzioni differenti. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p156,p157,0.81875,False,"Funzioni differenti. Materiali condivisi: legno, vetro. Vicinanza dei codici di forma e uso."
+p156,p182,0.814063,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p156,p181,0.753125,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p057,p157,0.713021,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p058,p157,0.713021,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p059,p157,0.713021,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p026,p158,0.835417,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p158,p199,0.794792,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p107,p158,0.753125,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p022,p158,0.753125,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p139,p158,0.753125,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p159,p174,0.816667,False,"Funzioni differenti. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p159,p173,0.816667,False,"Funzioni differenti. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p159,p160,0.778125,False,"Funzioni differenti. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p132,p160,0.775,False,Funzioni differenti. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p161,p162,1.0,False,"Stessa funzione: Sedia. Materiali condivisi: acciaio, polimero. Vicinanza dei codici di forma e uso."
+p163,p167,1.0,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p163,p188,0.875,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p164,p165,1.0,False,"Stessa funzione: Sedia. Materiali condivisi: multistrato, rovere. Vicinanza dei codici di forma e uso."
+p164,p166,0.833333,False,Stessa funzione: Sedia. Materiali condivisi: multistrato. Vicinanza dei codici di forma e uso.
+p001,p164,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p082,p164,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p146,p164,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p165,p166,0.833333,False,Stessa funzione: Sedia. Materiali condivisi: multistrato. Vicinanza dei codici di forma e uso.
+p001,p165,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p082,p165,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p146,p165,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p146,p166,0.75,False,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p167,p188,0.875,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p032,p168,0.65,False,Funzioni differenti. Nessun materiale specifico condiviso. Vicinanza dei codici di forma e uso.
+p004,p169,0.8375,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p046,p169,0.8375,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p005,p169,0.8375,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, pelle, poliuretano. Vicinanza dei codici di forma e uso."
+p012,p169,0.79375,False,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano. Vicinanza dei codici di forma e uso."
+p100,p170,0.775,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p170,p192,0.775,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p171,p198,0.876042,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p118,p171,0.855729,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p172,p174,0.71875,False,Stessa funzione: Cucina. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p172,p175,0.71875,False,Stessa funzione: Cucina. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p172,p173,0.71875,False,Stessa funzione: Cucina. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p037,p172,0.694792,False,"Funzioni differenti. Materiali condivisi: legno, vetro. Vicinanza dei codici di forma e uso."
+p157,p172,0.674479,False,"Funzioni differenti. Materiali condivisi: legno, vetro. Vicinanza dei codici di forma e uso."
+p173,p174,1.0,False,"Stessa funzione: Cucina. Materiali condivisi: acciaio, laccato, legno. Vicinanza dei codici di forma e uso."
+p173,p175,0.875,False,"Stessa funzione: Cucina. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p038,p173,0.816667,False,"Funzioni differenti. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p145,p173,0.816667,False,"Funzioni differenti. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p174,p175,0.875,False,"Stessa funzione: Cucina. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p038,p174,0.816667,False,"Funzioni differenti. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p145,p174,0.816667,False,"Funzioni differenti. Materiali condivisi: laccato, legno. Vicinanza dei codici di forma e uso."
+p175,p179,0.816667,False,"Funzioni differenti. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p144,p175,0.816667,False,"Funzioni differenti. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p062,p175,0.776042,False,"Funzioni differenti. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p176,p194,1.0,False,"Stessa funzione: Tavolo. Materiali condivisi: acciaio, vetro. Vicinanza dei codici di forma e uso."
+p176,p178,1.0,False,"Stessa funzione: Tavolo. Materiali condivisi: acciaio, vetro. Vicinanza dei codici di forma e uso."
+p176,p181,0.875,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p176,p182,0.814063,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p177,p195,1.0,False,"Stessa funzione: Tavolo. Materiali condivisi: acciaio, legno. Vicinanza dei codici di forma e uso."
+p178,p194,1.0,False,"Stessa funzione: Tavolo. Materiali condivisi: acciaio, vetro. Vicinanza dei codici di forma e uso."
+p178,p181,0.875,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p178,p182,0.814063,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p145,p179,0.833333,False,Stessa funzione: Libreria. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p038,p179,0.833333,False,Stessa funzione: Libreria. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p147,p179,0.833333,False,Stessa funzione: Libreria. Materiali condivisi: legno. Vicinanza dei codici di forma e uso.
+p180,p182,0.798438,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p064,p180,0.7375,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p180,p181,0.7375,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p180,p183,0.7375,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p180,p184,0.7375,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p181,p182,0.939063,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p181,p184,0.9,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p181,p186,0.9,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p181,p183,0.9,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p182,p184,0.839063,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p182,p186,0.839063,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p182,p183,0.839063,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p183,p184,0.9,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p183,p186,0.9,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p184,p186,0.9,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p064,p185,0.775,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p181,p185,0.775,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p184,p185,0.775,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p183,p185,0.775,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p185,p186,0.775,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p064,p187,0.778125,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p181,p187,0.778125,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p184,p187,0.778125,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p183,p187,0.778125,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p186,p187,0.778125,False,Funzioni differenti. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p063,p188,0.813021,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p101,p188,0.813021,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p074,p188,0.792708,False,Stessa funzione: Sedia. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p028,p189,0.815104,False,"Stessa funzione: Sedia. Materiali condivisi: acciaio, poliuretano. Vicinanza dei codici di forma e uso."
+p013,p189,0.776042,False,"Funzioni differenti. Materiali condivisi: acciaio, poliuretano. Vicinanza dei codici di forma e uso."
+p189,p190,0.772396,False,Stessa funzione: Sedia. Materiali condivisi: poliuretano. Vicinanza dei codici di forma e uso.
+p048,p190,0.776042,False,"Funzioni differenti. Materiali condivisi: legno, poliuretano. Vicinanza dei codici di forma e uso."
+p045,p190,0.755729,False,"Funzioni differenti. Materiali condivisi: legno, poliuretano. Vicinanza dei codici di forma e uso."
+p078,p191,0.773438,False,Stessa funzione: Sedia. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p137,p191,0.773438,False,Stessa funzione: Sedia. Materiali condivisi: alluminio. Vicinanza dei codici di forma e uso.
+p002,p191,0.752083,False,Stessa funzione: Sedia. Materiali condivisi: tessuto. Vicinanza dei codici di forma e uso.
+p025,p191,0.735417,False,"Funzioni differenti. Materiali condivisi: alluminio, tessuto. Vicinanza dei codici di forma e uso."
+p098,p192,0.839063,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p163,p192,0.839063,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p167,p192,0.839063,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p100,p193,0.775,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p192,p193,0.775,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p177,p193,0.772396,False,Stessa funzione: Tavolo. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p193,p195,0.772396,False,Stessa funzione: Tavolo. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p181,p194,0.875,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p182,p194,0.814063,False,Stessa funzione: Tavolo. Materiali condivisi: vetro. Vicinanza dei codici di forma e uso.
+p167,p197,0.775,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p163,p197,0.775,False,Funzioni differenti. Materiali condivisi: acciaio. Vicinanza dei codici di forma e uso.
+p023,p198,0.879688,False,"Funzioni differenti. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p021,p198,0.879688,False,"Funzioni differenti. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p116,p198,0.879688,False,"Funzioni differenti. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p024,p199,0.857812,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p199,p200,0.855729,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p024,p200,0.835417,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p026,p200,0.815104,False,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p013,p200,0.798438,False,"Funzioni differenti. Materiali condivisi: acciaio, poliuretano, tessuto. Vicinanza dei codici di forma e uso."
+p144,p173,0.816667,True,"Funzioni differenti. Materiali condivisi: acciaio, legno. Collegamento di continuità della rete."
+p024,p134,0.876042,True,"Stessa funzione: Divano. Materiali condivisi: poliuretano, tessuto. Collegamento di continuità della rete."
+p012,p104,0.91875,True,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano, tessuto. Collegamento di continuità della rete."
+p004,p138,0.875,True,"Stessa funzione: Poltrona. Materiali condivisi: acciaio, poliuretano. Collegamento di continuità della rete."
+p074,p163,0.834375,True,Stessa funzione: Sedia. Materiali condivisi: acciaio. Collegamento di continuità della rete.
+p086,p111,0.75,True,Stessa funzione: Poltrona. Nessun materiale specifico condiviso. Collegamento di continuità della rete.
+p010,p069,0.66875,True,Stessa funzione: Sedia. Nessun materiale specifico condiviso. Collegamento di continuità della rete.
