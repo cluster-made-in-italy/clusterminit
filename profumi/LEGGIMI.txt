@@ -1,0 +1,16 @@
+ATLANTE OLFATTIVO — 200 PROFUMI
+
+Aprire index.html in Chrome, Edge, Firefox o Safari. Tutte le pagine, i dati, i modelli e le foto incluse funzionano offline. Conservare app.js, data.js, style.css e la cartella assets accanto agli HTML. I collegamenti alle fonti richiedono Internet.
+
+PAGINE
+index.html       Catalogo con filtri e ricerca
+scheda.html      Scheda completa (esempio: scheda.html?id=p001)
+mappe.html       Mappe 2D / 3D, selezione e rotazione
+confronto.html   Confronto di due referenze
+rete.html        Rete di affinità fra note dichiarate
+packaging.html   Flaconi, fustella parametrica e volume 3D
+metodo.html      Fonti, copertura, normalizzazione e limiti
+
+profumi.csv e profumi.json permettono di riusare i dati. La voce packaging descrive il flacone riconoscibile; le dimensioni e le strutture interne non sono state rilevate. Le fustelle sono studi parametrici alternativi, non tracciati originali dei marchi o file pronti per la produzione. Le foto sono riferimenti documentali delle fonti riportate: la loro inclusione non attribuisce diritti di riutilizzo commerciale.
+
+La selezione non è una classifica universale. Le note provengono in larga parte da archivi storici, integrati da schede consultate: ogni scheda indica la propria provenienza. Note e accordi non equivalgono a ingredienti, dosi o essenze naturali. La similarità è documentale, non una misura di somiglianza percettiva.
