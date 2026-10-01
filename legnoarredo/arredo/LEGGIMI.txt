@@ -1,0 +1,13 @@
+MATERIA — Atlante del legno-arredo italiano
+
+Apri index.html dopo avere estratto tutta la cartella. Non occorre un server. Mantieni insieme tutte le cartelle.
+
+200 schede, 33 imprese, tre PCA 2D/3D, rete connessa, confronto, territorio, materioteca, accessori e geometrie di studio.
+
+Tasto destro su un nodo o un punto PCA: apre la scheda. Clic: seleziona; pulsante Apri scheda: alternativa per tastiera e touch.
+
+Le geometrie sono ricostruzioni originali semplificate; quote dei componenti e giunti non sono disegni esecutivi del produttore. Due ingombri di variante sono documentati; gli altri sono ipotesi di studio. Non sono compresi portate, tolleranze, stratificazioni complete o certificazioni.
+
+Consultazione e geometrie funzionano offline. I riferimenti ufficiali richiedono Internet. Le geometrie 3D usano WebGL; se non disponibile restano i disegni 2D.
+
+Dati e matrici: cartella dati. Licenza Three.js: vendor/LICENSE-three.txt.
