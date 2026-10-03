@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Territorio 3D - Mappa Mossa</title>
+    
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body, html { width: 100%; height: 100%; overflow: hidden; font-family: system-ui, -apple-system, sans-serif; background-color: #000; color: #fff; }
+        #map { width: 100vw; height: 100vh; }
+
+        .custom-marker {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white; width: 34px; height: 34px; border-radius: 50%;
+            border: 2px solid #ffffff; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            cursor: pointer; transition: transform 0.2s;
+        }
+        .custom-marker.first-marker { background: linear-gradient(135deg, #3b82f6, #1d4ed8) !important; }
+        .custom-marker:hover { transform: scale(1.2); }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center; z-index: 100;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-card {
+            background: #1e293b; border: 1px solid #334155; width: 92%; max-width: 900px;
+            max-height: 90vh; border-radius: 14px; padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow-y: auto;
+            display: flex; flex-direction: column; gap: 14px;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 12px; }
+        .modal-header h3 { font-size: 1.25rem; color: #38bdf8; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        
+        .btn-action {
+            background: #0284c7; color: #fff; border: none; padding: 8px 14px;
+            border-radius: 6px; cursor: pointer; font-size: 0.88rem; font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn-action:hover { background: #0369a1; }
+        .btn-action.btn-cancel { background: #64748b; }
+        .btn-action.btn-cancel:hover { background: #475569; }
+
+        .close-btn { background: none; border: none; color: #94a3b8; font-size: 1.8rem; cursor: pointer; line-height: 1; }
+        .close-btn:hover { color: #fff; }
+        
+        .coords-badge {
+            background: #0f172a; border: 1px solid #334155; padding: 8px 12px;
+            border-radius: 6px; font-size: 0.85rem; color: #38bdf8; display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        .modal-body-text { font-size: 1rem; color: #cbd5e1; line-height: 1.6; white-space: pre-wrap; margin-bottom: 12px; }
+
+        .media-preview { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+        .media-preview img, .media-preview iframe, .media-preview video {
+            width: 100%; height: 450px; border-radius: 8px; object-fit: cover; border: 1px solid #334155; background: #000;
+        }
+        .media-preview img { height: auto; max-height: 450px; }
+
+        .btn-media-link {
+            display: block; padding: 12px 18px; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; text-align: center; font-size: 0.95rem; margin-top: 4px;
+        }
+        .btn-video-link { background: #cc181e; }
+        .btn-video-link:hover { background: #b31217; }
+        .btn-external-link { background: #0284c7; }
+        .btn-external-link:hover { background: #0369a1; }
+
+        .edit-form { display: none; flex-direction: column; gap: 12px; margin-top: 10px; }
+        .edit-form.active { display: flex; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 0.85rem; color: #94a3b8; font-weight: 600; }
+        .form-group input, .form-group textarea, .form-group select {
+            background: #0f172a; border: 1px solid #334155; color: #fff; padding: 10px;
+            border-radius: 6px; font-size: 0.95rem; font-family: inherit;
+        }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .btn-save { background: #22c55e; color: #fff; border: none; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-save:hover { background: #16a34a; }
+    </style>
+</head>
+<body>
+
+    <div id="map"></div>
+
+    <div id="modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="view-title"></h3>
+                <div class="header-actions">
+                    <button class="btn-action" id="toggle-edit-btn" onclick="requestEditAccess()">✏️ Modifica</button>
+                    <button class="close-btn" onclick="closeModal()">&times;</button>
+                </div>
+            </div>
+            
+            <!-- Vista Lettura -->
+            <div id="view-mode-content"></div>
+
+            <!-- Form di Modifica -->
+            <form id="edit-form" class="edit-form" onsubmit="submitEdit(event)">
+                <input type="hidden" id="edit-number" name="marker_number">
+                
+                <div class="form-group">
+                    <label>Titolo Marcatore</label>
+                    <input type="text" id="edit-title" name="title" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Descrizione / Testo</label>
+                    <textarea id="edit-text" name="text"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>URL Immagine</label>
+                        <input type="url" id="edit-image" name="image" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label>URL Video (YouTube / MP4)</label>
+                        <input type="url" id="edit-video" name="video" placeholder="https://...">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Modalità Video</label>
+                        <select id="edit-videoMode" name="videoMode">
+                            <option value="embed">Incorporato (Embed)</option>
+                            <option value="external">Link Esterno</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>URL Sito Web / Tour Virtuale</label>
+                        <input type="url" id="edit-webUrl" name="webUrl" placeholder="https://...">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Modalità Web</label>
+                    <select id="edit-webMode" name="webMode">
+                        <option value="external">Link Esterno</option>
+                        <option value="embed">Incorporato (Embed)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-save">💾 Salva & Scarica JSON Aggiornato</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const EDITOR_PASSWORD = "unical2026";
+        let isEditorAuthenticated = false;
+        let currentMarkerData = null;
+
+        const DATA = {
+  "initialView": {
+    "center": [
+      13.1,
+      42.1
+    ],
+    "zoom": 5,
+    "pitch": 0,
+    "bearing": 0
+  },
+  "markers": [
+    {
+      "number": 1,
+      "coords": [
+        9.1667175,
+        45.478778
+      ],
+      "title": "Assopellettieri",
+      "text": "Associato del Cluster Made in Italy\nCategoria: associazione\nSede principale: Via Alberto Riva di Villasanta 3, Milano\nCittà di riferimento: Milano\nRegione indicata nel file originale: Lombardia\nCoordinate: sede\nMetodo: OpenStreetMap: civico verificato\n\nNote: Sede direzionale e legale.\n\nFonti: https://assopellettieri.it/privacy-policy/ | Coordinate: https://www.openstreetmap.org/node/8826800813\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://assopellettieri.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 2,
+      "coords": [
+        11.1786678,
+        43.756968
+      ],
+      "title": "FONDAZIONE ITS MITA Made in Italy Tuscany Academy",
+      "text": "Associato del Cluster Made in Italy\nCategoria: fondazione\nSede principale: Via Galileo Galilei 31, Scandicci\nCittà di riferimento: Scandicci\nRegione indicata nel file originale: Toscana\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede legale e delle attività didattiche. Corrispondenza cartografica: Via Galileo Galilei 31, 50018, Scandicci, Firenze.\n\nFonti: https://mitacademy.it/contattaci/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Galileo+Galilei+31%2C+Scandicci%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://mitacademy.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 3,
+      "coords": [
+        9.6753514,
+        45.6953872
+      ],
+      "title": "ARGOCHEM SRL",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Casalino 5H, Bergamo\nCittà di riferimento: Bergamo\nRegione indicata nel file originale: Lombardia\nCittà indicata nel file originale: Dalmine\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede legale; il sito indica anche la sede operativa in via Galvani 2 a Dalmine. Corrispondenza cartografica: Via Casalino 5H, 24121, Bergamo.\n\nFonti: https://www.argochem.eu/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Casalino+5H%2C+Bergamo%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.argochem.eu/",
+      "webMode": "external"
+    },
+    {
+      "number": 4,
+      "coords": [
+        14.1065534,
+        40.8350584
+      ],
+      "title": "SSIP | Stazione Sperimentale per l’Industria delle Pelli e delle Materie Concianti",
+      "text": "Associato del Cluster Made in Italy\nCategoria: ente di ricerca\nSede principale: Via Campi Flegrei 34, Pozzuoli\nCittà di riferimento: Pozzuoli\nRegione indicata nel file originale: Campania\nCittà indicata nel file originale: Napoli\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede legale presso Comprensorio Olivetti. Corrispondenza cartografica: Via Campi Flegrei 34, 80078, Pozzuoli, Napoli.\n\nFonti: https://ssip.it/contatti/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Campi+Flegrei+34%2C+Pozzuoli%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://ssip.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 5,
+      "coords": [
+        12.4833746,
+        41.9218954
+      ],
+      "title": "Sustainable Fashion Innovation Society (SFIS)",
+      "text": "Associato del Cluster Made in Italy\nCategoria: associazione\nSede principale: Viale Bruno Buozzi 77, Roma\nCittà di riferimento: Roma\nRegione indicata nel file originale: Lazio\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede legale e amministrativa; sede operativa in via Valdieri 23. Corrispondenza cartografica: Viale Bruno Buozzi 77, 00197, Roma.\n\nFonti: https://sustainablefashioninnovation.org/contacts | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Viale+Bruno+Buozzi+77%2C+Roma%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://sustainablefashioninnovation.org/it/",
+      "webMode": "external"
+    },
+    {
+      "number": 6,
+      "coords": [
+        13.6630083,
+        43.4350815
+      ],
+      "title": "Artisan DNA Srl",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: indirizzo non verificato\nCittà di riferimento: Porto Recanati\nRegione indicata nel file originale: Marche\nCoordinate: centro città (posizione approssimativa dell’associato)\nMetodo: OpenStreetMap: punto rappresentativo del centro abitato\n\nNote: Indirizzo non verificato in fonte primaria; città dal file originale. Il sito oggi riporta Artisan DNA SPA.\n\nFonti: https://italianartisan.com/contacts/ | Coordinate: https://www.openstreetmap.org/relation/42440\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://italianartisan.com/",
+      "webMode": "external"
+    },
+    {
+      "number": 7,
+      "coords": [
+        11.8771555,
+        45.4155444
+      ],
+      "title": "EZ Lab Srl",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Piazza Alcide De Gasperi 28, Padova\nCittà di riferimento: Padova\nRegione indicata nel file originale: Veneto\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede legale. Corrispondenza cartografica: Piazza Alcide De Gasperi 28, 35131, Padova.\n\nFonti: https://www.ezlab.it/contatti/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Piazza+Alcide+De+Gasperi+28%2C+Padova%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.ezlab.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 8,
+      "coords": [
+        10.6674579,
+        44.6829482
+      ],
+      "title": "RE:LAB s.r.l.",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Monti Urali 13, Reggio Emilia\nCittà di riferimento: Reggio Emilia\nRegione indicata nel file originale: Emilia-Romagna\nCoordinate: sede\nMetodo: Coordinate della mappa ufficiale associate espressamente a Via Monti Urali 13.\n\nNote: Sede indicata dal sito ufficiale.\n\nFonti: https://www.re-lab.it/contatti | Coordinate: https://www.re-lab.it/contatti\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.re-lab.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 9,
+      "coords": [
+        9.203212,
+        45.461422
+      ],
+      "title": "Sense – Immaterial Reality Srl",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Podgora 13, Milano\nCittà di riferimento: Milano\nRegione indicata nel file originale: Lombardia\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede indicata dal sito ufficiale. Corrispondenza cartografica: Via Podgora 13, 20122, Milano.\n\nFonti: https://www.s-ir.it/contacts | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Podgora+13%2C+Milano%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://s-ir.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 10,
+      "coords": [
+        12.9085377,
+        43.9130399
+      ],
+      "title": "Officine Creative Marchigiane",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Schiavini 21, Pesaro\nCittà di riferimento: Pesaro\nRegione indicata nel file originale: Marche\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede legale; il sito elenca anche due sedi operative a Pesaro. Corrispondenza cartografica: Via Schiavini 21, 61121, Pesaro, Pesaro e Urbino.\n\nFonti: https://www.officinecreativemarchigiane.com/contatti/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Schiavini+21%2C+Pesaro%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.officinecreativemarchigiane.com/",
+      "webMode": "external"
+    },
+    {
+      "number": 11,
+      "coords": [
+        14.2487679,
+        40.8358846
+      ],
+      "title": "Polo delle arti Caselli Palizzi (ex Istituto Superiore ad Indirizzo Raro Caselli)",
+      "text": "Associato del Cluster Made in Italy\nCategoria: ente di formazione\nSede principale: Piazzetta Salazar 6, Napoli\nCittà di riferimento: Napoli\nRegione indicata nel file originale: Campania\nCoordinate: centro città (posizione approssimativa dell’associato)\nMetodo: OpenStreetMap: punto rappresentativo del centro abitato\n\nNote: Sede amministrativa Palizzi; plesso Caselli nel Parco di Capodimonte. Indirizzo verificato, ma edificio o civico non geolocalizzato con sufficiente affidabilità: usato centro città.\n\nFonti: https://www.iscasellipalizzi.edu.it/contatti/ | Coordinate: https://www.openstreetmap.org/relation/40767\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.iscasellipalizzi.edu.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 12,
+      "coords": [
+        9.180533,
+        45.467794
+      ],
+      "title": "FederlegnoArredo",
+      "text": "Associato del Cluster Made in Italy\nCategoria: associazione\nSede principale: Foro Buonaparte 65, Milano\nCittà di riferimento: Milano\nRegione indicata nel file originale: Lombardia\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede legale. Corrispondenza cartografica: Foro Buonaparte 65, 20121, Milano.\n\nFonti: https://www.federlegnoarredo.it/federazione/sedi-e-contatti | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Foro+Buonaparte+65%2C+Milano%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.federlegnoarredo.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 13,
+      "coords": [
+        8.9575277,
+        44.3982593
+      ],
+      "title": "Confindustria Nautica",
+      "text": "Associato del Cluster Made in Italy\nCategoria: associazione\nSede principale: Via San Nazaro 11, Genova\nCittà di riferimento: Genova\nRegione indicata nel file originale: Liguria\nCoordinate: sede\nMetodo: Coordinate del punto di Via San Nazaro 11 nel link Google Maps ufficiale.\n\nNote: Sede di Genova indicata dal sito; seconda sede a Roma.\n\nFonti: https://confindustrianautica.net/ | Coordinate: https://confindustrianautica.net/\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://confindustrianautica.net/",
+      "webMode": "external"
+    },
+    {
+      "number": 14,
+      "coords": [
+        9.5814902,
+        45.730576
+      ],
+      "title": "Locatelli spa (Airoh)",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Resistenza 5/A, Almenno San Bartolomeo\nCittà di riferimento: Almenno San Bartolomeo\nRegione indicata nel file originale: Lombardia\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede centrale. Corrispondenza cartografica: Via della Resistenza 5A, 24030, Almenno San Bartolomeo, Bergamo.\n\nFonti: https://www.airoh.com/contattaci/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Resistenza+5%2FA%2C+Almenno+San+Bartolomeo%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.airoh.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 15,
+      "coords": [
+        9.2286386,
+        45.605171
+      ],
+      "title": "Decathlon Italia",
+      "text": "Associato del Cluster Made in Italy\nCategoria: grandi imprese\nSede principale: Viale Valassina 268, Lissone\nCittà di riferimento: Lissone\nRegione indicata nel file originale: Lombardia\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede legale di Decathlon Italia. Corrispondenza cartografica: Viale Valassina 268, 20851, Lissone, Monza e Brianza.\n\nFonti: https://www.concorso.decathlon.it/pdf/regolamento.pdf | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Viale+Valassina+268%2C+Lissone%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.decathlon.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 16,
+      "coords": [
+        12.255609,
+        45.4713557
+      ],
+      "title": "VENETO INNOVAZIONE SPA",
+      "text": "Associato del Cluster Made in Italy\nCategoria: cluster\nSede principale: Via delle Industrie 19/D, Venezia\nCittà di riferimento: Venezia\nRegione indicata nel file originale: Veneto\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: VEGA edificio Lybra, Marghera; il sito ora usa la denominazione Veneto Sviluppo. Corrispondenza cartografica: Via delle industrie 19D, 30175, Venezia.\n\nFonti: https://www.venetoinnovazione.it/contatti/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+delle+Industrie+19%2FD%2C+Venezia%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.venetoinnovazione.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 17,
+      "coords": [
+        12.4646831,
+        41.9327544
+      ],
+      "title": "ENEA",
+      "text": "Associato del Cluster Made in Italy\nCategoria: ente di ricerca\nSede principale: Lungotevere Thaon di Revel 76, Roma\nCittà di riferimento: Roma\nRegione indicata nel file originale: Lazio\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede legale, organi istituzionali e funzioni centrali. Corrispondenza cartografica: Lungotevere Grande Ammiraglio Thaon di Revel 76, 00196, Roma.\n\nFonti: https://www.enea.it/it/lenea/dove-siamo.html | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Lungotevere+Thaon+di+Revel+76%2C+Roma%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.enea.it/it/",
+      "webMode": "external"
+    },
+    {
+      "number": 18,
+      "coords": [
+        11.3384328,
+        44.5221896
+      ],
+      "title": "ART-ER S. CONS. p.A",
+      "text": "Associato del Cluster Made in Italy\nCategoria: cluster\nSede principale: Via Piero Gobetti 101, Bologna\nCittà di riferimento: Bologna\nRegione indicata nel file originale: Emilia-Romagna\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede legale presso CNR Area della Ricerca. Corrispondenza cartografica: Via Piero Gobetti 101, 40129, Bologna.\n\nFonti: https://www.art-er.it/contatti | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Piero+Gobetti+101%2C+Bologna%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.art-er.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 19,
+      "coords": [
+        8.0339905,
+        45.5567401
+      ],
+      "title": "Città Studi spa",
+      "text": "Associato del Cluster Made in Italy\nCategoria: cluster\nSede principale: Corso Giuseppe Pella 2, Biella\nCittà di riferimento: Biella\nRegione indicata nel file originale: Piemonte\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede legale. Corrispondenza cartografica: Corso Giuseppe Pella 2, 13900, Biella.\n\nFonti: https://www.cittastudi.org/contatti/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Corso+Giuseppe+Pella+2%2C+Biella%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.cittastudi.org/",
+      "webMode": "external"
+    },
+    {
+      "number": 20,
+      "coords": [
+        10.6638027,
+        44.7350625
+      ],
+      "title": "COOP.SERVICE Soc.Coop.",
+      "text": "Associato del Cluster Made in Italy\nCategoria: cooperativa\nSede principale: Via Rochdale 5, Reggio Emilia\nCittà di riferimento: Reggio Emilia\nRegione indicata nel file originale: Emilia-Romagna\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede centrale. Corrispondenza cartografica: Via Rochdale 5, 42122, Reggio Emilia, Reggio nell'Emilia.\n\nFonti: https://www.coopservice.it/contatti | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Rochdale+5%2C+Reggio+Emilia%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.coopservice.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 21,
+      "coords": [
+        9.19182,
+        45.472865
+      ],
+      "title": "Sylfib srl – Societa benefit",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Fatebenefratelli 20, Milano\nCittà di riferimento: Milano\nRegione indicata nel file originale: Lombardia\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede indicata dal sito ufficiale. Corrispondenza cartografica: Via Fatebenefratelli 20, 20121, Milano.\n\nFonti: https://sylfib.com/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Fatebenefratelli+20%2C+Milano%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://sylfib.com/",
+      "webMode": "external"
+    },
+    {
+      "number": 22,
+      "coords": [
+        8.8898408,
+        45.6309999
+      ],
+      "title": "Excellentia srl",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: indirizzo non verificato\nCittà di riferimento: Olgiate Olona\nRegione indicata nel file originale: Lombardia\nCoordinate: centro città (posizione approssimativa dell’associato)\nMetodo: OpenStreetMap: punto rappresentativo del centro abitato\n\nNote: Città confermata dal profilo aziendale; indirizzo non confermato da fonte primaria.\n\nFonti: https://www.linkedin.com/company/excellentia-s-r-l/ | Coordinate: https://www.openstreetmap.org/node/62517991\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.linkedin.com/company/excellentia-s-r-l/",
+      "webMode": "external"
+    },
+    {
+      "number": 23,
+      "coords": [
+        13.5166898,
+        43.5863733
+      ],
+      "title": "Associazione Cluster in Marche",
+      "text": "Associato del Cluster Made in Italy\nCategoria: cluster\nSede principale: Via Brecce Bianche 12, Ancona\nCittà di riferimento: Ancona\nRegione indicata nel file originale: Marche\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Recapito presso Facoltà di Ingegneria; sito ora intestato Fondazione Cluster Marche. Corrispondenza cartografica: Via Brecce Bianche 12, 60131, Ancona.\n\nFonti: https://cluster-marche.it/contatti/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Brecce+Bianche+12%2C+Ancona%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://cluster-marche.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 24,
+      "coords": [
+        15.8022077,
+        40.6384046
+      ],
+      "title": "Università degli Studi della Basilicata",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Via dell'Ateneo Lucano 10, Potenza\nCittà di riferimento: Potenza\nRegione indicata nel file originale: Basilicata\nCoordinate: centro città (posizione approssimativa dell’associato)\nMetodo: OpenStreetMap: punto rappresentativo del centro abitato\n\nNote: Indirizzo istituzionale dell'ateneo e URP. Indirizzo verificato, ma edificio o civico non geolocalizzato con sufficiente affidabilità: usato centro città.\n\nFonti: https://portale.unibas.it/site/home/contatti/urp.html | Coordinate: https://www.openstreetmap.org/relation/40613\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://portale.unibas.it/site/home.html",
+      "webMode": "external"
+    },
+    {
+      "number": 25,
+      "coords": [
+        11.3328002,
+        43.3191182
+      ],
+      "title": "Università degli Studi di Siena",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Via Banchi di Sotto 55, Siena\nCittà di riferimento: Siena\nRegione indicata nel file originale: Toscana\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Rettorato. Corrispondenza cartografica: Via Banchi di Sotto 55, 53100, Siena.\n\nFonti: https://www.unisi.it | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Banchi+di+Sotto+55%2C+Siena%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.unisi.it",
+      "webMode": "external"
+    },
+    {
+      "number": 26,
+      "coords": [
+        14.2438419,
+        40.8416043
+      ],
+      "title": "Università degli Studi Suor Orsola Benincasa",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Corso Vittorio Emanuele 292, Napoli\nCittà di riferimento: Napoli\nRegione indicata nel file originale: Campania\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede centrale dell'ateneo. Corrispondenza cartografica: Corso Vittorio Emanuele 292, 80135, Napoli.\n\nFonti: https://www.unisob.na.it/ateneo/a001_a2.htm?vr=3 | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Corso+Vittorio+Emanuele+292%2C+Napoli%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.unisob.na.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 27,
+      "coords": [
+        16.2237085,
+        39.3620867
+      ],
+      "title": "Università della Calabria",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Via Pietro Bucci, Rende\nCittà di riferimento: Rende\nRegione indicata nel file originale: Calabria\nCittà indicata nel file originale: Cosenza\nCoordinate: sede\nMetodo: OpenStreetMap: edificio o campus identificato per nome\n\nNote: Campus di Arcavacata, sede dell'ateneo.\n\nFonti: https://www.unical.it | Coordinate: https://www.openstreetmap.org/relation/15877132\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.unical.it",
+      "webMode": "external"
+    },
+    {
+      "number": 28,
+      "coords": [
+        11.2594064,
+        43.7778118
+      ],
+      "title": "UNIVERSITà DI FIRENZE",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Piazza San Marco 4, Firenze\nCittà di riferimento: Firenze\nRegione indicata nel file originale: Toscana\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Rettorato. Corrispondenza cartografica: Piazza di San Marco 4, 50121, Firenze.\n\nFonti: https://www.unifi.it/it/ateneo/chi-siamo/organi/rettrice-e-prorettori | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Piazza+San+Marco+4%2C+Firenze%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.unifi.it/it",
+      "webMode": "external"
+    },
+    {
+      "number": 29,
+      "coords": [
+        14.3302579,
+        41.0665011
+      ],
+      "title": "Università degli studi della Campania Luigi Vanvitelli",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Viale Abramo Lincoln 5, Caserta\nCittà di riferimento: Caserta\nRegione indicata nel file originale: Campania\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Recapito istituzionale dell'ateneo. Corrispondenza cartografica: Viale Abramo Lincoln 5, 81100, Caserta.\n\nFonti: https://www.unicampania.it | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Viale+Abramo+Lincoln+5%2C+Caserta%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.unicampania.it",
+      "webMode": "external"
+    },
+    {
+      "number": 30,
+      "coords": [
+        12.3220379,
+        45.4378041
+      ],
+      "title": "Università IUAV di Venezia",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Santa Croce 191, Venezia\nCittà di riferimento: Venezia\nRegione indicata nel file originale: Veneto\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Tolentini, sede centrale. Corrispondenza cartografica: Sestiere Santa Croce 191, 30135, Venezia.\n\nFonti: https://www.iuav.it/it/sedi/concessione-degli-spazi-per-manifestazioni-ed-eventi | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Santa+Croce+191%2C+Venezia%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.iuav.it",
+      "webMode": "external"
+    },
+    {
+      "number": 31,
+      "coords": [
+        14.2570905,
+        40.8448643
+      ],
+      "title": "Università degli Studi di Napoli Federico II",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Corso Umberto I 40, Napoli\nCittà di riferimento: Napoli\nRegione indicata nel file originale: Campania\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede centrale. Corrispondenza cartografica: Corso Umberto I 40, 80138, Napoli.\n\nFonti: https://www.unina.it | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Corso+Umberto+I+40%2C+Napoli%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.unina.it",
+      "webMode": "external"
+    },
+    {
+      "number": 32,
+      "coords": [
+        13.0681063,
+        43.135964
+      ],
+      "title": "Università di Camerino",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Piazza Cavour 19/f, Camerino\nCittà di riferimento: Camerino\nRegione indicata nel file originale: Marche\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Indirizzo istituzionale dell'ateneo. Corrispondenza cartografica: Piazza Camillo Benso Conte di Cavour 19, 62032, Camerino, Macerata. La mappa identifica il civico principale senza distinguere il suffisso del numero.\n\nFonti: https://www.unicam.it/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Piazza+Cavour+19%2Ff%2C+Camerino%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.unicam.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 33,
+      "coords": [
+        18.1671787,
+        40.3496622
+      ],
+      "title": "Università del Salento",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Piazza Tancredi 7, Lecce\nCittà di riferimento: Lecce\nRegione indicata nel file originale: Puglia\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede centrale. Corrispondenza cartografica: Piazzetta Tancredi 7, 73100, Lecce.\n\nFonti: https://www.unisalento.it/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Piazza+Tancredi+7%2C+Lecce%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.unisalento.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 34,
+      "coords": [
+        13.512793,
+        43.6171789
+      ],
+      "title": "Università Politecnica delle Marche",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Piazza Roma 22, Ancona\nCittà di riferimento: Ancona\nRegione indicata nel file originale: Marche\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede centrale. Corrispondenza cartografica: Piazza Roma 22, 60121, Ancona.\n\nFonti: https://www.univpm.it | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Piazza+Roma+22%2C+Ancona%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.univpm.it",
+      "webMode": "external"
+    },
+    {
+      "number": 35,
+      "coords": [
+        11.8774407,
+        45.4066496
+      ],
+      "title": "Università di Padova",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Via 8 Febbraio 2, Padova\nCittà di riferimento: Padova\nRegione indicata nel file originale: Veneto\nCoordinate: sede\nMetodo: OpenStreetMap: civico verificato\n\nNote: Palazzo del Bo, sede centrale.\n\nFonti: https://www.unipd.it/contatti | Coordinate: https://www.openstreetmap.org/way/860030273\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.unipd.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 36,
+      "coords": [
+        12.387003,
+        43.1163553
+      ],
+      "title": "UNIVERSITà DEGLI STUDI DI PERUGIA",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Piazza Università 1, Perugia\nCittà di riferimento: Perugia\nRegione indicata nel file originale: Umbria\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede centrale. Corrispondenza cartografica: Piazza dell'Università 1, 06123, Perugia.\n\nFonti: https://www.unipg.it | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Piazza+Universit%C3%A0+1%2C+Perugia%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.unipg.it",
+      "webMode": "external"
+    },
+    {
+      "number": 37,
+      "coords": [
+        8.9018538,
+        45.610676
+      ],
+      "title": "UNIVERSITà CARLO CATTANEO - LIUC",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Corso Matteotti 22, Castellanza\nCittà di riferimento: Castellanza\nRegione indicata nel file originale: Lombardia\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede dell'ateneo. Corrispondenza cartografica: Corso Giacomo Matteotti 22, 21053, Castellanza, Varese.\n\nFonti: https://www.liuc.it/chi-siamo/struttura-e-organizzazione/statuto-e-regolamenti/privacy-policy/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Corso+Matteotti+22%2C+Castellanza%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.liuc.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 38,
+      "coords": [
+        10.3258395,
+        44.8011716
+      ],
+      "title": "Università degli Studi di Parma",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Via Università 12, Parma\nCittà di riferimento: Parma\nRegione indicata nel file originale: Emilia-Romagna\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede centrale. Corrispondenza cartografica: Strada dell'Università 12, 43121, Parma.\n\nFonti: https://www.unipr.it/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Universit%C3%A0+12%2C+Parma%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.unipr.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 39,
+      "coords": [
+        13.3699282,
+        38.1175326
+      ],
+      "title": "Università di Palermo",
+      "text": "Associato del Cluster Made in Italy\nCategoria: università\nSede principale: Piazza Marina 61, Palermo\nCittà di riferimento: Palermo\nRegione indicata nel file originale: Sicilia\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Palazzo Steri, sede del rettorato. Corrispondenza cartografica: Piazza Marina 61, 90133, Palermo.\n\nFonti: https://www.unipa.it/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Piazza+Marina+61%2C+Palermo%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.unipa.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 40,
+      "coords": [
+        16.2018203,
+        39.813172
+      ],
+      "title": "Pollino Sviluppo",
+      "text": "Associato del Cluster Made in Italy\nCategoria: consorzio\nSede principale: Corso Luigi Saraceni 9/A, Castrovillari\nCittà di riferimento: Castrovillari\nRegione indicata nel file originale: Calabria\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Recapito dalla pagina ufficiale contatti; altri documenti riportano Via Roma 8. Corrispondenza cartografica: Corso Luigi Saraceni 9, 87012, Castrovillari, Cosenza. La mappa identifica il civico principale senza distinguere il suffisso del numero.\n\nFonti: https://www.galpollino.it/contatti.html | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Corso+Luigi+Saraceni+9%2FA%2C+Castrovillari%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.galpollino.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 41,
+      "coords": [
+        9.6874338,
+        45.3629199
+      ],
+      "title": "Cluster Cosmetico Lombardo (ex REI – Reindustria Innovazione)",
+      "text": "Associato del Cluster Made in Italy\nCategoria: cluster\nSede principale: indirizzo non verificato\nCittà di riferimento: Crema\nRegione indicata nel file originale: Lombardia\nCoordinate: centro città (posizione approssimativa dell’associato)\nMetodo: OpenStreetMap: punto rappresentativo del centro abitato\n\nNote: Comune confermato; indirizzo della sede attuale non determinato con sufficiente affidabilità.\n\nFonti: https://www.cosmeticscluster.it/2024/05/31/assessore-fermi-a-crema-per-la-sede-del-cluster-cosmetico-lombardo/ | Coordinate: https://www.openstreetmap.org/node/62511253\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.cosmeticscluster.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 42,
+      "coords": [
+        16.3103214,
+        38.9688684
+      ],
+      "title": "DESME DIGITAL SRL",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Aldo Moro 25, Lamezia Terme\nCittà di riferimento: Lamezia Terme\nRegione indicata nel file originale: Calabria\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede indicata dal sito ufficiale. Corrispondenza cartografica: Via Aldo Moro 25, 88046, Lamezia Terme, Catanzaro.\n\nFonti: https://desmedigital.it/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Aldo+Moro+25%2C+Lamezia+Terme%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://desmedigital.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 43,
+      "coords": [
+        16.264894,
+        39.228492
+      ],
+      "title": "Associazione Destinazione Jassa APS",
+      "text": "Associato del Cluster Made in Italy\nCategoria: associazione\nSede principale: indirizzo non verificato\nCittà di riferimento: Paterno Calabro\nRegione indicata nel file originale: Calabria\nCoordinate: centro città (posizione approssimativa dell’associato)\nMetodo: OpenStreetMap: punto rappresentativo del centro abitato\n\nNote: Il sito riporta civici discordanti, Contrada Fiumara 23 e 22; utilizzato centro città.\n\nFonti: https://destinazionejassa.it/contatti/ | Coordinate: https://www.openstreetmap.org/relation/39839\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://destinazionejassa.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 44,
+      "coords": [
+        16.6063265,
+        40.667029
+      ],
+      "title": "Associazione Basilicata Creativa ETS",
+      "text": "Associato del Cluster Made in Italy\nCategoria: associazione\nSede principale: Via Lanera snc, Matera\nCittà di riferimento: Matera\nRegione indicata nel file originale: Basilicata\nCoordinate: centro città (posizione approssimativa dell’associato)\nMetodo: OpenStreetMap: punto rappresentativo del centro abitato\n\nNote: Sede legale; ulteriore sede a Potenza. Indirizzo verificato, ma edificio o civico non geolocalizzato con sufficiente affidabilità: usato centro città.\n\nFonti: https://www.basilicatacreativa.it/ | Coordinate: https://www.openstreetmap.org/relation/40622\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.basilicatacreativa.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 45,
+      "coords": [
+        16.3795803,
+        39.0778843
+      ],
+      "title": "RUBBETTINO SRL",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Commendatore Rosario Rubbettino 8, Soveria Mannelli\nCittà di riferimento: Soveria Mannelli\nRegione indicata nel file originale: Calabria\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede di Rubbettino SRL, P.IVA 00122460793. Corrispondenza cartografica: Via Commendatore Rosario Rubbettino 8, 88049, Soveria Mannelli, Catanzaro.\n\nFonti: https://www.rubbettinoprint.it/contatti | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Commendatore+Rosario+Rubbettino+8%2C+Soveria+Mannelli%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.rubbettino.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 46,
+      "coords": [
+        16.3687021,
+        39.0835154
+      ],
+      "title": "LANIFICIOLEO SAS",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Cava 43, Soveria Mannelli\nCittà di riferimento: Soveria Mannelli\nRegione indicata nel file originale: Calabria\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede indicata dal sito ufficiale. Corrispondenza cartografica: Via Cava 43, 88049, Soveria Mannelli, Catanzaro.\n\nFonti: https://www.lanificioleo.it/contatti/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Cava+43%2C+Soveria+Mannelli%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.lanificioleo.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 47,
+      "coords": [
+        11.0307894,
+        43.9039242
+      ],
+      "title": "Trafi Creatività Tessile srl",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Spartaco Lavagnini 24/28, Montemurlo\nCittà di riferimento: Montemurlo\nRegione indicata nel file originale: Toscana\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Indirizzo confermato dal portale turistico territoriale e da certificazioni tessili. Corrispondenza cartografica: Via Spartaco Lavagnini 24, 59013, Montemurlo, Prato. Coordinate del civico 24, primo civico dell'intervallo 24/28.\n\nFonti: https://www.pratoturismo.it/it/aziende/trafi-srl/?category=TIPO | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Spartaco+Lavagnini+24%2F28%2C+Montemurlo%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "http://www.trafi.it/storia.htm",
+      "webMode": "external"
+    },
+    {
+      "number": 48,
+      "coords": [
+        10.2256174,
+        45.9056172
+      ],
+      "title": "eli-fly",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Casa Bianca 2, Esine\nCittà di riferimento: Esine\nRegione indicata nel file originale: Lombardia\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede indicata dal sito ufficiale. Corrispondenza cartografica: Via Casa Bianca 2, 25040, Esine, Brescia.\n\nFonti: https://www.elifly.it/contatti/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Casa+Bianca+2%2C+Esine%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.elifly.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 49,
+      "coords": [
+        16.165051,
+        39.0378715
+      ],
+      "title": "Conservatorio Nocera",
+      "text": "Associato del Cluster Made in Italy\nCategoria: fondazione\nSede principale: Via Dante Alighieri 13, Nocera Terinese\nCittà di riferimento: Nocera Terinese\nRegione indicata nel file originale: Calabria\nCittà indicata nel file originale: Catanzaro\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede istituzionale del Conservatorio Saverio Arlia, già P. I. Tchaikovsky; il file riporta Catanzaro. Corrispondenza cartografica: Via Dante Alighieri 13, 88047, Nocera Terinese, Catanzaro.\n\nFonti: https://cons.cz.it/contatti/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Dante+Alighieri+13%2C+Nocera+Terinese%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://cons.cz.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 50,
+      "coords": [
+        17.1057015,
+        39.0556033
+      ],
+      "title": "Gerardo Sacco",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Antonio De Curtis 2, Crotone\nCittà di riferimento: Crotone\nRegione indicata nel file originale: Calabria\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Sede di Gerardo Sacco & C. SRL. Corrispondenza cartografica: Via Antonio De Curtis 2, 88900, Crotone.\n\nFonti: https://www.gerardosacco.com/it/contatti | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Antonio+De+Curtis+2%2C+Crotone%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.gerardosacco.com/it/",
+      "webMode": "external"
+    },
+    {
+      "number": 51,
+      "coords": [
+        12.4754858,
+        41.831313
+      ],
+      "title": "Esyen",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Viale dell'Arte 25, Roma\nCittà di riferimento: Roma\nRegione indicata nel file originale: Abbruzzo\nCittà indicata nel file originale: Avezzano\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Headquarters esplicitamente indicato dal sito; Avezzano è un ufficio secondario. Corrispondenza cartografica: Viale dell'Arte 25, 00144, Roma.\n\nFonti: https://www.esyen.com/contact-us/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Viale+dell%27Arte+25%2C+Roma%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.esyen.com/",
+      "webMode": "external"
+    },
+    {
+      "number": 52,
+      "coords": [
+        16.2504948,
+        39.2389907
+      ],
+      "title": "Museo del Rame",
+      "text": "Associato del Cluster Made in Italy\nCategoria: fondazione\nSede principale: Via XXV Aprile 38, Dipignano\nCittà di riferimento: Dipignano\nRegione indicata nel file originale: Calabria\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Recapito principale del museo. Corrispondenza cartografica: Via 25 Aprile 38, 87045, Dipignano, Cosenza.\n\nFonti: https://www.museodelramedipignano.it/contatti/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+XXV+Aprile+38%2C+Dipignano%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.museodelramedipignano.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 53,
+      "coords": [
+        12.4829321,
+        41.8933203
+      ],
+      "title": "DeStrategy",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: indirizzo non verificato\nCittà di riferimento: Roma\nRegione indicata nel file originale: Calabria\nCittà indicata nel file originale: Corigliano\nCoordinate: centro città (posizione approssimativa dell’associato)\nMetodo: OpenStreetMap: punto rappresentativo del centro abitato\n\nNote: Il sito attuale elenca uffici a Roma e Cosenza senza designare la sede principale; utilizzato centro di Roma, primo recapito. Corigliano nel file non confermato.\n\nFonti: https://destrategy.it/ | Coordinate: https://www.openstreetmap.org/relation/41485\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://destrategy.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 54,
+      "coords": [
+        16.5355124,
+        40.6811215
+      ],
+      "title": "DigiMat",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Giovanni Agnelli snc, Matera\nCittà di riferimento: Matera\nRegione indicata nel file originale: Basilicata\nCoordinate: sede\nMetodo: OpenStreetMap: edificio o campus identificato per nome\n\nNote: Sede legale.\n\nFonti: https://www.digimat.it/contatti/ | Coordinate: https://www.openstreetmap.org/node/9808308502\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.digimat.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 55,
+      "coords": [
+        12.4882425,
+        41.9596753
+      ],
+      "title": "Open economics",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Vitorchiano 123, Roma\nCittà di riferimento: Roma\nRegione indicata nel file originale: Lazio\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Headquarter esplicitamente indicato dal sito. Corrispondenza cartografica: Via Vitorchiano 123, 00189, Roma.\n\nFonti: https://www.openeconomics.eu/en/contact-us | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+Vitorchiano+123%2C+Roma%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.openeconomics.eu/en",
+      "webMode": "external"
+    },
+    {
+      "number": 56,
+      "coords": [
+        16.2542316,
+        39.3026423
+      ],
+      "title": "Nature Med",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via P. De Roberto 11, Cosenza\nCittà di riferimento: Cosenza\nRegione indicata nel file originale: Calabria\nCittà indicata nel file originale: Castrovillari\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: civico interpolato lungo la strada\n\nNote: Sede legale; sede produttiva in Contrada Cammarata a Castrovillari. Corrispondenza cartografica: Via Pietro De Roberto 11, 87100, Cosenza.\n\nFonti: https://naturemed.it/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+P.+De+Roberto+11%2C+Cosenza%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://naturemed.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 57,
+      "coords": [
+        12.8374571,
+        45.775598
+      ],
+      "title": "VeGal",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via Cimetta 1, Portogruaro\nCittà di riferimento: Portogruaro\nRegione indicata nel file originale: Veneto\nCoordinate: centro città (posizione approssimativa dell’associato)\nMetodo: OpenStreetMap: punto rappresentativo del centro abitato\n\nNote: Sede indicata dal sito ufficiale. Indirizzo verificato, ma edificio o civico non geolocalizzato con sufficiente affidabilità: usato centro città.\n\nFonti: https://www.vegal.net/contattaci/ | Coordinate: https://www.openstreetmap.org/node/1885679570\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.vegal.net/",
+      "webMode": "external"
+    },
+    {
+      "number": 58,
+      "coords": [
+        15.6466922,
+        38.1078879
+      ],
+      "title": "Museo del Bergamotto",
+      "text": "Associato del Cluster Made in Italy\nCategoria: PMI - piccole e medie imprese\nSede principale: Via dei Filippini 50, Reggio Calabria\nCittà di riferimento: Reggio Calabria\nRegione indicata nel file originale: Calabria\nCoordinate: sede\nMetodo: ArcGIS World Geocoding: punto del civico\n\nNote: Indirizzo dell'Accademia e Museo indicato dal sito ufficiale nel programma BergaFest 2026. Corrispondenza cartografica: Via Filippini 50, 89125, Reggio Calabria, Reggio di Calabria.\n\nFonti: https://www.museobergamotto.it/bergafest-xxvi/ | Coordinate: https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates?SingleLine=Via+dei+Filippini+50%2C+Reggio+Calabria%2C+Italia&f=json&outFields=Addr_type%2CMatch_addr%2CCity%2CPostal%2CPlaceName%2CPlace_addr%2CAddNum%2CStName&maxLocations=3&sourceCountry=ITA\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.museobergamotto.it/",
+      "webMode": "external"
+    },
+    {
+      "number": 59,
+      "coords": [
+        16.5716093,
+        38.8604895
+      ],
+      "title": "Ente Parchi Marini Calabria",
+      "text": "Associato del Cluster Made in Italy\nCategoria: cluster\nSede principale: Viale Europa, Cittadella Regionale, Catanzaro\nCittà di riferimento: Catanzaro\nRegione indicata nel file originale: Calabria\nCoordinate: sede\nMetodo: OpenStreetMap: edificio o campus identificato per nome\n\nNote: Sede legale a Germaneto.\n\nFonti: https://www.parchimarinicalabria.it/contatti-epmr | Coordinate: https://www.openstreetmap.org/way/380067491\nData di verifica: 2026-10-03",
+      "image": "",
+      "video": "",
+      "videoMode": "embed",
+      "webUrl": "https://www.parchimarinicalabria.it/",
+      "webMode": "external"
+    }
+  ]
+};
+
+        const initialView = DATA.initialView || { center: [16.3500, 38.9000], zoom: 7.8, pitch: 25, bearing: 0 };
+        const MARKERS_DATA = DATA.markers || DATA;
+
+        const map = new maplibregl.Map({
+            container: 'map',
+            zoom: initialView.zoom,
+            center: initialView.center,
+            pitch: initialView.pitch,
+            bearing: initialView.bearing,
+            style: {
+                version: 8,
+                sources: {
+                    'esri-sat': {
+                        type: 'raster',
+                        tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+                        tileSize: 256
+                    },
+                    'terrain': {
+                        type: 'raster-dem',
+                        tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+                        encoding: 'terrarium', tileSize: 256, maxzoom: 15
+                    }
+                },
+                layers: [{ id: 'sat-layer', type: 'raster', source: 'esri-sat' }],
+                terrain: { source: 'terrain', exaggeration: 1.4 }
+            }
+        });
+
+        map.addControl(new maplibregl.NavigationControl());
+
+        function extractYouTubeId(url) {
+            if (!url) return null;
+            const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+            const match = url.match(regExp);
+            return match ? match[1] : null;
+        }
+
+        map.on('load', () => {
+            MARKERS_DATA.forEach((data, index) => {
+                const el = document.createElement('div');
+                el.className = 'custom-marker';
+                if (index === 0) el.classList.add('first-marker');
+                el.innerText = data.number || (index + 1);
+
+                new maplibregl.Marker({ element: el })
+                    .setLngLat(data.coords)
+                    .addTo(map);
+
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showDetails(data);
+                });
+            });
+        });
+
+        function showDetails(data) {
+            currentMarkerData = data;
+            
+            document.getElementById('view-title').innerText = `Marcatore #${data.number} - ${data.title || 'Senza Titolo'}`;
+            
+            const content = document.getElementById('view-mode-content');
+            content.innerHTML = '';
+
+            if (data.coords && data.coords.length === 2) {
+                const coordsDiv = document.createElement('div');
+                coordsDiv.className = 'coords-badge';
+                coordsDiv.innerHTML = `📍 <strong>Coordinate GPS:</strong> Lat ${data.coords[1]}, Lng ${data.coords[0]}`;
+                content.appendChild(coordsDiv);
+            }
+
+            if (data.text) {
+                const p = document.createElement('p');
+                p.className = 'modal-body-text';
+                p.innerText = data.text;
+                content.appendChild(p);
+            }
+
+            const mediaDiv = document.createElement('div');
+            mediaDiv.className = 'media-preview';
+
+            if (data.image && data.image.trim() !== '') {
+                const img = document.createElement('img');
+                img.src = data.image;
+                img.alt = data.title;
+                img.onerror = () => img.style.display = 'none';
+                mediaDiv.appendChild(img);
+            }
+
+            if (data.video && data.video.trim() !== '') {
+                if (data.videoMode === 'external') {
+                    const videoBtn = document.createElement('a');
+                    videoBtn.href = data.video;
+                    videoBtn.target = '_blank';
+                    videoBtn.className = 'btn-media-link btn-video-link';
+                    videoBtn.innerText = '▶️ Apri Video Esterno / YouTube';
+                    mediaDiv.appendChild(videoBtn);
+                } else {
+                    const ytId = extractYouTubeId(data.video);
+                    if (ytId) {
+                        const iframe = document.createElement('iframe');
+                        iframe.src = 'https://www.youtube-nocookie.com/embed/' + ytId;
+                        iframe.setAttribute('allowfullscreen', 'true');
+                        iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+                        mediaDiv.appendChild(iframe);
+                    } else {
+                        const video = document.createElement('video');
+                        video.src = data.video;
+                        video.controls = true;
+                        mediaDiv.appendChild(video);
+                    }
+                }
+            }
+
+            if (data.webUrl && data.webUrl.trim() !== '') {
+                if (data.webMode === 'embed') {
+                    const iframe = document.createElement('iframe');
+                    iframe.src = data.webUrl;
+                    mediaDiv.appendChild(iframe);
+                } else {
+                    const linkBtn = document.createElement('a');
+                    linkBtn.href = data.webUrl;
+                    linkBtn.target = '_blank';
+                    linkBtn.className = 'btn-media-link btn-external-link';
+                    linkBtn.innerText = '🌐 Apri Tour Virtuale / Sito Web';
+                    mediaDiv.appendChild(linkBtn);
+                }
+            }
+
+            content.appendChild(mediaDiv);
+
+            document.getElementById('edit-number').value = data.number;
+            document.getElementById('edit-title').value = data.title || '';
+            document.getElementById('edit-text').value = data.text || '';
+            document.getElementById('edit-image').value = data.image || '';
+            document.getElementById('edit-video').value = data.video || '';
+            document.getElementById('edit-videoMode').value = data.videoMode || 'embed';
+            document.getElementById('edit-webUrl').value = data.webUrl || '';
+            document.getElementById('edit-webMode').value = data.webMode || 'external';
+
+            setEditFormVisible(false);
+            document.getElementById('modal').classList.add('active');
+        }
+
+        function requestEditAccess() {
+            const form = document.getElementById('edit-form');
+            const isEditing = form.classList.contains('active');
+
+            if (isEditing) {
+                setEditFormVisible(false);
+                return;
+            }
+
+            if (!isEditorAuthenticated) {
+                const pass = prompt("Inserisci la password per modificare questa scheda:");
+                if (pass === EDITOR_PASSWORD) {
+                    isEditorAuthenticated = true;
+                    setEditFormVisible(true);
+                } else if (pass !== null) {
+                    alert("Password errata!");
+                }
+            } else {
+                setEditFormVisible(true);
+            }
+        }
+
+        function setEditFormVisible(showForm) {
+            const form = document.getElementById('edit-form');
+            const view = document.getElementById('view-mode-content');
+            const btn = document.getElementById('toggle-edit-btn');
+
+            if (showForm) {
+                form.classList.add('active');
+                view.style.display = 'none';
+                btn.innerText = '👁️ Torna alla Vista';
+                btn.classList.add('btn-cancel');
+            } else {
+                form.classList.remove('active');
+                view.style.display = 'block';
+                btn.innerText = '✏️ Modifica';
+                btn.classList.remove('btn-cancel');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+        }
+
+        async function submitEdit(event) {
+            event.preventDefault();
+            
+            const formData = {
+                number: parseInt(document.getElementById('edit-number').value),
+                title: document.getElementById('edit-title').value,
+                text: document.getElementById('edit-text').value,
+                image: document.getElementById('edit-image').value,
+                video: document.getElementById('edit-video').value,
+                videoMode: document.getElementById('edit-videoMode').value,
+                webUrl: document.getElementById('edit-webUrl').value,
+                webMode: document.getElementById('edit-webMode').value
+            };
+
+            // 1. Aggiorna la struttura dati locale
+            if (currentMarkerData) {
+                Object.assign(currentMarkerData, formData);
+            }
+            const markerInList = DATA.markers.find(m => m.number === formData.number);
+            if (markerInList) {
+                Object.assign(markerInList, formData);
+            }
+
+            // 2. Genera la stringa JSON completa dell'intera mappa
+            const jsonString = JSON.stringify(DATA, null, 2);
+
+            // 3. AVVIA IL DOWNLOAD AUTOMATICO DEL FILE .JSON NEL BROWSER
+            const jsonBlob = new Blob([jsonString], { type: 'application/json' });
+            const downloadUrl = URL.createObjectURL(jsonBlob);
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = `mappa_calabria_configuratore.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(downloadUrl);
+
+            // 4. Invia la mail di notifica con backup in FormSubmit
+            const emailPayload = {
+                _subject: `[Mappa Calabria 3D] Modifica Marcatore #${formData.number}`,
+                _replyto: "noreply@unical.it",
+                _template: "box",
+                marcatore_modificato: formData.number,
+                nuovo_titolo: formData.title,
+                JSON_COMPLETO_BACKUP: jsonString
+            };
+
+            try {
+                const response = await fetch("https://formsubmit.co/ajax/pietro.pantano@unical.it", {
+                    method: "POST",
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(emailPayload)
+                });
+
+                if (response.ok) {
+                    alert("✅ Modifica salvata!\n\n1. Il file 'mappa_calabria_configuratore.json' è stato scaricato nei tuoi Download.\n2. La notifica mail è stata inviata con successo.");
+                } else {
+                    alert("✅ Modifica salvata e file scaricato nei Download.");
+                }
+            } catch (error) {
+                console.error("Errore invio mail:", error);
+                alert("✅ Modifica salvata e file scaricato nei Download.");
+            }
+
+            showDetails(currentMarkerData);
+        }
+    </script>
+</body>
+</html>
