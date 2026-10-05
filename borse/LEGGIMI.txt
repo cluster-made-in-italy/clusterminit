@@ -1,65 +1,50 @@
-FORME — ATLANTE DELLE BORSE
-Edizione di studio · 30 settembre 2026
+FORME — Boutique delle icone
 
-APERTURA
-Aprire index.html con un browser aggiornato. Se si usa lo ZIP, estrarre prima
-l’intera cartella. Conservare la struttura delle cartelle: le pagine condividono
-dati, illustrazioni e librerie. Non serve un server o una connessione per
-consultare l’atlante; i link alle fonti richiedono Internet. Le viste 3D richiedono
-WebGL. Nessuna chiave API e nessun account.
+AVVIO
+Aprire index.html in Edge, Chrome, Firefox o Safari con WebGL abilitato.
+Non serve una connessione: Three.js, immagini, dati e schede sono inclusi.
+Mantenere insieme tutti i file e la cartella atlante. Per condividere,
+estrarre prima lo ZIP e poi aprire index.html.
 
-PERCORSI
-index.html        catalogo ricercabile, filtri, preferiti
-schede/           200 schede individuali collegate
-mappe.html        PCA 2D e WebGL 3D; tre matrici; variabili originali
-rete.html         Gower, Pearson e Jaccard; vicinato; esportazioni
-confronto.html    confronto di due modelli, radar e CSV
-geografia.html    carta schematica delle città e fonti societarie
-laboratorio.html geometrie modificabili, esploso 3D, SVG e DXF
-metodo.html       criteri, copertura, regole dei punteggi e fonti
+ESPLORAZIONE
+Trascinare lo sfondo per guardarsi intorno; WASD o frecce per camminare.
+La rotella avvicina/allontana la vista. I sei pulsanti selezionano le borse,
+come il clic sui loro volumi. Premi "Porta sul tavolo" per osservarle.
+Sul tavolo: trascina per ruotare, rotella o + / - per zoomare;
+due dita per lo zoom touch. Fronte, Retro e Rotazione automatica completano
+i comandi. "Rimetti al suo posto" restituisce la borsa all'espositore.
+Escape restituisce la borsa o chiude la selezione.
+"Apri la scheda originale" mostra la pagina dell'atlante in un pannello.
 
-DATI ED ESPORTAZIONI
-dati/catalogo.json    tutti i campi, le fonti e i risultati PCA
-dati/catalogo.csv     tabella del catalogo
-dati/pca-*.csv        variabili e coordinate delle tre analisi
-dati/rete.gexf        rete iniziale per Gephi
-dati/rete.graphml     rete iniziale GraphML
-dati/rete.gxl         rete iniziale GXL (interpretazione di “glx”)
-dati/archi.csv        archi e pesi
-cartamodelli/        200 SVG fisici in mm e 200 DXF in mm
+PROVENIENZA
+Materiali recuperati dall'atlante locale del 30 settembre 2026:
+200 famiglie, assets SVG e schede HTML preesistenti.
+Selezione: Hermès Birkin e Kelly, Chanel 2.55, Louis Vuitton Speedy,
+Dior Lady Dior, Fendi Baguette. I testi e le immagini sono quelli
+dell'atlante; le immagini sono illustrazioni editoriali, non fotografie.
+Le schede mantengono le proprie qualifiche delle date e delle quote.
+Il pacchetto conserva l'atlante completo affinché i collegamenti delle
+schede, i confronti e i laboratori restino disponibili offline.
 
-La rete preesportata usa Gower >= 0,84 e l’unione dei 4 migliori vicini per nodo.
-La rete della pagina HTML esporta invece lo stato effettivamente visualizzato.
-Importare GEXF in Gephi come grafo non diretto; usare Weight come peso.
+MODELLI 3D
+Non sono stati trovati modelli 3D ufficiali nel materiale recuperato.
+I proxy sono costruiti dai profili dell'atlante con dettagli semplificati
+e ingranditi per l'esposizione (scala visuale 3,33 volte il riferimento).
+Non sono repliche produttive né simulazioni fisiche dei materiali.
+Il rendering precedente non era presente tra gli allegati recuperabili;
+la scenografia interpreta il brief luxury con pietra, ottone e noce.
 
-CARTAMODELLI
-Tutti sono ricostruzioni geometriche didattiche, non originali delle maison.
-Le tavole studiano l’involucro: due facce e una fascia con perimetro coerente.
-Il volume non simula deformazioni fisiche. Non è una replica di produzione.
-Margini concavi, fodera, spessori, rinforzi e ferramenta richiedono sviluppo.
-Per aerogel, metallo e cesti viene fornito soltanto uno schema d’ingombro.
-Stampare SVG al 100% e controllare il quadrato 50 x 50 mm. Per A4 occorre
-una stampa a mosaico; l’SVG nativo ha una tavola grande, non fogli già suddivisi.
-Il DXF contiene contorni di cucitura e taglio dell’involucro; note e tracolla
-opzionale sono nella tavola SVG. Non tagliare materiali costosi senza una tela.
-
-COPERTURA DELLA RICERCA
-La selezione di 200 famiglie è curatoriale, non una classifica universale.
-Le misure documentate sono legate a varianti precise. Molte quote sono ipotesi
-di studio e molte cronologie restano da verificare: lo stato è esplicito nelle
-schede e nei dati. Metodo riporta i conteggi aggiornati della copertura.
-Le sedi indicative non equivalgono a sedi legali verificate o fabbriche.
-Le fonti generali di maison non certificano ogni modello di quella maison.
-Le immagini sono disegni analitici originali, non fotografie dei prodotti.
-Non sono presenti prezzi o promesse di valore d’investimento.
+SOSTITUZIONE DEI PROXY
+L'adattatore pubblico Boutique.replaceModel(indice, object3D) accetta un
+Object3D di Three.js già caricato. Indici 0-5 nell'ordine indicato sopra.
+Usare a tavolo vuoto; centrare il modello su X/Z e appoggiare la base a Y=0.
+Il modello va orientato con il fronte verso +Z e scalato per l'esposizione.
+Il caricamento di GLB richiede l'aggiunta del GLTFLoader compatibile con
+la versione di Three.js inclusa; l'adattatore conserva clic e posizioni.
 
 VERIFICA
-Eseguiti controlli su 200 viste di scheda e 200 geometrie usando un ambiente
-di prova delle funzioni, con geometrie Three.js effettive e disegno simulato;
-controllati calcoli PCA, filtri, confronto, rete, XML e collegamenti locali.
-L’aspetto e il comportamento nel browser reale NON sono stati verificati:
-la navigazione automatica ai file locali è stata bloccata dalla policy.
-
-LIBRERIE
-Three.js r160 incluso localmente; licenza MIT in vendor/LICENSE-three.txt.
-I marchi appartengono ai rispettivi titolari. Atlante indipendente di studio.
+Verificato in Edge: avvio da file locale, sei selezioni, sei trasferimenti
+sul tavolo, rotazione/zoom, apertura delle sei schede e ritorno sui piedistalli.
+Nessun errore JavaScript durante la verifica. Layout controllato anche
+con viewport mobile. Le anteprime PNG mostrano la scena effettiva.
+La licenza di Three.js è in atlante/vendor/LICENSE-three.txt.
