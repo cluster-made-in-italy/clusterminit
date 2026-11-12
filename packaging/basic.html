@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profumi & Packaging — Cluster Made in Italy</title>
+    <style>
+        :root {
+            --bg-primary: #faf8f5;
+            --bg-secondary: #f3eee6;
+            --bg-card: #ffffff;
+            --text-dark: #1c1917;
+            --text-muted: #57534e;
+            --accent-gold: #a66e38;
+            --accent-gold-dark: #855425;
+            --accent-gold-light: #f6ede4;
+            --accent-emerald: #2c5e4f;
+            --accent-emerald-light: #e8f1ee;
+            --border-subtle: #e7e0d4;
+            --shadow-sm: 0 4px 12px rgba(28, 25, 23, 0.04);
+            --shadow-md: 0 12px 28px rgba(28, 25, 23, 0.08);
+            --shadow-lg: 0 20px 40px rgba(28, 25, 23, 0.12);
+            --radius-md: 14px;
+            --radius-lg: 22px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-dark);
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, .serif {
+            font-family: Georgia, "Times New Roman", Times, serif;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(250, 248, 245, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 1rem 2rem;
+        }
+
+        .nav-container {
+            max-width: 1180px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 700;
+            font-size: 1.15rem;
+            letter-spacing: 0.3px;
+            color: var(--text-dark);
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-dark));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-gold);
+        }
+
+        .btn-nav-external {
+            background-color: var(--text-dark);
+            color: #ffffff !important;
+            padding: 0.55rem 1.1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-nav-external:hover {
+            background-color: var(--accent-gold-dark);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 5rem 2rem 4.5rem;
+            background: radial-gradient(circle at top right, #f3e8da 0%, var(--bg-primary) 55%),
+                        linear-gradient(180deg, #f7f2ea 0%, var(--bg-primary) 100%);
+            border-bottom: 1px solid var(--border-subtle);
+            text-align: center;
+        }
+
+        .hero-inner {
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--accent-gold-light);
+            color: var(--accent-gold-dark);
+            border: 1px solid rgba(166, 110, 56, 0.25);
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.4rem, 5vw, 3.6rem);
+            font-weight: 700;
+            line-height: 1.15;
+            color: var(--text-dark);
+            margin-bottom: 1.25rem;
+        }
+
+        .hero h1 span {
+            color: var(--accent-gold);
+            font-style: italic;
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            max-width: 680px;
+            margin: 0 auto 2.25rem;
+        }
+
+        .hero-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--accent-gold);
+            color: #ffffff;
+            padding: 0.9rem 1.75rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.98rem;
+            box-shadow: 0 8px 20px rgba(166, 110, 56, 0.28);
+            transition: all 0.25s ease;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-gold-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            color: var(--text-dark);
+            border: 1px solid var(--border-subtle);
+            padding: 0.9rem 1.6rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.98rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.25s ease;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-gold);
+            color: var(--accent-gold-dark);
+            transform: translateY(-2px);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 4.5rem 2rem;
+        }
+
+        .section-heading {
+            text-align: center;
+            max-width: 680px;
+            margin: 0 auto 3.5rem;
+        }
+
+        .section-heading span {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--accent-gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .section-heading h2 {
+            font-size: 2.2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .section-heading p {
+            color: var(--text-muted);
+            font-size: 1.02rem;
+        }
+
+        /* Cards Grid */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+            gap: 1.75rem;
+        }
+
+        .module-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-gold);
+        }
+
+        .module-card.featured {
+            background: linear-gradient(180deg, #fffdf9 0%, #f8f1e7 100%);
+            border: 1.5px solid rgba(166, 110, 56, 0.45);
+        }
+
+        .card-top {
+            margin-bottom: 1.75rem;
+        }
+
+        .card-badge-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .card-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            background: var(--accent-gold-light);
+            color: var(--accent-gold-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .card-icon.tech {
+            background: var(--accent-emerald-light);
+            color: var(--accent-emerald);
+        }
+
+        .file-pill {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.72rem;
+            background: var(--bg-secondary);
+            color: var(--text-muted);
+            padding: 0.3rem 0.65rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .file-pill.external {
+            background: var(--accent-gold-light);
+            color: var(--accent-gold-dark);
+            border-color: rgba(166, 110, 56, 0.25);
+            font-family: inherit;
+            font-weight: 700;
+        }
+
+        .module-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 0.65rem;
+            color: var(--text-dark);
+        }
+
+        .module-card p {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .card-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0.85rem 1.15rem;
+            border-radius: 10px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-subtle);
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--text-dark);
+            transition: all 0.2s ease;
+        }
+
+        .module-card:hover .card-link {
+            background: var(--accent-gold);
+            color: #ffffff;
+            border-color: var(--accent-gold);
+        }
+
+        .module-card.featured .card-link {
+            background: var(--text-dark);
+            color: #ffffff;
+            border-color: var(--text-dark);
+        }
+
+        .module-card.featured:hover .card-link {
+            background: var(--accent-gold-dark);
+            border-color: var(--accent-gold-dark);
+        }
+
+        /* Editorial Section */
+        .editorial-band {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 4.5rem 2rem;
+        }
+
+        .pillars-grid {
+            max-width: 1180px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .pillar-item {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .pillar-num {
+            font-family: Georgia, serif;
+            font-size: 1.8rem;
+            font-style: italic;
+            color: var(--accent-gold);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .pillar-item h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .pillar-item p {
+            font-size: 0.94rem;
+            color: var(--text-muted);
+        }
+
+        /* Footer */
+        footer {
+            background: #1c1917;
+            color: #d6d3d1;
+            padding: 3.5rem 2rem 2rem;
+        }
+
+        .footer-inner {
+            max-width: 1180px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 2.5rem;
+            padding-bottom: 2.5rem;
+            border-bottom: 1px solid #292524;
+        }
+
+        .footer-col h4 {
+            color: #ffffff;
+            font-size: 1.05rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-col p {
+            font-size: 0.9rem;
+            color: #a8a29e;
+        }
+
+        .footer-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            font-size: 0.9rem;
+        }
+
+        .footer-links a {
+            color: #a8a29e;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: #ffffff;
+        }
+
+        .footer-bottom {
+            max-width: 1180px;
+            margin: 1.5rem auto 0;
+            text-align: center;
+            font-size: 0.82rem;
+            color: #78716c;
+        }
+
+        @media (max-width: 640px) {
+            .navbar {
+                padding: 0.9rem 1.2rem;
+            }
+            .nav-links a:not(.btn-nav-external) {
+                display: none;
+            }
+            .hero {
+                padding: 3.5rem 1.2rem;
+            }
+            .container {
+                padding: 3rem 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="brand">
+                <div class="brand-icon">✦</div>
+                <span>Profumi &amp; Packaging</span>
+            </a>
+            <div class="nav-links">
+                <a href="#moduli">Strumenti &amp; Pagine</a>
+                <a href="#filiera">Visione &amp; Design</a>
+                <a href="https://cluster-made-in-italy.github.io/clusterminit/profumi/index.html" target="_blank" rel="noopener noreferrer" class="btn-nav-external">
+                    Portale Profumi ↗
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="hero">
+        <div class="hero-inner">
+            <div class="eyebrow">Cluster Made in Italy • Eccellenza Olfattiva &amp; Cartotecnica</div>
+            <h1>L'essenza del <span>Profumo</span> e l'arte del <span>Packaging</span></h1>
+            <p>
+                Dalla composizione delle fragranze alla progettazione strutturale degli astucci: esplora gli ambienti interattivi, i configuratori di fustellatura e il portale dedicato alla filiera italiana.
+            </p>
+            <div class="hero-actions">
+                <a href="https://cluster-made-in-italy.github.io/clusterminit/profumi/index.html" target="_blank" rel="noopener noreferrer" class="btn-primary">
+                    Visita Cluster Made in Italy — Profumi ↗
+                </a>
+                <a href="#moduli" class="btn-secondary">
+                    Esplora i Moduli Locali ↓
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sezione Principale Collegamenti -->
+    <main id="moduli" class="container">
+        <div class="section-heading">
+            <span>Accesso Rapido</span>
+            <h2>Pagine &amp; Configuratori del Progetto</h2>
+            <p>Seleziona uno dei moduli disponibili nella cartella locale oppure accedi direttamente alla sezione ufficiale Profumi sul portale Cluster Made in Italy.</p>
+        </div>
+
+        <div class="modules-grid">
+            <!-- 1. Portale Esterno Cluster Made in Italy -->
+            <article class="module-card featured">
+                <div class="card-top">
+                    <div class="card-badge-row">
+                        <div class="card-icon">🌐</div>
+                        <span class="file-pill external">Portale Web</span>
+                    </div>
+                    <h3>Cluster Made in Italy — Profumi</h3>
+                    <p>
+                        La pagina principale dedicata al mondo delle fragranze, alle materie prime botaniche, alla storia profumiera e alla valorizzazione della filiera Made in Italy.
+                    </p>
+                </div>
+                <a href="https://cluster-made-in-italy.github.io/clusterminit/profumi/index.html" target="_blank" rel="noopener noreferrer" class="card-link">
+                    <span>Apri Portale Profumi</span>
+                    <span>↗</span>
+                </a>
+            </article>
+
+            <!-- 2. Bassi Reloaded -->
+            <article class="module-card">
+                <div class="card-top">
+                    <div class="card-badge-row">
+                        <div class="card-icon">🧴</div>
+                        <span class="file-pill">bassireloaded.html</span>
+                    </div>
+                    <h3>Bassi Reloaded</h3>
+                    <p>
+                        Percorso tematico e approfondimento interattivo dedicato alle creazioni olfattive, alle note di fondo e al progetto <em>Bassi Reloaded</em>.
+                    </p>
+                </div>
+                <a href="bassireloaded.html" class="card-link">
+                    <span>Apri Bassi Reloaded</span>
+                    <span>→</span>
+                </a>
+            </article>
+
+            <!-- 3. Packaging v2 -->
+            <article class="module-card">
+                <div class="card-top">
+                    <div class="card-badge-row">
+                        <div class="card-icon tech">📦</div>
+                        <span class="file-pill">packagingv2.html</span>
+                    </div>
+                    <h3>Packaging v2</h3>
+                    <p>
+                        Ambiente dedicato alla configurazione visiva e dimensionale del packaging per profumeria: proporzioni, rivestimenti, finiture ed estetica del contenitore.
+                    </p>
+                </div>
+                <a href="packagingv2.html" class="card-link">
+                    <span>Apri Packaging v2</span>
+                    <span>→</span>
+                </a>
+            </article>
+
+            <!-- 4. Packaging v2 con Fustellatrice -->
+            <article class="module-card">
+                <div class="card-top">
+                    <div class="card-badge-row">
+                        <div class="card-icon tech">📐</div>
+                        <span class="file-pill">packagingv2confustellatrice.html</span>
+                    </div>
+                    <h3>Packaging v2 con Fustellatrice</h3>
+                    <p>
+                        Modulo tecnico avanzato con simulazione della fustellatrice: sviluppo in piano, tracciati di taglio e cordonatura per la produzione cartotecnica.
+                    </p>
+                </div>
+                <a href="packagingv2confustellatrice.html" class="card-link">
+                    <span>Apri Fustellatrice</span>
+                    <span>→</span>
+                </a>
+            </article>
+        </div>
+    </main>
+
+    <!-- Sezione Editoriale -->
+    <section id="filiera" class="editorial-band">
+        <div class="section-heading">
+            <span>Sinergia Progettuale</span>
+            <h2>Dalla Fragranza all'Astuccio Fustellato</h2>
+            <p>Nel settore della profumeria d'autore, il contenitore è la prima espressione sensoriale dell'essenza che custodisce.</p>
+        </div>
+
+        <div class="pillars-grid">
+            <div class="pillar-item">
+                <span class="pillar-num">01.</span>
+                <h3>Identità Olfattiva</h3>
+                <p>
+                    Piramide olfattiva, macerazione e selezione delle essenze definiscono il carattere unico di ogni profumo e guidano le scelte cromatiche e tattili del brand.
+                </p>
+            </div>
+            <div class="pillar-item">
+                <span class="pillar-num">02.</span>
+                <h3>Design del Packaging</h3>
+                <p>
+                    Carte pregiate, nobilitazioni, rilievi a secco e lamine a caldo trasformano la scatola in un oggetto da collezione che protegge e valorizza il flacone.
+                </p>
+            </div>
+            <div class="pillar-item">
+                <span class="pillar-num">03.</span>
+                <h3>Ingegneria &amp; Fustellatura</h3>
+                <p>
+                    Il tracciato fustella garantisce precisione millimetrica tra taglio e piega, ottimizzando gli incastri interni e la resa produttiva industriale.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-col">
+                <h4>Profumi &amp; Packaging</h4>
+                <p>
+                    Hub di collegamento per le risorse locali e il progetto nazionale Cluster Made in Italy dedicato alla profumeria e al design del packaging.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>File nella Cartella</h4>
+                <ul class="footer-links">
+                    <li><a href="bassireloaded.html">bassireloaded.html</a></li>
+                    <li><a href="packagingv2.html">packagingv2.html</a></li>
+                    <li><a href="packagingv2confustellatrice.html">packagingv2confustellatrice.html</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Collegamento Esterno</h4>
+                <ul class="footer-links">
+                    <li>
+                        <a href="https://cluster-made-in-italy.github.io/clusterminit/profumi/index.html" target="_blank" rel="noopener noreferrer">
+                            Cluster Made in Italy — Profumi ↗
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Profumi &amp; Packaging — Cluster Made in Italy.</p>
+        </div>
+    </footer>
+
+</body>
+</html>

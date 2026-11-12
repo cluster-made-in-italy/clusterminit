@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Packaging Studio & CAD Dieline Generator</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Montserrat:wght@400;600;700&family=Playfair+Display:wght@600;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Three.js + OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #08080c;
+            --panel-bg: #121218;
+            --accent-color: #d4af37;
+            --cad-cut: #00e5ff;
+            --cad-fold: #ffb700;
+            --cad-dim: #8888aa;
+            --text-color: #f0f0f8;
+            --border-color: #262633;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR CONTROLLI (SINISTRA) */
+        .sidebar {
+            width: 340px;
+            min-width: 340px;
+            background-color: var(--panel-bg);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            height: 100vh;
+            z-index: 10;
+        }
+
+        .sidebar h1 {
+            font-size: 1.05rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            font-weight: 800;
+        }
+
+        .section-title {
+            font-size: 0.68rem;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+            font-weight: 700;
+            border-bottom: 1px dashed rgba(212, 175, 55, 0.2);
+            padding-bottom: 2px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .control-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .control-row .control-group {
+            flex: 1;
+        }
+
+        label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #9999aa;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+        }
+
+        select, input[type="text"], input[type="number"], input[type="color"], input[type="range"] {
+            width: 100%;
+            padding: 5px 7px;
+            background: #1a1a24;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            border-radius: 4px;
+            outline: none;
+            font-size: 0.75rem;
+        }
+
+        input[type="range"] {
+            padding: 0;
+            accent-color: var(--accent-color);
+            cursor: pointer;
+        }
+
+        input[type="color"] {
+            height: 28px;
+            padding: 2px;
+            cursor: pointer;
+        }
+
+        /* AREA WORKSPACE PRINCIPALE (3D + CAD SPLIT) */
+        .workspace-container {
+            flex: 1;
+            display: flex;
+            height: 100vh;
+            position: relative;
+            background: #050508;
+        }
+
+        /* VIEWPORT 3D */
+        .viewport-3d {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            background: radial-gradient(circle at center, #181824 0%, #050508 100%);
+            border-right: 1px solid var(--border-color);
+        }
+
+        #webgl-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* FINESTRA SECONDARIA CAD FUSTELLATRICI */
+        .viewport-cad {
+            width: 480px;
+            min-width: 360px;
+            height: 100%;
+            position: relative;
+            background: #0a0a10;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cad-header {
+            padding: 10px 14px;
+            background: #12121c;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cad-header h2 {
+            font-size: 0.78rem;
+            color: var(--cad-cut);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .cad-controls-mini {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-cad {
+            background: #1e1e2c;
+            border: 1px solid var(--border-color);
+            color: #ccc;
+            font-size: 0.65rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-cad:hover {
+            background: var(--cad-cut);
+            color: #000;
+            font-weight: bold;
+        }
+
+        .cad-canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #cad-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background-color: #06060a;
+        }
+
+        /* LEGENDA CAD & INFO */
+        .cad-legend {
+            padding: 8px 12px;
+            background: #0f0f18;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.62rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .line-sample {
+            width: 16px;
+            height: 2px;
+            display: inline-block;
+        }
+
+        .line-cut { background-color: var(--cad-cut); }
+        .line-fold { background-color: var(--cad-fold); border-top: 1px dashed var(--cad-fold); height: 0; }
+        .line-dim { background-color: var(--cad-dim); }
+
+        /* OVERLAY SCORE PENTAWARDS */
+        .evaluation-panel {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            background: rgba(18, 18, 24, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 8px;
+            width: 260px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+            z-index: 5;
+        }
+
+        .evaluation-panel h3 {
+            font-size: 0.78rem;
+            color: var(--accent-color);
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .metric { margin-bottom: 5px; }
+
+        .metric-title {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.62rem;
+            margin-bottom: 2px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #222230;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-color);
+            width: 50%;
+            transition: width 0.3s ease;
+        }
+
+        .feedback-text {
+            font-size: 0.62rem;
+            margin-top: 6px;
+            color: #aaa;
+            font-style: italic;
+            line-height: 1.2;
+        }
+
+        .canvas-hint {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(0,0,0,0.65);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            color: #aaa;
+            pointer-events: none;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR CONTROLLI -->
+    <div class="sidebar">
+        <h1>Packaging Studio 3D</h1>
+        
+        <!-- 1. GEOMETRIA E DIMENSIONI POLIEDRO -->
+        <div class="section-title">1. Geometria Packaging</div>
+        
+        <div class="control-group">
+            <label for="polyhedron">Forma Strutturale</label>
+            <select id="polyhedron">
+                <option value="cube">Scatola Lineare (Esaedro Standard)</option>
+                <option value="hexagonalPrisma">Prisma Esagonale (Astuccio 6 Facce)</option>
+                <option value="tetrahedron">Tetraedro Piramidale (4 Facce)</option>
+                <option value="dodecahedron">Dodecaedro Poliedrico (12 Facce)</option>
+            </select>
+        </div>
+
+        <div class="control-row">
+            <div class="control-group">
+                <label for="scaleX">Larghezza (X) <span id="valX">1.0</span></label>
+                <input type="range" id="scaleX" min="0.5" max="2.0" step="0.05" value="1.0">
+            </div>
+            <div class="control-group">
+                <label for="scaleY">Altezza (Y) <span id="valY">1.0</span></label>
+                <input type="range" id="scaleY" min="0.5" max="2.0" step="0.05" value="1.0">
+            </div>
+            <div class="control-group">
+                <label for="scaleZ">Profondità (Z) <span id="valZ">1.0</span></label>
+                <input type="range" id="scaleZ" min="0.5" max="2.0" step="0.05" value="1.0">
+            </div>
+        </div>
+
+        <div class="control-row">
+            <div class="control-group">
+                <label for="material">Materiale</label>
+                <select id="material">
+                    <option value="cardboard">Cartone teso 350g</option>
+                    <option value="kraft">Carta Kraft Avana</option>
+                    <option value="glass">Vetro Satinato</option>
+                    <option value="metal">Alluminio Spazzolato</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="finish">Finitura Superficie</label>
+                <select id="finish">
+                    <option value="matte">Soft-Touch Opaca</option>
+                    <option value="gloss">Vernice UV Lucida</option>
+                    <option value="metalFoil">Stampa Caldo Foil</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label for="bgColor">Colore Fondo Scatola</label>
+            <input type="color" id="bgColor" value="#122a28">
+        </div>
+
+        <!-- 2. TITOLO BRAND & FONT SIZE -->
+        <div class="section-title">2. Branding & Grafica</div>
+        
+        <div class="control-group">
+            <label for="brandName">Nome Brand</label>
+            <input type="text" id="brandName" value="AURA">
+        </div>
+
+        <div class="control-row">
+            <div class="control-group">
+                <label for="titleFont">Font Titolo</label>
+                <select id="titleFont">
+                    <option value="'Cinzel', serif">Cinzel (Lusso)</option>
+                    <option value="'Playfair Display', serif">Playfair (Serif)</option>
+                    <option value="'Montserrat', sans-serif">Montserrat (Minimal)</option>
+                    <option value="'Space Mono', monospace">Space Mono (Tech)</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="titleSize">Dim. Font (px)</label>
+                <input type="number" id="titleSize" value="75" min="20" max="150">
+            </div>
+            <div class="control-group">
+                <label for="titleColor">Colore</label>
+                <input type="color" id="titleColor" value="#d4af37">
+            </div>
+        </div>
+
+        <!-- 3. SOTTOTITOLO & DETTAGLI -->
+        <div class="section-title">3. Sottotitolo & Dettagli</div>
+        
+        <div class="control-group">
+            <label for="brandSubtitle">Sottotitolo</label>
+            <input type="text" id="brandSubtitle" value="EAU DE PARFUM">
+        </div>
+
+        <div class="control-row">
+            <div class="control-group">
+                <label for="subFont">Font Dettagli</label>
+                <select id="subFont">
+                    <option value="'Montserrat', sans-serif">Montserrat</option>
+                    <option value="'Playfair Display', serif">Playfair</option>
+                    <option value="'Cinzel', serif">Cinzel</option>
+                    <option value="'Space Mono', monospace">Space Mono</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="subSize">Dim. Sub (px)</label>
+                <input type="number" id="subSize" value="28" min="10" max="80">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label for="brandInfo">Info Piè di Pagina</label>
+            <input type="text" id="brandInfo" value="50 ML / 1.7 FL. OZ.">
+        </div>
+
+        <div class="control-row">
+            <div class="control-group">
+                <label for="infoSize">Dim. Info (px)</label>
+                <input type="number" id="infoSize" value="20" min="8" max="50">
+            </div>
+            <div class="control-group">
+                <label for="subColor">Colore Testi</label>
+                <input type="color" id="subColor" value="#e0e0e0">
+            </div>
+            <div class="control-group">
+                <label for="frameColor">Colore Bordo</label>
+                <input type="color" id="frameColor" value="#d4af37">
+            </div>
+        </div>
+    </div>
+
+    <!-- AREA WORKSPACE PRINCIPALE -->
+    <div class="workspace-container">
+        
+        <!-- FINESTRA 1: VIEWPORT 3D -->
+        <div class="viewport-3d">
+            <div class="canvas-hint">🖱️ Ruota 3D con il mouse | Scroll Zoom</div>
+            <canvas id="webgl-canvas"></canvas>
+
+            <!-- VALUTAZIONE PENTAWARDS -->
+            <div class="evaluation-panel">
+                <h3>Pentawards Score <span id="scoreTotal">0/100</span></h3>
+                
+                <div class="metric">
+                    <div class="metric-title"><span>Shelf Impact (Visivo)</span><span id="scoreVisual">0%</span></div>
+                    <div class="progress-bar"><div class="progress-fill" id="barVisual"></div></div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title"><span>Efficienza Fustella & Eco</span><span id="scoreEco">0%</span></div>
+                    <div class="progress-bar"><div class="progress-fill" id="barEco"></div></div>
+                </div>
+
+                <div class="metric">
+                    <div class="metric-title"><span>Tipografia & Leggibilità</span><span id="scoreCoherence">0%</span></div>
+                    <div class="progress-bar"><div class="progress-fill" id="barCoherence"></div></div>
+                </div>
+
+                <div class="feedback-text" id="feedbackText">Calcolo metriche in corso...</div>
+            </div>
+        </div>
+
+        <!-- FINESTRA 2: CAD FUSTELLATRICE 2D -->
+        <div class="viewport-cad">
+            <div class="cad-header">
+                <h2>📐 Fustella CAD Vettoriale (2D)</h2>
+                <div class="cad-controls-mini">
+                    <button class="btn-cad" id="btnExportCad">💾 Esporta PNG</button>
+                </div>
+            </div>
+
+            <div class="cad-canvas-container">
+                <canvas id="cad-canvas"></canvas>
+            </div>
+
+            <div class="cad-legend">
+                <div class="legend-item"><span class="line-sample line-cut"></span> Taglio</div>
+                <div class="legend-item"><span class="line-sample line-fold"></span> Piega/Cordonatura</div>
+                <div class="legend-item"><span class="line-sample line-dim"></span> Quote (mm)</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Canvas ausiliario per generazione texture 2D -->
+    <canvas id="texture-canvas" width="1024" height="1024" style="display:none;"></canvas>
+
+    <script>
+        // =================================================================
+        // 1. SETUP MOTORE 3D (THREE.JS)
+        // =================================================================
+        const canvas3D = document.getElementById('webgl-canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas3D, antialias: true, alpha: true });
+        renderer.setSize(canvas3D.clientWidth, canvas3D.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, canvas3D.clientWidth / canvas3D.clientHeight, 0.1, 100);
+        camera.position.set(0, 2.2, 5.2);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(5, 8, 5);
+        scene.add(dirLight);
+
+        let currentMesh = null;
+        const texCanvas = document.getElementById('texture-canvas');
+        const ctxTex = texCanvas.getContext('2d');
+
+        // =================================================================
+        // 2. SETUP ENGINE CAD FUSTELLATRICE (2D CANVAS)
+        // =================================================================
+        const cadCanvas = document.getElementById('cad-canvas');
+        const ctxCad = cadCanvas.getContext('2d');
+
+        function resizeCadCanvas() {
+            const container = cadCanvas.parentElement;
+            cadCanvas.width = container.clientWidth * Math.min(window.devicePixelRatio, 2);
+            cadCanvas.height = container.clientHeight * Math.min(window.devicePixelRatio, 2);
+            drawCAD();
+        }
+
+        // =================================================================
+        // 3. GENERAZIONE TEXTURE GRAFICA 2D PER IL MODELLO 3D
+        // =================================================================
+        function createTexture() {
+            const brand = document.getElementById('brandName').value || '';
+            const subtitle = document.getElementById('brandSubtitle').value || '';
+            const info = document.getElementById('brandInfo').value || '';
+
+            const titleFont = document.getElementById('titleFont').value;
+            const subFont = document.getElementById('subFont').value;
+
+            const titleSize = document.getElementById('titleSize').value;
+            const subSize = document.getElementById('subSize').value;
+            const infoSize = document.getElementById('infoSize').value;
+
+            const bgCol = document.getElementById('bgColor').value;
+            const titleCol = document.getElementById('titleColor').value;
+            const subCol = document.getElementById('subColor').value;
+            const frameCol = document.getElementById('frameColor').value;
+
+            // Sfondo
+            ctxTex.fillStyle = bgCol;
+            ctxTex.fillRect(0, 0, 1024, 1024);
+
+            // Cornice
+            ctxTex.strokeStyle = frameCol;
+            ctxTex.lineWidth = 12;
+            ctxTex.strokeRect(60, 60, 904, 904);
+            ctxTex.lineWidth = 4;
+            ctxTex.strokeRect(80, 80, 864, 864);
+
+            // Titolo Brand
+            ctxTex.fillStyle = titleCol;
+            ctxTex.textAlign = 'center';
+            ctxTex.font = `bold ${titleSize}px ${titleFont}`;
+            ctxTex.fillText(brand.toUpperCase(), 512, 460);
+
+            // Sottotitolo
+            ctxTex.fillStyle = subCol;
+            ctxTex.font = `${subSize}px ${subFont}`;
+            ctxTex.fillText(subtitle.toUpperCase(), 512, 550);
+
+            // Info
+            ctxTex.font = `${infoSize}px ${subFont}`;
+            ctxTex.fillText(info.toUpperCase(), 512, 860);
+
+            const texture = new THREE.CanvasTexture(texCanvas);
+            texture.needsUpdate = true;
+            return texture;
+        }
+
+        // Geometrie 3D
+        function getGeometry(type) {
+            switch(type) {
+                case 'tetrahedron': return new THREE.TetrahedronGeometry(1.5);
+                case 'dodecahedron': return new THREE.DodecahedronGeometry(1.3);
+                case 'hexagonalPrisma': return new THREE.CylinderGeometry(1.2, 1.2, 2.2, 6);
+                case 'cube':
+                default: return new THREE.BoxGeometry(1.8, 2.2, 1.8);
+            }
+        }
+
+        // Aggiornamento Modello 3D
+        function update3D() {
+            if (currentMesh) scene.remove(currentMesh);
+
+            const polyType = document.getElementById('polyhedron').value;
+            const matType = document.getElementById('material').value;
+            const finish = document.getElementById('finish').value;
+
+            const sx = parseFloat(document.getElementById('scaleX').value);
+            const sy = parseFloat(document.getElementById('scaleY').value);
+            const sz = parseFloat(document.getElementById('scaleZ').value);
+
+            document.getElementById('valX').textContent = sx.toFixed(2);
+            document.getElementById('valY').textContent = sy.toFixed(2);
+            document.getElementById('valZ').textContent = sz.toFixed(2);
+
+            const geom = getGeometry(polyType);
+            const texture = createTexture();
+
+            let roughness = 0.5, metalness = 0.1, clearcoat = 0.0;
+            if (matType === 'kraft') { roughness = 0.88; metalness = 0.02; }
+            if (matType === 'metal') { roughness = 0.25; metalness = 0.85; }
+            if (matType === 'glass') { roughness = 0.1; metalness = 0.1; }
+
+            if (finish === 'gloss') { roughness = 0.12; clearcoat = 1.0; }
+            if (finish === 'metalFoil') { metalness = 0.6; }
+
+            const mat = new THREE.MeshPhysicalMaterial({
+                map: texture,
+                roughness: roughness,
+                metalness: metalness,
+                clearcoat: clearcoat
+            });
+
+            currentMesh = new THREE.Mesh(geom, mat);
+            currentMesh.scale.set(sx, sy, sz);
+            scene.add(currentMesh);
+
+            evaluateScore();
+        }
+
+        // =================================================================
+        // 4. RENDERING SVILUPPO FUSTELLA CAD 2D (DIELINE ENGINE)
+        // =================================================================
+        function drawCAD() {
+            const w = cadCanvas.width;
+            const h = cadCanvas.height;
+            if (!w || !h) return;
+
+            ctxCad.clearRect(0, 0, w, h);
+
+            // Sfondo con griglia tecnica CAD
+            ctxCad.fillStyle = "#06060c";
+            ctxCad.fillRect(0, 0, w, h);
+
+            ctxCad.strokeStyle = "rgba(255, 255, 255, 0.04)";
+            ctxCad.lineWidth = 1;
+            const gridSize = 25;
+            for (let x = 0; x < w; x += gridSize) {
+                ctxCad.beginPath(); ctxCad.moveTo(x, 0); ctxCad.lineTo(x, h); ctxCad.stroke();
+            }
+            for (let y = 0; y < h; y += gridSize) {
+                ctxCad.beginPath(); ctxCad.moveTo(0, y); ctxCad.lineTo(w, y); ctxCad.stroke();
+            }
+
+            // Parametri di scala e forma
+            const polyType = document.getElementById('polyhedron').value;
+            const sx = parseFloat(document.getElementById('scaleX').value);
+            const sy = parseFloat(document.getElementById('scaleY').value);
+            const sz = parseFloat(document.getElementById('scaleZ').value);
+
+            // Centro CAD
+            const cx = w / 2;
+            const cy = h / 2;
+
+            ctxCad.save();
+
+            if (polyType === 'cube') {
+                drawCubeDieline(ctxCad, cx, cy, sx, sy, sz);
+            } else if (polyType === 'hexagonalPrisma') {
+                drawHexDieline(ctxCad, cx, cy, sx, sy);
+            } else if (polyType === 'tetrahedron') {
+                drawTetraDieline(ctxCad, cx, cy, sx);
+            } else {
+                drawGenericPolyDieline(ctxCad, cx, cy, sx);
+            }
+
+            ctxCad.restore();
+        }
+
+        // --- QUOTATURA CAD CON FRECCE ---
+        function drawDimension(ctx, x1, y1, x2, y2, label, offset = 20) {
+            ctx.save();
+            ctx.strokeStyle = "#8888aa";
+            ctx.fillStyle = "#8888aa";
+            ctx.font = "bold 11px Space Mono, monospace";
+            ctx.lineWidth = 1;
+            ctx.setLineDash([]);
+
+            const angle = Math.atan2(y2 - y1, x2 - x1);
+            const perp = angle + Math.PI / 2;
+
+            const ox1 = x1 + Math.cos(perp) * offset;
+            const oy1 = y1 + Math.sin(perp) * offset;
+            const ox2 = x2 + Math.cos(perp) * offset;
+            const oy2 = y2 + Math.sin(perp) * offset;
+
+            // Linee di estensione
+            ctx.beginPath();
+            ctx.moveTo(x1, y1); ctx.lineTo(ox1, oy1);
+            ctx.moveTo(x2, y2); ctx.lineTo(ox2, oy2);
+            ctx.stroke();
+
+            // Linea quota
+            ctx.beginPath();
+            ctx.moveTo(ox1, oy1); ctx.lineTo(ox2, oy2);
+            ctx.stroke();
+
+            // Testo centrato
+            const mx = (ox1 + ox2) / 2;
+            const my = (oy1 + oy2) / 2;
+            ctx.save();
+            ctx.translate(mx, my);
+            ctx.rotate(angle);
+            ctx.fillStyle = "#12121c";
+            ctx.fillRect(-25, -8, 50, 16);
+            ctx.fillStyle = "#00e5ff";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(label, 0, 0);
+            ctx.restore();
+
+            ctx.restore();
+        }
+
+        // --- STILI FUSTELLATRICE ---
+        function setCutStyle(ctx) {
+            ctx.strokeStyle = "#00e5ff"; // Ciano Taglio
+            ctx.lineWidth = 2.5;
+            ctx.setLineDash([]);
+        }
+
+        function setFoldStyle(ctx) {
+            ctx.strokeStyle = "#ffb700"; // Giallo Piega
+            ctx.lineWidth = 1.8;
+            ctx.setLineDash([6, 4]);
+        }
+
+        // 1. FUSTELLA SCATOLA CUBICA / ESAEDRO
+        function drawCubeDieline(ctx, cx, cy, sx, sy, sz) {
+            const baseW = 55 * sx;
+            const baseH = 80 * sy;
+            const baseD = 55 * sz;
+            const tab = 16; // Linguetta incollo
+
+            const mmW = Math.round(sx * 60);
+            const mmH = Math.round(sy * 90);
+            const mmD = Math.round(sz * 60);
+
+            // Coordinate origine fascia centrale (Fronte P1)
+            const x0 = cx - (baseW + baseD);
+            const y0 = cy - baseH / 2;
+
+            // FACCE: P1(Fronte), P2(Fianco DX), P3(Retro), P4(Fianco SX)
+            // 1. Linee di PIEGA interne
+            setFoldStyle(ctx);
+            ctx.beginPath();
+            // Pieghe verticali tra facce
+            ctx.moveTo(x0, y0); ctx.lineTo(x0, y0 + baseH);
+            ctx.moveTo(x0 + baseW, y0); ctx.lineTo(x0 + baseW, y0 + baseH);
+            ctx.moveTo(x0 + baseW + baseD, y0); ctx.lineTo(x0 + baseW + baseD, y0 + baseH);
+            ctx.moveTo(x0 + baseW * 2 + baseD, y0); ctx.lineTo(x0 + baseW * 2 + baseD, y0 + baseH);
+
+            // Pieghe orizzontali per patelle superiore e inferiore
+            ctx.moveTo(x0, y0); ctx.lineTo(x0 + (baseW + baseD) * 2, y0);
+            ctx.moveTo(x0, y0 + baseH); ctx.lineTo(x0 + (baseW + baseD) * 2, y0 + baseH);
+            ctx.stroke();
+
+            // 2. Linee di TAGLIO perimetrali e Linguette
+            setCutStyle(ctx);
+            ctx.beginPath();
+
+            // Partenza da Linguetta d'incollo sinistra
+            ctx.moveTo(x0, y0);
+            ctx.lineTo(x0 - tab, y0 + 10);
+            ctx.lineTo(x0 - tab, y0 + baseH - 10);
+            ctx.lineTo(x0, y0 + baseH);
+
+            // Bordo inferiore + Patelle di chiusura
+            ctx.lineTo(x0, y0 + baseH + baseD); // Patella Fondo
+            ctx.lineTo(x0 + baseW, y0 + baseH + baseD);
+            ctx.lineTo(x0 + baseW, y0 + baseH);
+
+            ctx.lineTo(x0 + baseW + baseD, y0 + baseH);
+            ctx.lineTo(x0 + baseW + baseD, y0 + baseH + baseD / 2); // Polvere SX
+            ctx.lineTo(x0 + baseW * 2 + baseD, y0 + baseH + baseD / 2);
+            ctx.lineTo(x0 + baseW * 2 + baseD, y0 + baseH);
+
+            ctx.lineTo(x0 + (baseW + baseD) * 2, y0 + baseH);
+            ctx.lineTo(x0 + (baseW + baseD) * 2, y0); // Angolo DX inferiore
+
+            // Bordo superiore + Patella Chiusura
+            ctx.lineTo(x0 + baseW * 2 + baseD, y0);
+            ctx.lineTo(x0 + baseW * 2 + baseD, y0 - baseD / 2);
+            ctx.lineTo(x0 + baseW + baseD, y0 - baseD / 2);
+            ctx.lineTo(x0 + baseW + baseD, y0);
+
+            ctx.lineTo(x0 + baseW, y0);
+            ctx.lineTo(x0 + baseW, y0 - baseD); // Patella Coperchio
+            ctx.lineTo(x0, y0 - baseD);
+            ctx.lineTo(x0, y0);
+            ctx.closePath();
+            ctx.stroke();
+
+            // Quote CAD
+            drawDimension(ctx, x0, y0, x0 + baseW, y0, `${mmW}mm`, -25);
+            drawDimension(ctx, x0, y0, x0, y0 + baseH, `${mmH}mm`, -35);
+            drawDimension(ctx, x0 + baseW, y0, x0 + baseW + baseD, y0, `${mmD}mm`, -25);
+        }
+
+        // 2. FUSTELLA PRISMA ESAGONALE
+        function drawHexDieline(ctx, cx, cy, sx, sy) {
+            const numSides = 6;
+            const sideW = 28 * sx;
+            const faceH = 95 * sy;
+            const radius = (sideW / (2 * Math.sin(Math.PI / numSides)));
+
+            const x0 = cx - (sideW * numSides) / 2;
+            const y0 = cy - faceH / 2;
+
+            // Pieghe tra le 6 facce
+            setFoldStyle(ctx);
+            ctx.beginPath();
+            for (let i = 0; i <= numSides; i++) {
+                ctx.moveTo(x0 + i * sideW, y0);
+                ctx.lineTo(x0 + i * sideW, y0 + faceH);
+            }
+            // Pieghe orizzontali basi esagonali
+            ctx.moveTo(x0, y0); ctx.lineTo(x0 + numSides * sideW, y0);
+            ctx.moveTo(x0, y0 + faceH); ctx.lineTo(x0 + numSides * sideW, y0 + faceH);
+            ctx.stroke();
+
+            // Taglio Perimetrale + Esagoni di Chiusura su Facce 3
+            setCutStyle(ctx);
+            ctx.beginPath();
+            ctx.moveTo(x0, y0);
+            // Linguetta di incollo
+            ctx.lineTo(x0 - 14, y0 + 8);
+            ctx.lineTo(x0 - 14, y0 + faceH - 8);
+            ctx.lineTo(x0, y0 + faceH);
+
+            // Bordo Inferiore
+            ctx.lineTo(x0 + numSides * sideW, y0 + faceH);
+            ctx.lineTo(x0 + numSides * sideW, y0);
+
+            // Bordo Superiore
+            ctx.lineTo(x0, y0);
+            ctx.stroke();
+
+            // Disegna Tappo Esagonale Coperchio
+            const hexCx = x0 + 2.5 * sideW;
+            const hexCy = y0 - radius;
+            ctx.beginPath();
+            for (let a = 0; a < 6; a++) {
+                const angle = (a * Math.PI / 3) - Math.PI / 2;
+                const hx = hexCx + radius * Math.cos(angle);
+                const hy = hexCy + radius * Math.sin(angle);
+                if (a === 0) ctx.moveTo(hx, hy);
+                else ctx.lineTo(hx, hy);
+            }
+            ctx.closePath();
+            ctx.stroke();
+
+            drawDimension(ctx, x0, y0, x0 + sideW, y0, `${Math.round(sx * 30)}mm`, -20);
+            drawDimension(ctx, x0, y0, x0, y0 + faceH, `${Math.round(sy * 110)}mm`, -25);
+        }
+
+        // 3. FUSTELLA TETRAEDRO PIRAMIDALE
+        function drawTetraDieline(ctx, cx, cy, sx) {
+            const L = 110 * sx;
+            const h = (Math.sqrt(3) / 2) * L;
+
+            // Triangolo Centrale
+            const p1 = { x: cx, y: cy - (2/3) * h };
+            const p2 = { x: cx - L / 2, y: cy + (1/3) * h };
+            const p3 = { x: cx + L / 2, y: cy + (1/3) * h };
+
+            // Pieghe Triangolo Interno
+            setFoldStyle(ctx);
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+            ctx.moveTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y);
+            ctx.moveTo(p3.x, p3.y); ctx.lineTo(p1.x, p1.y);
+            ctx.stroke();
+
+            // Vertici Esterni 3 Triangoli
+            const t1 = { x: cx, y: cy + (4/3) * h };
+            const t2 = { x: cx - L, y: cy - (2/3) * h };
+            const t3 = { x: cx + L, y: cy - (2/3) * h };
+
+            setCutStyle(ctx);
+            ctx.beginPath();
+            ctx.moveTo(p2.x, p2.y); ctx.lineTo(t1.x, t1.y); ctx.lineTo(p3.x, p3.y);
+            ctx.lineTo(t3.x, t3.y); ctx.lineTo(p1.x, p1.y);
+            ctx.lineTo(t2.x, t2.y); ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+
+            drawDimension(ctx, p2.x, p2.y, p3.x, p3.y, `${Math.round(sx * 100)}mm`, 20);
+        }
+
+        // 4. FUSTELLA GENERICA
+        function drawGenericPolyDieline(ctx, cx, cy, sx) {
+            const r = 85 * sx;
+            setFoldStyle(ctx);
+            ctx.beginPath();
+            for(let i=0; i<12; i++) {
+                const a = (i * Math.PI / 6);
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(cx + r * Math.cos(a), cy + r * Math.sin(a));
+            }
+            ctx.stroke();
+
+            setCutStyle(ctx);
+            ctx.beginPath();
+            for(let i=0; i<12; i++) {
+                const a = (i * Math.PI / 6);
+                const x = cx + r * Math.cos(a);
+                const y = cy + r * Math.sin(a);
+                if (i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+
+            drawDimension(ctx, cx - r, cy, cx + r, cy, `${Math.round(sx * 120)}mm`, -20);
+        }
+
+        // =================================================================
+        // 5. VALUTAZIONE SCORE PENTAWARDS
+        // =================================================================
+        function evaluateScore() {
+            const poly = document.getElementById('polyhedron').value;
+            const mat = document.getElementById('material').value;
+            const titleSize = parseInt(document.getElementById('titleSize').value);
+
+            let visual = 70, eco = 60, typographyScore = 85;
+            let feedback = "Ottimizzazione fustella e bilanciamento grafico eccellenti.";
+
+            if (titleSize > 105) {
+                typographyScore -= 22;
+                feedback = "Attenzione: Il font è sovradimensionato per i margini della fustella.";
+            } else if (titleSize < 35) {
+                typographyScore -= 20;
+                feedback = "Attenzione: Leggibilità ridotta sul fronte dello scaffale.";
+            }
+
+            if (poly === 'dodecahedron') { visual += 20; eco -= 20; }
+            else if (poly === 'cube' || poly === 'hexagonalPrisma') { eco += 20; }
+
+            if (mat === 'kraft') eco += 15;
+
+            visual = Math.min(100, visual);
+            eco = Math.max(10, Math.min(100, eco));
+            typographyScore = Math.max(10, Math.min(100, typographyScore));
+            const total = Math.round((visual + eco + typographyScore) / 3);
+
+            document.getElementById('scoreVisual').textContent = visual + '%';
+            document.getElementById('barVisual').style.width = visual + '%';
+            document.getElementById('scoreEco').textContent = eco + '%';
+            document.getElementById('barEco').style.width = eco + '%';
+            document.getElementById('scoreCoherence').textContent = typographyScore + '%';
+            document.getElementById('barCoherence').style.width = typographyScore + '%';
+            document.getElementById('scoreTotal').textContent = total + '/100';
+            document.getElementById('feedbackText').textContent = feedback;
+        }
+
+        // =================================================================
+        // 6. EVENT LISTENERS E ANIMAZIONE
+        // =================================================================
+        const inputIds = [
+            'polyhedron', 'scaleX', 'scaleY', 'scaleZ', 'material', 'finish', 'bgColor', 
+            'brandName', 'titleFont', 'titleSize', 'titleColor',
+            'brandSubtitle', 'subSize', 'brandInfo', 'infoSize', 'subFont', 'subColor', 'frameColor'
+        ];
+
+        inputIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => { update3D(); drawCAD(); });
+                el.addEventListener('change', () => { update3D(); drawCAD(); });
+            }
+        });
+
+        // Esportazione Immagine Fustella PNG
+        document.getElementById('btnExportCad').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = `fustella_cad_${document.getElementById('polyhedron').value}.png`;
+            link.href = cadCanvas.toDataURL('image/png');
+            link.click();
+        });
+
+        // Loop di rendering 3D
+        function animate() {
+            requestAnimationFrame(animate);
+            if (currentMesh) {
+                currentMesh.rotation.y += 0.004;
+            }
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = canvas3D.clientWidth / canvas3D.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvas3D.clientWidth, canvas3D.clientHeight);
+            resizeCadCanvas();
+        });
+
+        // Inizializzazione Immediata
+        window.addEventListener('load', () => {
+            resizeCadCanvas();
+            update3D();
+            drawCAD();
+            animate();
+        });
+    </script>
+</body>
+</html>

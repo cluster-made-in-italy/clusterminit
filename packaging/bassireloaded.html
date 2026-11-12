@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Design Studio 3D: Hub Principale e Packaging Modulari</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Three.js + OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0a0a0e;
+            --panel-bg: rgba(18, 18, 24, 0.92);
+            --accent-main: #e65100;
+            --accent-historic: #29b6f6;
+            --accent-poly: #d4af37;
+            --text-color: #f0f0f4;
+            --subtext-color: #8a8a9e;
+            --border-color: #2a2a36;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* SIDEBAR CONTROLLI PRINCIPALE (SINISTRA) */
+        .main-sidebar {
+            width: 320px;
+            min-width: 320px;
+            background-color: #121216;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 14px;
+            z-index: 50;
+            overflow-y: auto;
+        }
+
+        .main-sidebar header h1 {
+            font-size: 1.05rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent-main);
+        }
+
+        .main-sidebar header .sub {
+            font-size: 0.65rem;
+            color: var(--subtext-color);
+            margin-top: 2px;
+        }
+
+        .section-title {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: var(--accent-main);
+            margin-top: 4px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        label {
+            font-size: 0.63rem;
+            text-transform: uppercase;
+            color: var(--subtext-color);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        select, input[type="text"], input[type="color"], input[type="range"] {
+            width: 100%;
+            padding: 6px 8px;
+            background: #1c1c24;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            border-radius: 4px;
+            outline: none;
+            font-size: 0.75rem;
+        }
+
+        /* PULSANTI DI APERTURA FINESTRE SECONDARIE */
+        .window-toggles {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .btn-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: #181822;
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .btn-toggle:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-toggle.active-historic {
+            border-color: var(--accent-historic);
+            background: rgba(41, 182, 246, 0.15);
+            color: var(--accent-historic);
+        }
+
+        .btn-toggle.active-poly {
+            border-color: var(--accent-poly);
+            background: rgba(212, 175, 55, 0.15);
+            color: var(--accent-poly);
+        }
+
+        /* WORKSPACE PRINCIPALE (VIEWPORT MAIN) */
+        .main-workspace {
+            flex: 1;
+            position: relative;
+            height: 100vh;
+            background: radial-gradient(circle at center, #181822 0%, #050508 100%);
+        }
+
+        canvas.webgl-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .canvas-hint {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            background: rgba(0,0,0,0.65);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            color: #ccc;
+            pointer-events: none;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* SCHEDA CRITICA OGGETTO PRINCIPALE */
+        .main-info-card {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 14px;
+            border-radius: 8px;
+            max-width: 380px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+
+        .main-info-card h2 {
+            font-size: 0.95rem;
+            color: #ffffff;
+            margin-bottom: 2px;
+        }
+
+        .main-info-card .meta {
+            font-size: 0.68rem;
+            color: var(--accent-main);
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .main-info-card p {
+            font-size: 0.7rem;
+            color: #cccccc;
+            line-height: 1.4;
+        }
+
+        /* FINESTRE SECONDARIE FLUTTUANTI (POPUPS DOCKED) */
+        .secondary-window {
+            position: absolute;
+            width: 360px;
+            height: 380px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 40;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .secondary-window.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.92);
+        }
+
+        #winHistoric {
+            top: 16px;
+            right: 16px;
+            border-top: 3px solid var(--accent-historic);
+        }
+
+        #winPoly {
+            bottom: 16px;
+            right: 16px;
+            border-top: 3px solid var(--accent-poly);
+        }
+
+        .win-header {
+            padding: 8px 12px;
+            background: rgba(10, 10, 14, 0.8);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .win-header h3 {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        #winHistoric .win-header h3 { color: var(--accent-historic); }
+        #winPoly .win-header h3 { color: var(--accent-poly); }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+
+        .btn-close:hover { color: #fff; }
+
+        .win-viewport {
+            flex: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #14141c 0%, #08080c 100%);
+        }
+
+        .win-footer {
+            padding: 10px 12px;
+            background: rgba(10, 10, 14, 0.85);
+            border-top: 1px solid var(--border-color);
+            font-size: 0.65rem;
+        }
+
+        .win-footer select {
+            padding: 4px 6px;
+            font-size: 0.68rem;
+            margin-top: 4px;
+        }
+
+        /* METRICHE PENTAWARDS */
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.62rem;
+            margin-bottom: 2px;
+        }
+        .progress-bar {
+            height: 4px;
+            background: #22222e;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-poly);
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR DI COMANDO FINANZA PRINCIPALE -->
+    <aside class="main-sidebar">
+        <header>
+            <h1>1. Finestra Principale</h1>
+            <div class="sub">Hub di Analisi e Controllo 3D</div>
+        </header>
+
+        <div class="section-title">Seleziona Oggetto Iconico</div>
+        <div class="control-group">
+            <select id="mainProductSelect">
+                <option value="campari">Campari Soda (F. Depero, 1932)</option>
+                <option value="moka">Moka Express (A. Bialetti, 1933)</option>
+                <option value="gianduiotto">Gianduiotto (Caffarel, 1865)</option>
+                <option value="rigatoni">Rigatone Estruso (Geometria Pasta)</option>
+                <option value="nutella">Vaso Nutella (Ferrero, 1964)</option>
+            </select>
+        </div>
+
+        <div class="section-title">Apri Finestre Secondarie</div>
+        <div class="window-toggles">
+            <button class="btn-toggle" id="toggleHistoricBtn">
+                <span>📦 Packaging dell'Epoca</span>
+                <span id="stateHistoricText">OFF</span>
+            </button>
+            <button class="btn-toggle" id="togglePolyBtn">
+                <span>💎 Redesign Poliedrico</span>
+                <span id="statePolyText">OFF</span>
+            </button>
+        </div>
+
+        <div class="section-title">Personalizza Oggetto Principale</div>
+        <div class="control-group">
+            <label>Materiale Superficie</label>
+            <select id="mainMatSelect">
+                <option value="glass">Vetro Satinato / Trasparente</option>
+                <option value="metal">Alluminio Spazzolato</option>
+                <option value="ceramic">Ceramica Opaca</option>
+                <option value="foil">Lamina Metallizzata</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Colore Oggetto</label>
+            <input type="color" id="mainColorPicker" value="#d32f2f">
+        </div>
+
+        <div class="section-title">Parametri 3D</div>
+        <div class="control-group">
+            <label>Scala X <span id="valX">1.0</span></label>
+            <input type="range" id="scaleX" min="0.4" max="2.0" step="0.05" value="1.0">
+        </div>
+        <div class="control-group">
+            <label>Scala Y <span id="valY">1.0</span></label>
+            <input type="range" id="scaleY" min="0.4" max="2.0" step="0.05" value="1.0">
+        </div>
+        <div class="control-group">
+            <label>Velocità Rotazione</label>
+            <input type="range" id="rotSpeed" min="0.0" max="3.0" step="0.2" value="1.0">
+        </div>
+    </aside>
+
+    <!-- WORKSPACE PRINCIPALE (FINESTRA MAIN 3D) -->
+    <main class="main-workspace">
+        <div class="canvas-hint">🖱️ Finestra Principale: Ruota / Zoom 3D</div>
+        <canvas id="mainCanvas" class="webgl-canvas"></canvas>
+
+        <div class="main-info-card">
+            <h2 id="mainTitle">Bottiglietta Campari Soda</h2>
+            <div class="meta" id="mainMeta">Fortunato Depero, 1932</div>
+            <p id="mainDesc">Forma iconica conica tronca in vetro che elimina l'etichetta di carta stampando il marchio in rilievo sulla materia.</p>
+        </div>
+
+        <!-- FINESTRA SECONDARIA 1: PACKAGING DELL'EPOCA -->
+        <div class="secondary-window hidden" id="winHistoric">
+            <div class="win-header">
+                <h3>2. Packaging dell'Epoca</h3>
+                <button class="btn-close" id="closeHistoricBtn">✖</button>
+            </div>
+            <div class="win-viewport">
+                <canvas id="historicCanvas" class="webgl-canvas"></canvas>
+            </div>
+            <div class="win-footer">
+                <strong id="historicTitle">Cassa da Trasporto (1930)</strong>
+                <p id="historicDesc" style="color:#aaa; font-size:0.62rem; margin-top:2px;">Imballaggio di spedizione in legno con scomparti.</p>
+            </div>
+        </div>
+
+        <!-- FINESTRA SECONDARIA 2: PACKAGING POLIEDRICO RIPROPOSTO -->
+        <div class="secondary-window hidden" id="winPoly">
+            <div class="win-header">
+                <h3>3. Redesign Poliedrico</h3>
+                <button class="btn-close" id="closePolyBtn">✖</button>
+            </div>
+            <div class="win-viewport">
+                <canvas id="polyCanvas" class="webgl-canvas"></canvas>
+            </div>
+            <div class="win-footer">
+                <div class="metric-row"><span>Shelf Impact Visivo</span><span>85%</span></div>
+                <div class="progress-bar"><div class="progress-fill" style="width:85%;"></div></div>
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <label style="font-size:0.6rem;">Geometria:</label>
+                    <select id="polySelect">
+                        <option value="hexagonalPrisma">Prisma Esagonale</option>
+                        <option value="dodecahedron">Dodecaedro</option>
+                        <option value="tetrahedron">Tetraedro</option>
+                        <option value="icosahedron">Icosaedro</option>
+                        <option value="cube">Cubo</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Canvas nascosto per la generazione di etichette per il poliedro -->
+    <canvas id="texCanvas" width="512" height="512" style="display:none;"></canvas>
+
+    <script>
+        // ==========================================
+        // DATABASE COMPLETO OGGETTI E PACKAGING
+        // ==========================================
+        const productsDB = {
+            campari: {
+                title: "Bottiglietta Campari Soda",
+                meta: "Fortunato Depero, 1932 | Camparisoda",
+                desc: "Trasparenza e finitura smerigliata con forma a tronco di cono. Elimina l'etichetta cartacea imprimendo il marchio sul vetro.",
+                mat: "glass", color: "#d32f2f",
+                buildMain: buildCampari,
+                historicTitle: "Cassa in Legno d'Epoca",
+                historicDesc: "Cassa da trasporto in legno stampato con divisori per le bottigliette coniche.",
+                buildHistoric: buildCampariCrate,
+                polyGeom: "hexagonalPrisma", brand: "CAMPARI SODA"
+            },
+            moka: {
+                title: "Moka Express Bialetti",
+                meta: "Alfonso Bialetti, 1933 | Bialetti",
+                desc: "Silhouette ottagonale in fusione d'alluminio. Un'icona dell'Art Déco industriale italiana.",
+                mat: "metal", color: "#dddddd",
+                buildMain: buildMoka,
+                historicTitle: "Scatola Cartonata d'Epoca",
+                historicDesc: "Astuccio parallelepipedo in cartone rigido con l'iconica grafica originale dell'Omino coi Baffi.",
+                buildHistoric: buildMokaBox,
+                polyGeom: "dodecahedron", brand: "BIALETTI MOKA"
+            },
+            gianduiotto: {
+                title: "Gianduiotto Caffarel",
+                meta: "Caffarel, 1865 | Cioccolato Piemontese",
+                desc: "Forma a barca rovesciata ottenuta per colatura. Il primo cioccolatino incartato singolarmente.",
+                mat: "foil", color: "#d4af37",
+                buildMain: buildGianduiotto,
+                historicTitle: "Incarto in Stagnola Dorata",
+                historicDesc: "Sottile foglio di alluminio/stagnola dorata ripiegato manualmente alle estremità.",
+                buildHistoric: buildGianduiottoIncarto,
+                polyGeom: "tetrahedron", brand: "CAFFAREL 1865"
+            },
+            rigatoni: {
+                title: "Rigatone Estruso in Bronzo",
+                meta: "Geometria della Pasta | Trafilatura",
+                desc: "Architettura edibile: cilindro rigato studiato per ottimizzare cottura e trattenuta del condimento.",
+                mat: "ceramic", color: "#e0a96d",
+                buildMain: buildRigatone,
+                historicTitle: "Sacchetto in Carta Zucchero",
+                historicDesc: "Confezione storica pastaia in carta kraft blu/marrone chiusa con spago.",
+                buildHistoric: buildPastaBag,
+                polyGeom: "hexagonalPrisma", brand: "PASTA BIO 100%"
+            },
+            nutella: {
+                title: "Vaso Nutella (Ferrero)",
+                meta: "Pietro Ferrero & Studio Pelicon, 1964",
+                desc: "Vaso in vetro a tronco di cono sporgente studiato per una seconda vita domestica come bicchiere.",
+                mat: "glass", color: "#ffffff",
+                buildMain: buildNutella,
+                historicTitle: "Vaso Supercrema (1950)",
+                historicDesc: "Il contenitore precursore serigrafato con grafica d'epoca e tappo in plastica rossa.",
+                buildHistoric: buildNutellaHistoric,
+                polyGeom: "icosahedron", brand: "NUTELLA FERRERO"
+            }
+        };
+
+        // ==========================================
+        // SETUP MOTORI 3D (MAIN E SECONDARI)
+        // ==========================================
+        function initEngine(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const parent = canvas.parentElement;
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+            renderer.setSize(parent.clientWidth, parent.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, parent.clientWidth / parent.clientHeight, 0.1, 100);
+            camera.position.set(0, 1.8, 4.8);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            dirLight.position.set(5, 8, 5);
+            scene.add(dirLight);
+
+            const group = new THREE.Group();
+            scene.add(group);
+
+            return { canvas, parent, renderer, scene, camera, controls, group };
+        }
+
+        const main3D = initEngine('mainCanvas');
+        const historic3D = initEngine('historicCanvas');
+        const poly3D = initEngine('polyCanvas');
+
+        function makeMat(type, colHex) {
+            const c = new THREE.Color(colHex);
+            if (type === 'glass') return new THREE.MeshPhysicalMaterial({ color: c, transmission: 0.85, transparent: true, opacity: 0.9, roughness: 0.15 });
+            if (type === 'metal') return new THREE.MeshStandardMaterial({ color: c, metalness: 0.85, roughness: 0.2 });
+            if (type === 'ceramic') return new THREE.MeshStandardMaterial({ color: c, roughness: 0.6, metalness: 0.05 });
+            if (type === 'foil') return new THREE.MeshStandardMaterial({ color: c, metalness: 0.9, roughness: 0.2 });
+            if (type === 'wood') return new THREE.MeshStandardMaterial({ color: new THREE.Color('#8a5a36'), roughness: 0.8 });
+            if (type === 'kraft') return new THREE.MeshStandardMaterial({ color: new THREE.Color('#b58a5a'), roughness: 0.9 });
+            return new THREE.MeshStandardMaterial({ color: c, roughness: 0.5 });
+        }
+
+        // --- Costruttori Modelli Main ---
+        function buildCampari(matType, col) {
+            const g = new THREE.Group();
+            const m = makeMat(matType, col);
+            const b = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 1.1, 2.5, 24), m);
+            const n = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.5, 20), m); n.position.y = 1.5;
+            const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.12, 20), makeMat('metal', '#cccccc')); cap.position.y = 1.76;
+            g.add(b, n, cap); return g;
+        }
+
+        function buildMoka(matType, col) {
+            const g = new THREE.Group();
+            const m = makeMat(matType, col);
+            const base = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 0.8, 1.2, 8), m); base.position.y = -0.6;
+            const top = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 0.85, 1.2, 8), m); top.position.y = 0.72;
+            const lid = new THREE.Mesh(new THREE.ConeGeometry(1.06, 0.3, 8), m); lid.position.y = 1.45;
+            g.add(base, top, lid); return g;
+        }
+
+        function buildGianduiotto(matType, col) {
+            const g = new THREE.Group();
+            const m = makeMat(matType, col);
+            const shape = new THREE.Shape();
+            shape.moveTo(-1.2, -0.4); shape.lineTo(1.2, -0.4); shape.lineTo(0.8, 0.5); shape.lineTo(-0.8, 0.5); shape.closePath();
+            const geom = new THREE.ExtrudeGeometry(shape, { depth: 0.7, bevelEnabled: true, bevelSegments: 2, steps: 1 });
+            geom.center();
+            const mesh = new THREE.Mesh(geom, m); mesh.rotation.x = Math.PI / 6;
+            g.add(mesh); return g;
+        }
+
+        function buildRigatone(matType, col) {
+            const g = new THREE.Group();
+            const m = makeMat(matType, col);
+            const o = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 2.2, 32, 1, true), m);
+            const i = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 2.2, 32, 1, true), m);
+            g.add(o, i); return g;
+        }
+
+        function buildNutella(matType, col) {
+            const g = new THREE.Group();
+            const jar = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.75, 1.8, 24), makeMat('glass', '#ffffff'));
+            const nut = new THREE.Mesh(new THREE.CylinderGeometry(0.82, 0.68, 1.5, 24), makeMat('ceramic', '#3d2314')); nut.position.y = -0.1;
+            const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.92, 0.92, 0.35, 24), makeMat('ceramic', '#ffffff')); cap.position.y = 1.05;
+            g.add(jar, nut, cap); return g;
+        }
+
+        // --- Costruttori Modelli Packaging d'Epoca ---
+        function buildCampariCrate() {
+            const g = new THREE.Group();
+            const crate = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.4, 1.4), makeMat('wood'));
+            g.add(crate); return g;
+        }
+        function buildMokaBox() {
+            const g = new THREE.Group();
+            const box = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.4, 1.6), makeMat('kraft'));
+            g.add(box); return g;
+        }
+        function buildGianduiottoIncarto() {
+            const g = new THREE.Group();
+            const inc = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.6, 1.2), makeMat('foil', '#d4af37'));
+            g.add(inc); return g;
+        }
+        function buildPastaBag() {
+            const g = new THREE.Group();
+            const bag = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 2.2, 16), makeMat('kraft', '#3b628a'));
+            g.add(bag); return g;
+        }
+        function buildNutellaHistoric() {
+            const g = new THREE.Group();
+            const box = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.8, 1.8), makeMat('kraft'));
+            g.add(box); return g;
+        }
+
+        // --- Texture Redesign Poliedrico ---
+        function makePolyTex(brand) {
+            const cvs = document.getElementById('texCanvas');
+            const ctx = cvs.getContext('2d');
+            ctx.fillStyle = '#1c1c24'; ctx.fillRect(0, 0, 512, 512);
+            ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 10; ctx.strokeRect(30, 30, 452, 452);
+
+            ctx.fillStyle = '#d4af37'; ctx.textAlign = 'center';
+            ctx.font = 'bold 42px Montserrat, sans-serif'; ctx.fillText(brand, 256, 240);
+            ctx.font = '18px Montserrat, sans-serif'; ctx.fillText('PENTAWARDS 2026', 256, 300);
+
+            const tex = new THREE.CanvasTexture(cvs);
+            tex.needsUpdate = true;
+            return tex;
+        }
+
+        function getPolyGeom(type) {
+            switch(type) {
+                case 'tetrahedron': return new THREE.TetrahedronGeometry(1.3);
+                case 'dodecahedron': return new THREE.DodecahedronGeometry(1.1);
+                case 'icosahedron': return new THREE.IcosahedronGeometry(1.1);
+                case 'hexagonalPrisma': return new THREE.CylinderGeometry(1.0, 1.0, 2.0, 6);
+                case 'cube': default: return new THREE.BoxGeometry(1.4, 1.8, 1.4);
+            }
+        }
+
+        // ==========================================
+        // GESTIONE STATI E AGGIORNAMENTO FINESTRE
+        // ==========================================
+        let stateHistoricOpen = false;
+        let statePolyOpen = false;
+
+        function updateMain() {
+            const key = document.getElementById('mainProductSelect').value;
+            const data = productsDB[key];
+
+            // 1. Aggiorna Finestra Principale
+            while(main3D.group.children.length > 0) main3D.group.remove(main3D.group.children[0]);
+            const mat = document.getElementById('mainMatSelect').value;
+            const col = document.getElementById('mainColorPicker').value;
+            const obj = data.buildMain(mat, col);
+
+            const sx = parseFloat(document.getElementById('scaleX').value);
+            const sy = parseFloat(document.getElementById('scaleY').value);
+            obj.scale.set(sx, sy, 1.0);
+            main3D.group.add(obj);
+
+            document.getElementById('valX').textContent = sx.toFixed(1);
+            document.getElementById('valY').textContent = sy.toFixed(1);
+            document.getElementById('mainTitle').textContent = data.title;
+            document.getElementById('mainMeta').textContent = data.meta;
+            document.getElementById('mainDesc').textContent = data.desc;
+
+            // 2. Aggiorna Finestra Packaging dell'Epoca
+            while(historic3D.group.children.length > 0) historic3D.group.remove(historic3D.group.children[0]);
+            historic3D.group.add(data.buildHistoric());
+            document.getElementById('historicTitle').textContent = data.historicTitle;
+            document.getElementById('historicDesc').textContent = data.historicDesc;
+
+            // 3. Aggiorna Finestra Redesign Poliedrico
+            while(poly3D.group.children.length > 0) poly3D.group.remove(poly3D.group.children[0]);
+            const polyType = document.getElementById('polySelect').value || data.polyGeom;
+            const geom = getPolyGeom(polyType);
+            const tex = makePolyTex(data.brand);
+            const polyMesh = new THREE.Mesh(geom, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.3, metalness: 0.2 }));
+            poly3D.group.add(polyMesh);
+        }
+
+        function toggleWindow(type, forceState) {
+            if (type === 'historic') {
+                stateHistoricOpen = (forceState !== undefined) ? forceState : !stateHistoricOpen;
+                const win = document.getElementById('winHistoric');
+                const btn = document.getElementById('toggleHistoricBtn');
+                const txt = document.getElementById('stateHistoricText');
+
+                if (stateHistoricOpen) {
+                    win.classList.remove('hidden');
+                    btn.classList.add('active-historic');
+                    txt.textContent = 'ON';
+                    resizeEngine(historic3D);
+                } else {
+                    win.classList.add('hidden');
+                    btn.classList.remove('active-historic');
+                    txt.textContent = 'OFF';
+                }
+            } else if (type === 'poly') {
+                statePolyOpen = (forceState !== undefined) ? forceState : !statePolyOpen;
+                const win = document.getElementById('winPoly');
+                const btn = document.getElementById('togglePolyBtn');
+                const txt = document.getElementById('statePolyText');
+
+                if (statePolyOpen) {
+                    win.classList.remove('hidden');
+                    btn.classList.add('active-poly');
+                    txt.textContent = 'ON';
+                    resizeEngine(poly3D);
+                } else {
+                    win.classList.add('hidden');
+                    btn.classList.remove('active-poly');
+                    txt.textContent = 'OFF';
+                }
+            }
+        }
+
+        function resizeEngine(engine) {
+            setTimeout(() => {
+                const p = engine.parent;
+                engine.camera.aspect = p.clientWidth / p.clientHeight;
+                engine.camera.updateProjectionMatrix();
+                engine.renderer.setSize(p.clientWidth, p.clientHeight);
+            }, 50);
+        }
+
+        // LISTENERS UI
+        document.getElementById('mainProductSelect').addEventListener('change', () => {
+            const key = document.getElementById('mainProductSelect').value;
+            const data = productsDB[key];
+            document.getElementById('mainMatSelect').value = data.mat;
+            document.getElementById('mainColorPicker').value = data.color;
+            document.getElementById('polySelect').value = data.polyGeom;
+            updateMain();
+        });
+
+        ['mainMatSelect', 'mainColorPicker', 'scaleX', 'scaleY', 'polySelect'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateMain);
+        });
+
+        document.getElementById('toggleHistoricBtn').addEventListener('click', () => toggleWindow('historic'));
+        document.getElementById('togglePolyBtn').addEventListener('click', () => toggleWindow('poly'));
+        document.getElementById('closeHistoricBtn').addEventListener('click', () => toggleWindow('historic', false));
+        document.getElementById('closePolyBtn').addEventListener('click', () => toggleWindow('poly', false));
+
+        // ANIMATION LOOP
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const speed = parseFloat(document.getElementById('rotSpeed').value) * 0.008;
+            if (main3D.group) main3D.group.rotation.y += speed;
+            if (historic3D.group && stateHistoricOpen) historic3D.group.rotation.y += 0.005;
+            if (poly3D.group && statePolyOpen) poly3D.group.rotation.y += 0.006;
+
+            main3D.controls.update();
+            historic3D.controls.update();
+            poly3D.controls.update();
+
+            main3D.renderer.render(main3D.scene, main3D.camera);
+            if (stateHistoricOpen) historic3D.renderer.render(historic3D.scene, historic3D.camera);
+            if (statePolyOpen) poly3D.renderer.render(poly3D.scene, poly3D.camera);
+        }
+
+        window.addEventListener('resize', () => {
+            [main3D, historic3D, poly3D].forEach(resizeEngine);
+        });
+
+        // AVVIO INIZIALE
+        updateMain();
+        animate();
+    </script>
+</body>
+</html>
