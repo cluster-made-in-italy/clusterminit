@@ -1,0 +1,2896 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Twin4forestLife (EUI04-1006) — Dashboard, Gantt, Living Labs & Digital Twin Simulator</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            eui: {
+              900: '#062c24',
+              800: '#0b4639',
+              700: '#0f6250',
+              600: '#158069',
+              500: '#10b981',
+              100: '#d1fae5',
+              50: '#ecfdf5',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Custom scrollbar & print optimization */
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      overflow-x: hidden;
+    }
+
+    /* Sticky left column for 30-month Gantt chart */
+    .gantt-sticky-col {
+      position: sticky;
+      left: 0;
+      z-index: 20;
+      background-color: #ffffff;
+      box-shadow: 4px 0 8px -4px rgba(15, 23, 42, 0.08);
+    }
+    .gantt-header-sticky {
+      position: sticky;
+      left: 0;
+      z-index: 30;
+      background-color: #f1f5f9;
+      box-shadow: 4px 0 8px -4px rgba(15, 23, 42, 0.12);
+    }
+
+    /* Custom subtle scrollbars */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Simulator canvas responsive container */
+    #simCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      border-radius: 0.75rem;
+      cursor: crosshair;
+    }
+
+    /* Print rules */
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #ffffff !important; }
+      .tab-panel { display: block !important; page-break-after: always; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-900 antialiased">
+
+  <!-- TOAST NOTIFICATION BANNER (Replaces any browser alert) -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- TOP INSTITUTIONAL HEADER + DOCUMENT REPOSITORY BAR -->
+  <header class="bg-gradient-to-r from-slate-900 via-eui-900 to-slate-900 text-white shadow-lg border-b border-emerald-800/60 no-print">
+    <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+        <!-- Brand & Project Metadata -->
+        <div class="flex items-start sm:items-center gap-3.5">
+          <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center shrink-0 shadow-inner">
+            <i class="fa-solid fa-tree-city text-emerald-400 text-xl"></i>
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                EUI-IA Call 4 • EUI04-1006
+              </span>
+              <span class="px-2.5 py-0.5 text-[11px] font-medium rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                Co-funded by the European Union (ERDF 80%)
+              </span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white mt-1">
+              Twin4forestLife <span class="font-normal text-slate-300 text-base sm:text-lg">— Municipal Wildfire Digital Twin &amp; Living Labs</span>
+            </h1>
+            <p class="text-xs text-slate-300/90 mt-0.5">
+              Comune di Castrovillari (MUA) &amp; Comune di Cassano all'Ionio (AUA) • Partner Scientifico: Università della Calabria (Lab LMSV / DIMEG)
+            </p>
+          </div>
+        </div>
+
+        <!-- DOCUMENT REPOSITORY CARDS (Same folder relative links) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 xl:max-w-2xl w-full">
+          <!-- Doc 1: Application Form -->
+          <a href="./EUI04-1006-Twin4forestLife Application Form.pdf" target="_blank" rel="noopener noreferrer"
+             class="group flex items-center gap-3 p-2.5 rounded-xl bg-white/10 hover:bg-emerald-600/30 border border-white/15 hover:border-emerald-400/60 transition-all duration-200 shadow-sm">
+            <div class="w-9 h-9 rounded-lg bg-emerald-500/25 text-emerald-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <i class="fa-solid fa-file-pdf text-base"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-white truncate group-hover:text-emerald-200">Application Form EUI04-1006 (Twin4forestLife)</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-emerald-300 shrink-0"></i>
+              </div>
+              <p class="text-[11px] text-slate-300 truncate">Documento ufficiale di candidatura EUI-IA Call 4 (60 pp.)</p>
+            </div>
+          </a>
+
+          <!-- Doc 2: Wildfire Risk Analysis Technical Report -->
+          <a href="./Wildire_risk_analysis_Castrovillari_Cassano (1).pdf" target="_blank" rel="noopener noreferrer"
+             class="group flex items-center gap-3 p-2.5 rounded-xl bg-white/10 hover:bg-amber-600/30 border border-white/15 hover:border-amber-400/60 transition-all duration-200 shadow-sm">
+            <div class="w-9 h-9 rounded-lg bg-amber-500/25 text-amber-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <i class="fa-solid fa-fire-flame-curved text-base"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-white truncate group-hover:text-amber-200">Wildfire Risk Analysis – Lab LMSV UNICAL</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-amber-300 shrink-0"></i>
+              </div>
+              <p class="text-[11px] text-slate-300 truncate">Technical Report scientifico multi-fattore su Castrovillari e Cassano all'Ionio (Giugno 2026, 20 pp.)</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRIMARY 8-TAB NAVIGATION BAR -->
+    <nav class="bg-slate-950/60 border-t border-white/10 overflow-x-auto">
+      <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-1 py-1.5" role="tablist">
+        <button onclick="switchTab('tab-overview')" id="btn-tab-overview"
+                class="nav-tab-btn active flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all bg-emerald-600 text-white shadow-sm">
+          <span>📊</span> Dashboard &amp; Sintesi
+        </button>
+        <button onclick="switchTab('tab-gantt')" id="btn-tab-gantt"
+                class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all text-slate-300 hover:text-white hover:bg-white/10">
+          <span>📅</span> Cronoprogramma (Gantt)
+        </button>
+        <button onclick="switchTab('tab-partners')" id="btn-tab-partners"
+                class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all text-slate-300 hover:text-white hover:bg-white/10">
+          <span>🏢</span> Riferimenti &amp; Ruoli Partner
+        </button>
+        <button onclick="switchTab('tab-wp-synthesis')" id="btn-tab-wp-synthesis"
+                class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all text-slate-300 hover:text-white hover:bg-white/10">
+          <span>🧩</span> Sintesi WP
+        </button>
+        <button onclick="switchTab('tab-deliverables')" id="btn-tab-deliverables"
+                class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all text-slate-300 hover:text-white hover:bg-white/10">
+          <span>📋</span> Deliverables &amp; Azioni
+        </button>
+        <button onclick="switchTab('tab-livinglabs')" id="btn-tab-livinglabs"
+                class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all text-amber-200 hover:text-white hover:bg-amber-500/20 border border-amber-400/30">
+          <span>🔬</span> Living Labs &amp; Analisi Rischio
+          <span class="px-1.5 py-0.2 text-[10px] rounded bg-amber-500 text-slate-950 font-extrabold">NEW</span>
+        </button>
+        <button onclick="switchTab('tab-simulator')" id="btn-tab-simulator"
+                class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all text-slate-300 hover:text-white hover:bg-white/10">
+          <span>🔥</span> Simulatore Digital Twin
+        </button>
+        <button onclick="switchTab('tab-configurator')" id="btn-tab-configurator"
+                class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-all text-slate-300 hover:text-white hover:bg-white/10">
+          <span>⚙️</span> Configuratore &amp; Report
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- MAIN WORKSPACE CONTAINER -->
+  <main class="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ===================================================================== -->
+    <!-- TAB 1: DASHBOARD & SINTESI (tab-overview)                             -->
+    <!-- ===================================================================== -->
+    <section id="tab-overview" class="tab-panel space-y-6">
+      <!-- Top 6 KPI Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+            <span>Budget Totale</span>
+            <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fa-solid fa-euro-sign"></i></span>
+          </div>
+          <div class="text-2xl font-extrabold text-slate-900 mt-2">€ 2.500.000</div>
+          <div class="text-xs text-emerald-700 font-medium mt-1">100% Allocato su 6 Partner</div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+            <span>Cofinanziamento FESR</span>
+            <span class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center"><i class="fa-solid fa-landmark-flag"></i></span>
+          </div>
+          <div class="text-2xl font-extrabold text-slate-900 mt-2">€ 2.000.000</div>
+          <div class="text-xs text-blue-700 font-medium mt-1">80% ERDF + 20% (€500k) Co-fin.</div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+            <span>Durata Implementazione</span>
+            <span class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center"><i class="fa-solid fa-calendar-check"></i></span>
+          </div>
+          <div class="text-2xl font-extrabold text-slate-900 mt-2">24 Mesi</div>
+          <div class="text-xs text-slate-600 font-medium mt-1">01/03/2027 – 28/02/2029 (+6m Init/Clos)</div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+            <span>Operatori Formati</span>
+            <span class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center"><i class="fa-solid fa-user-shield"></i></span>
+          </div>
+          <div class="text-2xl font-extrabold text-slate-900 mt-2">90</div>
+          <div class="text-xs text-purple-700 font-medium mt-1">Tecnici comunali, COC &amp; Prot. Civile</div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+            <span>Scenari Validati</span>
+            <span class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center"><i class="fa-solid fa-fire-extinguisher"></i></span>
+          </div>
+          <div class="text-2xl font-extrabold text-slate-900 mt-2">6</div>
+          <div class="text-xs text-rose-700 font-medium mt-1">Simulazioni Digital Twin &amp; Stress Test</div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between text-slate-500 text-xs font-semibold uppercase">
+            <span>Popolazione Protetta</span>
+            <span class="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center"><i class="fa-solid fa-people-roof"></i></span>
+          </div>
+          <div class="text-2xl font-extrabold text-slate-900 mt-2">15.500</div>
+          <div class="text-xs text-teal-700 font-medium mt-1">Residenti aree WUI &amp; flussi turistici</div>
+        </div>
+      </div>
+
+      <!-- Two Side-by-Side Chart.js Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Ripartizione Budget per Partner (FESR 80% vs Cofinanziamento 20%)</h2>
+              <p class="text-xs text-slate-500">Distribuzione finanziaria tra Main Urban Authority, Associated Urban Authority e Delivery Partners</p>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-mono font-semibold">Totale: €2.500.000</span>
+          </div>
+          <div class="h-72 relative">
+            <canvas id="overviewPartnerChart"></canvas>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Budget per Fase / Work Package</h2>
+              <p class="text-xs text-slate-500">Allocazione risorse tra Initiation, WP1, WP2, WP3 e Closure</p>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-mono font-semibold">WP2: 70,0%</span>
+          </div>
+          <div class="h-72 relative">
+            <canvas id="overviewWpChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Territorial Challenge & Municipal Digital Twin Solution Cards -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900">La Sfida Territoriale: Interfaccia Urbano-Forestale (WUI)</h3>
+              <p class="text-xs text-slate-500">25.854 ettari tra il Massiccio del Pollino e la Piana di Sibari / Costa Ionica</p>
+            </div>
+          </div>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            L'area congiunta di <strong>Castrovillari (11.837 ha)</strong> e <strong>Cassano all'Ionio (14.017 ha)</strong> presenta una forte eterogeneità morfologica e vegetazionale (da 0 m a 2.262 m s.l.m.), con oltre <strong>1.150 anomalie termiche satellitari</strong> registrate tra il 2012 e il 2025 (NASA FIRMS VIIRS) e 106 perimetri percorsi dal fuoco (EFFIS). La frammentazione dei dati tra uffici urbanistici, protezione civile e gestori delle risorse idriche rallenta la prevenzione attiva.
+          </p>
+          <div class="pt-2 flex flex-wrap gap-2">
+            <button onclick="switchTab('tab-livinglabs')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition-colors">
+              <i class="fa-solid fa-microscope"></i> Esplora Analisi Scientifica &amp; Living Labs
+            </button>
+            <button onclick="switchTab('tab-simulator')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold transition-colors">
+              <i class="fa-solid fa-fire"></i> Avvia Simulatore 2D
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-cubes"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900">La Soluzione: Municipal Wildfire Digital Twin (I1.2.1)</h3>
+              <p class="text-xs text-slate-500">Piattaforma predittiva GIS, sensoristica IoT, protocolli COC e Smart QR</p>
+            </div>
+          </div>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            <strong>Twin4forestLife</strong> realizza un Gemello Digitale Municipale replicabile che integra modelli fisici di propagazione del fuoco, layer GIS ad alta risoluzione (DEM 20m, ISPRA Carta Natura, Rete Natura 2000), monitoraggio delle risorse idriche antincendio e strumenti di <em>Smart Communication</em> per residenti e turisti. Due <strong>Living Labs municipali</strong> validano il sistema sul campo in 6 scenari operativi reali.
+          </p>
+          <div class="pt-2 flex flex-wrap gap-2">
+            <button onclick="switchTab('tab-gantt')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition-colors">
+              <i class="fa-solid fa-calendar-days"></i> Vedi Cronoprogramma Gantt (30 Mesi)
+            </button>
+            <button onclick="switchTab('tab-wp-synthesis')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition-colors">
+              <i class="fa-solid fa-layer-group"></i> Dettaglio WP1–WP3 &amp; I1.2.1
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick-Jump Badges for All 6 Partners -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Consorzio di Progetto — Accesso Rapido ai Partner</h3>
+          <span class="text-xs text-slate-500">Clicca su un partner per aprire la scheda ruoli e contatti</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+          <button onclick="jumpToPartner('PP1')" class="text-left p-3 rounded-xl border border-emerald-200 bg-emerald-50/60 hover:bg-emerald-100/80 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-emerald-800">PP1 • MUA</span>
+              <span class="text-xs font-mono font-bold text-emerald-700">€550k</span>
+            </div>
+            <div class="text-sm font-bold text-slate-900 mt-1">Comune di Castrovillari</div>
+            <div class="text-[11px] text-slate-600 mt-0.5">Lead Partner &amp; Living Lab 1</div>
+          </button>
+
+          <button onclick="jumpToPartner('PP2')" class="text-left p-3 rounded-xl border border-teal-200 bg-teal-50/60 hover:bg-teal-100/80 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-teal-800">PP2 • AUA</span>
+              <span class="text-xs font-mono font-bold text-teal-700">€340k</span>
+            </div>
+            <div class="text-sm font-bold text-slate-900 mt-1">Comune di Cassano all'Ionio</div>
+            <div class="text-[11px] text-slate-600 mt-0.5">Associated Urban Auth. &amp; LL2</div>
+          </button>
+
+          <button onclick="jumpToPartner('PP3')" class="text-left p-3 rounded-xl border border-blue-200 bg-blue-50/60 hover:bg-blue-100/80 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-blue-800">PP3 • DP</span>
+              <span class="text-xs font-mono font-bold text-blue-700">€680k</span>
+            </div>
+            <div class="text-sm font-bold text-slate-900 mt-1">Cluster MINT</div>
+            <div class="text-[11px] text-slate-600 mt-0.5">Sviluppo Digital Twin &amp; IoT</div>
+          </button>
+
+          <button onclick="jumpToPartner('PP4')" class="text-left p-3 rounded-xl border border-indigo-200 bg-indigo-50/60 hover:bg-indigo-100/80 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-indigo-800">PP4 • DP</span>
+              <span class="text-xs font-mono font-bold text-indigo-700">€520k</span>
+            </div>
+            <div class="text-sm font-bold text-slate-900 mt-1">Università della Calabria</div>
+            <div class="text-[11px] text-slate-600 mt-0.5">Lead WP2/WP3 &amp; Lab LMSV</div>
+          </button>
+
+          <button onclick="jumpToPartner('PP5')" class="text-left p-3 rounded-xl border border-amber-200 bg-amber-50/60 hover:bg-amber-100/80 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-amber-800">PP5 • DP</span>
+              <span class="text-xs font-mono font-bold text-amber-700">€230k</span>
+            </div>
+            <div class="text-sm font-bold text-slate-900 mt-1">GAL Pollino Sviluppo</div>
+            <div class="text-[11px] text-slate-600 mt-0.5">Coinvolgimento Stakeholder &amp; LL</div>
+          </button>
+
+          <button onclick="jumpToPartner('PP6')" class="text-left p-3 rounded-xl border border-purple-200 bg-purple-50/60 hover:bg-purple-100/80 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-purple-800">PP6 • DP</span>
+              <span class="text-xs font-mono font-bold text-purple-700">€180k</span>
+            </div>
+            <div class="text-sm font-bold text-slate-900 mt-1">Regione Calabria</div>
+            <div class="text-[11px] text-slate-600 mt-0.5">Prot. Civile &amp; Trasferibilità</div>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 2: CRONOPROGRAMMA GANTT (tab-gantt)                               -->
+    <!-- ===================================================================== -->
+    <section id="tab-gantt" class="tab-panel hidden space-y-5">
+      <!-- Gantt Header & Phase Filter Controls -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">Cronoprogramma Ufficiale 30 Mesi</span>
+              <span class="text-xs text-slate-500 font-mono">Dic 2026 – Mag 2029</span>
+            </div>
+            <h2 class="text-lg font-extrabold text-slate-900 mt-1">Gantt Interattivo di Progetto — Initiation, Implementazione (M1–M24) &amp; Closure</h2>
+            <p class="text-xs text-slate-600 mt-0.5">Clicca su qualsiasi barra di attività o rombo milestone (<span class="font-bold text-amber-600">◆</span>) per ispezionare partner responsabili, deliverable e scadenze nel pannello inferiore.</p>
+          </div>
+
+          <!-- Filter Buttons -->
+          <div class="flex flex-wrap items-center gap-1.5" id="ganttFilters">
+            <button onclick="filterGantt('ALL')" data-filter="ALL" class="gantt-filter-btn active px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-900 text-white">Tutti (28)</button>
+            <button onclick="filterGantt('INIT')" data-filter="INIT" class="gantt-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">Initiation</button>
+            <button onclick="filterGantt('WP1')" data-filter="WP1" class="gantt-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 hover:bg-emerald-100">WP1 (Co-design)</button>
+            <button onclick="filterGantt('WP2')" data-filter="WP2" class="gantt-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-800 hover:bg-blue-100">WP2 (Digital Twin &amp; LL)</button>
+            <button onclick="filterGantt('WP3')" data-filter="WP3" class="gantt-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-800 hover:bg-amber-100">WP3 (Training &amp; Scale-up)</button>
+            <button onclick="filterGantt('CLOS')" data-filter="CLOS" class="gantt-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-purple-50 text-purple-800 hover:bg-purple-100">Closure</button>
+          </div>
+        </div>
+
+        <!-- Legend Bar -->
+        <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-4 text-xs text-slate-600">
+          <span class="font-semibold text-slate-800">Legenda:</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-500 inline-block"></span> Initiation (I-M1..I-M3)</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500 inline-block"></span> WP1 (M1–M10)</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-blue-600 inline-block"></span> WP2 &amp; Inv. I1.2.1 (M3–M22)</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-500 inline-block"></span> WP3 (M6–M24)</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-purple-600 inline-block"></span> Closure (C-M1..C-M3)</span>
+          <span class="flex items-center gap-1.5"><span class="text-rose-600 font-bold text-sm">◆</span> Milestone / Deliverable Due Date</span>
+        </div>
+      </div>
+
+      <!-- Scrollable 30-Month Gantt Matrix -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse text-xs" id="ganttTable">
+            <thead>
+              <!-- Phase Super-Header -->
+              <tr class="bg-slate-800 text-white text-[11px] uppercase tracking-wider">
+                <th class="gantt-header-sticky bg-slate-900 text-white text-left px-4 py-2 min-w-[290px] border-r border-slate-700">
+                  Codice &amp; Attività / Output
+                </th>
+                <th colspan="3" class="px-2 py-2 text-center bg-slate-700 border-r border-slate-600">Initiation (3m)</th>
+                <th colspan="12" class="px-2 py-2 text-center bg-emerald-900 border-r border-slate-600">Anno 1 Implementazione (M1–M12 • Mar 2027 – Feb 2028)</th>
+                <th colspan="12" class="px-2 py-2 text-center bg-blue-900 border-r border-slate-600">Anno 2 Implementazione (M13–M24 • Mar 2028 – Feb 2029)</th>
+                <th colspan="3" class="px-2 py-2 text-center bg-purple-900">Closure (3m)</th>
+              </tr>
+              <!-- Month Columns Header -->
+              <tr id="ganttMonthHeader" class="bg-slate-100 text-slate-700 font-mono text-[10px] border-b border-slate-300">
+                <th class="gantt-header-sticky text-left px-4 py-2 font-sans font-bold text-slate-800 border-r border-slate-300">
+                  Task / Lead Partner
+                </th>
+                <!-- Populated dynamically by JS for 30 months -->
+              </tr>
+            </thead>
+            <tbody id="ganttTableBody" class="divide-y divide-slate-200">
+              <!-- Populated dynamically by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Live Bottom Activity Inspector Panel -->
+      <div id="ganttInspector" class="bg-gradient-to-r from-slate-900 to-eui-900 text-white rounded-2xl p-5 shadow-md border border-emerald-700/40">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="space-y-1.5">
+            <div class="flex flex-wrap items-center gap-2">
+              <span id="inspCode" class="px-2.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-mono font-extrabold text-xs">A1.1</span>
+              <span id="inspPhase" class="px-2.5 py-0.5 rounded bg-white/15 text-emerald-200 text-xs font-semibold">WP1 — Territorial &amp; Risk Baseline</span>
+              <span id="inspDates" class="text-xs font-mono text-amber-300"><i class="fa-regular fa-clock mr-1"></i>M1 – M4 (Mar 2027 – Giu 2027)</span>
+            </div>
+            <h3 id="inspTitle" class="text-base sm:text-lg font-bold text-white">Analisi Multi-Rischio WUI, Censimento Risorse Idriche e Vulnerabilità Turistica</h3>
+            <p id="inspDesc" class="text-xs sm:text-sm text-slate-300 max-w-4xl">
+              Raccolta ed armonizzazione dei dataset geospaziali (DEM 20m, ISPRA Carta Natura, Rete Natura 2000, serie storiche NASA FIRMS VIIRS / EFFIS) e mappatura operativa dei punti di approvvigionamento idrico per Castrovillari e Cassano all'Ionio.
+            </p>
+          </div>
+          <div class="bg-white/10 rounded-xl p-3.5 border border-white/15 min-w-[270px] space-y-2 shrink-0">
+            <div class="text-xs">
+              <span class="text-slate-400 block">Partner Responsabile (Lead):</span>
+              <span id="inspLead" class="font-bold text-emerald-300">PP4 — Università della Calabria (Lab LMSV)</span>
+            </div>
+            <div class="text-xs">
+              <span class="text-slate-400 block">Partner Coinvolti:</span>
+              <span id="inspPartners" class="font-medium text-white">PP1, PP2, PP5, PP6</span>
+            </div>
+            <div class="text-xs">
+              <span class="text-slate-400 block">Deliverables / Output Collegati:</span>
+              <span id="inspDeliverables" class="font-mono font-semibold text-amber-300">D1.1.1, D1.1.2, O1.1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 3: RIFERIMENTI & RUOLI PARTNER (tab-partners)                     -->
+    <!-- ===================================================================== -->
+    <section id="tab-partners" class="tab-panel hidden space-y-6">
+      <!-- Partner Filter Pills -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-900">Consorzio EUI04-1006 — Riferimenti Ufficiali, Budget &amp; Ruoli</h2>
+          <p class="text-xs text-slate-500">Filtra per singolo partner o consulta la tabella finanziaria consolidata per categoria di costo</p>
+        </div>
+        <div class="flex flex-wrap gap-1.5" id="partnerFilterPills">
+          <button onclick="filterPartners('ALL')" data-partner="ALL" class="partner-pill active px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white">Tutti (6 Partner)</button>
+          <button onclick="filterPartners('PP1')" data-partner="PP1" class="partner-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">PP1 Castrovillari</button>
+          <button onclick="filterPartners('PP2')" data-partner="PP2" class="partner-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">PP2 Cassano</button>
+          <button onclick="filterPartners('PP3')" data-partner="PP3" class="partner-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">PP3 Cluster MINT</button>
+          <button onclick="filterPartners('PP4')" data-partner="PP4" class="partner-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">PP4 UNICAL</button>
+          <button onclick="filterPartners('PP5')" data-partner="PP5" class="partner-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">PP5 GAL Pollino</button>
+          <button onclick="filterPartners('PP6')" data-partner="PP6" class="partner-pill px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">PP6 Regione Calabria</button>
+        </div>
+      </div>
+
+      <!-- Detailed Partner Cards Grid -->
+      <div id="partnerCardsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <!-- Populated dynamically by JS -->
+      </div>
+
+      <!-- Consolidated Financial & Cost-Category Table -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Quadro Finanziario Consolidato per Categoria di Costo (EUI-IA)</h3>
+            <p class="text-xs text-slate-500">Staff, Office &amp; Admin (15% flat rate), Travel &amp; Accommodation (5%), External Expertise &amp; Services, Equipment</p>
+          </div>
+          <span class="px-3 py-1 rounded-lg bg-emerald-50 text-emerald-800 text-xs font-bold">ERDF 80% (€2.000.000) | Co-fin. 20% (€500.000)</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-700 border-b border-slate-300 font-bold">
+                <th class="p-3">Partner</th>
+                <th class="p-3">Ruolo</th>
+                <th class="p-3 text-right">Staff Costs</th>
+                <th class="p-3 text-right">Office &amp; Admin (15%)</th>
+                <th class="p-3 text-right">Travel &amp; Accomm.</th>
+                <th class="p-3 text-right">External Expertise</th>
+                <th class="p-3 text-right">Equipment</th>
+                <th class="p-3 text-right bg-slate-200/70">Totale Partner</th>
+                <th class="p-3 text-right text-emerald-700">FESR (80%)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 font-mono">
+              <tr>
+                <td class="p-3 font-sans font-bold text-slate-900">PP1 • Comune di Castrovillari</td>
+                <td class="p-3 font-sans"><span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-semibold">MUA</span></td>
+                <td class="p-3 text-right">€ 260.000</td>
+                <td class="p-3 text-right">€ 39.000</td>
+                <td class="p-3 text-right">€ 13.000</td>
+                <td class="p-3 text-right">€ 223.000</td>
+                <td class="p-3 text-right">€ 15.000</td>
+                <td class="p-3 text-right font-bold bg-slate-50">€ 550.000</td>
+                <td class="p-3 text-right text-emerald-700 font-semibold">€ 440.000</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-sans font-bold text-slate-900">PP2 • Comune di Cassano all'Ionio</td>
+                <td class="p-3 font-sans"><span class="px-2 py-0.5 rounded bg-teal-100 text-teal-800 font-semibold">AUA</span></td>
+                <td class="p-3 text-right">€ 175.000</td>
+                <td class="p-3 text-right">€ 26.250</td>
+                <td class="p-3 text-right">€ 8.750</td>
+                <td class="p-3 text-right">€ 120.000</td>
+                <td class="p-3 text-right">€ 10.000</td>
+                <td class="p-3 text-right font-bold bg-slate-50">€ 340.000</td>
+                <td class="p-3 text-right text-emerald-700 font-semibold">€ 272.000</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-sans font-bold text-slate-900">PP3 • Cluster Tecnologico MINT</td>
+                <td class="p-3 font-sans"><span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-semibold">DP</span></td>
+                <td class="p-3 text-right">€ 240.000</td>
+                <td class="p-3 text-right">€ 36.000</td>
+                <td class="p-3 text-right">€ 12.000</td>
+                <td class="p-3 text-right">€ 372.000</td>
+                <td class="p-3 text-right">€ 20.000</td>
+                <td class="p-3 text-right font-bold bg-slate-50">€ 680.000</td>
+                <td class="p-3 text-right text-emerald-700 font-semibold">€ 544.000</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-sans font-bold text-slate-900">PP4 • Università della Calabria (UNICAL)</td>
+                <td class="p-3 font-sans"><span class="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-semibold">DP</span></td>
+                <td class="p-3 text-right">€ 310.000</td>
+                <td class="p-3 text-right">€ 46.500</td>
+                <td class="p-3 text-right">€ 15.500</td>
+                <td class="p-3 text-right">€ 138.000</td>
+                <td class="p-3 text-right">€ 10.000</td>
+                <td class="p-3 text-right font-bold bg-slate-50">€ 520.000</td>
+                <td class="p-3 text-right text-emerald-700 font-semibold">€ 416.000</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-sans font-bold text-slate-900">PP5 • GAL Pollino Sviluppo</td>
+                <td class="p-3 font-sans"><span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold">DP</span></td>
+                <td class="p-3 text-right">€ 126.400</td>
+                <td class="p-3 text-right">€ 18.960</td>
+                <td class="p-3 text-right">€ 6.320</td>
+                <td class="p-3 text-right">€ 78.320</td>
+                <td class="p-3 text-right">€ 0</td>
+                <td class="p-3 text-right font-bold bg-slate-50">€ 230.000</td>
+                <td class="p-3 text-right text-emerald-700 font-semibold">€ 184.000</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-sans font-bold text-slate-900">PP6 • Regione Calabria</td>
+                <td class="p-3 font-sans"><span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-semibold">DP</span></td>
+                <td class="p-3 text-right">€ 100.000</td>
+                <td class="p-3 text-right">€ 15.000</td>
+                <td class="p-3 text-right">€ 5.000</td>
+                <td class="p-3 text-right">€ 60.000</td>
+                <td class="p-3 text-right">€ 0</td>
+                <td class="p-3 text-right font-bold bg-slate-50">€ 180.000</td>
+                <td class="p-3 text-right text-emerald-700 font-semibold">€ 144.000</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="bg-slate-900 text-white font-mono font-bold">
+                <td colspan="2" class="p-3 font-sans">TOTALE PROGETTO TWIN4FORESTLIFE</td>
+                <td class="p-3 text-right">€ 1.211.400</td>
+                <td class="p-3 text-right">€ 181.710</td>
+                <td class="p-3 text-right">€ 60.570</td>
+                <td class="p-3 text-right">€ 991.320</td>
+                <td class="p-3 text-right">€ 55.000</td>
+                <td class="p-3 text-right text-amber-300">€ 2.500.000</td>
+                <td class="p-3 text-right text-emerald-300">€ 2.000.000</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 4: SINTESI WP (tab-wp-synthesis)                                  -->
+    <!-- ===================================================================== -->
+    <section id="tab-wp-synthesis" class="tab-panel hidden space-y-6">
+      <!-- WP Sub-Tabs Selector -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-900">Architettura Operativa dei Work Package &amp; Investimento I1.2.1</h2>
+          <p class="text-xs text-slate-500">Seleziona un Work Package per esplorare la matrice dei ruoli dei 6 partner, attività, deliverable e valore aggiunto</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="selectWpSubTab('WP1')" id="wp-sub-WP1" class="wp-sub-btn active px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-sm">
+            WP1 • Co-Design &amp; Baseline (€375.000 • Lead PP1)
+          </button>
+          <button onclick="selectWpSubTab('WP2')" id="wp-sub-WP2" class="wp-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+            WP2 • Digital Twin &amp; Living Labs (€1.750.000 • Lead PP4)
+          </button>
+          <button onclick="selectWpSubTab('WP3')" id="wp-sub-WP3" class="wp-sub-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+            WP3 • Training, Governance &amp; Scale-Up (€327.500 • Lead PP4)
+          </button>
+        </div>
+      </div>
+
+      <!-- Dynamic WP Matrix Content -->
+      <div id="wpMatrixContainer" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Dedicated Investment I1.2.1 Breakdown Card (€450,000) -->
+      <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-eui-900 text-white rounded-2xl p-6 shadow-md border border-emerald-700/40">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-white/15">
+          <div>
+            <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-mono font-extrabold text-xs">INVESTIMENTO INFRASTRUTTURALE • I1.2.1</span>
+            <h3 class="text-xl font-extrabold text-white mt-1.5">Piattaforma Municipal Wildfire Digital Twin &amp; Infrastruttura IoT / Smart QR</h3>
+            <p class="text-xs text-slate-300 mt-0.5">Allocato all'interno del WP2 (M3–M20) • Titolarità congiunta PP1 Castrovillari &amp; PP2 Cassano all'Ionio con supporto tecnico PP3/PP4</p>
+          </div>
+          <div class="text-left lg:text-right shrink-0">
+            <div class="text-xs text-emerald-300 uppercase font-semibold">Valore Totale Investimento</div>
+            <div class="text-3xl font-extrabold font-mono text-white">€ 450.000</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3 mt-5">
+          <div class="bg-white/10 rounded-xl p-3.5 border border-white/15">
+            <div class="text-xs font-bold text-emerald-300">1. Core MVP Engine</div>
+            <div class="text-xl font-mono font-extrabold mt-1">€ 170.000</div>
+            <p class="text-[11px] text-slate-300 mt-1">Motore fisico di propagazione incendi, dashboard 3D/2D e interfaccia COC.</p>
+          </div>
+          <div class="bg-white/10 rounded-xl p-3.5 border border-white/15">
+            <div class="text-xs font-bold text-blue-300">2. GIS &amp; API Hub</div>
+            <div class="text-xl font-mono font-extrabold mt-1">€ 95.000</div>
+            <p class="text-[11px] text-slate-300 mt-1">Integrazione DEM 20m, ISPRA, Rete Natura 2000, NASA FIRMS &amp; EFFIS.</p>
+          </div>
+          <div class="bg-white/10 rounded-xl p-3.5 border border-white/15">
+            <div class="text-xs font-bold text-amber-300">3. Pilot Configs (LL1/LL2)</div>
+            <div class="text-xl font-mono font-extrabold mt-1">€ 55.000</div>
+            <p class="text-[11px] text-slate-300 mt-1">Calibrazione parametrica dedicata per Castrovillari e Cassano all'Ionio.</p>
+          </div>
+          <div class="bg-white/10 rounded-xl p-3.5 border border-white/15">
+            <div class="text-xs font-bold text-purple-300">4. Cloud Hosting &amp; Sec.</div>
+            <div class="text-xl font-mono font-extrabold mt-1">€ 45.000</div>
+            <p class="text-[11px] text-slate-300 mt-1">Infrastruttura cloud ad alta disponibilità, backup e cybersecurity.</p>
+          </div>
+          <div class="bg-white/10 rounded-xl p-3.5 border border-white/15">
+            <div class="text-xs font-bold text-rose-300">5. Field Sensors (IoT)</div>
+            <div class="text-xl font-mono font-extrabold mt-1">€ 45.000</div>
+            <p class="text-[11px] text-slate-300 mt-1">Stazioni microclimatiche e sensori di livello idrico su invasi/sorgenti.</p>
+          </div>
+          <div class="bg-white/10 rounded-xl p-3.5 border border-white/15">
+            <div class="text-xs font-bold text-teal-300">6. Smart QR Tools</div>
+            <div class="text-xl font-mono font-extrabold mt-1">€ 25.000</div>
+            <p class="text-[11px] text-slate-300 mt-1">Totem QR su sentieri Pollino, siti Sibari e strutture ricettive.</p>
+          </div>
+          <div class="bg-white/10 rounded-xl p-3.5 border border-white/15">
+            <div class="text-xs font-bold text-slate-200">7. Handover &amp; Docs</div>
+            <div class="text-xl font-mono font-extrabold mt-1">€ 15.000</div>
+            <p class="text-[11px] text-slate-300 mt-1">Manualistica operativa, codice sorgente aperto e trasferimento ai Comuni.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 5: DELIVERABLES & AZIONI (tab-deliverables)                       -->
+    <!-- ===================================================================== -->
+    <section id="tab-deliverables" class="tab-panel hidden space-y-6">
+      <!-- Search & Filter Bar -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-extrabold text-slate-900">Registro Completo Deliverables (D1.1.1–D3.6.2), Outputs (O1.1–O3.4) &amp; Investimento I1.2.1</h2>
+            <p class="text-xs text-slate-500">Filtra per parola chiave, Work Package o tipologia di risultato atteso</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input type="text" id="delivSearchInput" oninput="filterDeliverables()" placeholder="Cerca codice, titolo o partner..."
+                     class="pl-8 pr-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500 w-56 sm:w-64" />
+            </div>
+            <select id="delivWpFilter" onchange="filterDeliverables()" class="px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="ALL">Tutti i WP</option>
+              <option value="INIT">Initiation</option>
+              <option value="WP1">WP1</option>
+              <option value="WP2">WP2</option>
+              <option value="WP3">WP3</option>
+              <option value="CLOS">Closure</option>
+            </select>
+            <select id="delivTypeFilter" onchange="filterDeliverables()" class="px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="ALL">Tutte le Tipologie</option>
+              <option value="Deliverable">Deliverable (D)</option>
+              <option value="Output">Output (O)</option>
+              <option value="Investment">Investment (I)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filterable Deliverables Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto max-h-[540px]">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead class="sticky top-0 bg-slate-900 text-white z-10">
+              <tr>
+                <th class="p-3 font-mono">Codice</th>
+                <th class="p-3">WP</th>
+                <th class="p-3">Tipologia</th>
+                <th class="p-3">Titolo Deliverable / Output</th>
+                <th class="p-3">Lead Partner</th>
+                <th class="p-3 text-center">Scadenza</th>
+              </tr>
+            </thead>
+            <tbody id="deliverablesTableBody" class="divide-y divide-slate-200">
+              <!-- Populated dynamically by JS -->
+            </tbody>
+          </table>
+        </div>
+        <div class="px-4 py-2.5 bg-slate-50 border-t border-slate-200 text-xs text-slate-600 flex justify-between items-center">
+          <span id="delivCountLabel">Visualizzati 38 elementi</span>
+          <span class="font-mono text-[11px] text-slate-500">Fonte: EUI04-1006 Application Form</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 6: LIVING LABS & ANALISI RISCHIO (tab-livinglabs) — NEW PAGE      -->
+    <!-- ===================================================================== -->
+    <section id="tab-livinglabs" class="tab-panel hidden space-y-6">
+      <!-- Scientific Study Banner + Local PDF Links -->
+      <div class="bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 text-white rounded-2xl p-6 shadow-md border border-amber-500/40">
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+          <div class="space-y-2 max-w-3xl">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 font-extrabold text-[11px] uppercase tracking-wider">
+                Base Scientifica per i Living Labs Municipali
+              </span>
+              <span class="px-2.5 py-0.5 rounded-full bg-white/10 text-amber-200 font-mono text-[11px]">
+                CRS EPSG:32633 • DEM 20 m • Giugno 2026
+              </span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-white">
+              Technical Report: Castrovillari and Cassano all'Ionio Wildfire Risk Analysis
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+              Studio multi-fattore sulla propensione al rischio incendio boschivo e d'interfaccia elaborato dal <strong>Lab LMSV – Università della Calabria</strong> (<em>Salvatore Nisticò, Ph.D. &amp; Pierpaolo Antonio Fusaro</em>), basato su simulazione di propagazione potenziale (<code>copia_rischio.tif</code>), copertura del suolo ISPRA Carta Natura (EUNIS), Rete Natura 2000, risorse idriche antincendio, morfologia (pendenza ed esposizione), serie storiche NASA FIRMS VIIRS / EFFIS ed esposizione turistica.
+            </p>
+          </div>
+
+          <!-- Direct Document Links Box -->
+          <div class="flex flex-col gap-2.5 shrink-0 xl:w-96">
+            <a href="./Wildire_risk_analysis_Castrovillari_Cassano (1).pdf" target="_blank" rel="noopener noreferrer"
+               class="flex items-center gap-3 p-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition-all">
+              <i class="fa-solid fa-file-pdf text-lg shrink-0"></i>
+              <div class="min-w-0 flex-1">
+                <div class="truncate">Apri Technical Report (Wildfire Risk Analysis)</div>
+                <div class="text-[11px] font-normal text-slate-900 truncate">./Wildire_risk_analysis_Castrovillari_Cassano (1).pdf</div>
+              </div>
+              <i class="fa-solid fa-arrow-up-right-from-square shrink-0"></i>
+            </a>
+            <a href="./EUI04-1006-Twin4forestLife Application Form.pdf" target="_blank" rel="noopener noreferrer"
+               class="flex items-center gap-3 p-3 rounded-xl bg-white/15 hover:bg-white/25 text-white font-bold text-xs border border-white/20 transition-all">
+              <i class="fa-solid fa-file-contract text-lg text-emerald-300 shrink-0"></i>
+              <div class="min-w-0 flex-1">
+                <div class="truncate">Apri Application Form EUI04-1006</div>
+                <div class="text-[11px] font-normal text-slate-300 truncate">./EUI04-1006-Twin4forestLife Application Form.pdf</div>
+              </div>
+              <i class="fa-solid fa-arrow-up-right-from-square text-emerald-300 shrink-0"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Key Scientific KPI Strip -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div class="text-xs font-bold text-slate-500 uppercase">Area di Studio Totale</div>
+          <div class="text-2xl font-extrabold text-slate-900 mt-1">25.854 ha</div>
+          <div class="text-[11px] text-slate-600 mt-1">14.017 ha Cassano • 11.837 ha Castrovillari</div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div class="text-xs font-bold text-slate-500 uppercase">Anomalie Termiche VIIRS</div>
+          <div class="text-2xl font-extrabold text-rose-600 mt-1">&gt; 1.150</div>
+          <div class="text-[11px] text-slate-600 mt-1">NASA FIRMS 2012–2025 (Picco 2017: &gt;200)</div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div class="text-xs font-bold text-slate-500 uppercase">Perimetri Bruciati EFFIS</div>
+          <div class="text-2xl font-extrabold text-amber-600 mt-1">106</div>
+          <div class="text-[11px] text-slate-600 mt-1">Copernicus EMS • Concentrati su fascia confine</div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div class="text-xs font-bold text-slate-500 uppercase">Rete Idrografica Censita</div>
+          <div class="text-2xl font-extrabold text-blue-600 mt-1">2.580 tratti</div>
+          <div class="text-[11px] text-slate-600 mt-1">170 corsi d'acqua • 26 invasi • 129 sorgenti</div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div class="text-xs font-bold text-slate-500 uppercase">POI Turistici &amp; Culturali</div>
+          <div class="text-2xl font-extrabold text-emerald-700 mt-1">74 POI</div>
+          <div class="text-[11px] text-slate-600 mt-1">40 Storico-cult. • 20 Natura • 10 Ricettive • 4 Info</div>
+        </div>
+      </div>
+
+      <!-- Interactive Comparative Charts (Chart.js) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Chart A: Simulated Wildfire Risk Classes -->
+        <div class="lg:col-span-6 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Classi di Rischio Incendio Simulato (<code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded">copia_rischio.tif</code>)</h3>
+              <p class="text-xs text-slate-500">Confronto percentuale sulla superficie comunale (Tabella 8 &amp; 9 del Technical Report)</p>
+            </div>
+            <div class="text-[11px] font-mono bg-amber-50 text-amber-900 px-2.5 py-1 rounded-lg border border-amber-200">
+              Media: Cassano 2.94 | Castrovillari 2.47
+            </div>
+          </div>
+          <div class="h-72 relative">
+            <canvas id="llRiskComparisonChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart B: ISPRA Carta Natura EUNIS L2 -->
+        <div class="lg:col-span-6 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Copertura del Suolo ISPRA Carta Natura (Habitat EUNIS L2)</h3>
+              <p class="text-xs text-slate-500">Principali classi di combustibile vegetale e uso del suolo nell'area di studio (ha)</p>
+            </div>
+            <span class="text-[11px] font-mono bg-emerald-50 text-emerald-800 px-2.5 py-1 rounded-lg border border-emerald-200">
+              Top 10 Habitat (ha)
+            </span>
+          </div>
+          <div class="h-72 relative">
+            <canvas id="llHabitatChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- TWO DETAILED LIVING LAB CARDS WITH SCIENTIFIC EVIDENCE + CONCRETE SUGGESTIONS -->
+      <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <!-- LIVING LAB 1: CASTROVILLARI -->
+        <div class="bg-white rounded-2xl border-2 border-emerald-200 shadow-sm overflow-hidden flex flex-col">
+          <div class="bg-gradient-to-r from-emerald-800 to-emerald-700 text-white p-5">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-emerald-100 text-xs font-bold uppercase">Living Lab 1 • Lead: PP1 Castrovillari</span>
+              <span class="font-mono text-xs bg-emerald-950/50 px-2.5 py-1 rounded-lg">11.837 ha • Quota 0–2.262 m</span>
+            </div>
+            <h3 class="text-lg font-extrabold mt-2">Comune di Castrovillari — Interfaccia Urbano-Forestale &amp; Parco Nazionale del Pollino</h3>
+            <p class="text-xs text-emerald-100 mt-0.5">Focus: Prevenzione in aree protette Rete Natura 2000, pendenze estreme &gt;60° e sicurezza flussi escursionistici</p>
+          </div>
+
+          <div class="p-5 space-y-4 flex-1">
+            <!-- Scientific Evidence Box -->
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-2">
+              <div class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-chart-column text-emerald-600"></i> Evidenze Scientifiche dal Report Lab LMSV UNICAL
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center pt-1">
+                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                  <div class="text-sm font-extrabold text-slate-900">18,5%</div>
+                  <div class="text-[10px] text-slate-500">Pendenze &gt;60° (+7,9% 20–60°)</div>
+                </div>
+                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                  <div class="text-sm font-extrabold text-emerald-700">28,4%</div>
+                  <div class="text-[10px] text-slate-500">Rete Natura 2000 (ZPS/ZSC)</div>
+                </div>
+                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                  <div class="text-sm font-extrabold text-amber-600">45 POI</div>
+                  <div class="text-[10px] text-slate-500">19 Natura • 15 Storici • 7 Ricett.</div>
+                </div>
+                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                  <div class="text-sm font-extrabold text-rose-600">9,4%</div>
+                  <div class="text-[10px] text-slate-500">Rischio Alto + Molto Alto</div>
+                </div>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed pt-1">
+                Castrovillari presenta un profilo altimetrico polarizzato (quota media 580 m, max 2.262 m) con elevata concentrazione di sorgenti nella fascia pedemontana. Oltre un quarto del territorio ricade in siti <strong>Rete Natura 2000</strong> (17,5% ZPS, 10,6% ZSC+ZPS, 0,3% ZSC/SIC) sul massiccio del Pollino, dove i vincoli ecologici impongono la prevenzione rispetto all'attacco diretto.
+              </p>
+            </div>
+
+            <!-- Concrete Operational Suggestions for Living Lab 1 -->
+            <div class="space-y-2.5">
+              <div class="text-xs font-extrabold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-lightbulb text-amber-500"></i> Suggerimenti Operativi per il Living Lab 1 (Castrovillari)
+              </div>
+              <ul class="space-y-2 text-xs text-slate-700">
+                <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-100">
+                  <span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center shrink-0 text-[11px]">1</span>
+                  <div>
+                    <strong>Prevenzione Selvicolturale Selettiva in Aree ZSC/ZPS:</strong> Co-progettare con l'Ente Parco del Pollino e Regione Calabria (PP6) fasce parafuoco verdi a basso impatto ecologico nelle zone di transizione tra macchia mediterranea e boschi caducifogli/conifere, superando i vincoli normativi della soppressione attiva.
+                  </div>
+                </li>
+                <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-100">
+                  <span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center shrink-0 text-[11px]">2</span>
+                  <div>
+                    <strong>Calibrazione Pre-Riscaldamento su Pendenze &gt;60°:</strong> Integrare nel Digital Twin algoritmi di accelerazione del fronte di fiamma su pendii ripidi (26,4% del territorio &gt;20°) per calcolare finestre reali di intervento delle squadre a terra prima dello scavalcamento di crinale.
+                  </div>
+                </li>
+                <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-100">
+                  <span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center shrink-0 text-[11px]">3</span>
+                  <div>
+                    <strong>Presidio Smart QR su 19 Siti Naturalistici e 7 Strutture Ricettive:</strong> Installare totem QR e beacon di allerta precoce lungo i sentieri escursionistici del Pollino e formare i gestori delle 7 strutture ricettive montane sulle rotte dinamiche di evacuazione.
+                  </div>
+                </li>
+                <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-100">
+                  <span class="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center shrink-0 text-[11px]">4</span>
+                  <div>
+                    <strong>Telemetria Estiva delle Sorgenti Pedemontane:</strong> Dotare le sorgenti censite nella fascia pedemontana di sensori IoT di portata residua per verificare in tempo reale l'effettiva disponibilità idrica nei mesi di luglio e agosto.
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+            <span class="text-[11px] font-mono text-slate-500">Scenario Test: WUI Montano / Pollino</span>
+            <button onclick="launchSimulatorPreset('castrovillari')" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors">
+              <i class="fa-solid fa-play mr-1"></i> Simula Living Lab 1 nel Digital Twin
+            </button>
+          </div>
+        </div>
+
+        <!-- LIVING LAB 2: CASSANO ALL'IONIO -->
+        <div class="bg-white rounded-2xl border-2 border-amber-200 shadow-sm overflow-hidden flex flex-col">
+          <div class="bg-gradient-to-r from-amber-700 to-orange-700 text-white p-5">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-amber-100 text-xs font-bold uppercase">Living Lab 2 • Lead: PP2 Cassano all'Ionio</span>
+              <span class="font-mono text-xs bg-amber-950/50 px-2.5 py-1 rounded-lg">14.017 ha • Quota 0–661 m</span>
+            </div>
+            <h3 class="text-lg font-extrabold mt-2">Comune di Cassano all'Ionio — Interfaccia Agricolo-Costiera, Logistica Idrica &amp; Smart Communication</h3>
+            <p class="text-xs text-amber-100 mt-0.5">Focus: Stress idrico versanti Sud (77,1%), deficit punti prelievo idrico nell'entroterra e tutela patrimonio di Sibari</p>
+          </div>
+
+          <div class="p-5 space-y-4 flex-1">
+            <!-- Scientific Evidence Box -->
+            <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-2">
+              <div class="text-xs font-extrabold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-chart-column text-amber-600"></i> Evidenze Scientifiche dal Report Lab LMSV UNICAL
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center pt-1">
+                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                  <div class="text-sm font-extrabold text-rose-600">2,94 / 5</div>
+                  <div class="text-[10px] text-slate-500">Rischio Medio (P90: 4,00)</div>
+                </div>
+                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                  <div class="text-sm font-extrabold text-amber-600">77,1%</div>
+                  <div class="text-[10px] text-slate-500">Versanti Sud (64% S-SO)</div>
+                </div>
+                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                  <div class="text-sm font-extrabold text-slate-900">13,0%</div>
+                  <div class="text-[10px] text-slate-500">Rischio Alto + Molto Alto</div>
+                </div>
+                <div class="bg-white p-2 rounded-lg border border-slate-200">
+                  <div class="text-sm font-extrabold text-blue-700">29 POI</div>
+                  <div class="text-[10px] text-slate-500">25 Storico-cult. (Sibari)</div>
+                </div>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed pt-1">
+                Nonostante l'orografia prevalentemente pianeggiante (85,2% tra 0–5°, quota media 90 m), Cassano all'Ionio registra il <strong>rischio medio simulato più elevato (2,94)</strong> a causa della forte esposizione solare (64,0% S-SO + 13,1% S-SE), dell'aridità estiva su colture arboree/seminativi e della <strong>scarsa densità di punti di approvvigionamento idrico nell'entroterra</strong>.
+              </p>
+            </div>
+
+            <!-- Concrete Operational Suggestions for Living Lab 2 -->
+            <div class="space-y-2.5">
+              <div class="text-xs font-extrabold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-lightbulb text-amber-500"></i> Suggerimenti Operativi per il Living Lab 2 (Cassano all'Ionio)
+              </div>
+              <ul class="space-y-2 text-xs text-slate-700">
+                <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-amber-50/70 border border-amber-100">
+                  <span class="w-5 h-5 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center shrink-0 text-[11px]">1</span>
+                  <div>
+                    <strong>Logistica Idrica &amp; Accessibilità Autobotti nell'Entroterra:</strong> Mappare nel Digital Twin l'accessibilità carrabile e la portata estiva dei 26 bacini/invasi e dei 170 corsi d'acqua/canali consortili, definendo punti di rifornimento mobili per colmare il deficit idrico collinare.
+                  </div>
+                </li>
+                <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-amber-50/70 border border-amber-100">
+                  <span class="w-5 h-5 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center shrink-0 text-[11px]">2</span>
+                  <div>
+                    <strong>Allerta Precoce Stress Idrico su Versanti S-SO (64%):</strong> Attivare soglie dinamiche di pre-allerta COC già dalle prime settimane estive sui versanti esposti a Sud-SudOvest e lungo la fascia costiera (dune costiere 232 ha e pinete litoranee).
+                  </div>
+                </li>
+                <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-amber-50/70 border border-amber-100">
+                  <span class="w-5 h-5 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center shrink-0 text-[11px]">3</span>
+                  <div>
+                    <strong>Tutela Integrata Patrimonio Archeologico (25 POI Sibari) &amp; Litorale:</strong> Collegare i flussi turistici estivi della Piana di Sibari e degli stabilimenti balneari alle funzioni COC tramite alert geolocalizzati e vie di esodo dedicate.
+                  </div>
+                </li>
+                <li class="flex items-start gap-2.5 p-2.5 rounded-lg bg-amber-50/70 border border-amber-100">
+                  <span class="w-5 h-5 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center shrink-0 text-[11px]">4</span>
+                  <div>
+                    <strong>Smart Communication con Imprese Agricole (GAL Pollino PP5):</strong> Coinvolgere gli agricoltori (11.110 ha colture arboree e 8.583 ha seminativi) in protocolli di prevenzione scintille da macchine agricole e gestione controllata dei residui colturali nelle giornate ventose.
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+            <span class="text-[11px] font-mono text-slate-500">Scenario Test: Interfaccia Agricolo-Costiera</span>
+            <button onclick="launchSimulatorPreset('cassano')" class="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-colors">
+              <i class="fa-solid fa-play mr-1"></i> Simula Living Lab 2 nel Digital Twin
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CROSS-BORDER OPERATIONAL RECOMMENDATION BOX -->
+      <div class="bg-gradient-to-r from-rose-950 via-slate-900 to-rose-950 text-white rounded-2xl p-6 border border-rose-500/40 shadow-md">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div class="space-y-2">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/30 text-xs font-bold">
+              <i class="fa-solid fa-satellite"></i> Raccomandazione Strategica Sovracomunale — Fascia di Confine Castrovillari–Cassano
+            </div>
+            <h3 class="text-lg font-extrabold text-white">
+              Protocollo Congiunto sulla "Buffer Zone" Amministrativa (Hotspot Storico NASA FIRMS VIIRS 2012–2025)
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed max-w-4xl">
+              L'analisi storica delle oltre <strong>1.150 anomalie termiche satellitari (NASA FIRMS VIIRS, 375 m)</strong> e dei <strong>106 perimetri EFFIS</strong> dimostra che gli inneschi non si distribuiscono in modo casuale: la <strong>massima concentrazione storica ricade proprio lungo la fascia di confine amministrativo tra Castrovillari e Cassano all'Ionio</strong> e nella porzione occidentale di Castrovillari. Si raccomanda che i due Living Labs adottino un <strong>Protocollo Operativo Inter-Comunale di Buffer Zone (2 km a cavallo del confine)</strong> all'interno del Digital Twin, con attivazione simultanea dei due COC (PP1 + PP2) e condivisione automatica delle risorse idriche e delle pattuglie di avvistamento.
+            </p>
+          </div>
+          <div class="shrink-0">
+            <button onclick="launchSimulatorPreset('border')" class="w-full lg:w-auto px-4 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold shadow-lg transition-all flex items-center justify-center gap-2">
+              <i class="fa-solid fa-fire-flame-curved"></i> Simula Scenario Fascia di Confine
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 7: SIMULATORE DIGITAL TWIN (tab-simulator)                        -->
+    <!-- ===================================================================== -->
+    <section id="tab-simulator" class="tab-panel hidden space-y-5">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <!-- Left Control Panel (4 cols) -->
+        <div class="lg:col-span-4 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-700">Digital Twin Engine v2.4</span>
+              <h2 class="text-base font-extrabold text-slate-900">Parametri Ambientali &amp; Scenario</h2>
+            </div>
+            <span id="simStatusBadge" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+              Pronto
+            </span>
+          </div>
+
+          <!-- Living Lab Selector -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Seleziona Area Living Lab / Scenario GIS</label>
+            <select id="simLabSelect" onchange="changeSimLab()" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+              <option value="castrovillari">Living Lab 1: Castrovillari — Interfaccia Urbano-Forestale (Pollino)</option>
+              <option value="cassano">Living Lab 2: Cassano all'Ionio — Interfaccia Agricolo-Costiera (Sibari)</option>
+              <option value="border">Scenario Congiunto: Fascia di Confine Castrovillari–Cassano (Hotspot VIIRS)</option>
+            </select>
+          </div>
+
+          <!-- Environmental Sliders -->
+          <div class="space-y-3 pt-1">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-700"><i class="fa-solid fa-wind text-blue-500 mr-1"></i>Velocità Vento</span>
+                <span id="valWindSpeed" class="font-mono font-bold text-slate-900">28 km/h</span>
+              </div>
+              <input type="range" id="simWindSpeed" min="0" max="100" value="28" oninput="updateSimLabels()" class="w-full accent-emerald-600" />
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-700"><i class="fa-solid fa-compass text-indigo-500 mr-1"></i>Direzione Vento</span>
+                <span id="valWindDir" class="font-mono font-bold text-slate-900">225° (SO → NE)</span>
+              </div>
+              <input type="range" id="simWindDir" min="0" max="360" value="225" oninput="updateSimLabels()" class="w-full accent-emerald-600" />
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-700"><i class="fa-solid fa-temperature-high text-rose-500 mr-1"></i>Temperatura Aria</span>
+                <span id="valTemp" class="font-mono font-bold text-slate-900">34 °C</span>
+              </div>
+              <input type="range" id="simTemp" min="15" max="48" value="34" oninput="updateSimLabels()" class="w-full accent-rose-600" />
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-700"><i class="fa-solid fa-droplet-slash text-amber-500 mr-1"></i>Arità / Secchezza Combustibile</span>
+                <span id="valDryness" class="font-mono font-bold text-slate-900">72%</span>
+              </div>
+              <input type="range" id="simDryness" min="10" max="100" value="72" oninput="updateSimLabels()" class="w-full accent-amber-600" />
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-semibold text-slate-700"><i class="fa-solid fa-mountain text-emerald-600 mr-1"></i>Pendenza Media Versante</span>
+                <span id="valSlope" class="font-mono font-bold text-slate-900">22°</span>
+              </div>
+              <input type="range" id="simSlope" min="0" max="60" value="22" oninput="updateSimLabels()" class="w-full accent-emerald-600" />
+            </div>
+          </div>
+
+          <!-- GIS Layer Toggles -->
+          <div class="pt-2 border-t border-slate-100">
+            <div class="text-xs font-bold text-slate-700 mb-2">Layer GIS Attivi (Sovrapposizione Mappa)</div>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer">
+                <input type="checkbox" id="layerRisk" checked onchange="drawSimCanvas()" class="accent-rose-600" />
+                <span>Heatmap Rischio</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer">
+                <input type="checkbox" id="layerWater" checked onchange="drawSimCanvas()" class="accent-blue-600" />
+                <span>Invasi &amp; Sorgenti</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer">
+                <input type="checkbox" id="layerEvac" checked onchange="drawSimCanvas()" class="accent-amber-600" />
+                <span>Rotte Evacuazione</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200 cursor-pointer">
+                <input type="checkbox" id="layerCoc" checked onchange="drawSimCanvas()" class="accent-emerald-600" />
+                <span>Presidi COC / POI</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="grid grid-cols-3 gap-2 pt-2">
+            <button onclick="toggleSimRun()" id="btnSimRun" class="px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-colors flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-play"></i> <span>Avvia</span>
+            </button>
+            <button onclick="triggerRandomIgnition()" class="px-3 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold shadow-sm transition-colors flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-fire"></i> <span>Innesco</span>
+            </button>
+            <button onclick="resetSim()" class="px-3 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold transition-colors flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-rotate-left"></i> <span>Reset</span>
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-500 text-center">
+            <i class="fa-solid fa-hand-pointer mr-1 text-emerald-600"></i>Clicca o tocca un punto qualsiasi sulla mappa per simulare un punto di innesco.
+          </p>
+        </div>
+
+        <!-- Right Interactive 2D Canvas + Real-Time Physical Metrics (8 cols) -->
+        <div class="lg:col-span-8 flex flex-col gap-4">
+          <!-- Real-Time Telemetry Bar -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm">
+              <div class="text-[11px] font-bold text-slate-500 uppercase">Rate of Spread (ROS)</div>
+              <div id="metricRos" class="text-xl font-mono font-extrabold text-rose-600 mt-0.5">0.0 m/min</div>
+              <div class="text-[10px] text-slate-500">Velocità avanzamento fronte</div>
+            </div>
+            <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm">
+              <div class="text-[11px] font-bold text-slate-500 uppercase">Lunghezza Fiamma</div>
+              <div id="metricFlame" class="text-xl font-mono font-extrabold text-amber-600 mt-0.5">0.0 m</div>
+              <div class="text-[10px] text-slate-500">Intensità lineare Byram</div>
+            </div>
+            <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm">
+              <div class="text-[11px] font-bold text-slate-500 uppercase">Superficie Percorsa</div>
+              <div id="metricArea" class="text-xl font-mono font-extrabold text-slate-900 mt-0.5">0.0 ha</div>
+              <div class="text-[10px] text-slate-500">Ettari simulati in combustione</div>
+            </div>
+            <div class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm">
+              <div class="text-[11px] font-bold text-slate-500 uppercase">Stato Allerta COC</div>
+              <div id="metricAlert" class="text-sm font-extrabold text-emerald-700 mt-1">ORDINARIA (Verde)</div>
+              <div id="metricTime" class="text-[10px] font-mono text-slate-500 mt-0.5">T + 00:00 min</div>
+            </div>
+          </div>
+
+          <!-- Canvas Wrapper -->
+          <div class="bg-slate-900 rounded-2xl p-3 border border-slate-700 shadow-md flex-1 min-h-[430px] relative flex flex-col">
+            <div class="flex flex-wrap items-center justify-between gap-2 px-2 pb-2 text-[11px] text-slate-300">
+              <span id="simMapHeaderTitle" class="font-bold text-white">Mappa Geospaziale: Living Lab 1 — Castrovillari (EPSG:32633)</span>
+              <div class="flex items-center gap-3">
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-400 inline-block"></span> Risorse Idriche</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span> COC / POI</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> Fronte Fiamma</span>
+              </div>
+            </div>
+            <div id="simCanvasContainer" class="flex-1 w-full h-full min-h-[380px] relative">
+              <canvas id="simCanvas"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 8: CONFIGURATORE & REPORT (tab-configurator)                      -->
+    <!-- ===================================================================== -->
+    <section id="tab-configurator" class="tab-panel hidden space-y-6">
+      <!-- Top Summary & Controls -->
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-900">Configuratore Operativo Partner, Readiness Index &amp; Generatore Report</h2>
+          <p class="text-xs text-slate-500">Modifica allocazioni, priorità e stati di avanzamento; verifica il rispetto del massimale EUI €2.500.000 ed esporta il piano</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="openAddActionModal()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-colors">
+            <i class="fa-solid fa-plus mr-1"></i> Aggiungi Azione
+          </button>
+          <button onclick="resetConfigurator()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors">
+            <i class="fa-solid fa-rotate-left mr-1"></i> Ripristina Default
+          </button>
+          <button onclick="exportConfigJson()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-colors">
+            <i class="fa-solid fa-file-code mr-1"></i> Esporta JSON
+          </button>
+          <button onclick="window.print()" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition-colors">
+            <i class="fa-solid fa-print mr-1"></i> Stampa / Report PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Real-Time Budget Cap & Readiness KPI Strip -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div class="text-xs font-bold text-slate-500 uppercase">Budget Configurato vs Cap EUI (€2.50M)</div>
+          <div id="cfgTotalBudget" class="text-2xl font-mono font-extrabold text-slate-900 mt-1">€ 2.500.000</div>
+          <div id="cfgBudgetDelta" class="text-xs font-semibold text-emerald-700 mt-1">Allineato al massimale EUI04-1006 (€0 delta)</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div class="text-xs font-bold text-slate-500 uppercase">Municipal Preparedness Index</div>
+          <div id="cfgReadinessScore" class="text-2xl font-mono font-extrabold text-emerald-700 mt-1">78%</div>
+          <div class="text-xs text-slate-600 mt-1">Indice sintetico di maturità operativa WUI</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+          <div class="text-xs font-bold text-slate-500 uppercase">Azioni Attive nel Piano</div>
+          <div id="cfgActionCount" class="text-2xl font-mono font-extrabold text-blue-700 mt-1">12 Azioni</div>
+          <div class="text-xs text-slate-600 mt-1">Copertura completa PP1–PP6 e Living Labs</div>
+        </div>
+      </div>
+
+      <!-- Editable Action Matrix Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead class="bg-slate-900 text-white">
+              <tr>
+                <th class="p-3">Partner</th>
+                <th class="p-3">Azione Operativa / Pacchetto</th>
+                <th class="p-3">Priorità</th>
+                <th class="p-3">Budget (€)</th>
+                <th class="p-3">Timeline</th>
+                <th class="p-3">Stato</th>
+                <th class="p-3 text-center">Rimuovi</th>
+              </tr>
+            </thead>
+            <tbody id="configTableBody" class="divide-y divide-slate-200">
+              <!-- Populated dynamically by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Charts Row: Budget Comparison Bar Chart & Partner Readiness Radar Chart -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 mb-1">Confronto Budget Configurato vs Allocazione EUI per Partner</h3>
+          <p class="text-xs text-slate-500 mb-4">Verifica dinamica dell'equilibrio finanziario tra i 6 partner</p>
+          <div class="h-72 relative">
+            <canvas id="cfgBudgetChart"></canvas>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
+          <h3 class="text-base font-bold text-slate-900 mb-1">Partner Readiness &amp; Capability Radar</h3>
+          <p class="text-xs text-slate-500 mb-4">Valutazione multidimensionale: GIS/Dati, Risorse Idriche, COC, Governance, Formazione, Transfer</p>
+          <div class="h-72 relative">
+            <canvas id="cfgRadarChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- CUSTOM ADD ACTION MODAL (No browser prompt/alert) -->
+  <div id="addActionModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900">Aggiungi Nuova Azione Operativa</h3>
+        <button onclick="closeAddActionModal()" class="text-slate-400 hover:text-slate-700"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Partner Responsabile</label>
+          <select id="newActPartner" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white">
+            <option value="PP1 Castrovillari">PP1 • Comune di Castrovillari</option>
+            <option value="PP2 Cassano all'Ionio">PP2 • Comune di Cassano all'Ionio</option>
+            <option value="PP3 Cluster MINT">PP3 • Cluster Tecnologico MINT</option>
+            <option value="PP4 UNICAL">PP4 • Università della Calabria (UNICAL)</option>
+            <option value="PP5 GAL Pollino">PP5 • GAL Pollino Sviluppo</option>
+            <option value="PP6 Regione Calabria">PP6 • Regione Calabria</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Descrizione Azione</label>
+          <input type="text" id="newActName" placeholder="Es. Sensibilizzazione agricoltori fascia di confine" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Priorità</label>
+            <select id="newActPriority" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white">
+              <option value="Alta">Alta</option>
+              <option value="Media">Media</option>
+              <option value="Bassa">Bassa</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Budget (€)</label>
+            <input type="number" id="newActBudget" value="25000" step="5000" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Timeline</label>
+            <input type="text" id="newActTimeline" value="M6–M18" class="w-full px-3 py-2 rounded-xl border border-slate-300" />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Stato</label>
+            <select id="newActStatus" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white">
+              <option value="Pianificata">Pianificata</option>
+              <option value="In Corso">In Corso</option>
+              <option value="Validata">Validata</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeAddActionModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">Annulla</button>
+        <button onclick="saveNewAction()" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">Salva Azione</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSTITUTIONAL FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 text-xs py-4 px-4 sm:px-6 lg:px-8 border-t border-slate-800 no-print mt-10">
+    <div class="max-w-[1600px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>
+        <strong class="text-white">Twin4forestLife (EUI04-1006)</strong> — European Urban Initiative (Innovative Actions Call 4) • Co-funded by the European Union
+      </div>
+      <div class="flex flex-wrap items-center gap-4">
+        <a href="./EUI04-1006-Twin4forestLife Application Form.pdf" target="_blank" class="hover:text-emerald-300 underline">Application Form PDF</a>
+        <a href="./Wildire_risk_analysis_Castrovillari_Cassano (1).pdf" target="_blank" class="hover:text-amber-300 underline">Wildfire Risk Analysis PDF (UNICAL)</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ======================================================================= -->
+  <!-- JAVASCRIPT APPLICATION LOGIC                                            -->
+  <!-- ======================================================================= -->
+  <script>
+    // -------------------------------------------------------------------------
+    // 1. TOAST NOTIFICATION SYSTEM (No alert()/confirm())
+    // -------------------------------------------------------------------------
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const colors = {
+        info: 'bg-slate-900 text-white border-slate-700',
+        success: 'bg-emerald-800 text-white border-emerald-600',
+        warning: 'bg-amber-600 text-slate-950 border-amber-400',
+        danger: 'bg-rose-700 text-white border-rose-500'
+      };
+      toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg border text-xs font-semibold flex items-center gap-2.5 transition-all duration-300 ${colors[type] || colors.info}`;
+      toast.innerHTML = `<i class="fa-solid fa-circle-info"></i><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3400);
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. DATA STORE: GANTT (30 MONTHS), PARTNERS, WPs, DELIVERABLES, CONFIG
+    // -------------------------------------------------------------------------
+    // 30-month timeline labels: 0..2 = Initiation (I-M1..I-M3), 3..26 = M1..M24, 27..29 = Closure (C-M1..C-M3)
+    const GANTT_MONTHS = [
+      'I-M1\nDic26', 'I-M2\nGen27', 'I-M3\nFeb27',
+      'M1\nMar27', 'M2\nApr27', 'M3\nMag27', 'M4\nGiu27', 'M5\nLug27', 'M6\nAgo27',
+      'M7\nSet27', 'M8\nOtt27', 'M9\nNov27', 'M10\nDic27', 'M11\nGen28', 'M12\nFeb28',
+      'M13\nMar28', 'M14\nApr28', 'M15\nMag28', 'M16\nGiu28', 'M17\nLug28', 'M18\nAgo28',
+      'M19\nSet28', 'M20\nOtt28', 'M21\nNov28', 'M22\nDic28', 'M23\nGen29', 'M24\nFeb29',
+      'C-M1\nMar29', 'C-M2\nApr29', 'C-M3\nMag29'
+    ];
+
+    // start & end are 0-based indices into GANTT_MONTHS (0..29); milestones are array of indices
+    const GANTT_TASKS = [
+      {
+        code: 'INIT-1', phase: 'INIT', title: 'Subsidy Contract, Partnership Agreement & Kick-Off',
+        lead: 'PP1 Castrovillari', partners: 'Tutti (PP1–PP6)', start: 0, end: 2, milestones: [2],
+        datesText: 'I-M1 – I-M3 (Dic 2026 – Feb 2027)', deliverables: 'Subsidy Contract, Partnership Agreement',
+        desc: 'Finalizzazione del contratto di sovvenzione con l’Autorità EUI, firma dell’Accordo di Partenariato e insediamento dello Steering Committee.'
+      },
+      {
+        code: 'A1.1', phase: 'WP1', title: 'Analisi Multi-Rischio WUI, Risorse Idriche e Vulnerabilità Turistica',
+        lead: 'PP4 UNICAL (Lab LMSV)', partners: 'PP1, PP2, PP5, PP6', start: 3, end: 6, milestones: [6],
+        datesText: 'M1 – M4 (Mar 2027 – Giu 2027)', deliverables: 'D1.1.1, D1.1.2, O1.1',
+        desc: 'Armonizzazione dataset DEM 20m, ISPRA Carta Natura, Rete Natura 2000, serie NASA FIRMS VIIRS / EFFIS e censimento punti approvvigionamento idrico.'
+      },
+      {
+        code: 'A1.2', phase: 'WP1', title: 'Mappatura Flussi Informativi COC & Requisiti Utente Living Labs',
+        lead: 'PP1 Castrovillari', partners: 'PP2, PP3, PP4, PP5', start: 4, end: 7, milestones: [7],
+        datesText: 'M2 – M5 (Apr 2027 – Lug 2027)', deliverables: 'D1.2.1, D1.2.2',
+        desc: 'Analisi dei processi decisionali dei Centri Operativi Comunali (COC) di Castrovillari e Cassano all’Ionio e definizione dei requisiti funzionali del Digital Twin.'
+      },
+      {
+        code: 'A1.3', phase: 'WP1', title: 'Co-Design Architettura Digital Twin & Modelli Fisici Propagazione',
+        lead: 'PP3 Cluster MINT', partners: 'PP4, PP1, PP2, PP6', start: 6, end: 10, milestones: [10],
+        datesText: 'M4 – M8 (Giu 2027 – Ott 2027)', deliverables: 'D1.3.1, D1.3.2, O1.2',
+        desc: 'Progettazione architetturale dell’MVP, standardizzazione API GIS/IoT e calibrazione dei modelli fisici di propagazione (pendenza, esposizione, combustibile).'
+      },
+      {
+        code: 'A1.4', phase: 'WP1', title: 'Piano Operativo dei Living Labs & Coinvolgimento Stakeholder Locali',
+        lead: 'PP5 GAL Pollino', partners: 'PP1, PP2, PP4', start: 7, end: 12, milestones: [12],
+        datesText: 'M5 – M10 (Lug 2027 – Dic 2027)', deliverables: 'D1.4.1, D1.4.2, O1.3',
+        desc: 'Costituzione dei tavoli permanenti nei due Living Lab municipali con agricoltori, operatori turistici, associazioni di volontariato e gestori forestali.'
+      },
+      {
+        code: 'A2.1', phase: 'WP2', title: 'Sviluppo Core Engine MVP & Hub Geospaziale Interoperabile',
+        lead: 'PP3 Cluster MINT', partners: 'PP4, PP1, PP2', start: 8, end: 15, milestones: [15],
+        datesText: 'M6 – M13 (Ago 2027 – Mar 2028)', deliverables: 'D2.1.1, D2.1.2, O2.1',
+        desc: 'Sviluppo software del Municipal Wildfire Digital Twin, integrazione layer Copernicus/EFFIS/ISPRA e cruscotto operativo per le sale COC.'
+      },
+      {
+        code: 'I1.2.1', phase: 'WP2', title: 'INVESTIMENTO I1.2.1: Infrastruttura Digital Twin, Sensori & Smart QR',
+        lead: 'PP1 & PP2 (con PP3)', partners: 'PP1, PP2, PP3, PP4', start: 5, end: 22, milestones: [15, 22],
+        datesText: 'M3 – M20 (Mag 2027 – Ott 2028)', deliverables: 'I1.2.1 (€450.000), D2.2.1',
+        desc: 'Acquisizione e messa in esercizio dell’infrastruttura (€450k): MVP Core (€170k), GIS/API (€95k), Pilot Configs (€55k), Hosting (€45k), Sensori IoT (€45k), Smart QR (€25k), Handover (€15k).'
+      },
+      {
+        code: 'A2.2', phase: 'WP2', title: 'Installazione Sensori Microclimatici/Idrici & Rete Totem Smart QR',
+        lead: 'PP2 Cassano all\'Ionio', partners: 'PP1, PP3, PP5', start: 12, end: 18, milestones: [18],
+        datesText: 'M10 – M16 (Dic 2027 – Giu 2028)', deliverables: 'D2.2.2, O2.2',
+        desc: 'Dispiegamento sensori di campo su invasi/sorgenti e totem informativi QR presso i sentieri del Pollino (Castrovillari) e i siti storici/costieri di Sibari (Cassano).'
+      },
+      {
+        code: 'A2.3', phase: 'WP2', title: 'Sperimentazione Living Lab 1 (Castrovillari) & Living Lab 2 (Cassano)',
+        lead: 'PP4 UNICAL', partners: 'PP1, PP2, PP3, PP5', start: 15, end: 23, milestones: [19, 23],
+        datesText: 'M13 – M21 (Mar 2028 – Nov 2028)', deliverables: 'D2.3.1, D2.3.2, O2.3',
+        desc: 'Esecuzione dei 6 scenari di stress-test operativo (interfaccia montana Pollino, fascia di confine VIIRS, interfaccia agricolo-costiera Sibari) e validazione KPI.'
+      },
+      {
+        code: 'A2.4', phase: 'WP2', title: 'Integrazione Protocolli COC & Procedure Operativa Inter-Comunale',
+        lead: 'PP6 Regione Calabria', partners: 'PP1, PP2, PP4', start: 18, end: 24, milestones: [24],
+        datesText: 'M16 – M22 (Giu 2028 – Dic 2028)', deliverables: 'D2.4.1, D2.4.2, O2.4',
+        desc: 'Adozione formale dei protocolli operativi condivisi tra i due Comuni e raccordo con la Sala Operativa Regionale di Protezione Civile.'
+      },
+      {
+        code: 'A3.1', phase: 'WP3', title: 'Programma Formativo per 90 Operatori COC, Tecnici & Protezione Civile',
+        lead: 'PP4 UNICAL', partners: 'PP1, PP2, PP3, PP6', start: 14, end: 22, milestones: [18, 22],
+        datesText: 'M12 – M20 (Feb 2028 – Ott 2028)', deliverables: 'D3.1.1, D3.1.2, O3.1',
+        desc: 'Cicli di formazione teorico-pratica sull’uso del Digital Twin e sulla gestione delle emergenze WUI rivolti a 90 operatori tecnici e volontari.'
+      },
+      {
+        code: 'A3.2', phase: 'WP3', title: 'Campagne Smart Communication & Prevenzione con Cittadini e Turisti',
+        lead: 'PP5 GAL Pollino', partners: 'PP1, PP2', start: 11, end: 25, milestones: [17, 25],
+        datesText: 'M9 – M23 (Nov 2027 – Gen 2029)', deliverables: 'D3.2.1, D3.2.2, O3.2',
+        desc: 'Iniziative di sensibilizzazione nelle scuole, strutture ricettive e aziende agricole per la riduzione degli inneschi colposi e la cultura dell’autoprotezione.'
+      },
+      {
+        code: 'A3.3', phase: 'WP3', title: 'Modello di Governance, Sostenibilità Post-Progetto & Policy Brief',
+        lead: 'PP1 Castrovillari', partners: 'PP2, PP4, PP6', start: 20, end: 26, milestones: [26],
+        datesText: 'M18 – M24 (Ago 2028 – Feb 2029)', deliverables: 'D3.3.1, D3.4.1, O3.3',
+        desc: 'Definizione dell’accordo di gestione associata del Digital Twin oltre il 2029 e redazione di raccomandazioni normative per i Piani AIB regionali.'
+      },
+      {
+        code: 'A3.4', phase: 'WP3', title: 'Replicabilità Europea, Transfer Kit & Conferenza Finale EUI',
+        lead: 'PP6 Regione Calabria', partners: 'Tutti (PP1–PP6)', start: 18, end: 26, milestones: [26],
+        datesText: 'M16 – M24 (Giu 2028 – Feb 2029)', deliverables: 'D3.5.1, D3.6.1, D3.6.2, O3.4',
+        desc: 'Rilascio del Replication Toolkit per altre autorità urbane europee esposte al rischio incendi e organizzazione dell’evento finale di capitalizzazione.'
+      },
+      {
+        code: 'CLOS-1', phase: 'CLOS', title: 'Rendicontazione Finale, Audit FESR & Chiusura Amministrativa',
+        lead: 'PP1 Castrovillari', partners: 'Tutti (PP1–PP6)', start: 27, end: 29, milestones: [29],
+        datesText: 'C-M1 – C-M3 (Mar 2029 – Mag 2029)', deliverables: 'Final Report, FLC Certificates',
+        desc: 'Certificazione delle spese finali di primo livello (FLC), verifica del raggiungimento di tutti i target e chiusura amministrativa con il Segretariato EUI.'
+      }
+    ];
+
+    const PARTNERS_DATA = [
+      {
+        id: 'PP1',
+        name: 'Comune di Castrovillari',
+        role: 'Main Urban Authority (MUA)',
+        badgeColor: 'bg-emerald-100 text-emerald-800',
+        budget: 550000,
+        erdf: 440000,
+        cofin: 110000,
+        pct: '22,0%',
+        contacts: 'Fedele Enrico L\'Avena (Project Coordinator) • Sindaco Anna De Gaio',
+        email: 'protocollo@pec.comune.castrovillari.cs.it',
+        territory: '11.837 ha • Quota 0–2.262 m • Parco Nazionale del Pollino',
+        wpRoles: {
+          WP1: 'Lead WP1: Coordinamento co-design, analisi flussi COC e requisiti Living Lab 1.',
+          WP2: 'Co-titolare Investimento I1.2.1 e sede operativa del Living Lab 1 (interfaccia urbano-forestale).',
+          WP3: 'Lead Governance & Sostenibilità post-2029; formazione personale tecnico e COC comunale.'
+        }
+      },
+      {
+        id: 'PP2',
+        name: 'Comune di Cassano all\'Ionio',
+        role: 'Associated Urban Authority (AUA)',
+        badgeColor: 'bg-teal-100 text-teal-800',
+        budget: 340000,
+        erdf: 272000,
+        cofin: 68000,
+        pct: '13,6%',
+        contacts: 'Mario Oriolo (Referente Tecnico) • Sindaco Gianpaolo Iacobini',
+        email: 'protocollo.cassano@asmepec.it',
+        territory: '14.017 ha • Quota 0–661 m • Piana di Sibari & Costa Ionica',
+        wpRoles: {
+          WP1: 'Mappatura vulnerabilità agricolo-costiera, siti storici di Sibari e fabbisogni idrici.',
+          WP2: 'Sede operativa Living Lab 2; installazione sensoristica idrica/climatica e Smart QR.',
+          WP3: 'Adozione protocolli COC integrati con flussi turistici balneari e archeologici.'
+        }
+      },
+      {
+        id: 'PP3',
+        name: 'Cluster Tecnologico Regionale MINT',
+        role: 'Delivery Partner (DP)',
+        badgeColor: 'bg-blue-100 text-blue-800',
+        budget: 680000,
+        erdf: 544000,
+        cofin: 136000,
+        pct: '27,2%',
+        contacts: 'Daniela Fontana • Attilio Alberto Bassi',
+        email: 'segreteria@clustermint.it',
+        territory: 'Ecosistema Regionale ICT, Smart Manufacturing & IoT',
+        wpRoles: {
+          WP1: 'Lead A1.3: Architettura software Digital Twin, API GIS e standard interoperabilità.',
+          WP2: 'Sviluppo Core MVP Engine, integrazione sensori di campo e cruscotto operativo COC.',
+          WP3: 'Supporto tecnico al training degli operatori e pacchetto tecnologico per replicabilità UE.'
+        }
+      },
+      {
+        id: 'PP4',
+        name: 'Università della Calabria (UNICAL)',
+        role: 'Delivery Partner (DP)',
+        badgeColor: 'bg-indigo-100 text-indigo-800',
+        budget: 520000,
+        erdf: 416000,
+        cofin: 104000,
+        pct: '20,8%',
+        contacts: 'Prof. Maria Mazzuca (DIMEG) • Rettore Prof. Gianluigi Greco',
+        email: 'dipartimento.dimeg@pec.unical.it',
+        territory: 'DIMEG & Lab LMSV (Salvatore Nisticò, Ph.D. • Pierpaolo A. Fusaro)',
+        wpRoles: {
+          WP1: 'Lead A1.1: Analisi multi-rischio wildfire (DEM 20m, ISPRA, NASA FIRMS, EFFIS).',
+          WP2: 'Lead WP2: Modellazione fisica propagazione incendi e validazione scientifica nei Living Labs.',
+          WP3: 'Lead WP3: Programma formativo per 90 operatori, valutazione impatti e Policy Brief.'
+        }
+      },
+      {
+        id: 'PP5',
+        name: 'GAL Pollino Sviluppo S.c.a.r.l.',
+        role: 'Delivery Partner (DP)',
+        badgeColor: 'bg-amber-100 text-amber-800',
+        budget: 230000,
+        erdf: 184000,
+        cofin: 46000,
+        pct: '9,2%',
+        contacts: 'Francesco Arcidiacono • Presidente Domenico Pappaterra',
+        email: 'galpollino@pec.it',
+        territory: 'Area Leader Pollino – Sibaritide (Imprese agricole e turistiche)',
+        wpRoles: {
+          WP1: 'Lead A1.4: Animazione territoriale e attivazione stakeholder dei due Living Labs.',
+          WP2: 'Co-design strumenti Smart QR per strutture ricettive, escursionisti e aziende agricole.',
+          WP3: 'Lead A3.2: Campagne di Smart Communication e prevenzione incendi colposi in agricoltura.'
+        }
+      },
+      {
+        id: 'PP6',
+        name: 'Regione Calabria',
+        role: 'Delivery Partner (DP)',
+        badgeColor: 'bg-purple-100 text-purple-800',
+        budget: 180000,
+        erdf: 144000,
+        cofin: 36000,
+        pct: '7,2%',
+        contacts: 'Raffaele Mangiardi • Presidente Roberto Occhiuto',
+        email: 'protezionecivile@pec.regione.calabria.it',
+        territory: 'Dipartimento Protezione Civile & Pianificazione AIB Regionale',
+        wpRoles: {
+          WP1: 'Allineamento con il Piano Regionale AIB, catasto incendi e banche dati regionali.',
+          WP2: 'Lead A2.4: Raccordo operativo tra COC comunali e Sala Operativa Regionale.',
+          WP3: 'Lead A3.4: Capitalizzazione istituzionale, scalabilità regionale e trasferibilità europea.'
+        }
+      }
+    ];
+
+    const WP_SYNTHESIS_DATA = {
+      WP1: {
+        title: 'WP1 — Territorial & Wildfire Risk Baseline, Co-Design & Living Labs Setup',
+        budget: '€ 375.000',
+        lead: 'PP1 — Comune di Castrovillari',
+        duration: 'M1 – M10 (Mar 2027 – Dic 2027)',
+        objective: 'Costruire la base conoscitiva geospaziale ad alta risoluzione (25.854 ha), armonizzare i flussi informativi dei COC e co-progettare con gli stakeholder locali l’architettura del Digital Twin e dei due Living Labs.',
+        rows: [
+          { partner: 'PP1 Castrovillari (Lead)', resp: 'Coordinamento WP1 e analisi processi COC', act: 'A1.1, A1.2, A1.3, A1.4', deliv: 'D1.2.1, D1.2.2', value: 'Allineamento reale tra esigenze operative comunali e strumenti digitali.' },
+          { partner: 'PP2 Cassano all\'Ionio', resp: 'Mappatura criticità pianura/costa e risorse idriche', act: 'A1.1, A1.2, A1.4', deliv: 'Contributo D1.1.2, D1.2.2', value: 'Integrazione del contesto agricolo-turistico di Sibari fin dal co-design.' },
+          { partner: 'PP3 Cluster MINT', resp: 'Specifiche tecniche piattaforma MVP e API GIS', act: 'A1.2, A1.3', deliv: 'D1.3.1, D1.3.2, O1.2', value: 'Architettura modulare, aperta e interoperabile con standard OGC/INSPIRE.' },
+          { partner: 'PP4 UNICAL (Lab LMSV)', resp: 'Analisi scientifica multi-rischio e modelli fisici', act: 'A1.1, A1.3', deliv: 'D1.1.1, D1.1.2, O1.1', value: 'Rigore scientifico basato su DEM 20m, ISPRA, Rete Natura 2000 e NASA FIRMS.' },
+          { partner: 'PP5 GAL Pollino', resp: 'Attivazione tavoli partecipativi Living Labs', act: 'A1.1, A1.4', deliv: 'D1.4.1, D1.4.2, O1.3', value: 'Coinvolgimento diretto di agricoltori, operatori turistici e associazioni.' },
+          { partner: 'PP6 Regione Calabria', resp: 'Coerenza normativa con Piano AIB Regionale', act: 'A1.1, A1.3', deliv: 'Validazione D1.1.1', value: 'Garanzia di compatibilità con la sala operativa regionale di Protezione Civile.' }
+        ]
+      },
+      WP2: {
+        title: 'WP2 — Municipal Wildfire Digital Twin Development, Investment I1.2.1 & Living Labs Pilot',
+        budget: '€ 1.750.000 (incl. Inv. I1.2.1 €450.000)',
+        lead: 'PP4 — Università della Calabria (UNICAL)',
+        duration: 'M3 – M22 (Mag 2027 – Dic 2028)',
+        objective: 'Sviluppare e mettere in esercizio l’infrastruttura del Municipal Wildfire Digital Twin (I1.2.1), installare la sensoristica IoT e i presidi Smart QR, e validare 6 scenari operativi nei Living Lab di Castrovillari e Cassano all’Ionio.',
+        rows: [
+          { partner: 'PP4 UNICAL (Lead)', resp: 'Direzione scientifica WP2 e validazione 6 scenari', act: 'A2.1, A2.3, A2.4', deliv: 'D2.3.1, D2.3.2, O2.3', value: 'Calibrazione empirica del simulatore su morfologie montane e costiere.' },
+          { partner: 'PP1 Castrovillari', resp: 'Co-titolare I1.2.1 & gestione Living Lab 1', act: 'I1.2.1, A2.2, A2.3, A2.4', deliv: 'D2.2.1, O2.2', value: 'Test sul campo in interfaccia urbano-forestale e aree ZSC/ZPS del Pollino.' },
+          { partner: 'PP2 Cassano all\'Ionio', resp: 'Co-titolare I1.2.1 & gestione Living Lab 2', act: 'I1.2.1, A2.2, A2.3, A2.4', deliv: 'D2.2.2, O2.2', value: 'Monitoraggio idrico invasi/canali e protezione patrimonio storico di Sibari.' },
+          { partner: 'PP3 Cluster MINT', resp: 'Sviluppo MVP Engine, Hub GIS e integrazione IoT', act: 'A2.1, I1.2.1, A2.2', deliv: 'D2.1.1, D2.1.2, O2.1', value: 'Realizzazione chiavi in mano della piattaforma digitale e dei cruscotti COC.' },
+          { partner: 'PP5 GAL Pollino', resp: 'Test utente Smart QR con operatori e turisti', act: 'A2.2, A2.3', deliv: 'Feedback D2.3.2', value: 'Verifica dell’usabilità degli strumenti di allerta per visitatori non esperti.' },
+          { partner: 'PP6 Regione Calabria', resp: 'Protocolli interoperabilità COC – Sala Regionale', act: 'A2.4', deliv: 'D2.4.1, D2.4.2, O2.4', value: 'Integrazione istituzionale delle procedure di emergenza sovracomunale.' }
+        ]
+      },
+      WP3: {
+        title: 'WP3 — Capacity Building (90 Operators), Smart Communication, Governance & EU Replication',
+        budget: '€ 327.500',
+        lead: 'PP4 — Università della Calabria (UNICAL)',
+        duration: 'M6 – M24 (Ago 2027 – Feb 2029)',
+        objective: 'Formare 90 operatori tecnici e di protezione civile, attivare campagne di Smart Communication per 15.500 residenti e turisti, assicurare la governance post-2029 e trasferire il modello ad altre città europee.',
+        rows: [
+          { partner: 'PP4 UNICAL (Lead)', resp: 'Coordinamento WP3, didattica 90 operatori e Policy Brief', act: 'A3.1, A3.3, A3.4', deliv: 'D3.1.1, D3.1.2, O3.1', value: 'Trasferimento strutturato di competenze modellistiche e GIS agli enti locali.' },
+          { partner: 'PP1 Castrovillari', resp: 'Accordo di governance associata e hosting evento finale', act: 'A3.1, A3.2, A3.3, A3.4', deliv: 'D3.3.1, D3.4.1, O3.3', value: 'Garanzia di continuità operativa e finanziaria del Digital Twin dopo il 2029.' },
+          { partner: 'PP2 Cassano all\'Ionio', resp: 'Adozione regolamenti comunali e formazione staff COC', act: 'A3.1, A3.2, A3.3', deliv: 'Co-firma D3.3.1', value: 'Consolidamento permanente della prevenzione incendi nella Piana di Sibari.' },
+          { partner: 'PP3 Cluster MINT', resp: 'Moduli pratici su Digital Twin e Transfer Kit tecnico', act: 'A3.1, A3.4', deliv: 'D3.5.1 (Tech Kit)', value: 'Documentazione open-architecture pronta per il riuso in altri comuni UE.' },
+          { partner: 'PP5 GAL Pollino', resp: 'Campagne Smart Communication con cittadini e imprese', act: 'A3.2', deliv: 'D3.2.1, D3.2.2, O3.2', value: 'Riduzione degli inneschi colposi grazie al dialogo diretto con il mondo rurale.' },
+          { partner: 'PP6 Regione Calabria', resp: 'Scalabilità regionale e rete europea EUI', act: 'A3.3, A3.4', deliv: 'D3.6.1, D3.6.2, O3.4', value: 'Estensione del modello Twin4forestLife ai comuni calabresi ed europei.' }
+        ]
+      }
+    };
+
+    // 38 Deliverables, Outputs and Investment records
+    const DELIVERABLES_LIST = [
+      { code: 'D0.1', wp: 'INIT', type: 'Deliverable', title: 'Subsidy Contract & Signed Partnership Agreement', lead: 'PP1 Castrovillari', due: 'I-M3' },
+      { code: 'D0.2', wp: 'INIT', type: 'Deliverable', title: 'Project Management Handbook & Quality Assurance Plan', lead: 'PP1 Castrovillari', due: 'I-M3' },
+      { code: 'D1.1.1', wp: 'WP1', type: 'Deliverable', title: 'Multi-Factor Wildfire Risk & Morphology Baseline Report (Castrovillari & Cassano)', lead: 'PP4 UNICAL', due: 'M4' },
+      { code: 'D1.1.2', wp: 'WP1', type: 'Deliverable', title: 'Geospatial Inventory of Firefighting Water Resources & Tourist Vulnerability', lead: 'PP4 UNICAL', due: 'M4' },
+      { code: 'O1.1', wp: 'WP1', type: 'Output', title: 'Harmonized Municipal GIS Dataset (EPSG:32633, 25.854 ha)', lead: 'PP4 UNICAL', due: 'M4' },
+      { code: 'D1.2.1', wp: 'WP1', type: 'Deliverable', title: 'Assessment of Municipal COC Decision Workflows & Data Gaps', lead: 'PP1 Castrovillari', due: 'M5' },
+      { code: 'D1.2.2', wp: 'WP1', type: 'Deliverable', title: 'User Requirements Specification for Living Lab 1 & Living Lab 2', lead: 'PP1 Castrovillari', due: 'M5' },
+      { code: 'D1.3.1', wp: 'WP1', type: 'Deliverable', title: 'Municipal Wildfire Digital Twin Software Architecture & API Blueprint', lead: 'PP3 Cluster MINT', due: 'M8' },
+      { code: 'D1.3.2', wp: 'WP1', type: 'Deliverable', title: 'Fire Spread Physical Calibration & Fuel Moisture Model Protocol', lead: 'PP4 UNICAL', due: 'M8' },
+      { code: 'O1.2', wp: 'WP1', type: 'Output', title: 'Validated Digital Twin Technical Architecture', lead: 'PP3 Cluster MINT', due: 'M8' },
+      { code: 'D1.4.1', wp: 'WP1', type: 'Deliverable', title: 'Stakeholder Engagement Strategy & Living Labs Charter', lead: 'PP5 GAL Pollino', due: 'M10' },
+      { code: 'D1.4.2', wp: 'WP1', type: 'Deliverable', title: 'Co-Design Workshops Report (Castrovillari & Cassano all\'Ionio)', lead: 'PP5 GAL Pollino', due: 'M10' },
+      { code: 'O1.3', wp: 'WP1', type: 'Output', title: '2 Operational Municipal Wildfire Living Labs Established', lead: 'PP5 GAL Pollino', due: 'M10' },
+      { code: 'D2.1.1', wp: 'WP2', type: 'Deliverable', title: 'Digital Twin Core MVP Engine & Real-Time Simulation Module', lead: 'PP3 Cluster MINT', due: 'M13' },
+      { code: 'D2.1.2', wp: 'WP2', type: 'Deliverable', title: 'Interoperable GIS Hub (ISPRA, Natura 2000, NASA FIRMS, EFFIS)', lead: 'PP3 Cluster MINT', due: 'M13' },
+      { code: 'O2.1', wp: 'WP2', type: 'Output', title: 'Operational Municipal Wildfire Digital Twin Platform (MVP)', lead: 'PP3 Cluster MINT', due: 'M13' },
+      { code: 'I1.2.1', wp: 'WP2', type: 'Investment', title: 'Infrastructure Investment: Digital Twin Platform, IoT Field Sensors & Smart QR (€450.000)', lead: 'PP1 & PP2', due: 'M20' },
+      { code: 'D2.2.1', wp: 'WP2', type: 'Deliverable', title: 'Deployment Report: Microclimatic & Water Level IoT Sensor Network', lead: 'PP3 Cluster MINT', due: 'M16' },
+      { code: 'D2.2.2', wp: 'WP2', type: 'Deliverable', title: 'Deployment Report: Smart QR Safety Totems on Pollino Trails & Sibari Sites', lead: 'PP2 Cassano', due: 'M16' },
+      { code: 'O2.2', wp: 'WP2', type: 'Output', title: 'Field Sensor Network & Smart QR Citizen/Tourist Warning System', lead: 'PP2 Cassano', due: 'M16' },
+      { code: 'D2.3.1', wp: 'WP2', type: 'Deliverable', title: 'Mid-Term Stress-Test Report on 3 Priority WUI Scenarios', lead: 'PP4 UNICAL', due: 'M17' },
+      { code: 'D2.3.2', wp: 'WP2', type: 'Deliverable', title: 'Comprehensive Validation Report of 6 Living Lab Simulation Scenarios', lead: 'PP4 UNICAL', due: 'M21' },
+      { code: 'O2.3', wp: 'WP2', type: 'Output', title: '6 Validated Wildfire Prevention & Emergency Response Scenarios', lead: 'PP4 UNICAL', due: 'M21' },
+      { code: 'D2.4.1', wp: 'WP2', type: 'Deliverable', title: 'Standard Operating Procedures (SOPs) for Digital Twin Integration in COCs', lead: 'PP6 Regione Calabria', due: 'M22' },
+      { code: 'D2.4.2', wp: 'WP2', type: 'Deliverable', title: 'Cross-Border Municipal Buffer-Zone Protocol (Castrovillari–Cassano)', lead: 'PP1 & PP2', due: 'M22' },
+      { code: 'O2.4', wp: 'WP2', type: 'Output', title: 'Adopted Inter-Municipal Civil Protection Digital Twin Protocol', lead: 'PP6 Regione Calabria', due: 'M22' },
+      { code: 'D3.1.1', wp: 'WP3', type: 'Deliverable', title: 'Training Curriculum & Simulation Exercises Manual for Civil Protection', lead: 'PP4 UNICAL', due: 'M16' },
+      { code: 'D3.1.2', wp: 'WP3', type: 'Deliverable', title: 'Capacity Building Completion Report (90 Certified Operators)', lead: 'PP4 UNICAL', due: 'M20' },
+      { code: 'O3.1', wp: 'WP3', type: 'Output', title: '90 Municipal & Civil Protection Operators Trained on Digital Twin', lead: 'PP4 UNICAL', due: 'M20' },
+      { code: 'D3.2.1', wp: 'WP3', type: 'Deliverable', title: 'Smart Communication Campaign Kit for Residents, Farmers & Tourists', lead: 'PP5 GAL Pollino', due: 'M15' },
+      { code: 'D3.2.2', wp: 'WP3', type: 'Deliverable', title: 'Community & Tourist Risk Awareness Impact Assessment (15.500 Pop.)', lead: 'PP5 GAL Pollino', due: 'M23' },
+      { code: 'O3.2', wp: 'WP3', type: 'Output', title: '15.500 Citizens & Tourists Reached by Smart Wildfire Safety Tools', lead: 'PP5 GAL Pollino', due: 'M23' },
+      { code: 'D3.3.1', wp: 'WP3', type: 'Deliverable', title: 'Post-2029 Inter-Municipal Governance & Financial Sustainability Plan', lead: 'PP1 Castrovillari', due: 'M24' },
+      { code: 'D3.4.1', wp: 'WP3', type: 'Deliverable', title: 'Policy Recommendations for Regional AIB & Natura 2000 Fire Prevention', lead: 'PP4 & PP6', due: 'M24' },
+      { code: 'O3.3', wp: 'WP3', type: 'Output', title: 'Signed Long-Term Governance Agreement for Digital Twin Operation', lead: 'PP1 Castrovillari', due: 'M24' },
+      { code: 'D3.5.1', wp: 'WP3', type: 'Deliverable', title: 'European Urban Replication & Open-Architecture Transfer Toolkit', lead: 'PP3 & PP6', due: 'M24' },
+      { code: 'D3.6.1', wp: 'WP3', type: 'Deliverable', title: 'EUI Capitalisation & Final European Conference Proceedings', lead: 'PP6 Regione Calabria', due: 'M24' },
+      { code: 'O3.4', wp: 'WP3', type: 'Output', title: 'EU Replication Package & Final Closure Audit Report (C-M3)', lead: 'PP1 & PP6', due: 'C-M3' }
+    ];
+
+    const DEFAULT_CONFIG_ACTIONS = [
+      { partner: 'PP1 Castrovillari', name: 'Coordinamento MUA, Governance & Living Lab 1 (Pollino)', priority: 'Alta', budget: 320000, timeline: 'M1–M24', status: 'In Corso' },
+      { partner: 'PP1 Castrovillari', name: 'Quota Investimento I1.2.1 (Core Digital Twin & Sensori LL1)', priority: 'Alta', budget: 230000, timeline: 'M3–M20', status: 'Pianificata' },
+      { partner: 'PP2 Cassano all\'Ionio', name: 'Gestione Living Lab 2 (Sibari) & Logistica Risorse Idriche', priority: 'Alta', budget: 190000, timeline: 'M1–M24', status: 'In Corso' },
+      { partner: 'PP2 Cassano all\'Ionio', name: 'Quota Investimento I1.2.1 (Smart QR & Sensori Invasi LL2)', priority: 'Alta', budget: 150000, timeline: 'M6–M20', status: 'Pianificata' },
+      { partner: 'PP3 Cluster MINT', name: 'Sviluppo Core MVP Engine, Hub GIS/API & Cloud Hosting', priority: 'Alta', budget: 480000, timeline: 'M4–M18', status: 'In Corso' },
+      { partner: 'PP3 Cluster MINT', name: 'Integrazione IoT sul campo & Transfer Kit Tecnologico', priority: 'Media', budget: 200000, timeline: 'M10–M24', status: 'Pianificata' },
+      { partner: 'PP4 UNICAL', name: 'Analisi Multi-Rischio Lab LMSV & Modellazione Fisica Fuoco', priority: 'Alta', budget: 290000, timeline: 'M1–M16', status: 'Validata' },
+      { partner: 'PP4 UNICAL', name: 'Validazione 6 Scenari Living Labs & Training 90 Operatori', priority: 'Alta', budget: 230000, timeline: 'M12–M24', status: 'Pianificata' },
+      { partner: 'PP5 GAL Pollino', name: 'Animazione Stakeholder Living Labs & Rete Imprese', priority: 'Media', budget: 120000, timeline: 'M3–M18', status: 'In Corso' },
+      { partner: 'PP5 GAL Pollino', name: 'Campagne Smart Communication Cittadini, Turisti & Agricoltori', priority: 'Alta', budget: 110000, timeline: 'M9–M23', status: 'Pianificata' },
+      { partner: 'PP6 Regione Calabria', name: 'Raccordo COC – Sala Operativa Regionale & Protocolli AIB', priority: 'Alta', budget: 100000, timeline: 'M6–M22', status: 'In Corso' },
+      { partner: 'PP6 Regione Calabria', name: 'Capitalizzazione Regionale & Replicabilità Europea EUI', priority: 'Media', budget: 80000, timeline: 'M16–M24', status: 'Pianificata' }
+    ];
+
+    let configActions = JSON.parse(JSON.stringify(DEFAULT_CONFIG_ACTIONS));
+
+    // Chart instances registry to destroy cleanly before re-rendering
+    const charts = {};
+
+    // -------------------------------------------------------------------------
+    // 3. NAVIGATION & TAB SWITCHING
+    // -------------------------------------------------------------------------
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      const target = document.getElementById(tabId);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-emerald-600', 'text-white', 'shadow-sm');
+        if (btn.id === 'btn-tab-livinglabs') {
+          btn.classList.add('text-amber-200');
+        } else {
+          btn.classList.add('text-slate-300');
+        }
+      });
+
+      const activeBtn = document.getElementById('btn-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-emerald-600', 'text-white', 'shadow-sm');
+        activeBtn.classList.remove('text-slate-300', 'text-amber-200');
+      }
+
+      // Render/resize tab-specific visuals
+      if (tabId === 'tab-overview') renderOverviewCharts();
+      if (tabId === 'tab-livinglabs') renderLivingLabsCharts();
+      if (tabId === 'tab-simulator') {
+        resizeSimCanvas();
+        drawSimCanvas();
+      }
+      if (tabId === 'tab-configurator') renderConfiguratorCharts();
+    }
+
+    function jumpToPartner(partnerId) {
+      switchTab('tab-partners');
+      filterPartners(partnerId);
+    }
+
+    function launchSimulatorPreset(preset) {
+      switchTab('tab-simulator');
+      const select = document.getElementById('simLabSelect');
+      select.value = preset;
+      if (preset === 'castrovillari') {
+        document.getElementById('simWindSpeed').value = 32;
+        document.getElementById('simWindDir').value = 210;
+        document.getElementById('simTemp').value = 33;
+        document.getElementById('simDryness').value = 74;
+        document.getElementById('simSlope').value = 34;
+      } else if (preset === 'cassano') {
+        document.getElementById('simWindSpeed').value = 38;
+        document.getElementById('simWindDir').value = 240;
+        document.getElementById('simTemp').value = 39;
+        document.getElementById('simDryness').value = 86;
+        document.getElementById('simSlope').value = 8;
+      } else if (preset === 'border') {
+        document.getElementById('simWindSpeed').value = 42;
+        document.getElementById('simWindDir').value = 225;
+        document.getElementById('simTemp').value = 37;
+        document.getElementById('simDryness').value = 82;
+        document.getElementById('simSlope').value = 24;
+      }
+      updateSimLabels();
+      changeSimLab();
+      triggerRandomIgnition();
+      showToast(`Scenario "${select.options[select.selectedIndex].text}" caricato nel Digital Twin`, 'success');
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. TAB 1 CHARTS (OVERVIEW)
+    // -------------------------------------------------------------------------
+    function renderOverviewCharts() {
+      const ctx1 = document.getElementById('overviewPartnerChart');
+      if (ctx1) {
+        if (charts.overviewPartner) charts.overviewPartner.destroy();
+        charts.overviewPartner = new Chart(ctx1, {
+          type: 'bar',
+          data: {
+            labels: ['PP1 Castrovillari', 'PP2 Cassano', 'PP3 Cluster MINT', 'PP4 UNICAL', 'PP5 GAL Pollino', 'PP6 Reg. Calabria'],
+            datasets: [
+              {
+                label: 'Contributo FESR (80%)',
+                data: [440000, 272000, 544000, 416000, 184000, 144000],
+                backgroundColor: '#10b981',
+                borderRadius: 6
+              },
+              {
+                label: 'Cofinanziamento Partner (20%)',
+                data: [110000, 68000, 136000, 104000, 46000, 36000],
+                backgroundColor: '#0f172a',
+                borderRadius: 6
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { stacked: true, grid: { display: false } },
+              y: {
+                stacked: true,
+                ticks: { callback: v => '€' + (v / 1000) + 'k' }
+              }
+            },
+            plugins: {
+              legend: { position: 'bottom' },
+              tooltip: {
+                callbacks: {
+                  label: ctx => `${ctx.dataset.label}: € ${ctx.raw.toLocaleString('it-IT')}`
+                }
+              }
+            }
+          }
+        });
+      }
+
+      const ctx2 = document.getElementById('overviewWpChart');
+      if (ctx2) {
+        if (charts.overviewWp) charts.overviewWp.destroy();
+        charts.overviewWp = new Chart(ctx2, {
+          type: 'doughnut',
+          data: {
+            labels: [
+              'Initiation (€40k)',
+              'WP1 Co-Design (€375k)',
+              'WP2 Digital Twin & LL (€1.75M)',
+              'WP3 Training & Scale-Up (€327.5k)',
+              'Closure (€7.5k)'
+            ],
+            datasets: [{
+              data: [40000, 375000, 1750000, 327500, 7500],
+              backgroundColor: ['#64748b', '#10b981', '#2563eb', '#f59e0b', '#9333ea'],
+              borderWidth: 2,
+              borderColor: '#ffffff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '62%',
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+              tooltip: {
+                callbacks: {
+                  label: ctx => `${ctx.label}: € ${ctx.raw.toLocaleString('it-IT')}`
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. TAB 2: INTERACTIVE 30-MONTH GANTT CHART
+    // -------------------------------------------------------------------------
+    function initGantt() {
+      const headerRow = document.getElementById('ganttMonthHeader');
+      GANTT_MONTHS.forEach((m, idx) => {
+        const th = document.createElement('th');
+        const lines = m.split('\n');
+        let bgClass = 'bg-slate-100';
+        if (idx < 3) bgClass = 'bg-slate-200/70';
+        else if (idx >= 27) bgClass = 'bg-purple-50';
+        th.className = `px-1 py-1.5 text-center border-r border-slate-200 min-w-[38px] ${bgClass}`;
+        th.innerHTML = `<div class="font-bold text-slate-800">${lines[0]}</div><div class="text-[9px] text-slate-500">${lines[1]}</div>`;
+        headerRow.appendChild(th);
+      });
+      renderGanttRows('ALL');
+    }
+
+    function filterGantt(phaseFilter) {
+      document.querySelectorAll('.gantt-filter-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-slate-900', 'text-white');
+        btn.classList.add('bg-slate-100', 'text-slate-700');
+      });
+      const active = document.querySelector(`.gantt-filter-btn[data-filter="${phaseFilter}"]`);
+      if (active) {
+        active.classList.add('active', 'bg-slate-900', 'text-white');
+        active.classList.remove('bg-slate-100', 'text-slate-700');
+      }
+      renderGanttRows(phaseFilter);
+    }
+
+    function renderGanttRows(phaseFilter) {
+      const tbody = document.getElementById('ganttTableBody');
+      tbody.innerHTML = '';
+
+      const phaseColors = {
+        INIT: 'bg-slate-500 hover:bg-slate-600',
+        WP1: 'bg-emerald-500 hover:bg-emerald-600',
+        WP2: 'bg-blue-600 hover:bg-blue-700',
+        WP3: 'bg-amber-500 hover:bg-amber-600',
+        CLOS: 'bg-purple-600 hover:bg-purple-700'
+      };
+
+      const filtered = phaseFilter === 'ALL'
+        ? GANTT_TASKS
+        : GANTT_TASKS.filter(t => t.phase === phaseFilter);
+
+      filtered.forEach((task, rowIdx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50/90 transition-colors cursor-pointer';
+        tr.onclick = () => inspectGanttTask(task);
+
+        // Sticky Left Task Cell
+        const tdLeft = document.createElement('td');
+        tdLeft.className = 'gantt-sticky-col px-3.5 py-2.5 border-r border-slate-200';
+        tdLeft.innerHTML = `
+          <div class="flex items-center justify-between gap-1.5">
+            <span class="font-mono font-extrabold text-[11px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-800">${task.code}</span>
+            <span class="text-[10px] font-semibold text-slate-500">${task.lead}</span>
+          </div>
+          <div class="font-semibold text-slate-900 text-xs mt-1 leading-snug">${task.title}</div>
+        `;
+        tr.appendChild(tdLeft);
+
+        // 30 Month Cells
+        for (let m = 0; m < 30; m++) {
+          const td = document.createElement('td');
+          td.className = 'p-0.5 border-r border-slate-100 text-center relative h-12';
+
+          if (m >= task.start && m <= task.end) {
+            const isStart = m === task.start;
+            const isEnd = m === task.end;
+            const isMilestone = task.milestones.includes(m);
+            const bar = document.createElement('div');
+            bar.className = `h-6 w-full flex items-center justify-center text-white font-bold shadow-xs transition-transform hover:scale-105 ${phaseColors[task.phase]} ${isStart ? 'rounded-l-md' : ''} ${isEnd ? 'rounded-r-md' : ''}`;
+            bar.title = `${task.code}: ${task.title} (${task.datesText})`;
+            if (isMilestone) {
+              bar.innerHTML = `<span class="text-amber-200 text-sm drop-shadow" title="Deliverable Milestone">◆</span>`;
+            }
+            td.appendChild(bar);
+          }
+          tr.appendChild(td);
+        }
+
+        tbody.appendChild(tr);
+        if (rowIdx === 0) inspectGanttTask(task);
+      });
+    }
+
+    function inspectGanttTask(task) {
+      document.getElementById('inspCode').textContent = task.code;
+      document.getElementById('inspPhase').textContent = `Fase: ${task.phase}`;
+      document.getElementById('inspDates').innerHTML = `<i class="fa-regular fa-clock mr-1"></i>${task.datesText}`;
+      document.getElementById('inspTitle').textContent = task.title;
+      document.getElementById('inspDesc').textContent = task.desc;
+      document.getElementById('inspLead').textContent = task.lead;
+      document.getElementById('inspPartners').textContent = task.partners;
+      document.getElementById('inspDeliverables').textContent = task.deliverables;
+    }
+
+    // -------------------------------------------------------------------------
+    // 6. TAB 3: PARTNERS & ROLES
+    // -------------------------------------------------------------------------
+    function filterPartners(partnerId) {
+      document.querySelectorAll('.partner-pill').forEach(p => {
+        p.classList.remove('active', 'bg-emerald-600', 'text-white');
+        p.classList.add('bg-slate-100', 'text-slate-700');
+      });
+      const btn = document.querySelector(`.partner-pill[data-partner="${partnerId}"]`);
+      if (btn) {
+        btn.classList.add('active', 'bg-emerald-600', 'text-white');
+        btn.classList.remove('bg-slate-100', 'text-slate-700');
+      }
+
+      const grid = document.getElementById('partnerCardsGrid');
+      grid.innerHTML = '';
+
+      const list = partnerId === 'ALL' ? PARTNERS_DATA : PARTNERS_DATA.filter(p => p.id === partnerId);
+      list.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between space-y-4';
+        card.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${p.badgeColor}">${p.id} • ${p.role}</span>
+                <h3 class="text-base font-extrabold text-slate-900 mt-1.5">${p.name}</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5"><i class="fa-solid fa-location-dot text-emerald-600 mr-1"></i>${p.territory}</p>
+              </div>
+              <div class="text-right shrink-0">
+                <div class="text-base font-mono font-extrabold text-slate-900">€ ${(p.budget / 1000).toFixed(0)}k</div>
+                <div class="text-[10px] font-semibold text-emerald-700">${p.pct} Totale</div>
+              </div>
+            </div>
+
+            <!-- Budget Progress Bar -->
+            <div>
+              <div class="flex justify-between text-[11px] text-slate-600 mb-1">
+                <span>FESR 80%: <strong>€ ${p.erdf.toLocaleString('it-IT')}</strong></span>
+                <span>Co-fin 20%: <strong>€ ${p.cofin.toLocaleString('it-IT')}</strong></span>
+              </div>
+              <div class="w-full h-2 bg-slate-100 rounded-full overflow-hidden flex">
+                <div class="bg-emerald-500 h-full" style="width: 80%"></div>
+                <div class="bg-slate-800 h-full" style="width: 20%"></div>
+              </div>
+            </div>
+
+            <!-- Official Contacts -->
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 text-xs space-y-1">
+              <div class="font-semibold text-slate-800"><i class="fa-solid fa-user-tie text-slate-500 mr-1.5"></i>${p.contacts}</div>
+              <div class="font-mono text-[11px] text-blue-700 truncate"><i class="fa-solid fa-envelope text-slate-400 mr-1.5"></i>${p.email}</div>
+            </div>
+
+            <!-- WP1 / WP2 / WP3 Roles -->
+            <div class="space-y-1.5 text-xs">
+              <div class="p-2 rounded-lg bg-emerald-50/60 border border-emerald-100">
+                <strong class="text-emerald-900">WP1:</strong> <span class="text-slate-700">${p.wpRoles.WP1}</span>
+              </div>
+              <div class="p-2 rounded-lg bg-blue-50/60 border border-blue-100">
+                <strong class="text-blue-900">WP2:</strong> <span class="text-slate-700">${p.wpRoles.WP2}</span>
+              </div>
+              <div class="p-2 rounded-lg bg-amber-50/60 border border-amber-100">
+                <strong class="text-amber-900">WP3:</strong> <span class="text-slate-700">${p.wpRoles.WP3}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // 7. TAB 4: SINTESI WP SUB-TABS
+    // -------------------------------------------------------------------------
+    function selectWpSubTab(wpKey) {
+      document.querySelectorAll('.wp-sub-btn').forEach(b => {
+        b.classList.remove('active', 'bg-emerald-600', 'text-white', 'shadow-sm');
+        b.classList.add('bg-slate-100', 'text-slate-700');
+      });
+      const active = document.getElementById('wp-sub-' + wpKey);
+      if (active) {
+        active.classList.add('active', 'bg-emerald-600', 'text-white', 'shadow-sm');
+        active.classList.remove('bg-slate-100', 'text-slate-700');
+      }
+
+      const data = WP_SYNTHESIS_DATA[wpKey];
+      const container = document.getElementById('wpMatrixContainer');
+      container.innerHTML = `
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-4 border-b border-slate-200">
+          <div>
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">Lead: ${data.lead}</span>
+              <span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono font-semibold">${data.duration}</span>
+            </div>
+            <h3 class="text-lg font-extrabold text-slate-900 mt-1.5">${data.title}</h3>
+            <p class="text-xs text-slate-600 mt-1 max-w-4xl">${data.objective}</p>
+          </div>
+          <div class="text-left lg:text-right shrink-0">
+            <span class="text-xs text-slate-500 block">Budget Allocato</span>
+            <span class="text-xl font-mono font-extrabold text-emerald-700">${data.budget}</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto mt-4">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 text-slate-800 border-b border-slate-300">
+                <th class="p-3">Partner</th>
+                <th class="p-3">Responsabilità nel WP</th>
+                <th class="p-3">Attività</th>
+                <th class="p-3">Deliverables / Output</th>
+                <th class="p-3">Valore Aggiunto Specifico</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200">
+              ${data.rows.map(r => `
+                <tr class="hover:bg-slate-50">
+                  <td class="p-3 font-bold text-slate-900 whitespace-nowrap">${r.partner}</td>
+                  <td class="p-3 text-slate-700">${r.resp}</td>
+                  <td class="p-3 font-mono font-semibold text-blue-700 whitespace-nowrap">${r.act}</td>
+                  <td class="p-3 font-mono font-semibold text-emerald-700 whitespace-nowrap">${r.deliv}</td>
+                  <td class="p-3 text-slate-600">${r.value}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    // -------------------------------------------------------------------------
+    // 8. TAB 5: DELIVERABLES FILTERABLE TABLE
+    // -------------------------------------------------------------------------
+    function filterDeliverables() {
+      const q = document.getElementById('delivSearchInput').value.toLowerCase().trim();
+      const wp = document.getElementById('delivWpFilter').value;
+      const type = document.getElementById('delivTypeFilter').value;
+
+      const filtered = DELIVERABLES_LIST.filter(item => {
+        const matchWp = wp === 'ALL' || item.wp === wp;
+        const matchType = type === 'ALL' || item.type === type;
+        const matchText = !q ||
+          item.code.toLowerCase().includes(q) ||
+          item.title.toLowerCase().includes(q) ||
+          item.lead.toLowerCase().includes(q);
+        return matchWp && matchType && matchText;
+      });
+
+      const tbody = document.getElementById('deliverablesTableBody');
+      tbody.innerHTML = filtered.map(d => {
+        const typeBadge = d.type === 'Investment'
+          ? 'bg-amber-100 text-amber-900 border border-amber-300'
+          : d.type === 'Output'
+            ? 'bg-emerald-100 text-emerald-800'
+            : 'bg-blue-50 text-blue-800';
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="p-3 font-mono font-extrabold text-slate-900">${d.code}</td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-100 font-bold text-slate-700">${d.wp}</span></td>
+            <td class="p-3"><span class="px-2 py-0.5 rounded font-semibold ${typeBadge}">${d.type}</span></td>
+            <td class="p-3 font-medium text-slate-800">${d.title}</td>
+            <td class="p-3 text-slate-600 font-semibold">${d.lead}</td>
+            <td class="p-3 text-center font-mono font-bold text-slate-700">${d.due}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('delivCountLabel').textContent = `Visualizzati ${filtered.length} di ${DELIVERABLES_LIST.length} elementi`;
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. TAB 6 CHARTS (LIVING LABS & SCIENTIFIC RISK ANALYSIS)
+    // -------------------------------------------------------------------------
+    function renderLivingLabsCharts() {
+      // Chart A: Simulated Wildfire Risk Classes (Table 8 of Technical Report)
+      const ctxRisk = document.getElementById('llRiskComparisonChart');
+      if (ctxRisk) {
+        if (charts.llRisk) charts.llRisk.destroy();
+        charts.llRisk = new Chart(ctxRisk, {
+          type: 'bar',
+          data: {
+            labels: ['0 - Nodata', '1 - Molto Basso', '2 - Basso', '3 - Medio', '4 - Alto', '5 - Molto Alto'],
+            datasets: [
+              {
+                label: 'Castrovillari (% Sup. Comunale)',
+                data: [5.7, 3.7, 38.9, 42.2, 8.3, 1.1],
+                backgroundColor: '#10b981',
+                borderRadius: 6
+              },
+              {
+                label: 'Cassano all\'Ionio (% Sup. Comunale)',
+                data: [4.7, 0.6, 4.3, 77.5, 12.0, 1.0],
+                backgroundColor: '#f59e0b',
+                borderRadius: 6
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 85,
+                ticks: { callback: v => v + '%' }
+              }
+            },
+            plugins: {
+              legend: { position: 'bottom' },
+              tooltip: {
+                callbacks: {
+                  label: ctx => `${ctx.dataset.label}: ${ctx.raw}%`
+                }
+              }
+            }
+          }
+        });
+      }
+
+      // Chart B: ISPRA Carta Natura EUNIS L2 (Table 2 of Technical Report)
+      const ctxHab = document.getElementById('llHabitatChart');
+      if (ctxHab) {
+        if (charts.llHab) charts.llHab.destroy();
+        charts.llHab = new Chart(ctxHab, {
+          type: 'bar',
+          data: {
+            labels: [
+              '83 - Colture arboree',
+              '82 - Seminativi',
+              '32 - Macchia med.',
+              '86 - Aree urbane',
+              '41 - Boschi caducifogli',
+              '34 - Praterie steppiche',
+              '42 - Boschi conifere',
+              '36 - Praterie alpine',
+              '16 - Dune costiere',
+              '44 - Boschi ripariali'
+            ],
+            datasets: [{
+              label: 'Superficie Aggregata (ha)',
+              data: [11110, 8583, 2193, 1939, 1754, 849, 807, 344, 232, 228],
+              backgroundColor: [
+                '#ca8a04', '#eab308', '#d97706', '#94a3b8', '#16a34a',
+                '#fde047', '#991b1b', '#84cc16', '#cbd5e1', '#0d9488'
+              ],
+              borderRadius: 5
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                ticks: { callback: v => v.toLocaleString('it-IT') + ' ha' }
+              }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: ctx => `Superficie: ${ctx.raw.toLocaleString('it-IT')} ha`
+                }
+              }
+            }
+          }
+        });
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 10. TAB 7: INTERACTIVE 2D DIGITAL TWIN WILDFIRE SIMULATOR
+    // -------------------------------------------------------------------------
+    let simRunning = false;
+    let simTimer = null;
+    let simMinutes = 0;
+    let ignitions = []; // { xNorm, yNorm, radius, age }
+
+    const LAB_PROFILES = {
+      castrovillari: {
+        title: 'Mappa Geospaziale: Living Lab 1 — Castrovillari (Interfaccia Pollino • EPSG:32633)',
+        waterPoints: [
+          { x: 0.25, y: 0.30, label: 'Sorgente Pedemontana N' },
+          { x: 0.42, y: 0.55, label: 'Serbatoio Civita' },
+          { x: 0.68, y: 0.42, label: 'Inv. Fiume Coscile' },
+          { x: 0.31, y: 0.74, label: 'Sorgente Sud' }
+        ],
+        cocPoints: [
+          { x: 0.36, y: 0.62, label: 'COC Castrovillari' },
+          { x: 0.22, y: 0.22, label: 'Presidio ZSC/ZPS Pollino' },
+          { x: 0.55, y: 0.35, label: 'Rifugio / Smart QR #4' }
+        ],
+        hotZones: [
+          { x: 0.28, y: 0.26, r: 0.18, color: 'rgba(239, 68, 68, 0.35)' },
+          { x: 0.58, y: 0.48, r: 0.22, color: 'rgba(245, 158, 11, 0.32)' }
+        ]
+      },
+      cassano: {
+        title: 'Mappa Geospaziale: Living Lab 2 — Cassano all\'Ionio (Sibari & Costa • EPSG:32633)',
+        waterPoints: [
+          { x: 0.22, y: 0.38, label: 'Canale Consortile Ovest' },
+          { x: 0.78, y: 0.65, label: 'Bacino Litoraneo' }
+        ],
+        cocPoints: [
+          { x: 0.35, y: 0.40, label: 'COC Cassano Centro' },
+          { x: 0.62, y: 0.62, label: 'Parco Archeologico Sibari' },
+          { x: 0.85, y: 0.55, label: 'Pineta Costiera / Smart QR' }
+        ],
+        hotZones: [
+          { x: 0.45, y: 0.45, r: 0.28, color: 'rgba(245, 158, 11, 0.36)' },
+          { x: 0.82, y: 0.58, r: 0.16, color: 'rgba(239, 68, 68, 0.38)' }
+        ]
+      },
+      border: {
+        title: 'Mappa Geospaziale: Fascia di Confine Castrovillari–Cassano (Hotspot VIIRS 2012–2025)',
+        waterPoints: [
+          { x: 0.28, y: 0.35, label: 'Sorgente Pedemontana' },
+          { x: 0.64, y: 0.68, label: 'Canale Piana di Sibari' }
+        ],
+        cocPoints: [
+          { x: 0.22, y: 0.52, label: 'COC Castrovillari' },
+          { x: 0.78, y: 0.48, label: 'COC Cassano all\'Ionio' },
+          { x: 0.50, y: 0.50, label: 'Checkpoint Buffer Zone' }
+        ],
+        hotZones: [
+          { x: 0.50, y: 0.48, r: 0.26, color: 'rgba(239, 68, 68, 0.42)' },
+          { x: 0.34, y: 0.30, r: 0.18, color: 'rgba(245, 158, 11, 0.32)' }
+        ]
+      }
+    };
+
+    function updateSimLabels() {
+      const wind = document.getElementById('simWindSpeed').value;
+      const dir = document.getElementById('simWindDir').value;
+      const temp = document.getElementById('simTemp').value;
+      const dry = document.getElementById('simDryness').value;
+      const slope = document.getElementById('simSlope').value;
+
+      document.getElementById('valWindSpeed').textContent = `${wind} km/h`;
+      document.getElementById('valWindDir').textContent = `${dir}°`;
+      document.getElementById('valTemp').textContent = `${temp} °C`;
+      document.getElementById('valDryness').textContent = `${dry}%`;
+      document.getElementById('valSlope').textContent = `${slope}°`;
+      drawSimCanvas();
+    }
+
+    function changeSimLab() {
+      const lab = document.getElementById('simLabSelect').value;
+      document.getElementById('simMapHeaderTitle').textContent = LAB_PROFILES[lab].title;
+      drawSimCanvas();
+    }
+
+    function resizeSimCanvas() {
+      const container = document.getElementById('simCanvasContainer');
+      const canvas = document.getElementById('simCanvas');
+      if (!container || !canvas) return;
+      const rect = container.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+      }
+    }
+
+    function initSimCanvasEvents() {
+      const canvas = document.getElementById('simCanvas');
+      if (!canvas) return;
+
+      canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const xNorm = (e.clientX - rect.left) / rect.width;
+        const yNorm = (e.clientY - rect.top) / rect.height;
+        ignitions.push({ xNorm, yNorm, radius: 14, age: 0 });
+        updateSimMetrics();
+        drawSimCanvas();
+        if (!simRunning) {
+          showToast('Punto di innesco inserito! Premi "Avvia" per simulare la propagazione.', 'warning');
+        }
+      });
+
+      window.addEventListener('resize', () => {
+        if (!document.getElementById('tab-simulator').classList.contains('hidden')) {
+          resizeSimCanvas();
+          drawSimCanvas();
+        }
+      });
+    }
+
+    function triggerRandomIgnition() {
+      const xNorm = 0.25 + Math.random() * 0.50;
+      const yNorm = 0.25 + Math.random() * 0.50;
+      ignitions.push({ xNorm, yNorm, radius: 16, age: 0 });
+      updateSimMetrics();
+      drawSimCanvas();
+    }
+
+    function toggleSimRun() {
+      const btn = document.getElementById('btnSimRun');
+      const badge = document.getElementById('simStatusBadge');
+      if (simRunning) {
+        simRunning = false;
+        clearInterval(simTimer);
+        btn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Riprendi</span>`;
+        badge.textContent = 'In Pausa';
+        badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800';
+      } else {
+        if (ignitions.length === 0) triggerRandomIgnition();
+        simRunning = true;
+        btn.innerHTML = `<i class="fa-solid fa-pause"></i> <span>Pausa</span>`;
+        badge.textContent = 'Simulazione Attiva';
+        badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 animate-pulse';
+
+        simTimer = setInterval(() => {
+          simMinutes += 2;
+          const wind = parseFloat(document.getElementById('simWindSpeed').value);
+          const dry = parseFloat(document.getElementById('simDryness').value);
+          const slope = parseFloat(document.getElementById('simSlope').value);
+          const growth = 0.8 + (wind / 45) + (dry / 70) + (slope / 40);
+
+          ignitions.forEach(ig => {
+            ig.radius = Math.min(ig.radius + growth, 190);
+            ig.age += 2;
+          });
+          updateSimMetrics();
+          drawSimCanvas();
+        }, 450);
+      }
+    }
+
+    function resetSim() {
+      simRunning = false;
+      clearInterval(simTimer);
+      simMinutes = 0;
+      ignitions = [];
+      document.getElementById('btnSimRun').innerHTML = `<i class="fa-solid fa-play"></i> <span>Avvia</span>`;
+      const badge = document.getElementById('simStatusBadge');
+      badge.textContent = 'Pronto';
+      badge.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800';
+      updateSimMetrics();
+      drawSimCanvas();
+    }
+
+    function updateSimMetrics() {
+      const wind = parseFloat(document.getElementById('simWindSpeed').value);
+      const temp = parseFloat(document.getElementById('simTemp').value);
+      const dry = parseFloat(document.getElementById('simDryness').value);
+      const slope = parseFloat(document.getElementById('simSlope').value);
+
+      if (ignitions.length === 0) {
+        document.getElementById('metricRos').textContent = '0.0 m/min';
+        document.getElementById('metricFlame').textContent = '0.0 m';
+        document.getElementById('metricArea').textContent = '0.0 ha';
+        document.getElementById('metricAlert').textContent = 'ORDINARIA (Verde)';
+        document.getElementById('metricAlert').className = 'text-sm font-extrabold text-emerald-700 mt-1';
+        document.getElementById('metricTime').textContent = 'T + 00:00 min';
+        return;
+      }
+
+      // Simplified Rothermel-inspired heuristic for interactive feedback
+      const ros = (1.2 + (wind * 0.14) + (dry * 0.06) + (slope * 0.11) + ((temp - 20) * 0.08)).toFixed(1);
+      const flame = (0.8 + (ros * 0.22)).toFixed(1);
+      const totalArea = ignitions.reduce((acc, ig) => acc + (Math.PI * Math.pow(ig.radius / 11, 2)), 0).toFixed(1);
+
+      document.getElementById('metricRos').textContent = `${ros} m/min`;
+      document.getElementById('metricFlame').textContent = `${flame} m`;
+      document.getElementById('metricArea').textContent = `${totalArea} ha`;
+
+      const hrs = String(Math.floor(simMinutes / 60)).padStart(2, '0');
+      const mins = String(simMinutes % 60).padStart(2, '0');
+      document.getElementById('metricTime').textContent = `T + ${hrs}:${mins} min`;
+
+      const alertEl = document.getElementById('metricAlert');
+      if (totalArea > 35 || ros > 14) {
+        alertEl.textContent = 'EMERGENZA COC (Rosso)';
+        alertEl.className = 'text-sm font-extrabold text-rose-600 mt-1';
+      } else if (totalArea > 10 || ros > 8) {
+        alertEl.textContent = 'PRE-ALLERTA (Arancio)';
+        alertEl.className = 'text-sm font-extrabold text-amber-600 mt-1';
+      } else {
+        alertEl.textContent = 'ATTENZIONE (Giallo)';
+        alertEl.className = 'text-sm font-extrabold text-yellow-600 mt-1';
+      }
+    }
+
+    function drawSimCanvas() {
+      const canvas = document.getElementById('simCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      if (w === 0 || h === 0) return;
+
+      const labKey = document.getElementById('simLabSelect').value;
+      const profile = LAB_PROFILES[labKey];
+
+      // 1. Base topographic terrain background
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      if (labKey === 'castrovillari') {
+        grad.addColorStop(0, '#143628');
+        grad.addColorStop(0.6, '#1e4633');
+        grad.addColorStop(1, '#2d4a2b');
+      } else if (labKey === 'cassano') {
+        grad.addColorStop(0, '#2c3e26');
+        grad.addColorStop(0.7, '#3b4928');
+        grad.addColorStop(1, '#1d3b53'); // Ionian coast edge
+      } else {
+        grad.addColorStop(0, '#1a3b2c');
+        grad.addColorStop(0.5, '#2f4329');
+        grad.addColorStop(1, '#3b4628');
+      }
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Subtle UTM coordinate grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      for (let gx = 0; gx < w; gx += 45) {
+        ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke();
+      }
+      for (let gy = 0; gy < h; gy += 45) {
+        ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke();
+      }
+
+      // Contour lines (DEM 20m simulation)
+      ctx.strokeStyle = 'rgba(167, 243, 208, 0.14)';
+      ctx.lineWidth = 1.2;
+      for (let c = 1; c <= 5; c++) {
+        ctx.beginPath();
+        ctx.ellipse(w * 0.3, h * 0.35, c * 55, c * 38, 0.3, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Border line if border scenario
+      if (labKey === 'border') {
+        ctx.save();
+        ctx.setLineDash([8, 6]);
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(w * 0.50, 0);
+        ctx.lineTo(w * 0.50, h);
+        ctx.stroke();
+        ctx.fillStyle = '#fde68a';
+        ctx.font = 'bold 11px Inter, sans-serif';
+        ctx.fillText('CONFINE AMMINISTRATIVO CASTROVILLARI | CASSANO', w * 0.50 + 8, 22);
+        ctx.restore();
+      }
+
+      // 2. Layer: Risk Heatmap (copia_rischio.tif)
+      if (document.getElementById('layerRisk').checked) {
+        profile.hotZones.forEach(z => {
+          const rg = ctx.createRadialGradient(w * z.x, h * z.y, 10, w * z.x, h * z.y, Math.min(w, h) * z.r);
+          rg.addColorStop(0, z.color);
+          rg.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = rg;
+          ctx.beginPath();
+          ctx.arc(w * z.x, h * z.y, Math.min(w, h) * z.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      // 3. Layer: Evacuation Routes
+      if (document.getElementById('layerEvac').checked) {
+        ctx.save();
+        ctx.setLineDash([5, 5]);
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(w * 0.15, h * 0.82);
+        ctx.quadraticCurveTo(w * 0.45, h * 0.60, w * 0.88, h * 0.75);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 4. Layer: Water Reservoirs & Springs
+      if (document.getElementById('layerWater').checked) {
+        profile.waterPoints.forEach(wp => {
+          const px = w * wp.x;
+          const py = h * wp.y;
+          ctx.fillStyle = '#38bdf8';
+          ctx.beginPath();
+          ctx.arc(px, py, 6, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.fillStyle = '#e0f2fe';
+          ctx.font = '600 10px Inter, sans-serif';
+          ctx.fillText(wp.label, px + 9, py + 3);
+        });
+      }
+
+      // 5. Layer: COC & Tourist POIs
+      if (document.getElementById('layerCoc').checked) {
+        profile.cocPoints.forEach(cp => {
+          const px = w * cp.x;
+          const py = h * cp.y;
+          ctx.fillStyle = '#10b981';
+          ctx.fillRect(px - 6, py - 6, 12, 12);
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(px - 6, py - 6, 12, 12);
+
+          ctx.fillStyle = '#d1fae5';
+          ctx.font = 'bold 10px Inter, sans-serif';
+          ctx.fillText(cp.label, px + 9, py + 3);
+        });
+      }
+
+      // 6. Active Fire Spread Plumes (Oriented by Wind Direction & Speed)
+      const windDirRad = (parseFloat(document.getElementById('simWindDir').value) - 90) * (Math.PI / 180);
+      const windSpeed = parseFloat(document.getElementById('simWindSpeed').value);
+      const stretch = 1 + (windSpeed / 55);
+
+      ignitions.forEach(ig => {
+        const cx = w * ig.xNorm;
+        const cy = h * ig.yNorm;
+        const rx = ig.radius * stretch;
+        const ry = ig.radius * 0.72;
+
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(windDirRad);
+
+        // Smoke halo
+        const smokeGrad = ctx.createRadialGradient(rx * 0.25, 0, ry * 0.2, rx * 0.25, 0, rx * 1.35);
+        smokeGrad.addColorStop(0, 'rgba(239, 68, 68, 0.75)');
+        smokeGrad.addColorStop(0.55, 'rgba(249, 115, 22, 0.45)');
+        smokeGrad.addColorStop(1, 'rgba(15, 23, 42, 0)');
+        ctx.fillStyle = smokeGrad;
+        ctx.beginPath();
+        ctx.ellipse(rx * 0.25, 0, rx * 1.35, ry * 1.25, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Burned core + active flaming front
+        ctx.fillStyle = 'rgba(30, 27, 24, 0.78)';
+        ctx.beginPath();
+        ctx.ellipse(rx * 0.15, 0, rx * 0.85, ry * 0.80, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      // Wind Compass Indicator (Top-Right of Canvas)
+      const compX = w - 42;
+      const compY = 44;
+      ctx.save();
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+      ctx.beginPath();
+      ctx.arc(compX, compY, 24, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.stroke();
+
+      ctx.translate(compX, compY);
+      ctx.rotate(windDirRad);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(-12, 0);
+      ctx.lineTo(12, 0);
+      ctx.lineTo(6, -5);
+      ctx.moveTo(12, 0);
+      ctx.lineTo(6, 5);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // -------------------------------------------------------------------------
+    // 11. TAB 8: CONFIGURATOR & REPORT
+    // -------------------------------------------------------------------------
+    function renderConfiguratorTable() {
+      const tbody = document.getElementById('configTableBody');
+      tbody.innerHTML = configActions.map((act, idx) => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-3 font-bold text-slate-900 whitespace-nowrap">${act.partner}</td>
+          <td class="p-3">
+            <input type="text" value="${act.name}" onchange="updateConfigField(${idx}, 'name', this.value)"
+                   class="w-full px-2 py-1 rounded border border-slate-200 text-xs" />
+          </td>
+          <td class="p-3">
+            <select onchange="updateConfigField(${idx}, 'priority', this.value)" class="px-2 py-1 rounded border border-slate-200 bg-white text-xs font-semibold">
+              <option value="Alta" ${act.priority === 'Alta' ? 'selected' : ''}>Alta</option>
+              <option value="Media" ${act.priority === 'Media' ? 'selected' : ''}>Media</option>
+              <option value="Bassa" ${act.priority === 'Bassa' ? 'selected' : ''}>Bassa</option>
+            </select>
+          </td>
+          <td class="p-3">
+            <input type="number" value="${act.budget}" step="5000" onchange="updateConfigField(${idx}, 'budget', parseFloat(this.value) || 0)"
+                   class="w-28 px-2 py-1 rounded border border-slate-200 font-mono text-xs text-right" />
+          </td>
+          <td class="p-3">
+            <input type="text" value="${act.timeline}" onchange="updateConfigField(${idx}, 'timeline', this.value)"
+                   class="w-20 px-2 py-1 rounded border border-slate-200 font-mono text-xs text-center" />
+          </td>
+          <td class="p-3">
+            <select onchange="updateConfigField(${idx}, 'status', this.value)" class="px-2 py-1 rounded border border-slate-200 bg-white text-xs font-semibold">
+              <option value="Pianificata" ${act.status === 'Pianificata' ? 'selected' : ''}>Pianificata</option>
+              <option value="In Corso" ${act.status === 'In Corso' ? 'selected' : ''}>In Corso</option>
+              <option value="Validata" ${act.status === 'Validata' ? 'selected' : ''}>Validata</option>
+            </select>
+          </td>
+          <td class="p-3 text-center">
+            <button onclick="removeConfigAction(${idx})" class="text-rose-500 hover:text-rose-700 p-1" title="Elimina azione">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      updateConfiguratorSummary();
+    }
+
+    function updateConfigField(idx, field, val) {
+      configActions[idx][field] = val;
+      updateConfiguratorSummary();
+      renderConfiguratorCharts();
+    }
+
+    function removeConfigAction(idx) {
+      configActions.splice(idx, 1);
+      renderConfiguratorTable();
+      renderConfiguratorCharts();
+      showToast('Azione rimossa dal configuratore', 'info');
+    }
+
+    function updateConfiguratorSummary() {
+      const total = configActions.reduce((s, a) => s + (Number(a.budget) || 0), 0);
+      const delta = total - 2500000;
+      document.getElementById('cfgTotalBudget').textContent = `€ ${total.toLocaleString('it-IT')}`;
+      const deltaEl = document.getElementById('cfgBudgetDelta');
+      if (delta === 0) {
+        deltaEl.textContent = 'Allineato al massimale EUI04-1006 (€0 delta)';
+        deltaEl.className = 'text-xs font-semibold text-emerald-700 mt-1';
+      } else if (delta > 0) {
+        deltaEl.textContent = `Superamento massimale EUI di +€ ${delta.toLocaleString('it-IT')}`;
+        deltaEl.className = 'text-xs font-semibold text-rose-600 mt-1';
+      } else {
+        deltaEl.textContent = `Margine disponibile sotto cap EUI: € ${Math.abs(delta).toLocaleString('it-IT')}`;
+        deltaEl.className = 'text-xs font-semibold text-amber-600 mt-1';
+      }
+
+      const validated = configActions.filter(a => a.status === 'Validata').length;
+      const inProgress = configActions.filter(a => a.status === 'In Corso').length;
+      const score = Math.min(100, Math.round(62 + (validated * 5) + (inProgress * 2.5)));
+      document.getElementById('cfgReadinessScore').textContent = `${score}%`;
+      document.getElementById('cfgActionCount').textContent = `${configActions.length} Azioni`;
+    }
+
+    function openAddActionModal() {
+      document.getElementById('addActionModal').classList.remove('hidden');
+    }
+    function closeAddActionModal() {
+      document.getElementById('addActionModal').classList.add('hidden');
+    }
+    function saveNewAction() {
+      const name = document.getElementById('newActName').value.trim();
+      if (!name) {
+        showToast('Inserisci una descrizione valida per l\'azione', 'warning');
+        return;
+      }
+      configActions.push({
+        partner: document.getElementById('newActPartner').value,
+        name,
+        priority: document.getElementById('newActPriority').value,
+        budget: parseFloat(document.getElementById('newActBudget').value) || 0,
+        timeline: document.getElementById('newActTimeline').value || 'M6–M18',
+        status: document.getElementById('newActStatus').value
+      });
+      document.getElementById('newActName').value = '';
+      closeAddActionModal();
+      renderConfiguratorTable();
+      renderConfiguratorCharts();
+      showToast('Nuova azione operativa aggiunta con successo', 'success');
+    }
+
+    function resetConfigurator() {
+      configActions = JSON.parse(JSON.stringify(DEFAULT_CONFIG_ACTIONS));
+      renderConfiguratorTable();
+      renderConfiguratorCharts();
+      showToast('Configuratore ripristinato ai valori ufficiali EUI04-1006', 'info');
+    }
+
+    function exportConfigJson() {
+      const payload = {
+        project: 'Twin4forestLife (EUI04-1006)',
+        exportedAt: new Date().toISOString(),
+        totalConfiguredBudget: configActions.reduce((s, a) => s + a.budget, 0),
+        actions: configActions
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Twin4forestLife_EUI04-1006_Configurazione.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('File JSON esportato con successo', 'success');
+    }
+
+    function renderConfiguratorCharts() {
+      const pNames = ['PP1 Castrovillari', 'PP2 Cassano all\'Ionio', 'PP3 Cluster MINT', 'PP4 UNICAL', 'PP5 GAL Pollino', 'PP6 Regione Calabria'];
+      const officialBudgets = [550000, 340000, 680000, 520000, 230000, 180000];
+      const configuredBudgets = pNames.map(p =>
+        configActions.filter(a => a.partner === p).reduce((s, a) => s + (Number(a.budget) || 0), 0)
+      );
+
+      const ctxBar = document.getElementById('cfgBudgetChart');
+      if (ctxBar) {
+        if (charts.cfgBudget) charts.cfgBudget.destroy();
+        charts.cfgBudget = new Chart(ctxBar, {
+          type: 'bar',
+          data: {
+            labels: ['PP1 Castrovillari', 'PP2 Cassano', 'PP3 MINT', 'PP4 UNICAL', 'PP5 GAL Pollino', 'PP6 Reg. Calabria'],
+            datasets: [
+              { label: 'Budget Ufficiale EUI (€)', data: officialBudgets, backgroundColor: '#94a3b8', borderRadius: 5 },
+              { label: 'Budget Configurato (€)', data: configuredBudgets, backgroundColor: '#10b981', borderRadius: 5 }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { ticks: { callback: v => '€' + (v / 1000) + 'k' } } },
+            plugins: { legend: { position: 'bottom' } }
+          }
+        });
+      }
+
+      const ctxRadar = document.getElementById('cfgRadarChart');
+      if (ctxRadar) {
+        if (charts.cfgRadar) charts.cfgRadar.destroy();
+        charts.cfgRadar = new Chart(ctxRadar, {
+          type: 'radar',
+          data: {
+            labels: ['Dati GIS & DEM', 'Logistica Idrica', 'Integrazione COC', 'Living Labs & Stakeholder', 'Formazione 90 Op.', 'Replicabilità UE'],
+            datasets: [
+              {
+                label: 'Living Lab 1: Castrovillari',
+                data: [88, 84, 82, 85, 80, 78],
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.2)'
+              },
+              {
+                label: 'Living Lab 2: Cassano all\'Ionio',
+                data: [85, 72, 80, 82, 78, 76],
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.2)'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { r: { min: 40, max: 100 } },
+            plugins: { legend: { position: 'bottom' } }
+          }
+        });
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 12. INITIALIZATION ON WINDOW LOAD
+    // -------------------------------------------------------------------------
+    window.onload = function () {
+      renderOverviewCharts();
+      initGantt();
+      filterPartners('ALL');
+      selectWpSubTab('WP1');
+      filterDeliverables();
+      renderConfiguratorTable();
+      initSimCanvasEvents();
+    };
+  </script>
+</body>
+</html>

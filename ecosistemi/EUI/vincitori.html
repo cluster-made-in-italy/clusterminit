@@ -1,0 +1,2010 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Analitica EUI — Tutti i 56 Progetti Vincitori (Call 1–3) & Siti Municipali</title>
+    <!-- MapLibre GL JS (Open Source 3D WebGL Map - Nessuna API Key richiesta) -->
+    <link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+    <!-- Chart.js per i Grafici Analitici -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <style>
+        :root {
+            --eu-blue: #003399;
+            --eu-blue-dark: #002266;
+            --eu-blue-light: #e8eef9;
+            --eu-gold: #ffcc00;
+            --eu-gold-dark: #b38f00;
+            --bg-main: #f4f7fb;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --c1-color: #d97706; /* Call 1 - NEB (Ambra) */
+            --c1-bg: #fef3c7;
+            --c2-color: #059669; /* Call 2 - Green/Tourism/Talent (Smeraldo) */
+            --c2-bg: #d1fae5;
+            --c3-color: #2563eb; /* Call 3 - Energy/Tech (Blu) */
+            --c3-bg: #dbeafe;
+            --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.05);
+            --shadow-md: 0 10px 25px rgba(15, 23, 42, 0.08);
+            --radius-md: 14px;
+            --radius-lg: 20px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        a { color: var(--eu-blue); text-decoration: none; }
+
+        /* Top Navbar */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 0.9rem 2rem;
+        }
+
+        .nav-inner {
+            max-width: 1340px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: var(--eu-blue);
+        }
+
+        .brand-badge {
+            background: var(--eu-blue);
+            color: var(--eu-gold);
+            padding: 0.35rem 0.65rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 1.4rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .nav-links a { color: var(--text-muted); transition: color 0.2s; }
+        .nav-links a:hover { color: var(--eu-blue); }
+
+        .btn-official {
+            background: var(--eu-blue);
+            color: #ffffff !important;
+            padding: 0.55rem 1.1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+        .btn-official:hover { background: var(--eu-blue-dark); }
+
+        /* Hero Header */
+        .hero {
+            background: linear-gradient(135deg, #001f66 0%, #003399 55%, #1d4ed8 100%);
+            color: #ffffff;
+            padding: 3.5rem 2rem 4.5rem;
+        }
+
+        .hero-inner {
+            max-width: 1340px;
+            margin: 0 auto;
+        }
+
+        .hero-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 204, 0, 0.45);
+            color: #fef08a;
+            padding: 0.35rem 0.95rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.1rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2rem, 4vw, 2.9rem);
+            font-weight: 800;
+            line-height: 1.18;
+            margin-bottom: 0.9rem;
+        }
+
+        .hero p {
+            font-size: 1.08rem;
+            color: rgba(255, 255, 255, 0.88);
+            max-width: 900px;
+            margin-bottom: 1.75rem;
+        }
+
+        .hero-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.85rem;
+        }
+
+        .btn-hero-gold {
+            background: var(--eu-gold);
+            color: #0f172a;
+            font-weight: 700;
+            padding: 0.75rem 1.35rem;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .btn-hero-gold:hover { background: #fde047; transform: translateY(-2px); }
+
+        .btn-hero-glass {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            font-weight: 600;
+            padding: 0.75rem 1.35rem;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+        .btn-hero-glass:hover { background: rgba(255, 255, 255, 0.22); }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1340px;
+            margin: -2.2rem auto 4rem;
+            padding: 0 2rem;
+        }
+
+        /* KPI Strip */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.4rem 1.5rem;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: var(--eu-blue);
+        }
+        .kpi-card.gold::after { background: var(--eu-gold-dark); }
+        .kpi-card.green::after { background: var(--c2-color); }
+
+        .kpi-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            margin-bottom: 0.35rem;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.1;
+            margin-bottom: 0.35rem;
+        }
+
+        .kpi-sub {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        /* Section Card Wrapper */
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2.25rem;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-title {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .panel-subtitle {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Charts Layout */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1.45fr 1fr;
+            gap: 1.75rem;
+            margin-bottom: 2.25rem;
+        }
+
+        .chart-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chart-canvas-wrap {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+
+        /* Call Comparison Table */
+        .summary-table-wrap {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+        }
+
+        th, td {
+            padding: 0.95rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.76rem;
+            letter-spacing: 0.6px;
+        }
+
+        tr:hover td { background: #f8fafc; }
+
+        .badge-call {
+            display: inline-block;
+            padding: 0.25rem 0.65rem;
+            border-radius: 50px;
+            font-size: 0.76rem;
+            font-weight: 700;
+        }
+        .badge-c1 { background: var(--c1-bg); color: #92400e; }
+        .badge-c2 { background: var(--c2-bg); color: #065f46; }
+        .badge-c3 { background: var(--c3-bg); color: #1e40af; }
+
+        /* 3D Map Controls & Container */
+        .map-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .filter-btn {
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.45rem 0.85rem;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover { background: #e2e8f0; }
+        .filter-btn.active {
+            background: var(--eu-blue);
+            color: #ffffff;
+            border-color: var(--eu-blue);
+        }
+
+        .btn-3d-toggle {
+            background: #0f172a;
+            color: #fef08a;
+            border: 1px solid #334155;
+            padding: 0.45rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-3d-toggle:hover { background: #1e293b; }
+
+        .map-wrapper {
+            position: relative;
+            width: 100%;
+            height: 560px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: #e2e8f0;
+        }
+
+        #europeMap3D {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Custom 3D Pin Markers */
+        .eui-marker-3d {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 3px solid #ffffff;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 900;
+            color: #ffffff;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .eui-marker-3d:hover {
+            transform: scale(1.3);
+            z-index: 50;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+        }
+        .eui-marker-3d.italy {
+            width: 28px;
+            height: 28px;
+            border: 3px solid #ffcc00;
+        }
+
+        .maplibregl-popup-content {
+            border-radius: 12px !important;
+            padding: 14px 16px !important;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.2) !important;
+            border: 1px solid #e2e8f0;
+        }
+
+        .map-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.25rem;
+            margin-top: 1rem;
+            font-size: 0.84rem;
+            color: var(--text-muted);
+            align-items: center;
+        }
+
+        .legend-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+
+        /* Directory Filter Bar & Cards */
+        .directory-filters {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 0.9rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .directory-filters input,
+        .directory-filters select {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            background: #f8fafc;
+            color: var(--text-main);
+        }
+
+        .directory-filters input:focus,
+        .directory-filters select:focus {
+            outline: none;
+            border-color: var(--eu-blue);
+            background: #ffffff;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+            gap: 1.35rem;
+        }
+
+        .project-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.4rem;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        }
+
+        .project-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: #93c5fd;
+        }
+
+        .project-card.italy-highlight {
+            border-left: 4px solid #059669;
+            background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
+        }
+
+        .p-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .p-country {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .p-city {
+            font-size: 1.18rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 0.2rem;
+        }
+
+        .p-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--eu-blue);
+            margin-bottom: 0.55rem;
+        }
+
+        .p-theme {
+            display: inline-block;
+            font-size: 0.76rem;
+            font-weight: 600;
+            background: #f1f5f9;
+            color: #334155;
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            margin-bottom: 0.7rem;
+        }
+
+        .p-desc {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            margin-bottom: 1.15rem;
+        }
+
+        .p-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: auto;
+        }
+
+        .btn-card-link {
+            flex: 1;
+            text-align: center;
+            background: var(--eu-blue-light);
+            color: var(--eu-blue);
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 0.6rem 0.75rem;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+            white-space: nowrap;
+        }
+        .btn-card-link:hover {
+            background: var(--eu-blue);
+            color: #ffffff;
+        }
+
+        .btn-card-direct {
+            flex: 1;
+            text-align: center;
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 0.6rem 0.75rem;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+            white-space: nowrap;
+        }
+        .btn-card-direct:hover {
+            background: #059669;
+            color: #ffffff;
+        }
+
+        .btn-card-map {
+            background: #0f172a;
+            color: #ffffff;
+            border: none;
+            font-weight: 600;
+            font-size: 0.8rem;
+            padding: 0.6rem 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .btn-card-map:hover { background: #1e293b; }
+
+        /* Official Resources Footer */
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .resource-box {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 1.35rem;
+            background: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .resource-box h4 {
+            font-size: 1.02rem;
+            margin-bottom: 0.45rem;
+            color: var(--text-main);
+        }
+
+        .resource-box p {
+            font-size: 0.86rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .resource-box a {
+            font-weight: 700;
+            font-size: 0.86rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        footer {
+            background: #0f172a;
+            color: #94a3b8;
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid { grid-template-columns: 1fr; }
+            .directory-filters { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 640px) {
+            .directory-filters { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation -->
+    <nav class="navbar">
+        <div class="nav-inner">
+            <div class="brand">
+                <span class="brand-badge">EU • EUI</span>
+                <span>European Urban Initiative — 56 Progetti Vincitori</span>
+            </div>
+            <div class="nav-links">
+                <a href="#kpi">Dashboard</a>
+                <a href="#distribuzione">Distribuzione UE</a>
+                <a href="#mappa">Cartina 3D</a>
+                <a href="#progetti">Tutte le 56 Schede</a>
+                <a href="https://www.urban-initiative.eu/ia-cities" target="_blank" rel="noopener noreferrer" class="btn-official">
+                    Catalogo Ufficiale EUI ↗
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="hero">
+        <div class="hero-inner">
+            <div class="hero-tag">Programmazione FESR 2021–2027 • Innovative Actions (Call 1, 2 e 3)</div>
+            <h1>Analisi Completa dei 56 Progetti Vincitori<br>European Urban Initiative (EUI)</h1>
+            <p>
+                Quadro riassuntivo e analitico verificato di tutti i <strong>56 progetti pilota</strong> finanziati nelle prime tre Call per Azioni Innovative (<strong>14</strong> nella 1ª Call, <strong>22</strong> nella 2ª Call e <strong>20</strong> nella 3ª Call), con <strong>7 progetti italiani capofila</strong>, <strong>mappa interattiva 3D open-source</strong> (senza API key) e <strong>56 schede progetto</strong> con doppio collegamento alle pagine ufficiali EUI (<code>/ia-cities/&lt;città&gt;/home</code>) e ai siti web dedicati delle municipalità.
+            </p>
+            <div class="hero-links">
+                <a href="https://www.urban-initiative.eu/ia-cities" target="_blank" rel="noopener noreferrer" class="btn-hero-gold">
+                    Catalogo Ufficiale IA Cities ↗
+                </a>
+                <a href="https://www.urban-initiative.eu/innovative-actions" target="_blank" rel="noopener noreferrer" class="btn-hero-glass">
+                    Sezione Bandi Innovative Actions ↗
+                </a>
+                <a href="https://kohesio.ec.europa.eu/" target="_blank" rel="noopener noreferrer" class="btn-hero-glass">
+                    Banca Dati UE Kohesio ↗
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-container">
+
+        <!-- KPI Dashboard -->
+        <section id="kpi" class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Progetti Finanziati (Call 1–3)</div>
+                <div class="kpi-value">56</div>
+                <div class="kpi-sub">14 (Call 1) + 22 (Call 2) + 20 (Call 3)</div>
+            </div>
+            <div class="kpi-card gold">
+                <div class="kpi-label">Contributo FESR per Progetto</div>
+                <div class="kpi-value">Fino a 5 M€</div>
+                <div class="kpi-sub">Cofinanziamento europeo fino all'80%</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Stati Membri Coinvolti</div>
+                <div class="kpi-value">20</div>
+                <div class="kpi-sub">Podio: Italia (7), Spagna (6), Grecia (6), Paesi Bassi (6)</div>
+            </div>
+            <div class="kpi-card green">
+                <div class="kpi-label">Progetti Italiani Capofila</div>
+                <div class="kpi-value">7</div>
+                <div class="kpi-sub">Roma III, Rovereto, Bologna, Milano, Faenza, Prato, Cesena</div>
+            </div>
+        </section>
+
+        <!-- Riepilogo Tabellare delle 3 Call -->
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Quadro Sintetico delle Prime 3 Call (56 Progetti Totali)</h2>
+                    <p class="panel-subtitle">Ripartizione verificata dei 56 progetti finanziati per edizione, finestra temporale, progetti italiani e linee tematiche.</p>
+                </div>
+                <a href="https://www.urban-initiative.eu/innovative-actions" target="_blank" rel="noopener noreferrer" class="btn-card-link" style="flex:initial;">
+                    Documentazione Ufficiale Call ↗
+                </a>
+            </div>
+            <div class="summary-table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Edizione</th>
+                            <th>Finestra Temporale</th>
+                            <th>Progetti Finanziati</th>
+                            <th>Progetti Italiani Capofila</th>
+                            <th>Temi Finanziati</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge-call badge-c1">1ª Call</span></td>
+                            <td>Ott 2022 – Gen 2023</td>
+                            <td><strong>14 progetti</strong> (25,0%)</td>
+                            <td><strong>2</strong> (Municipio Roma III — <em>We-Z</em>; Rovereto — <em>S4T</em>)</td>
+                            <td><em>New European Bauhaus (NEB)</em> (14)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge-call badge-c2">2ª Call</span></td>
+                            <td>Mag 2023 – Ott 2023</td>
+                            <td><strong>22 progetti</strong> (39,3%)</td>
+                            <td><strong>4</strong> (Bologna <em>TALEA</em>, Milano <em>GOCCIA</em>, Faenza/Romagna Faentina <em>AQUAGREEN</em>, Prato <em>EPIC</em>)</td>
+                            <td><em>Greening Cities</em> (12), <em>Sustainable Tourism</em> (6), <em>Harnessing Talent</em> (4)</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge-call badge-c3">3ª Call</span></td>
+                            <td>Mag 2024 – Ott 2024</td>
+                            <td><strong>20 progetti</strong> (35,7%)</td>
+                            <td><strong>1</strong> (Cesena — <em>Energy2Act</em>)</td>
+                            <td><em>Energy Transition</em> &amp; <em>Technology in Cities</em> (20)</td>
+                        </tr>
+                        <tr style="background:#f8fafc; font-weight:700;">
+                            <td>Totale Call 1–3</td>
+                            <td>2022 – 2025</td>
+                            <td><strong>56 progetti</strong> (100%)</td>
+                            <td><strong>7 progetti italiani</strong> (tutti con sito municipale/dedicato attivo)</td>
+                            <td>6 Aree Tematiche Innovative Actions</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Grafici Analitici: Distribuzione Geografica & Confronto Call -->
+        <section id="distribuzione" class="charts-grid">
+            <div class="chart-box">
+                <div class="panel-header" style="margin-bottom:1rem; padding-bottom:0.75rem;">
+                    <div>
+                        <h3 class="panel-title" style="font-size:1.15rem;">Distribuzione Geografica per Nazione (56 Progetti)</h3>
+                        <p class="panel-subtitle">Conteggio delle 56 Autorità Urbane capofila suddivise per Stato membro.</p>
+                    </div>
+                </div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="countryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-box">
+                <div class="panel-header" style="margin-bottom:1rem; padding-bottom:0.75rem;">
+                    <div>
+                        <h3 class="panel-title" style="font-size:1.15rem;">Ripartizione dei 56 Progetti per Tema</h3>
+                        <p class="panel-subtitle">Numero di progetti finanziati per ciascuna linea tematica EUI.</p>
+                    </div>
+                </div>
+                <div class="chart-canvas-wrap">
+                    <canvas id="themesChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cartina Geografica 3D Open Source (MapLibre GL JS + OpenFreeMap/OSM senza Key) -->
+        <section id="mappa" class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Cartina 3D Interattiva delle 56 Città Vincitrici</h2>
+                    <p class="panel-subtitle">Motore WebGL 3D open-source (senza API key): usa <strong>Ctrl + trascinamento</strong> (o tasto destro) per ruotare e inclinare in 3D, oppure clicca su <strong>📍 3D</strong> nelle schede per volare sugli edifici 3D della città.</p>
+                </div>
+                <div class="map-controls">
+                    <button class="filter-btn active" onclick="filterMap('all', this)">Tutte (56)</button>
+                    <button class="filter-btn" onclick="filterMap('Call 1', this)">Call 1 (14)</button>
+                    <button class="filter-btn" onclick="filterMap('Call 2', this)">Call 2 (22)</button>
+                    <button class="filter-btn" onclick="filterMap('Call 3', this)">Call 3 (20)</button>
+                    <button class="filter-btn" onclick="filterMap('Italia', this)">🇮🇹 Italia (7)</button>
+                    <button class="btn-3d-toggle" id="btnToggle3D" onclick="toggle3DPitch()">🌐 Inclinazione 3D: ON</button>
+                </div>
+            </div>
+
+            <div class="map-wrapper">
+                <div id="europeMap3D"></div>
+            </div>
+
+            <div class="map-legend">
+                <span><i class="legend-dot" style="background:#d97706;"></i><strong>Call 1 (14):</strong> New European Bauhaus</span>
+                <span><i class="legend-dot" style="background:#059669;"></i><strong>Call 2 (22):</strong> Greening (12), Tourism (6) &amp; Talent (4)</span>
+                <span><i class="legend-dot" style="background:#2563eb;"></i><strong>Call 3 (20):</strong> Energy Transition &amp; Technology in Cities</span>
+                <span style="margin-left:auto; font-size:0.8rem;">🧭 <em>Bordo oro sui marker = 7 Città italiane (Roma III, Rovereto, Bologna, Milano, Faenza, Prato, Cesena).</em></span>
+            </div>
+        </section>
+
+        <!-- Elenco Analitico Completo dei 56 Progetti Vincitori -->
+        <section id="progetti" class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Elenco Completo delle 56 Schede Progetto</h2>
+                    <p class="panel-subtitle">Tutte le 56 città finanziate nelle Call 1 (14), Call 2 (22) e Call 3 (20) con scheda ufficiale EUI (<code>/home</code>) e collegamento diretto ai siti web municipali/dedicati verificati.</p>
+                </div>
+                <span id="resultsCounter" style="font-size:0.85rem; font-weight:700; color:var(--eu-blue); background:var(--eu-blue-light); padding:0.4rem 0.85rem; border-radius:8px;">
+                    56 progetti visualizzati su 56
+                </span>
+            </div>
+
+            <div class="directory-filters">
+                <input type="text" id="searchInput" placeholder="Cerca città, acronimo progetto (es. We-Z, S4T, TALEA, GOCCIA, AQUAGREEN, EPIC, Energy2Act) o tema..." oninput="renderProjects()">
+                <select id="callFilter" onchange="renderProjects()">
+                    <option value="all">Tutte le Call (56 progetti)</option>
+                    <option value="Call 1">1ª Call — New European Bauhaus (14)</option>
+                    <option value="Call 2">2ª Call — Verde / Turismo / Talenti (22)</option>
+                    <option value="Call 3">3ª Call — Energia / Tecnologia (20)</option>
+                </select>
+                <select id="countryFilter" onchange="renderProjects()">
+                    <option value="all">Tutte le Nazioni</option>
+                </select>
+                <select id="siteFilter" onchange="renderProjects()">
+                    <option value="all">Tutti i link (EUI + Municipali)</option>
+                    <option value="directOnly">Solo con Sito Municipale/Progetto (8)</option>
+                </select>
+            </div>
+
+            <div id="projectsContainer" class="projects-grid"></div>
+        </section>
+
+        <!-- Collegamenti Istituzionali & Risorse Ufficiali -->
+        <section class="panel">
+            <div class="panel-header">
+                <div>
+                    <h2 class="panel-title">Collegamenti ai Siti e Portali Ufficiali UE</h2>
+                    <p class="panel-subtitle">Riferimenti diretti per consultare le schede ufficiali sul portale della European Urban Initiative e della Commissione Europea.</p>
+                </div>
+            </div>
+            <div class="resources-grid">
+                <div class="resource-box">
+                    <div>
+                        <h4>Portale EUI — IA Cities Directory</h4>
+                        <p>Elenco interattivo ufficiale delle città vincitrici dell'Iniziativa Urbana Europea con schede progettuali, consorzi e deliverable.</p>
+                    </div>
+                    <a href="https://www.urban-initiative.eu/ia-cities" target="_blank" rel="noopener noreferrer">
+                        Vai a urban-initiative.eu/ia-cities ↗
+                    </a>
+                </div>
+                <div class="resource-box">
+                    <div>
+                        <h4>EUI — Innovative Actions</h4>
+                        <p>Pagina istituzionale dedicata ai bandi per Azioni Innovative, alle linee guida per i richiedenti e ai risultati delle valutazioni.</p>
+                    </div>
+                    <a href="https://www.urban-initiative.eu/innovative-actions" target="_blank" rel="noopener noreferrer">
+                        Vai a urban-initiative.eu/innovative-actions ↗
+                    </a>
+                </div>
+                <div class="resource-box">
+                    <div>
+                        <h4>Portico — Urban Knowledge Hub</h4>
+                        <p>Piattaforma europea di condivisione delle conoscenze, buone pratiche urbane e risultati dei progetti pilota FESR.</p>
+                    </div>
+                    <a href="https://www.urban-initiative.eu/portico" target="_blank" rel="noopener noreferrer">
+                        Vai a urban-initiative.eu/portico ↗
+                    </a>
+                </div>
+                <div class="resource-box">
+                    <div>
+                        <h4>Kohesio — Commissione Europea</h4>
+                        <p>Banca dati ufficiale della Commissione Europea sui progetti finanziati dalla Politica di Coesione e dal FESR negli Stati membri.</p>
+                    </div>
+                    <a href="https://kohesio.ec.europa.eu/" target="_blank" rel="noopener noreferrer">
+                        Vai a kohesio.ec.europa.eu ↗
+                    </a>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>Dashboard Analitica — European Urban Initiative (EUI Innovative Actions, Call 1–3) • Catalogo completo e verificato dei 56 progetti finanziati FESR (14 + 22 + 20) con siti municipali dedicati.</p>
+    </footer>
+
+    <script>
+        // =========================================================================
+        // DATASET VERIFICATO DEI 56 PROGETTI FINANZIATI (14 Call 1 + 22 Call 2 + 20 Call 3)
+        // - url: Pagina ufficiale specifica del progetto (/ia-cities/<slug>/home)
+        // - directUrl: Sito web specifico attivato dalla municipalità / consorzio
+        // =========================================================================
+        const winningProjects = [
+            // --- CALL 1: 14 Progetti (New European Bauhaus) ---
+            {
+                id: 1,
+                city: "Municipio Roma III",
+                country: "Italia",
+                call: "Call 1",
+                theme: "New European Bauhaus",
+                project: "We-Z",
+                desc: "Rigenerazione urbana sostenibile, culturale e partecipativa nell'area di Montesacro secondo i principi estetici e inclusivi del NEB.",
+                lat: 41.9465,
+                lng: 12.5364,
+                url: "https://www.urban-initiative.eu/ia-cities/rome/home",
+                directUrl: "https://www.we-z.eu/",
+                directLabel: "Sito Progetto We-Z"
+            },
+            {
+                id: 2,
+                city: "Lorca",
+                country: "Spagna",
+                call: "Call 1",
+                theme: "New European Bauhaus",
+                project: "NatUR-W",
+                desc: "Riqualificazione edilizia circolare e soluzioni basate sulla natura per la neutralità carbonica e il comfort bioclimatico urbano.",
+                lat: 37.6712,
+                lng: -1.7017,
+                url: "https://www.urban-initiative.eu/ia-cities/lorca/home",
+                directUrl: "https://natur-w.eu/",
+                directLabel: "Sito Progetto NatUR-W"
+            },
+            {
+                id: 3,
+                city: "Viana do Castelo",
+                country: "Portogallo",
+                call: "Call 1",
+                theme: "New European Bauhaus",
+                project: "Viana S+T+ARTS Center",
+                desc: "Riconversione circolare di un edificio portuale in polo culturale dove arte, scienza e tecnologia guidano la transizione ecologica.",
+                lat: 41.6918,
+                lng: -8.8344,
+                url: "https://www.urban-initiative.eu/ia-cities/viana-do-castelo/home"
+            },
+            {
+                id: 4,
+                city: "Aarhus",
+                country: "Danimarca",
+                call: "Call 1",
+                theme: "New European Bauhaus",
+                project: "ImperfectCity",
+                desc: "Trasformazione sostenibile e partecipativa del patrimonio industriale e portuale valorizzando il riuso adattivo.",
+                lat: 56.1629,
+                lng: 10.2039,
+                url: "https://www.urban-initiative.eu/ia-cities/aarhus/home"
+            },
+            {
+                id: 5,
+                city: "Budapest",
+                country: "Ungheria",
+                call: "Call 1",
+                theme: "New European Bauhaus",
+                project: "AHA Budapest",
+                desc: "Soluzioni abitative accessibili e ristrutturazione energetica inclusiva di edifici residenziali pubblici con co-design dei cittadini.",
+                lat: 47.4979,
+                lng: 19.0402,
+                url: "https://www.urban-initiative.eu/ia-cities/budapest/home"
+            },
+            {
+                id: 6,
+                city: "Egaleo",
+                country: "Grecia",
+                call: "Call 1",
+                theme: "New European Bauhaus",
+                project: "Rock the Block",
+                desc: "Riqualificazione bioclimatica e sociale di isolati residenziali ad alta densità per contrastare la povertà energetica.",
+                lat: 37.9922,
+                lng: 23.6786,
+                url: "https://www.urban-initiative.eu/ia-cities/egaleo/home"
+            },
+            {
+                id: 7,
+                city: "Fuenlabrada",
+                country: "Spagna",
+                call: "Call 1",
+                theme: "New European Bauhaus",
+                project: "SHARE",
+                desc: "Riqualificazione di un ex edificio scolastico in spazi di co-housing intergenerazionale sostenibile tra anziani e giovani.",
+                lat: 40.2842,
+                lng: -3.7942,
+                url: "https://www.urban-initiative.eu/ia-cities/fuenlabrada/home"
+            },
+            {
+                id: 8,
+                city: "Tallinn",
+                country: "Estonia",
+                call: "Call 1",
+                theme: "New European Bauhaus",
+                project: "SOFTacademy",
+                desc: "Ristrutturazione prefabbricata circolare e rinaturazione degli spazi condivisi nei quartieri residenziali dell'era sovietica.",
+                lat: 59.4370,
+                lng: 24.7536,
+                url: "https://www.urban-initiative.eu/ia-cities/tallinn/home"
+            },
+            {
+                id: 9,
+                city: "Burgas",
+                country: "Bulgaria",
+                call: "Call 1",
+                theme: "New European Bauhaus",
+                project: "RELAUNCHTOWIN",
+                desc: "Rigenerazione degli spazi pubblici costieri e residenziali unendo estetica architettonica, inclusione e sostenibilità.",
+                lat: 42.5048,
+                lng: 27.4626,
+                url: "https://www.urban-initiative.eu/ia-cities/burgas/home"
+            },
+            {
+                id: 10,
+                city: "Lille European Metropolis",
+                country: "Francia",
+                call: "Call 1",
+                theme: "New European Bauhaus",
+                project: "Time2Adapt",
+                desc: "Adattamento climatico e rigenerazione temporanea e permanente degli spazi pubblici metropolitani con le comunità locali.",
+                lat: 50.6292,
+                lng: 3.0573,
+                url: "https://www.urban-initiative.eu/ia-cities/lille-european-metropolis/home"
+            },
+            {
+                id: 11,
+                city: "Mechelen",
+                country: "Belgio",
+                call: "Call 1",
+                theme: "New European Bauhaus",
+                project: "WATSUPS",
+                desc: "Riconnessione ecologica e sociale tra corsi d'acqua urbani, spazi pubblici verdi e quartieri residenziali.",
+                lat: 51.0259,
+                lng: 4.4776,
+                url: "https://www.urban-initiative.eu/ia-cities/mechelen/home"
+            },
+            {
+                id: 12,
+                city: "Turku",
+                country: "Finlandia",
+                call: "Call 1",
+                theme: "New European Bauhaus",
+                project: "Urban Biodiversity Parks",
+                desc: "Creazione di parchi urbani ad alta biodiversità co-progettati con i residenti per integrare natura e benessere cittadino.",
+                lat: 60.4518,
+                lng: 22.2666,
+                url: "https://www.urban-initiative.eu/ia-cities/turku/home"
+            },
+            {
+                id: 13,
+                city: "Varaždin",
+                country: "Croazia",
+                call: "Call 1",
+                theme: "New European Bauhaus",
+                project: "InterACT Green",
+                desc: "Trasformazione ecologica e partecipativa degli spazi pubblici urbani con soluzioni basate sulla natura e design inclusivo.",
+                lat: 46.3057,
+                lng: 16.3366,
+                url: "https://www.urban-initiative.eu/ia-cities/varazdin/home"
+            },
+            {
+                id: 14,
+                city: "Rovereto",
+                country: "Italia",
+                call: "Call 1",
+                theme: "New European Bauhaus",
+                project: "S4T (Station for Transformation)",
+                desc: "Rigenerazione sostenibile e inclusiva dell'area della stazione ferroviaria e degli spazi limitrofi come hub culturale, circolare e partecipativo.",
+                lat: 45.8906,
+                lng: 11.0342,
+                url: "https://www.urban-initiative.eu/ia-cities/rovereto/home",
+                directUrl: "https://stationfortransformation.eu/",
+                directLabel: "Sito Progetto S4T"
+            },
+
+            // --- CALL 2: 22 Progetti (12 Greening Cities + 6 Sustainable Tourism + 4 Harnessing Talent) ---
+            {
+                id: 15,
+                city: "Bologna",
+                country: "Italia",
+                call: "Call 2",
+                theme: "Greening Cities",
+                project: "TALEA",
+                desc: "Creazione di corridoi verdi urbani e infrastrutture basate sui dati per contrastare le isole di calore e rafforzare la resilienza climatica.",
+                lat: 44.4949,
+                lng: 11.3426,
+                url: "https://www.urban-initiative.eu/ia-cities/bologna/home",
+                directUrl: "https://talea.comune.bologna.it/",
+                directLabel: "Portale Comune Bologna"
+            },
+            {
+                id: 16,
+                city: "Milano",
+                country: "Italia",
+                call: "Call 2",
+                theme: "Greening Cities",
+                project: "GOCCIA",
+                desc: "Forestazione urbana e rigenerazione ecologica nell'area della Goccia di Bovisa per incrementare biodiversità e resilienza idrica.",
+                lat: 45.5053,
+                lng: 9.1567,
+                url: "https://www.urban-initiative.eu/ia-cities/milan/home",
+                directUrl: "https://www.comune.milano.it/amministrazione/progetti-ue/progetti-in-corso/eui02-130-goccia",
+                directLabel: "Portale Comune Milano"
+            },
+            {
+                id: 17,
+                city: "Unione della Romagna Faentina (Faenza)",
+                country: "Italia",
+                call: "Call 2",
+                theme: "Greening Cities",
+                project: "AQUAGREEN",
+                desc: "Infrastrutture verdi e blu per la gestione sostenibile delle acque meteoriche, la prevenzione delle alluvioni e la resilienza alla siccità.",
+                lat: 44.2854,
+                lng: 11.8832,
+                url: "https://www.urban-initiative.eu/ia-cities/faenza/home",
+                directUrl: "https://www.romagnafaentina.it/progetti/aquagreen-acquiring-urban-resilience-against-floods-and-droughts",
+                directLabel: "Portale Romagna Faentina"
+            },
+            {
+                id: 18,
+                city: "Prato",
+                country: "Italia",
+                call: "Call 2",
+                theme: "Sustainable Tourism",
+                project: "EPIC",
+                desc: "Experience Prato Industrial Culture: valorizzazione sostenibile del patrimonio tessile e industriale attraverso itinerari culturali innovativi.",
+                lat: 43.8777,
+                lng: 11.1022,
+                url: "https://www.urban-initiative.eu/ia-cities/prato/home",
+                directUrl: "https://www.pratoturismo.it/it/cosa/tipo-turismo-industriale/experience-prato-industrial-culture-epic/",
+                directLabel: "Portale Prato Turismo"
+            },
+            {
+                id: 19,
+                city: "Bruges",
+                country: "Belgio",
+                call: "Call 2",
+                theme: "Greening Cities",
+                project: "REWILD",
+                desc: "Rinaturazione degli spazi urbani e creazione di micro-habitat ad alta biodiversità nel tessuto storico e periurbano.",
+                lat: 51.2093,
+                lng: 3.2247,
+                url: "https://www.urban-initiative.eu/ia-cities/bruges/home"
+            },
+            {
+                id: 20,
+                city: "Gent",
+                country: "Belgio",
+                call: "Call 2",
+                theme: "Greening Cities",
+                project: "Hydrating the City",
+                desc: "De-impermeabilizzazione dei suoli urbani e raccolta intelligente dell'acqua piovana per contrastare siccità e allagamenti.",
+                lat: 51.0543,
+                lng: 3.7174,
+                url: "https://www.urban-initiative.eu/ia-cities/ghent/home"
+            },
+            {
+                id: 21,
+                city: "Szeged",
+                country: "Ungheria",
+                call: "Call 2",
+                theme: "Greening Cities",
+                project: "Szeged's Choice",
+                desc: "Inverdimento partecipato dei quartieri urbani e soluzioni basate sulla natura per mitigare le ondate di calore estive.",
+                lat: 46.2530,
+                lng: 20.1414,
+                url: "https://www.urban-initiative.eu/ia-cities/szeged/home"
+            },
+            {
+                id: 22,
+                city: "Haskovo",
+                country: "Bulgaria",
+                call: "Call 2",
+                theme: "Harnessing Talent",
+                project: "CARE-GET",
+                desc: "Programmi di formazione, innovazione digitale e trattenimento delle competenze giovanili per contrastare il declino demografico.",
+                lat: 41.9344,
+                lng: 25.5556,
+                url: "https://www.urban-initiative.eu/ia-cities/haskovo/home"
+            },
+            {
+                id: 23,
+                city: "Copenaghen",
+                country: "Danimarca",
+                call: "Call 2",
+                theme: "Sustainable Tourism",
+                project: "CULTIGEN",
+                desc: "Modelli rigenerativi di turismo culturale e sostenibile che integrano residenti, quartieri emergenti e filiere a basse emissioni.",
+                lat: 55.6761,
+                lng: 12.5683,
+                url: "https://www.urban-initiative.eu/ia-cities/copenhagen/home"
+            },
+            {
+                id: 24,
+                city: "Atene",
+                country: "Grecia",
+                call: "Call 2",
+                theme: "Greening Cities",
+                project: "Cooling Havens",
+                desc: "Creazione di oasi fresche bioclimatiche e corridoi alberati nei quartieri più vulnerabili alle ondate di calore.",
+                lat: 37.9838,
+                lng: 23.7275,
+                url: "https://www.urban-initiative.eu/ia-cities/athens/home"
+            },
+            {
+                id: 25,
+                city: "Elliniko-Argyroupoli",
+                country: "Grecia",
+                call: "Call 2",
+                theme: "Greening Cities",
+                project: "GreCO",
+                desc: "Connettività ecologica urbana e riqualificazione verde degli spazi pubblici nell'area metropolitana meridionale di Atene.",
+                lat: 37.9022,
+                lng: 23.7511,
+                url: "https://www.urban-initiative.eu/ia-cities/elliniko-argyroupoli/home"
+            },
+            {
+                id: 26,
+                city: "Kozani",
+                country: "Grecia",
+                call: "Call 2",
+                theme: "Harnessing Talent",
+                project: "EcoZani",
+                desc: "Riqualificazione delle competenze e creazione di un hub per talenti verdi e digitali nella transizione post-carbone.",
+                lat: 40.3006,
+                lng: 21.7889,
+                url: "https://www.urban-initiative.eu/ia-cities/kozani/home"
+            },
+            {
+                id: 27,
+                city: "Cracovia",
+                country: "Polonia",
+                call: "Call 2",
+                theme: "Sustainable Tourism",
+                project: "SCT HUB",
+                desc: "Hub per il turismo culturale sostenibile, la gestione intelligente dei flussi dei visitatori e la tutela della qualità della vita urbana.",
+                lat: 50.0647,
+                lng: 19.9450,
+                url: "https://www.urban-initiative.eu/ia-cities/krakow/home"
+            },
+            {
+                id: 28,
+                city: "Stalowa Wola",
+                country: "Polonia",
+                call: "Call 2",
+                theme: "Harnessing Talent",
+                project: "SPACE 4 TALENTS",
+                desc: "Ecosistema territoriale per attrarre giovani talenti tecnologici e spaziali attraverso laboratori avanzati e servizi abitativi.",
+                lat: 50.5826,
+                lng: 22.0536,
+                url: "https://www.urban-initiative.eu/ia-cities/stalowa-wola/home"
+            },
+            {
+                id: 29,
+                city: "Coimbra",
+                country: "Portogallo",
+                call: "Call 2",
+                theme: "Sustainable Tourism",
+                project: "COIMBRA ST LLM",
+                desc: "Gestione basata sui dati e sull'intelligenza artificiale per un turismo culturale sostenibile e destagionalizzato.",
+                lat: 40.2033,
+                lng: -8.4103,
+                url: "https://www.urban-initiative.eu/ia-cities/coimbra/home"
+            },
+            {
+                id: 30,
+                city: "Bistrița",
+                country: "Romania",
+                call: "Call 2",
+                theme: "Greening Cities",
+                project: "B-CONNECT",
+                desc: "Rete di corridoi verdi e infrastrutture naturali per migliorare la biodiversità urbana e la resilienza climatica.",
+                lat: 47.1325,
+                lng: 24.5003,
+                url: "https://www.urban-initiative.eu/ia-cities/bistrita/home"
+            },
+            {
+                id: 31,
+                city: "Celje",
+                country: "Slovenia",
+                call: "Call 2",
+                theme: "Harnessing Talent",
+                project: "MAG-NET",
+                desc: "Piattaforma integrata di attrazione dei giovani, incubazione imprenditoriale e rigenerazione urbana partecipata.",
+                lat: 46.2397,
+                lng: 15.2677,
+                url: "https://www.urban-initiative.eu/ia-cities/celje/home"
+            },
+            {
+                id: 32,
+                city: "Area Metropolitana di Barcellona",
+                country: "Spagna",
+                call: "Call 2",
+                theme: "Greening Cities",
+                project: "Ecological Green Roofs",
+                desc: "Diffusione su scala metropolitana di tetti verdi ecologici per l'isolamento termico, la biodiversità e la ritenzione idrica.",
+                lat: 41.3874,
+                lng: 2.1686,
+                url: "https://www.urban-initiative.eu/ia-cities/barcelona-metropolitan-area/home"
+            },
+            {
+                id: 33,
+                city: "Valencia",
+                country: "Spagna",
+                call: "Call 2",
+                theme: "Sustainable Tourism",
+                project: "Zentropy MICE",
+                desc: "Decarbonizzazione del turismo congressuale ed eventi (MICE) attraverso misurazione dell'impronta e filiere locali circolari.",
+                lat: 39.4699,
+                lng: -0.3763,
+                url: "https://www.urban-initiative.eu/ia-cities/valencia/home"
+            },
+            {
+                id: 34,
+                city: "Amsterdam",
+                country: "Paesi Bassi",
+                call: "Call 2",
+                theme: "Greening Cities",
+                project: "Ground for Wellbeing (GfW)",
+                desc: "Rigenerazione ecologica dei suoli urbani e creazione di spazi verdi terapeutici e ad alta biodiversità nei quartieri.",
+                lat: 52.3676,
+                lng: 4.9041,
+                url: "https://www.urban-initiative.eu/ia-cities/amsterdam/home"
+            },
+            {
+                id: 35,
+                city: "Rotterdam",
+                country: "Paesi Bassi",
+                call: "Call 2",
+                theme: "Greening Cities",
+                project: "Greening Without Borders",
+                desc: "Trasformazione di strade e piazze ad alta densità in giardini urbani connessi con il coinvolgimento diretto degli abitanti.",
+                lat: 51.9244,
+                lng: 4.4777,
+                url: "https://www.urban-initiative.eu/ia-cities/rotterdam/home"
+            },
+            {
+                id: 36,
+                city: "Rovaniemi",
+                country: "Finlandia",
+                call: "Call 2",
+                theme: "Sustainable Tourism",
+                project: "Arctic Sustainable Tourism",
+                desc: "Modelli di gestione dei flussi turistici artici a basso impatto ambientale, tutela degli ecosistemi e benefici per le comunità locali.",
+                lat: 66.5039,
+                lng: 25.7294,
+                url: "https://www.urban-initiative.eu/ia-cities/rovaniemi/home"
+            },
+
+            // --- CALL 3: 20 Progetti (Energy Transition & Technology in Cities) ---
+            {
+                id: 37,
+                city: "Cesena",
+                country: "Italia",
+                call: "Call 3",
+                theme: "Energy Transition",
+                project: "Energy2Act",
+                desc: "Comunità energetiche rinnovabili, povertà energetica e partecipazione attiva dei cittadini nella transizione energetica urbana.",
+                lat: 44.1396,
+                lng: 12.2464,
+                url: "https://www.urban-initiative.eu/ia-cities/cesena/home",
+                directUrl: "https://energy2act.it/",
+                directLabel: "Sito Energy2Act"
+            },
+            {
+                id: 38,
+                city: "Vienna",
+                country: "Austria",
+                call: "Call 3",
+                theme: "Energy Transition",
+                project: "ADUCAT",
+                desc: "Decarbonizzazione del teleriscaldamento e ottimizzazione dei sistemi energetici urbani ad alta efficienza.",
+                lat: 48.2082,
+                lng: 16.3738,
+                url: "https://www.urban-initiative.eu/ia-cities/vienna/home"
+            },
+            {
+                id: 39,
+                city: "A Coruña",
+                country: "Spagna",
+                call: "Call 3",
+                theme: "Technology in Cities",
+                project: "ALLOCATE",
+                desc: "Piattaforme urbane basate su intelligenza artificiale e dati per l'ottimizzazione dei servizi pubblici e della mobilità.",
+                lat: 43.3623,
+                lng: -8.4115,
+                url: "https://www.urban-initiative.eu/ia-cities/a-coruna/home"
+            },
+            {
+                id: 40,
+                city: "Tilburg",
+                country: "Paesi Bassi",
+                call: "Call 3",
+                theme: "Energy Transition",
+                project: "batteREstore",
+                desc: "Sistemi locali di accumulo energetico e gestione intelligente delle reti elettriche di quartiere per superare la congestione di rete.",
+                lat: 51.5555,
+                lng: 5.0913,
+                url: "https://www.urban-initiative.eu/ia-cities/tilburg/home"
+            },
+            {
+                id: 41,
+                city: "Regione di Bruxelles-Capitale",
+                country: "Belgio",
+                call: "Call 3",
+                theme: "Energy Transition",
+                project: "Be.SHARE",
+                desc: "Condivisione dell'energia rinnovabile tra edifici pubblici e famiglie vulnerabili per accelerare una transizione energetica giusta.",
+                lat: 50.8503,
+                lng: 4.3517,
+                url: "https://www.urban-initiative.eu/ia-cities/brussels-capital-region/home"
+            },
+            {
+                id: 42,
+                city: "Utrecht",
+                country: "Paesi Bassi",
+                call: "Call 3",
+                theme: "Energy Transition",
+                project: "CED for the Future",
+                desc: "Distretti energetici puliti e ricarica bidirezionale intelligente integrata nelle reti rinnovabili urbane.",
+                lat: 52.0907,
+                lng: 5.1214,
+                url: "https://www.urban-initiative.eu/ia-cities/utrecht/home"
+            },
+            {
+                id: 43,
+                city: "Câmara de Lobos",
+                country: "Portogallo",
+                call: "Call 3",
+                theme: "Technology in Cities",
+                project: "Co.nTe",
+                desc: "Tecnologie digitali civiche e sensoristica ambientale per la resilienza climatica e la gestione sostenibile del territorio insulare.",
+                lat: 32.6500,
+                lng: -16.9772,
+                url: "https://www.urban-initiative.eu/ia-cities/camara-de-lobos/home"
+            },
+            {
+                id: 44,
+                city: "Amburgo",
+                country: "Germania",
+                call: "Call 3",
+                theme: "Technology in Cities",
+                project: "CUSTOM",
+                desc: "Soluzioni digitali avanzate e gemelli digitali urbani per una pianificazione partecipata e servizi cittadini intelligenti.",
+                lat: 53.5511,
+                lng: 9.9937,
+                url: "https://www.urban-initiative.eu/ia-cities/hamburg/home"
+            },
+            {
+                id: 45,
+                city: "Lubiana",
+                country: "Slovenia",
+                call: "Call 3",
+                theme: "Energy Transition",
+                project: "EffiComfort",
+                desc: "Efficienza energetica intelligente e comfort termico negli edifici residenziali e pubblici con controllo predittivo.",
+                lat: 46.0569,
+                lng: 14.5058,
+                url: "https://www.urban-initiative.eu/ia-cities/ljubljana/home"
+            },
+            {
+                id: 46,
+                city: "Bucarest – Distretto 6",
+                country: "Romania",
+                call: "Call 3",
+                theme: "Technology in Cities",
+                project: "FAVORIT+",
+                desc: "Rigenerazione urbana guidata dai dati e piattaforme digitali per migliorare la qualità dei servizi e degli spazi pubblici.",
+                lat: 44.4355,
+                lng: 26.0322,
+                url: "https://www.urban-initiative.eu/ia-cities/district-6-bucharest/home"
+            },
+            {
+                id: 47,
+                city: "Kallithea",
+                country: "Grecia",
+                call: "Call 3",
+                theme: "Energy Transition",
+                project: "GRID",
+                desc: "Micro-reti energetiche intelligenti e autoconsumo fotovoltaico per edifici municipali e comunità locali.",
+                lat: 37.9553,
+                lng: 23.7014,
+                url: "https://www.urban-initiative.eu/ia-cities/kallithea/home"
+            },
+            {
+                id: 48,
+                city: "Matosinhos",
+                country: "Portogallo",
+                call: "Call 3",
+                theme: "Technology in Cities",
+                project: "MOVES-IT",
+                desc: "Sistemi intelligenti di mobilità urbana e analisi predittiva dei flussi per ridurre le emissioni e migliorare l'accessibilità.",
+                lat: 41.1844,
+                lng: -8.6963,
+                url: "https://www.urban-initiative.eu/ia-cities/matosinhos/home"
+            },
+            {
+                id: 49,
+                city: "Kifissia",
+                country: "Grecia",
+                call: "Call 3",
+                theme: "Technology in Cities",
+                project: "NEW EPOCH",
+                desc: "Piattaforma digitale urbana per il monitoraggio climatico, la protezione del verde e l'efficienza dei servizi comunali.",
+                lat: 38.0744,
+                lng: 23.8111,
+                url: "https://www.urban-initiative.eu/ia-cities/kifissia/home"
+            },
+            {
+                id: 50,
+                city: "Vaasa",
+                country: "Finlandia",
+                call: "Call 3",
+                theme: "Energy Transition",
+                project: "Nordic Energy Capital (NEC)",
+                desc: "Integrazione settoriale tra energia rinnovabile, accumulo termico ed elettrico per la neutralità carbonica urbana.",
+                lat: 63.0951,
+                lng: 21.6165,
+                url: "https://www.urban-initiative.eu/ia-cities/vaasa/home"
+            },
+            {
+                id: 51,
+                city: "Heerlen",
+                country: "Paesi Bassi",
+                call: "Call 3",
+                theme: "Technology in Cities",
+                project: "PULSE-TWIN",
+                desc: "Gemello digitale urbano per simulare interventi di rigenerazione, energia geotermica e inclusione sociale nei quartieri.",
+                lat: 50.8882,
+                lng: 5.9795,
+                url: "https://www.urban-initiative.eu/ia-cities/heerlen/home"
+            },
+            {
+                id: 52,
+                city: "Košice",
+                country: "Slovacchia",
+                call: "Call 3",
+                theme: "Technology in Cities",
+                project: "SAM-SUD",
+                desc: "Sistemi digitali intelligenti per la gestione sostenibile degli spazi urbani, della mobilità e dell'ambiente.",
+                lat: 48.7164,
+                lng: 21.2611,
+                url: "https://www.urban-initiative.eu/ia-cities/kosice/home"
+            },
+            {
+                id: 53,
+                city: "Salamanca",
+                country: "Spagna",
+                call: "Call 3",
+                theme: "Technology in Cities",
+                project: "TRUST",
+                desc: "Intelligenza artificiale trasparente e governance etica dei dati urbani per migliorare i servizi al cittadino.",
+                lat: 40.9701,
+                lng: -5.6635,
+                url: "https://www.urban-initiative.eu/ia-cities/salamanca/home"
+            },
+            {
+                id: 54,
+                city: "Galway",
+                country: "Irlanda",
+                call: "Call 3",
+                theme: "Technology in Cities",
+                project: "WATERWAY",
+                desc: "Sensoristica digitale avanzata e gemelli digitali per il monitoraggio delle acque urbane e della biodiversità costiera.",
+                lat: 53.2707,
+                lng: -9.0568,
+                url: "https://www.urban-initiative.eu/ia-cities/galway/home"
+            },
+            {
+                id: 55,
+                city: "Arnhem",
+                country: "Paesi Bassi",
+                call: "Call 3",
+                theme: "Energy Transition",
+                project: "ZERO",
+                desc: "Soluzioni locali per quartieri a zero emissioni, flessibilità delle reti energetiche e riqualificazione sostenibile.",
+                lat: 51.9851,
+                lng: 5.8987,
+                url: "https://www.urban-initiative.eu/ia-cities/arnhem/home"
+            },
+            {
+                id: 56,
+                city: "Norimberga",
+                country: "Germania",
+                call: "Call 3",
+                theme: "Energy Transition",
+                project: "ZEROit",
+                desc: "Decarbonizzazione accelerata del patrimonio edilizio urbano e integrazione di reti termiche ed elettriche rinnovabili.",
+                lat: 49.4521,
+                lng: 11.0767,
+                url: "https://www.urban-initiative.eu/ia-cities/nuremberg/home"
+            }
+        ];
+
+        // =========================================================================
+        // CALCOLO DINAMICO DISTRIBUZIONE PER NAZIONE E TEMA (ALLINEATO SU 56)
+        // =========================================================================
+        function getCountryCounts() {
+            const mapCounts = {};
+            winningProjects.forEach(p => {
+                mapCounts[p.country] = (mapCounts[p.country] || 0) + 1;
+            });
+            return Object.entries(mapCounts)
+                .map(([country, count]) => ({ country, count }))
+                .sort((a, b) => b.count - a.count || a.country.localeCompare(b.country));
+        }
+
+        function getThemeCounts() {
+            const themeCounts = {};
+            winningProjects.forEach(p => {
+                themeCounts[p.theme] = (themeCounts[p.theme] || 0) + 1;
+            });
+            return Object.entries(themeCounts)
+                .map(([theme, count]) => ({ theme, count }))
+                .sort((a, b) => b.count - a.count);
+        }
+
+        // =========================================================================
+        // GRAFICI ANALITICI CHART.JS
+        // =========================================================================
+        function initCharts() {
+            if (typeof Chart === 'undefined') return;
+
+            const countryData = getCountryCounts();
+            const ctxCountry = document.getElementById('countryChart').getContext('2d');
+            new Chart(ctxCountry, {
+                type: 'bar',
+                data: {
+                    labels: countryData.map(d => d.country),
+                    datasets: [{
+                        label: 'Progetti Vincitori (Totale 56)',
+                        data: countryData.map(d => d.count),
+                        backgroundColor: countryData.map(d =>
+                            d.country === 'Italia' ? '#059669' :
+                            (d.count >= 5 ? '#003399' : '#3b82f6')
+                        ),
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ` ${ctx.parsed.y} ${ctx.parsed.y === 1 ? 'progetto approvato' : 'progetti approvati'}`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1 },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10.5 } }
+                        }
+                    }
+                }
+            });
+
+            const themeData = getThemeCounts();
+            const ctxThemes = document.getElementById('themesChart').getContext('2d');
+            new Chart(ctxThemes, {
+                type: 'doughnut',
+                data: {
+                    labels: themeData.map(t => `${t.theme} (${t.count})`),
+                    datasets: [{
+                        data: themeData.map(t => t.count),
+                        backgroundColor: [
+                            '#d97706', // NEB (14)
+                            '#059669', // Greening Cities (12)
+                            '#2563eb', // Energy Transition (10)
+                            '#0ea5e9', // Technology in Cities (10)
+                            '#10b981', // Sustainable Tourism (6)
+                            '#6366f1'  // Harnessing Talent (4)
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // =========================================================================
+        // CARTINA 3D INTERATTIVA (MAPLIBRE GL JS + OPENFREEMAP / OSM - ZERO API KEY)
+        // =========================================================================
+        let map3d = null;
+        let currentMarkers = [];
+        let markerRegistry = {};
+        let is3DPitched = true;
+
+        const fallbackOSMStyle = {
+            version: 8,
+            sources: {
+                osm: {
+                    type: 'raster',
+                    tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                    tileSize: 256,
+                    attribution: '&copy; OpenStreetMap Contributors'
+                }
+            },
+            layers: [
+                {
+                    id: 'osm-tiles',
+                    type: 'raster',
+                    source: 'osm',
+                    minzoom: 0,
+                    maxzoom: 19
+                }
+            ]
+        };
+
+        function getCallColor(call) {
+            if (call === 'Call 1') return '#d97706';
+            if (call === 'Call 2') return '#059669';
+            return '#2563eb';
+        }
+
+        function initMap3D() {
+            const container = document.getElementById('europeMap3D');
+            if (typeof maplibregl === 'undefined') {
+                container.innerHTML = '<div style="padding:2rem;text-align:center;color:#475569;">Impossibile caricare la libreria MapLibre GL 3D. Verifica la connessione internet.</div>';
+                return;
+            }
+
+            let switchedToFallback = false;
+
+            map3d = new maplibregl.Map({
+                container: 'europeMap3D',
+                style: 'https://tiles.openfreemap.org/styles/liberty',
+                center: [12.5, 48.0],
+                zoom: 3.7,
+                pitch: 45,
+                bearing: -10,
+                antialias: true
+            });
+
+            map3d.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+            map3d.addControl(new maplibregl.FullscreenControl(), 'top-right');
+
+            map3d.on('error', (e) => {
+                if (!switchedToFallback && e && e.error) {
+                    switchedToFallback = true;
+                    console.warn('Passaggio allo stile di backup OpenStreetMap 3D:', e.error);
+                    map3d.setStyle(fallbackOSMStyle);
+                }
+            });
+
+            map3d.on('load', () => {
+                map3d.resize();
+                renderMapMarkers('all');
+            });
+        }
+
+        function renderMapMarkers(filterType) {
+            if (!map3d) return;
+
+            currentMarkers.forEach(m => m.remove());
+            currentMarkers = [];
+            markerRegistry = {};
+
+            const filtered = winningProjects.filter(p => {
+                if (filterType === 'all') return true;
+                if (filterType === 'Italia') return p.country === 'Italia';
+                return p.call === filterType;
+            });
+
+            filtered.forEach(p => {
+                const color = getCallColor(p.call);
+                const el = document.createElement('div');
+                el.className = 'eui-marker-3d' + (p.country === 'Italia' ? ' italy' : '');
+                el.style.backgroundColor = color;
+                el.title = `${p.city} (${p.country}) — ${p.project}`;
+                el.innerText = p.call.replace('Call ', '');
+
+                const directBtnHTML = p.directUrl ? `
+                    <a href="${p.directUrl}" target="_blank" rel="noopener noreferrer"
+                       style="display:block; text-align:center; background:#059669; color:#fff; text-decoration:none; font-size:11px; font-weight:700; padding:6px 8px; border-radius:6px; margin-bottom:6px;">
+                        ${p.directLabel || 'Sito Web Progetto'} ↗
+                    </a>` : '';
+
+                const popupHTML = `
+                    <div style="font-family:sans-serif; min-width:245px; max-width:285px;">
+                        <span style="display:inline-block; background:${color}; color:#fff; font-size:11px; font-weight:700; padding:2px 8px; border-radius:12px; margin-bottom:6px;">
+                            ${p.call} • ${p.theme}
+                        </span>
+                        <h4 style="margin:2px 0; font-size:15px; color:#0f172a;">${p.city} (${p.country})</h4>
+                        <div style="font-weight:700; font-size:13px; color:#003399; margin-bottom:6px;">Progetto: ${p.project}</div>
+                        <p style="margin:0 0 10px; font-size:12px; color:#475569; line-height:1.45;">${p.desc}</p>
+                        ${directBtnHTML}
+                        <div style="display:flex; gap:6px;">
+                            <a href="${p.url}" target="_blank" rel="noopener noreferrer"
+                               style="flex:1; text-align:center; background:#003399; color:#fff; text-decoration:none; font-size:11px; font-weight:700; padding:6px 8px; border-radius:6px;">
+                               Scheda Ufficiale EUI ↗
+                            </a>
+                            <button onclick="zoomCity3D(${p.lat}, ${p.lng})"
+                               style="background:#f1f5f9; color:#0f172a; border:1px solid #cbd5e1; font-size:11px; font-weight:700; padding:6px 8px; border-radius:6px; cursor:pointer;">
+                               🏢 3D
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                const popup = new maplibregl.Popup({ offset: 16 }).setHTML(popupHTML);
+
+                const marker = new maplibregl.Marker({ element: el })
+                    .setLngLat([p.lng, p.lat])
+                    .setPopup(popup)
+                    .addTo(map3d);
+
+                currentMarkers.push(marker);
+                markerRegistry[p.id] = marker;
+            });
+
+            if (filterType === 'Italia') {
+                map3d.flyTo({ center: [11.5, 43.8], zoom: 5.7, pitch: is3DPitched ? 48 : 0, bearing: -8, duration: 1200 });
+            } else {
+                map3d.flyTo({ center: [12.5, 48.0], zoom: 3.7, pitch: is3DPitched ? 45 : 0, bearing: -10, duration: 1200 });
+            }
+        }
+
+        function filterMap(filterType, btnElement) {
+            document.querySelectorAll('.map-controls .filter-btn').forEach(b => b.classList.remove('active'));
+            if (btnElement) btnElement.classList.add('active');
+            renderMapMarkers(filterType);
+        }
+
+        function toggle3DPitch() {
+            if (!map3d) return;
+            is3DPitched = !is3DPitched;
+            const btn = document.getElementById('btnToggle3D');
+            btn.innerText = is3DPitched ? '🌐 Inclinazione 3D: ON' : '🗺️ Vista 2D Piana';
+            map3d.easeTo({
+                pitch: is3DPitched ? 48 : 0,
+                bearing: is3DPitched ? -10 : 0,
+                duration: 800
+            });
+        }
+
+        function zoomCity3D(lat, lng) {
+            if (!map3d) return;
+            is3DPitched = true;
+            document.getElementById('btnToggle3D').innerText = '🌐 Inclinazione 3D: ON';
+            map3d.flyTo({
+                center: [lng, lat],
+                zoom: 14.2,
+                pitch: 60,
+                bearing: 22,
+                duration: 1800
+            });
+        }
+
+        function focusOnMap3D(id, lat, lng) {
+            document.getElementById('mappa').scrollIntoView({ behavior: 'smooth' });
+            if (!map3d) return;
+
+            document.querySelectorAll('.map-controls .filter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.map-controls .filter-btn').classList.add('active');
+            renderMapMarkers('all');
+
+            is3DPitched = true;
+            document.getElementById('btnToggle3D').innerText = '🌐 Inclinazione 3D: ON';
+
+            setTimeout(() => {
+                map3d.flyTo({
+                    center: [lng, lat],
+                    zoom: 11.5,
+                    pitch: 56,
+                    bearing: 15,
+                    duration: 1600
+                });
+                if (markerRegistry[id]) {
+                    markerRegistry[id].togglePopup();
+                }
+            }, 350);
+        }
+
+        // =========================================================================
+        // POPOLAMENTO FILTRO NAZIONI E SCHEDE PROGETTO (56 SCHEDE)
+        // =========================================================================
+        function initCountryDropdown() {
+            const select = document.getElementById('countryFilter');
+            const countries = getCountryCounts();
+            select.options[0].textContent = `Tutte le ${countries.length} Nazioni`;
+            countries.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.country;
+                const flag = c.country === 'Italia' ? '🇮🇹 ' : '';
+                opt.textContent = `${flag}${c.country} (${c.count})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function renderProjects() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const callVal = document.getElementById('callFilter').value;
+            const countryVal = document.getElementById('countryFilter').value;
+            const siteVal = document.getElementById('siteFilter').value;
+
+            const filtered = winningProjects.filter(p => {
+                const matchCall = callVal === 'all' || p.call === callVal;
+                const matchCountry = countryVal === 'all' || p.country === countryVal;
+                const matchSite = siteVal === 'all' || Boolean(p.directUrl);
+                const matchQuery = !query ||
+                    p.city.toLowerCase().includes(query) ||
+                    p.country.toLowerCase().includes(query) ||
+                    p.project.toLowerCase().includes(query) ||
+                    p.theme.toLowerCase().includes(query) ||
+                    p.desc.toLowerCase().includes(query);
+                return matchCall && matchCountry && matchSite && matchQuery;
+            });
+
+            document.getElementById('resultsCounter').innerText =
+                `${filtered.length} ${filtered.length === 1 ? 'progetto visualizzato' : 'progetti visualizzati'} su ${winningProjects.length}`;
+
+            const container = document.getElementById('projectsContainer');
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="color:#64748b; grid-column:1/-1; text-align:center; padding:2rem;">Nessun progetto corrisponde ai criteri di ricerca selezionati.</p>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(p => {
+                const badgeClass = p.call === 'Call 1' ? 'badge-c1' : (p.call === 'Call 2' ? 'badge-c2' : 'badge-c3');
+                const italyClass = p.country === 'Italia' ? ' italy-highlight' : '';
+                const flag = p.country === 'Italia' ? '🇮🇹 ' : '';
+                const directLink = p.directUrl
+                    ? `<a href="${p.directUrl}" target="_blank" rel="noopener noreferrer" class="btn-card-direct">${p.directLabel || 'Sito Progetto'} ↗</a>`
+                    : '';
+
+                return `
+                <article class="project-card${italyClass}">
+                    <div>
+                        <div class="p-card-top">
+                            <span class="p-country">#${p.id} • ${flag}${p.country}</span>
+                            <span class="badge-call ${badgeClass}">${p.call}</span>
+                        </div>
+                        <h3 class="p-city">${p.city}</h3>
+                        <div class="p-title">Progetto: ${p.project}</div>
+                        <span class="p-theme">${p.theme}</span>
+                        <p class="p-desc">${p.desc}</p>
+                    </div>
+                    <div class="p-actions">
+                        ${directLink}
+                        <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="btn-card-link">
+                            Scheda EUI ↗
+                        </a>
+                        <button class="btn-card-map" onclick="focusOnMap3D(${p.id}, ${p.lat}, ${p.lng})">
+                            📍 3D
+                        </button>
+                    </div>
+                </article>`;
+            }).join('');
+        }
+
+        // Inizializzazione al caricamento della pagina
+        window.addEventListener('DOMContentLoaded', () => {
+            initCountryDropdown();
+            initCharts();
+            initMap3D();
+            renderProjects();
+        });
+    </script>
+</body>
+</html>
