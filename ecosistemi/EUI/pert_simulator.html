@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Twin4forestLife (EUI04-1006) — Simulatore PERT &amp; Analisi Percorso Critico (CPM)</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            crimson: {
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              200: '#fecdd3',
+              500: '#f43f5e',
+              600: '#dc2626',
+              700: '#b91c1c',
+              800: '#991b1b',
+              900: '#7f1d1d',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      overflow-x: hidden;
+    }
+
+    /* Animated flow along Critical Path edges */
+    @keyframes criticalFlow {
+      to {
+        stroke-dashoffset: -24;
+      }
+    }
+    .critical-edge-animated {
+      stroke-dasharray: 8 4;
+      animation: criticalFlow 1.1s linear infinite;
+    }
+
+    /* Smooth transitions on SVG nodes */
+    .pert-node-group {
+      cursor: pointer;
+      transition: opacity 0.25s ease, transform 0.15s ease;
+    }
+    .pert-node-group:hover .node-card-bg {
+      filter: drop-shadow(0 8px 14px rgba(15, 23, 42, 0.16));
+    }
+
+    /* Custom subtle scrollbars */
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    #pertSvgViewport {
+      touch-action: none;
+      user-select: none;
+    }
+
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #ffffff !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-900 antialiased">
+
+  <!-- TOAST NOTIFICATION CONTAINER (No browser alert/confirm) -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ======================================================================= -->
+  <!-- TOP INSTITUTIONAL HEADER + QUICK ACCESS TO FOLDER FILES                 -->
+  <!-- ======================================================================= -->
+  <header class="bg-slate-900 text-white shadow-xl border-b border-slate-800 no-print">
+    <div class="max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div class="flex flex-col 2xl:flex-row 2xl:items-center 2xl:justify-between gap-4">
+        <!-- Project Title & Engineering Badge -->
+        <div class="flex items-start sm:items-center gap-3.5">
+          <div class="w-12 h-12 rounded-xl bg-emerald-700/30 border border-emerald-500/40 flex items-center justify-center shrink-0 shadow-inner">
+            <i class="fa-solid fa-diagram-project text-emerald-400 text-xl"></i>
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider rounded-full bg-emerald-700/40 text-emerald-300 border border-emerald-500/40">
+                EUI-IA Call 4 • EUI04-1006
+              </span>
+              <span class="px-2.5 py-0.5 text-[11px] font-mono font-semibold rounded-full bg-crimson-600/25 text-rose-300 border border-crimson-500/40">
+                PERT / CPM Critical Path Engine
+              </span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white mt-1">
+              Twin4forestLife <span class="font-normal text-slate-300 text-base sm:text-lg">— Diagramma PERT &amp; Simulatore Percorso Critico</span>
+            </h1>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Analisi reticolare a 3 stime (O, M, P), calcolo Forward/Backward Pass, Slack, Varianza e Stress-Test Rischi EUI (01/12/2026 – 31/05/2029)
+            </p>
+          </div>
+        </div>
+
+        <!-- PROMINENT QUICK-ACCESS LINKS TO FILES IN THE SAME FOLDER -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 2xl:max-w-4xl w-full">
+          <!-- Link 1: Existing Digital Twin Simulator (./index.html) -->
+          <a href="./index.html" target="_blank" rel="noopener noreferrer"
+             class="group flex items-center gap-3 p-2.5 rounded-xl bg-emerald-800/40 hover:bg-emerald-700/60 border border-emerald-500/40 hover:border-emerald-300 transition-all duration-200 shadow-sm">
+            <div class="w-9 h-9 rounded-lg bg-emerald-500/25 text-emerald-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <i class="fa-solid fa-fire-flame-curved text-base"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-white truncate group-hover:text-emerald-200">Simulatore Digital Twin &amp; Dashboard</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-emerald-300 shrink-0"></i>
+              </div>
+              <p class="text-[11px] text-emerald-200/80 truncate">Apri il simulatore principale già creato</p>
+            </div>
+          </a>
+
+          <!-- Link 2: Application Form PDF -->
+          <a href="./EUI04-1006-Twin4forestLife Application Form.pdf" target="_blank" rel="noopener noreferrer"
+             class="group flex items-center gap-3 p-2.5 rounded-xl bg-white/10 hover:bg-teal-700/40 border border-white/15 hover:border-teal-400/60 transition-all duration-200 shadow-sm">
+            <div class="w-9 h-9 rounded-lg bg-teal-500/25 text-teal-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <i class="fa-solid fa-file-pdf text-base"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-white truncate group-hover:text-teal-200">Application Form EUI04-1006 (PDF)</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-teal-300 shrink-0"></i>
+              </div>
+              <p class="text-[11px] text-slate-300 truncate">Work Plan, Budget €2.5M &amp; Rischi Parte G</p>
+            </div>
+          </a>
+
+          <!-- Link 3: UNICAL Wildfire Risk Analysis PDF -->
+          <a href="./Wildire_risk_analysis_Castrovillari_Cassano (1).pdf" target="_blank" rel="noopener noreferrer"
+             class="group flex items-center gap-3 p-2.5 rounded-xl bg-white/10 hover:bg-amber-700/40 border border-white/15 hover:border-amber-400/60 transition-all duration-200 shadow-sm">
+            <div class="w-9 h-9 rounded-lg bg-amber-500/25 text-amber-300 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+              <i class="fa-solid fa-chart-area text-base"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-bold text-white truncate group-hover:text-amber-200">Analisi Rischio Incendi UNICAL (PDF)</span>
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-amber-300 shrink-0"></i>
+              </div>
+              <p class="text-[11px] text-slate-300 truncate">Technical Report Lab LMSV (Castrovillari &amp; Cassano)</p>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUB-NAVIGATION BAR -->
+    <nav class="bg-slate-950/70 border-t border-slate-800 px-4 sm:px-6 lg:px-8 py-2">
+      <div class="max-w-[1680px] mx-auto flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-1.5" role="tablist">
+          <button onclick="switchView('view-pert')" id="btn-view-pert"
+                  class="view-tab-btn active flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-emerald-700 text-white shadow-sm transition-all">
+            <i class="fa-solid fa-network-wired"></i> Rete PERT &amp; Simulatore CPM
+          </button>
+          <button onclick="switchView('view-table')" id="btn-view-table"
+                  class="view-tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-all">
+            <i class="fa-solid fa-table-list"></i> Tabella Analitica PERT, Deliverables &amp; Rischi
+          </button>
+          <button onclick="switchView('view-docs')" id="btn-view-docs"
+                  class="view-tab-btn flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-all">
+            <i class="fa-solid fa-folder-open"></i> Risorse &amp; Documenti nella Cartella di Progetto
+          </button>
+        </div>
+
+        <div class="hidden md:flex items-center gap-4 text-[11px] font-mono text-slate-400">
+          <span>Formula PERT: <strong class="text-slate-200">te = (O + 4M + P) / 6</strong></span>
+          <span>•</span>
+          <span>Target Implementazione: <strong class="text-emerald-400">24.0 Mesi (28/02/2029)</strong></span>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ======================================================================= -->
+  <!-- MAIN CONTENT CONTAINER                                                  -->
+  <!-- ======================================================================= -->
+  <main class="flex-1 max-w-[1680px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
+
+    <!-- ===================================================================== -->
+    <!-- REAL-TIME KPI SUMMARY BAR (Always Visible)                            -->
+    <!-- ===================================================================== -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <!-- KPI 1: Implementation Duration & End Date -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Durata Implementazione (WP1–WP3)</span>
+          <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+            <i class="fa-solid fa-hourglass-half"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpiImplDuration" class="text-2xl font-mono font-extrabold text-slate-900">25.6 mesi</span>
+          <span class="text-xs font-semibold text-slate-500">/ Target 24.0m</span>
+        </div>
+        <div class="mt-1.5 flex items-center justify-between text-xs">
+          <span class="text-slate-600">Fine Impl.: <strong id="kpiImplEndDate" class="font-mono text-slate-900">15/04/2029</strong></span>
+          <span class="text-[11px] font-mono text-slate-400">Target: 28/02/2029</span>
+        </div>
+      </div>
+
+      <!-- KPI 2: Project Closure Date -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Chiusura Progetto EUI (Totale)</span>
+          <span class="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center">
+            <i class="fa-solid fa-flag-checkered"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpiClosureDate" class="text-2xl font-mono font-extrabold text-slate-900">15/07/2029</span>
+          <span id="kpiTotalDuration" class="text-xs font-mono font-semibold text-teal-700">(31.6m tot.)</span>
+        </div>
+        <div class="mt-1.5 flex items-center justify-between text-xs">
+          <span class="text-slate-600">Avvio: <strong class="font-mono">01/12/2026</strong></span>
+          <span class="text-[11px] font-mono text-slate-400">Target: 31/05/2029</span>
+        </div>
+      </div>
+
+      <!-- KPI 3: Critical Path Nodes & Sequence -->
+      <div class="bg-white rounded-2xl p-4 border border-crimson-200 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-crimson-700">Percorso Critico (Slack ≤ 0.05)</span>
+          <span class="w-8 h-8 rounded-lg bg-crimson-50 text-crimson-600 flex items-center justify-center">
+            <i class="fa-solid fa-route"></i>
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpiCriticalCount" class="text-2xl font-mono font-extrabold text-crimson-600">9 / 18 nodi</span>
+          <span id="kpiCriticalSigma" class="text-xs font-mono text-slate-500">σ_crit = 1.15m</span>
+        </div>
+        <div class="mt-1.5 text-[11px] font-mono font-semibold text-slate-700 truncate" id="kpiCriticalChain" title="">
+          INIT → A1.2 → A1.3 → A2.1 → A2.4 → A3.1 → A3.5 → A3.4 → CLOSURE
+        </div>
+      </div>
+
+      <!-- KPI 4: PERT Z-Score Probability within 24 Months -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Probabilità PERT ≤ 24 Mesi</span>
+          <span id="kpiProbBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-100 text-rose-800">
+            Critico (&lt; 40%)
+          </span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpiProbValue" class="text-2xl font-mono font-extrabold text-slate-900">8.4%</span>
+          <span id="kpiZScore" class="text-xs font-mono text-slate-500">(Z = -1.38)</span>
+        </div>
+        <div class="mt-1.5 text-[11px] text-slate-600" id="kpiProbHint">
+          Attiva lo scenario <strong>Fast-Track MVP</strong> per rientrare nei 24 mesi.
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 1: INTERACTIVE PERT NETWORK & CPM SIMULATOR (view-pert)          -->
+    <!-- ===================================================================== -->
+    <section id="view-pert" class="view-panel space-y-5">
+      <!-- EUI Risk Shock Scenarios Toolbar (Part G) -->
+      <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+          <div class="flex items-center gap-2 shrink-0">
+            <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-bolt"></i>
+            </span>
+            <div>
+              <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-800">Scenari di Simulazione Rischi EUI (Parte G Application Form)</h2>
+              <p class="text-[11px] text-slate-500">Applica uno shock operativo per osservare lo spostamento dinamico del Percorso Critico</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2" id="scenarioPresetsBar">
+            <button onclick="applyPresetScenario('nominal')" data-preset="nominal"
+                    class="preset-btn active px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white shadow-xs transition-all">
+              1. Piano Nominale EUI (Baseline 24 Mesi)
+            </button>
+            <button onclick="applyPresetScenario('procurement')" data-preset="procurement"
+                    class="preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-rose-50 text-slate-800 border border-slate-200 transition-all">
+              2. Rischio G.2: Ritardo Procurement Inv. I1.2.1 (+2.5m su A2.1)
+            </button>
+            <button onclick="applyPresetScenario('gdpr')" data-preset="gdpr"
+                    class="preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-rose-50 text-slate-800 border border-slate-200 transition-all">
+              3. Rischio G.2: Gap Dati GIS / Vincoli GDPR (+2.0m su A1.2)
+            </button>
+            <button onclick="applyPresetScenario('staff')" data-preset="staff"
+                    class="preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-rose-50 text-slate-800 border border-slate-200 transition-all">
+              4. Rischio G.2: Sovraccarico Staff Comuni LL (+2.5m su A2.2 e A2.3)
+            </button>
+            <button onclick="applyPresetScenario('fasttrack')" data-preset="fasttrack"
+                    class="preset-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 transition-all">
+              5. Scenario Ottimizzato: Fast-Track MVP &amp; Scenari (-1.5m su A2.1 e A2.4)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Split Workspace: Left SVG PERT Diagram (8 cols) + Right Inspector Panel (4 cols) -->
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+        <!-- LEFT: INTERACTIVE SVG PERT NETWORK DIAGRAM (8 cols) -->
+        <div class="xl:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <!-- Diagram Controls Toolbar -->
+          <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-extrabold text-slate-800">Rete Logica PERT (18 Nodi • 8 Stadi)</span>
+              <span class="hidden sm:inline-block text-[11px] text-slate-500">• Trascina per spostare, clicca un nodo per modificarne le stime</span>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-1.5">
+              <button onclick="zoomSvg(0.12)" title="Zoom In" class="px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-xs font-bold text-slate-700">
+                <i class="fa-solid fa-magnifying-glass-plus"></i>
+              </button>
+              <button onclick="zoomSvg(-0.12)" title="Zoom Out" class="px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-xs font-bold text-slate-700">
+                <i class="fa-solid fa-magnifying-glass-minus"></i>
+              </button>
+              <button onclick="fitSvgToScreen()" title="Adatta allo schermo" class="px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-xs font-semibold text-slate-700">
+                <i class="fa-solid fa-expand mr-1"></i>Adatta
+              </button>
+              <button onclick="toggleCriticalOnly()" id="btnCriticalOnly"
+                      class="px-3 py-1.5 rounded-lg bg-white hover:bg-crimson-50 border border-slate-300 text-xs font-semibold text-slate-700 transition-colors">
+                <i class="fa-solid fa-filter text-crimson-600 mr-1"></i>Solo Percorso Critico
+              </button>
+              <button onclick="togglePertLegend()" id="btnToggleLegend"
+                      class="px-2.5 py-1.5 rounded-lg bg-slate-800 text-white text-xs font-semibold">
+                <i class="fa-solid fa-circle-info mr-1"></i>Legenda
+              </button>
+            </div>
+          </div>
+
+          <!-- Collapsible PERT Node Anatomy Legend -->
+          <div id="pertLegendBar" class="px-4 py-2.5 bg-slate-900 text-white text-[11px] flex flex-wrap items-center justify-between gap-3 border-b border-slate-800">
+            <div class="flex flex-wrap items-center gap-4">
+              <span class="flex items-center gap-1.5">
+                <span class="w-4 h-1 bg-crimson-600 inline-block rounded"></span>
+                <strong class="text-rose-300">Percorso Critico</strong> (Slack ≤ 0.05m)
+              </span>
+              <span class="flex items-center gap-1.5">
+                <span class="w-4 h-1 bg-teal-600 inline-block rounded"></span>
+                <strong class="text-teal-300">Attività Non Critica</strong> (con margine Slack)
+              </span>
+              <span class="font-mono text-slate-300 bg-white/10 px-2 py-0.5 rounded">
+                [ES → EF] = Inizio/Fine Presto | [LS → LF] = Inizio/Fine Tardi | S = Slack Totale
+              </span>
+            </div>
+            <span class="text-slate-400 font-mono">18 Attività • 26 Dipendenze</span>
+          </div>
+
+          <!-- SVG Interactive Canvas Viewport -->
+          <div id="pertSvgViewport" class="relative w-full h-[640px] bg-slate-50/70 overflow-hidden cursor-grab active:cursor-grabbing">
+            <svg id="pertSvg" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- Arrowhead for Critical Path -->
+                <marker id="arrow-critical" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#dc2626" />
+                </marker>
+                <!-- Arrowhead for Non-Critical Path -->
+                <marker id="arrow-normal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#0f766e" />
+                </marker>
+                <!-- Arrowhead for Dimmed Path -->
+                <marker id="arrow-dim" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                  <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill="#cbd5e1" />
+                </marker>
+                <!-- Subtle grid background pattern -->
+                <pattern id="pertGrid" width="32" height="32" patternUnits="userSpaceOnUse">
+                  <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#e2e8f0" stroke-width="0.7" />
+                </pattern>
+              </defs>
+
+              <g id="pertPanZoomLayer" transform="translate(16, 12) scale(0.76)">
+                <rect x="-40" y="-20" width="2480" height="760" fill="url(#pertGrid)" rx="16" />
+                <g id="pertStageHeadersLayer"></g>
+                <g id="pertEdgesLayer"></g>
+                <g id="pertNodesLayer"></g>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- RIGHT: SELECTED NODE PERT INSPECTOR & SLIDERS PANEL (4 cols) -->
+        <aside class="xl:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+          <!-- Inspector Header -->
+          <div class="flex items-start justify-between gap-2 pb-3 border-b border-slate-100">
+            <div>
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span id="inspNodeCode" class="px-2.5 py-0.5 rounded-lg bg-slate-900 text-white font-mono font-extrabold text-xs">A2.1</span>
+                <span id="inspNodeWp" class="px-2 py-0.5 rounded-lg bg-teal-50 text-teal-800 border border-teal-200 font-bold text-xs">WP2</span>
+                <span id="inspNodeCritBadge" class="px-2.5 py-0.5 rounded-full bg-crimson-100 text-crimson-800 font-extrabold text-[11px]">
+                  PERCORSO CRITICO
+                </span>
+              </div>
+              <h3 id="inspNodeTitle" class="text-base font-extrabold text-slate-900 mt-2 leading-snug">
+                Sviluppo MVP Digital Twin e Integrazione Dati
+              </h3>
+            </div>
+          </div>
+
+          <!-- Partner & Budget Metadata -->
+          <div class="grid grid-cols-2 gap-2.5 text-xs">
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
+              <span class="text-[10px] font-bold uppercase text-slate-400 block">Partner Responsabile</span>
+              <span id="inspNodeLead" class="font-bold text-slate-900 mt-0.5 block">PP4 — UNICAL</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
+              <span class="text-[10px] font-bold uppercase text-slate-400 block">Impatto Budget / Inv.</span>
+              <span id="inspNodeBudget" class="font-mono font-bold text-emerald-700 mt-0.5 block">Inv. I1.2.1 (€450k)</span>
+            </div>
+          </div>
+
+          <div class="text-xs text-slate-600 space-y-1">
+            <div><strong class="text-slate-800">Partner Coinvolti:</strong> <span id="inspNodeInvolved">PP1, PP2, PP3, PP4, PP6</span></div>
+            <div><strong class="text-slate-800">Predecessori:</strong> <span id="inspNodePreds" class="font-mono text-slate-700">A1.3</span></div>
+            <div class="pt-1 flex flex-wrap gap-1" id="inspNodeDeliverables">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Interactive 3-Point PERT Sliders (O, M, P) -->
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-slate-800">Stime Durata PERT (Mesi)</span>
+              <button onclick="resetSelectedNode()" class="text-[11px] font-semibold text-teal-700 hover:underline">
+                <i class="fa-solid fa-rotate-left mr-0.5"></i>Reset Nodo
+              </button>
+            </div>
+
+            <!-- Optimistic O -->
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-semibold text-emerald-800">Ottimistica (O)</span>
+                <span id="sliderValO" class="font-mono font-bold text-slate-900">3.5 mesi</span>
+              </div>
+              <input type="range" id="sliderO" min="0.5" max="12.0" step="0.5" value="3.5"
+                     oninput="onPertSliderChange('O', this.value)" class="w-full accent-emerald-600" />
+            </div>
+
+            <!-- Most Likely M -->
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-semibold text-teal-800">Più Probabile (M)</span>
+                <span id="sliderValM" class="font-mono font-bold text-slate-900">4.0 mesi</span>
+              </div>
+              <input type="range" id="sliderM" min="0.5" max="12.0" step="0.5" value="4.0"
+                     oninput="onPertSliderChange('M', this.value)" class="w-full accent-teal-600" />
+            </div>
+
+            <!-- Pessimistic P -->
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="font-semibold text-crimson-700">Pessimistica (P)</span>
+                <span id="sliderValP" class="font-mono font-bold text-slate-900">6.0 mesi</span>
+              </div>
+              <input type="range" id="sliderP" min="0.5" max="12.0" step="0.5" value="6.0"
+                     oninput="onPertSliderChange('P', this.value)" class="w-full accent-crimson-600" />
+            </div>
+
+            <!-- Quick Shock Buttons -->
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <button onclick="nudgeSelectedNode(1.0)" class="px-3 py-2 rounded-xl bg-crimson-600 hover:bg-crimson-700 text-white text-xs font-bold shadow-xs transition-colors">
+                <i class="fa-solid fa-plus mr-1"></i>+1 Mese Ritardo
+              </button>
+              <button onclick="nudgeSelectedNode(-0.5)" class="px-3 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors">
+                <i class="fa-solid fa-minus mr-1"></i>-0.5 Mesi
+              </button>
+            </div>
+          </div>
+
+          <!-- Calculated CPM/PERT Node Metrics Grid -->
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="p-2.5 rounded-xl bg-slate-900 text-white">
+              <div class="text-[10px] uppercase text-slate-400">Attesa (te)</div>
+              <div id="inspMetricTe" class="text-sm font-mono font-extrabold text-emerald-400 mt-0.5">4.25 m</div>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-100 border border-slate-200">
+              <div class="text-[10px] uppercase text-slate-500">Dev. Std (σ)</div>
+              <div id="inspMetricSigma" class="text-sm font-mono font-extrabold text-slate-900 mt-0.5">0.42 m</div>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-100 border border-slate-200">
+              <div class="text-[10px] uppercase text-slate-500">Slack Totale</div>
+              <div id="inspMetricSlack" class="text-sm font-mono font-extrabold text-crimson-600 mt-0.5">0.00 m</div>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-[10px] text-slate-500">ES → EF</div>
+              <div id="inspMetricEarly" class="text-xs font-mono font-bold text-slate-800 mt-0.5">9.17 → 13.42</div>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-[10px] text-slate-500">LS → LF</div>
+              <div id="inspMetricLate" class="text-xs font-mono font-bold text-slate-800 mt-0.5">9.17 → 13.42</div>
+            </div>
+            <div class="p-2 rounded-xl bg-slate-50 border border-slate-200">
+              <div class="text-[10px] text-slate-500">Slack Libero</div>
+              <div id="inspMetricFreeSlack" class="text-xs font-mono font-bold text-slate-800 mt-0.5">0.00 m</div>
+            </div>
+          </div>
+
+          <!-- Calendar Window & Part G Mitigation Strategy -->
+          <div class="p-3 rounded-xl bg-amber-50/80 border border-amber-200 text-xs space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-extrabold text-amber-900"><i class="fa-solid fa-shield-halved mr-1"></i>Mitigazione Rischi (Parte G)</span>
+              <span id="inspCalWindow" class="font-mono text-[11px] font-bold text-amber-950 bg-amber-200/70 px-2 py-0.5 rounded">Set 2027 – Gen 2028</span>
+            </div>
+            <p id="inspNodeRiskNote" class="text-[11px] text-amber-950/90 leading-relaxed">
+              Rilascio modulare: dataset minimi funzionanti (MVP) entro M10, separazione funzioni core da moduli opzionali e revisioni tecniche mensili.
+            </p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 2: TABELLA ANALITICA PERT, DELIVERABLES & RISCHI (view-table)    -->
+    <!-- ===================================================================== -->
+    <section id="view-table" class="view-panel hidden space-y-5">
+      <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-extrabold text-slate-900">Tabella Analitica PERT/CPM Completa (18 Attività)</h2>
+          <p class="text-xs text-slate-500">I valori si aggiornano automaticamente in base alle stime (O, M, P) configurate nel simulatore</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" id="pertTableSearch" oninput="renderAnalyticalTable()" placeholder="Filtra codice, attività, partner, deliverable..."
+                   class="pl-8 pr-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-600 w-60" />
+          </div>
+          <label class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-crimson-50 border border-crimson-200 text-xs font-bold text-crimson-800 cursor-pointer">
+            <input type="checkbox" id="pertTableCritFilter" onchange="renderAnalyticalTable()" class="accent-crimson-600" />
+            <span>Solo Percorso Critico</span>
+          </label>
+          <button onclick="exportPertCsv()" class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors">
+            <i class="fa-solid fa-file-csv mr-1"></i>Esporta CSV
+          </button>
+          <button onclick="exportPertJson()" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition-colors">
+            <i class="fa-solid fa-file-code mr-1"></i>Esporta JSON
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead class="bg-slate-900 text-white font-mono text-[11px]">
+              <tr>
+                <th class="p-3">Codice</th>
+                <th class="p-3 font-sans">Attività &amp; WP</th>
+                <th class="p-3">Lead</th>
+                <th class="p-3 text-right">O</th>
+                <th class="p-3 text-right">M</th>
+                <th class="p-3 text-right">P</th>
+                <th class="p-3 text-right bg-slate-800 text-emerald-300">te</th>
+                <th class="p-3 text-right">σ</th>
+                <th class="p-3 text-right">ES</th>
+                <th class="p-3 text-right">EF</th>
+                <th class="p-3 text-right">LS</th>
+                <th class="p-3 text-right">LF</th>
+                <th class="p-3 text-right bg-slate-800 text-amber-300">Slack</th>
+                <th class="p-3 text-center font-sans">Stato</th>
+                <th class="p-3 font-sans">Finestra Calendario</th>
+                <th class="p-3 font-sans">Deliverables / Outputs</th>
+              </tr>
+            </thead>
+            <tbody id="pertAnalyticalTableBody" class="divide-y divide-slate-200">
+              <!-- Populated dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 3: RISORSE & DOCUMENTI NELLA CARTELLA DI PROGETTO (view-docs)    -->
+    <!-- ===================================================================== -->
+    <section id="view-docs" class="view-panel hidden space-y-6">
+      <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-2">
+        <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider">
+          Repository Locale • Cartella di Progetto Twin4forestLife
+        </span>
+        <h2 class="text-xl font-extrabold text-slate-900">Risorse &amp; Documenti nella Cartella di Progetto</h2>
+        <p class="text-sm text-slate-600 max-w-4xl">
+          Tutti i file seguenti sono collegati direttamente nella stessa cartella locale del simulatore PERT e si aprono in una nuova scheda del browser (<code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded font-mono">target="_blank"</code>) per consentire la consultazione parallela durante l'analisi del percorso critico.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Resource Card 1: ./index.html -->
+        <div class="bg-white rounded-2xl border-2 border-emerald-200 shadow-sm overflow-hidden flex flex-col justify-between">
+          <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-fire-flame-curved"></i>
+              </span>
+              <span class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 font-mono text-xs font-bold border border-emerald-200">
+                ./index.html
+              </span>
+            </div>
+            <div>
+              <h3 class="text-lg font-extrabold text-slate-900">Simulatore Digital Twin &amp; Dashboard</h3>
+              <p class="text-xs font-semibold text-emerald-700 mt-0.5">Apri il simulatore principale già creato</p>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Applicazione interattiva principale di <strong>Twin4forestLife (EUI04-1006)</strong> comprendente: Dashboard finanziaria (€2,5M), Cronoprogramma Gantt a 30 mesi, schede dettagliate dei 6 Partner, sintesi dei Work Package, analisi dei Living Lab, simulatore fisico 2D di propagazione incendi e configuratore operativo.
+            </p>
+          </div>
+          <div class="p-4 bg-slate-50 border-t border-slate-200">
+            <a href="./index.html" target="_blank" rel="noopener noreferrer"
+               class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-extrabold shadow-sm transition-colors">
+              <span>Apri Simulatore Digital Twin &amp; Dashboard</span>
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Resource Card 2: Application Form PDF -->
+        <div class="bg-white rounded-2xl border-2 border-teal-200 shadow-sm overflow-hidden flex flex-col justify-between">
+          <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="w-12 h-12 rounded-2xl bg-teal-100 text-teal-700 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-file-pdf"></i>
+              </span>
+              <span class="px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 font-mono text-[11px] font-bold border border-teal-200 truncate max-w-[200px]">
+                ./EUI04-1006-Twin4forestLife Application Form.pdf
+              </span>
+            </div>
+            <div>
+              <h3 class="text-lg font-extrabold text-slate-900">Application Form EUI04-1006 (PDF)</h3>
+              <p class="text-xs font-semibold text-teal-700 mt-0.5">Documento Ufficiale di Candidatura EUI-IA Call 4 (60 pp.)</p>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Contiene l'intera struttura progettuale: Part A (Sommario e Budget €2.500.000), Part B (Composizione e ruoli dei 6 Partner PP1–PP6), Part C (Obiettivi, indicatori RI1–RI8 e output O1.1–O3.4), Part D (Work Plan WP1–WP3 e Investimento I1.2.1 da €450k), Part E/F (Cofinanziamento) e Part G (Matrice dei Rischi).
+            </p>
+          </div>
+          <div class="p-4 bg-slate-50 border-t border-slate-200">
+            <a href="./EUI04-1006-Twin4forestLife Application Form.pdf" target="_blank" rel="noopener noreferrer"
+               class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-extrabold shadow-sm transition-colors">
+              <span>Apri Application Form EUI04-1006 (PDF)</span>
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- Resource Card 3: UNICAL Wildfire Risk Analysis PDF -->
+        <div class="bg-white rounded-2xl border-2 border-amber-200 shadow-sm overflow-hidden flex flex-col justify-between">
+          <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-chart-area"></i>
+              </span>
+              <span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 font-mono text-[11px] font-bold border border-amber-200 truncate max-w-[200px]">
+                ./Wildire_risk_analysis_Castrovillari_Cassano (1).pdf
+              </span>
+            </div>
+            <div>
+              <h3 class="text-lg font-extrabold text-slate-900">Analisi Rischio Incendi UNICAL (PDF)</h3>
+              <p class="text-xs font-semibold text-amber-700 mt-0.5">Technical Report Lab LMSV – Università della Calabria (20 pp.)</p>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Studio scientifico multi-fattore su Castrovillari e Cassano all'Ionio (25.854 ha, CRS EPSG:32633, Giugno 2026) a cura di <em>Salvatore Nisticò, Ph.D. &amp; Pierpaolo Antonio Fusaro</em>: copertura ISPRA Carta Natura, Rete Natura 2000, risorse idriche antincendio, morfologia DEM 20m, anomalie NASA FIRMS VIIRS, perimetri EFFIS e mappe di rischio simulato.
+            </p>
+          </div>
+          <div class="p-4 bg-slate-50 border-t border-slate-200">
+            <a href="./Wildire_risk_analysis_Castrovillari_Cassano (1).pdf" target="_blank" rel="noopener noreferrer"
+               class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-extrabold shadow-sm transition-colors">
+              <span>Apri Analisi Rischio Incendi UNICAL (PDF)</span>
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- INSTITUTIONAL FOOTER -->
+  <footer class="bg-slate-900 text-slate-400 text-xs py-4 px-4 sm:px-6 lg:px-8 border-t border-slate-800 no-print mt-8">
+    <div class="max-w-[1680px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div>
+        <strong class="text-white">Twin4forestLife (EUI04-1006)</strong> — Simulatore Rete PERT &amp; Percorso Critico (CPM) • Co-funded by the European Union
+      </div>
+      <div class="flex flex-wrap items-center gap-4">
+        <a href="./index.html" target="_blank" class="text-emerald-300 hover:underline font-semibold">Simulatore Digital Twin (index.html)</a>
+        <a href="./EUI04-1006-Twin4forestLife Application Form.pdf" target="_blank" class="hover:text-white underline">Application Form PDF</a>
+        <a href="./Wildire_risk_analysis_Castrovillari_Cassano (1).pdf" target="_blank" class="hover:text-amber-300 underline">Analisi Rischio UNICAL PDF</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ======================================================================= -->
+  <!-- PERT / CPM MATHEMATICAL ENGINE & INTERACTIVE SVG RENDERER               -->
+  <!-- ======================================================================= -->
+  <script>
+    // -------------------------------------------------------------------------
+    // 1. TOAST HELPER (No alert/confirm)
+    // -------------------------------------------------------------------------
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const el = document.createElement('div');
+      const styles = {
+        info: 'bg-slate-900 text-white border-slate-700',
+        success: 'bg-emerald-800 text-white border-emerald-600',
+        warning: 'bg-amber-600 text-slate-950 border-amber-400',
+        danger: 'bg-crimson-700 text-white border-crimson-500'
+      };
+      el.className = `pointer-events-auto px-4 py-2.5 rounded-xl shadow-lg border text-xs font-semibold flex items-center gap-2 transition-all duration-300 ${styles[type] || styles.info}`;
+      el.innerHTML = `<i class="fa-solid fa-circle-info"></i><span>${msg}</span>`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+      }, 3200);
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. COMPLETE 18-NODE PROJECT NETWORK MODEL (Twin4forestLife EUI04-1006)
+    // -------------------------------------------------------------------------
+    const STAGE_COLUMNS = [
+      { idx: 0, title: '1. Iniziazione', sub: 'M-3 → M0 (Dic 26–Feb 27)' },
+      { idx: 1, title: '2. WP1 Avvio', sub: 'Governance & Baseline' },
+      { idx: 2, title: '3. WP1 Architettura', sub: 'Co-Design & Specifiche DT' },
+      { idx: 3, title: '4. WP2 MVP', sub: 'Sviluppo Core & Inv. I1.2.1' },
+      { idx: 4, title: '5. WP2 Piloti & Scenari', sub: 'Living Labs & 6 Scenari' },
+      { idx: 5, title: '6. WP2/3 Validazione', sub: 'Demo & Protocolli COC' },
+      { idx: 6, title: '7. WP3 Uptake & Form.', sub: '90 Op., Smart Comm., Kit' },
+      { idx: 7, title: '8. Validazione & Chiusura', sub: 'Impatto & Audit EUI' }
+    ];
+
+    const BASE_NODES = [
+      {
+        id: 'INIT',
+        stage: 0, row: 1.5,
+        wp: 'INIT',
+        lead: 'PP1',
+        involved: 'PP1–PP6 (Tutti i Partner)',
+        title: 'Fase di Iniziazione (Avvio Contratto e Consorzio)',
+        shortTitle: 'Fase di Iniziazione EUI',
+        preds: [],
+        O: 2.5, M: 3.0, P: 3.5,
+        deliverables: ['Subsidy Contract', 'Partnership Agreement'],
+        budgetInfo: '€ 40.000 (Initiation Lump Sum)',
+        riskNote: 'Conferma tempestiva dei referenti operativi/finanziari e insediamento dello Steering Committee entro 30 giorni dalla firma.'
+      },
+      {
+        id: 'A1.1',
+        stage: 1, row: 0.4,
+        wp: 'WP1',
+        lead: 'PP1',
+        involved: 'PP1, PP2, PP3, PP4, PP5, PP6',
+        title: 'Governance, Coordinamento e Piano Qualità',
+        shortTitle: 'Governance & Piano Qualità',
+        preds: ['INIT'],
+        O: 1.5, M: 2.0, P: 3.0,
+        deliverables: ['D1.1.1', 'D1.1.2'],
+        budgetInfo: 'WP1 (€ 375.000)',
+        riskNote: 'Rischio G.2 Strutture e Procedure: istituzione immediata di calendario condiviso, risk tracker mensile e flusso di validazione deliverable.'
+      },
+      {
+        id: 'A1.2',
+        stage: 1, row: 2.4,
+        wp: 'WP1',
+        lead: 'PP4',
+        involved: 'PP1, PP2, PP4, PP5, PP6',
+        title: 'Baseline Incendi, Clima e Protezione Civile',
+        shortTitle: 'Baseline Incendi & Protezione Civile',
+        preds: ['INIT'],
+        O: 3.0, M: 4.0, P: 5.5,
+        deliverables: ['D1.2.1', 'D1.2.2', 'O1.1'],
+        budgetInfo: 'WP1 (€ 375.000)',
+        riskNote: 'Rischio G.2 Quadro Normativo/Dati: inventario dataset in WP1, verifiche GDPR/anonimizzazione e MVP basato su dati legalmente accessibili.'
+      },
+      {
+        id: 'A1.4',
+        stage: 2, row: 0.4,
+        wp: 'WP1',
+        lead: 'PP3',
+        involved: 'PP1, PP2, PP3, PP4, PP5',
+        title: 'Mappatura Stakeholder e Framework Co-creazione',
+        shortTitle: 'Stakeholder & Co-creazione',
+        preds: ['A1.1'],
+        O: 3.0, M: 4.0, P: 5.0,
+        deliverables: ['D1.4.1', 'D1.4.2', 'O1.3'],
+        budgetInfo: 'WP1 (€ 375.000)',
+        riskNote: 'Rischio G.2 Approccio Partecipativo: facilitazione locale tramite GAL Pollino (PP5) e format co-progettativi calibrati sui 7 target group.'
+      },
+      {
+        id: 'A1.3',
+        stage: 2, row: 2.4,
+        wp: 'WP1',
+        lead: 'PP4',
+        involved: 'PP1, PP2, PP4, PP6',
+        title: 'Requisiti Funzionali e Architettura Digital Twin',
+        shortTitle: 'Requisiti & Architettura DT',
+        preds: ['A1.2'],
+        O: 1.5, M: 2.0, P: 3.0,
+        deliverables: ['D1.3.1', 'D1.3.2', 'O1.2'],
+        budgetInfo: 'WP1 (€ 375.000)',
+        riskNote: 'Rischio G.2 Eccessiva Complessità: architettura aperta e modulare interoperabile con il sistema AIB della Regione Calabria senza duplicazioni.'
+      },
+      {
+        id: 'A2.1',
+        stage: 3, row: 1.6,
+        wp: 'WP2',
+        lead: 'PP4',
+        involved: 'PP1, PP2, PP3, PP4, PP6',
+        title: 'Sviluppo MVP Digital Twin e Integrazione Dati',
+        shortTitle: 'Sviluppo MVP Digital Twin',
+        preds: ['A1.3'],
+        O: 3.5, M: 4.0, P: 6.0,
+        deliverables: ['D2.1.1', 'D2.1.2', 'O2.1', 'Inv. I1.2.1'],
+        budgetInfo: 'WP2 (€ 1.750.000 • Inv. I1.2.1 € 450k)',
+        riskNote: 'Rischio G.2 Procurement & Delivery Investimenti: specifiche tecniche anticipate in WP1, consultazione preliminare di mercato e rilascio modulare MVP.'
+      },
+      {
+        id: 'A2.2',
+        stage: 4, row: 0.0,
+        wp: 'WP2',
+        lead: 'PP1',
+        involved: 'PP1, PP4, PP5, PP6',
+        title: 'Modulo Pilota Interfaccia Urbano-Forestale Castrovillari',
+        shortTitle: 'Modulo Pilota Castrovillari (LL1)',
+        preds: ['A2.1'],
+        O: 4.0, M: 5.0, P: 6.5,
+        deliverables: ['D2.2.1', 'D2.2.2'],
+        budgetInfo: 'WP2 / Living Lab 1',
+        riskNote: 'Rischio G.2 Disponibilità Staff Comuni: sessioni di test realistiche integrate nelle routine dell’Ufficio Tecnico e Protezione Civile di Castrovillari.'
+      },
+      {
+        id: 'A2.3',
+        stage: 4, row: 1.05,
+        wp: 'WP2',
+        lead: 'PP2',
+        involved: 'PP2, PP3, PP4, PP6',
+        title: 'Modulo Pilota Preparazione Incendi Cassano all\'Ionio',
+        shortTitle: 'Modulo Pilota Cassano (LL2)',
+        preds: ['A2.1'],
+        O: 4.0, M: 5.0, P: 6.5,
+        deliverables: ['D2.3.1', 'D2.3.2', 'O2.2'],
+        budgetInfo: 'WP2 / Living Lab 2',
+        riskNote: 'Rischio G.2 Disponibilità Staff & Siti: verifica preventiva delle autorizzazioni comunali per installazioni Smart QR e integrazione diretta nel COC.'
+      },
+      {
+        id: 'A2.4',
+        stage: 4, row: 2.1,
+        wp: 'WP2',
+        lead: 'PP4',
+        involved: 'PP1, PP2, PP4, PP6',
+        title: 'Modellazione 6 Scenari Prevenzione, Accessi e Logistica Idrica',
+        shortTitle: 'Modellazione 6 Scenari Operativi',
+        preds: ['A2.1'],
+        O: 5.5, M: 7.0, P: 8.5,
+        deliverables: ['D2.4.1', 'D2.4.2', 'O2.3'],
+        budgetInfo: 'WP2 / Scenario Engine',
+        riskNote: 'Validazione congiunta con i servizi comunali e coerenza con la Sala Operativa Regionale AIB su pendenze >60°, invasi e rotte di evacuazione.'
+      },
+      {
+        id: 'A2.6',
+        stage: 4, row: 3.15,
+        wp: 'WP2',
+        lead: 'PP3',
+        involved: 'PP1, PP2, PP3, PP4, PP5, PP6',
+        title: 'Comunicazione Pilota e Coinvolgimento Stakeholder',
+        shortTitle: 'Comunicazione Pilota & Engagement',
+        preds: ['A1.4', 'A2.1'],
+        O: 6.0, M: 8.0, P: 9.5,
+        deliverables: ['D2.6.1', 'D2.6.2', 'O2.4'],
+        budgetInfo: 'WP2 / Co-Creation',
+        riskNote: 'Traduzione dei modelli tecnici UNICAL in schede visive accessibili a cittadini, agricoltori, volontari e operatori turistici.'
+      },
+      {
+        id: 'A2.5',
+        stage: 5, row: 0.7,
+        wp: 'WP2',
+        lead: 'PP4',
+        involved: 'PP1, PP2, PP3, PP4, PP5',
+        title: 'Dimostrazioni Pilota (4 sessioni) e Affinamento Tecnico',
+        shortTitle: '4 Demo Pilota & Affinamento DT',
+        preds: ['A2.2', 'A2.3', 'A2.4'],
+        O: 1.0, M: 1.0, P: 2.0,
+        deliverables: ['D2.5.1', 'D2.5.2', 'Inv. I1.2.1'],
+        budgetInfo: 'WP2 / Chiusura Inv. I1.2.1',
+        riskNote: 'Consolidamento dei feedback utente raccolti nei 2 Living Lab prima del rilascio definitivo in WP3.'
+      },
+      {
+        id: 'A3.1',
+        stage: 5, row: 2.3,
+        wp: 'WP3',
+        lead: 'PP3',
+        involved: 'PP1, PP2, PP3, PP4, PP6',
+        title: 'Protocollo Operativo di Preparazione Comunale',
+        shortTitle: 'Protocollo Preparazione Comunale',
+        preds: ['A2.2', 'A2.3', 'A2.4'],
+        O: 1.5, M: 2.0, P: 3.0,
+        deliverables: ['D3.1.1', 'D3.1.2'],
+        budgetInfo: 'WP3 (€ 327.500)',
+        riskNote: 'Formalizzazione delle procedure operative standard (SOP) per i COC comunali validate con la Protezione Civile della Regione Calabria.'
+      },
+      {
+        id: 'A3.2',
+        stage: 6, row: 0.0,
+        wp: 'WP3',
+        lead: 'PP4',
+        involved: 'PP1, PP2, PP3, PP4, PP5',
+        title: 'Formazione ed Esercitazioni Utenti Comunali (90 persone)',
+        shortTitle: 'Formazione & Esercitazioni (90 op.)',
+        preds: ['A2.5', 'A3.1'],
+        O: 2.5, M: 3.0, P: 4.0,
+        deliverables: ['D3.2.1', 'D3.2.2', 'O3.2'],
+        budgetInfo: 'WP3 / Capacity Building',
+        riskNote: 'Rischio G.2 Manutenzione a Lungo Termine: formazione pratica di almeno 90 operatori comunali, volontari e tecnici per l’autonomia post-progetto.'
+      },
+      {
+        id: 'A3.3',
+        stage: 6, row: 1.05,
+        wp: 'WP3',
+        lead: 'PP3',
+        involved: 'PP1, PP2, PP3, PP4, PP5, PP6',
+        title: 'Smart Wildfire-Risk Communication per 5 Target Group',
+        shortTitle: 'Smart Communication (5 Target)',
+        preds: ['A2.6', 'A3.1'],
+        O: 2.5, M: 3.0, P: 4.0,
+        deliverables: ['D3.3.1', 'D3.3.2', 'O3.1'],
+        budgetInfo: 'WP3 / Smart Risk Comm.',
+        riskNote: 'Test di canali e messaggi differenziati su residenti, soggetti vulnerabili, agricoltori, visitatori/turisti e operatori economici.'
+      },
+      {
+        id: 'A3.5',
+        stage: 6, row: 2.1,
+        wp: 'WP3',
+        lead: 'PP3',
+        involved: 'PP1, PP2, PP3, PP4, PP5, PP6',
+        title: 'Replication Toolkit e Transferability Dialogue (10 enti)',
+        shortTitle: 'Replication Toolkit & Transfer (10)',
+        preds: ['A2.5', 'A3.1'],
+        O: 3.0, M: 4.0, P: 5.0,
+        deliverables: ['D3.5.1', 'D3.5.2', 'O3.3'],
+        budgetInfo: 'WP3 / EU Transferability',
+        riskNote: 'Coinvolgimento strutturato di almeno 10 autorità urbane ed enti esterni per garantire la replicabilità europea del modello.'
+      },
+      {
+        id: 'A3.6',
+        stage: 6, row: 3.15,
+        wp: 'WP3',
+        lead: 'PP6',
+        involved: 'PP1, PP2, PP3, PP4, PP5, PP6',
+        title: 'Policy Uptake Regionale, Sostenibilità e Handover Plan',
+        shortTitle: 'Policy Uptake & Handover Plan',
+        preds: ['A3.1'],
+        O: 3.0, M: 4.0, P: 5.0,
+        deliverables: ['D3.6.1', 'D3.6.2'],
+        budgetInfo: 'WP3 / Governance & Handover',
+        riskNote: 'Rischio G.1 Continuità Politica e Manutenzione: pacchetto di handover leggero, titolarità quinquennale ai Comuni e allineamento alle policy regionali.'
+      },
+      {
+        id: 'A3.4',
+        stage: 7, row: 0.55,
+        wp: 'WP3',
+        lead: 'PP1',
+        involved: 'PP1, PP2, PP3, PP4, PP6',
+        title: 'Monitoraggio Impatto, Validazione Finale e Learning',
+        shortTitle: 'Validazione Finale & Impatto',
+        preds: ['A3.2', 'A3.3', 'A3.5', 'A3.6'],
+        O: 1.5, M: 2.0, P: 3.0,
+        deliverables: ['D3.4.1', 'D3.4.2', 'O3.4'],
+        budgetInfo: 'WP3 / Evaluation & KPI',
+        riskNote: 'Consolidamento di tutti gli indicatori di risultato (RI1–RI8) e valutazione pre/post formazione del miglioramento della capacità decisionale (target ≥70%).'
+      },
+      {
+        id: 'CLOSURE',
+        stage: 7, row: 2.45,
+        wp: 'CLOS',
+        lead: 'PP1',
+        involved: 'PP1–PP6 (Tutti i Partner)',
+        title: 'Fase di Chiusura e Rendicontazione Finale EUI',
+        shortTitle: 'Chiusura & Rendicontazione EUI',
+        preds: ['A3.4'],
+        O: 2.5, M: 3.0, P: 3.5,
+        deliverables: ['Final Report EUI', 'FLC Audit Certificates'],
+        budgetInfo: '€ 7.500 (Closure Lump Sum)',
+        riskNote: 'Rischio G.2 Flussi Finanziari: controlli trimestrali di spesa durante il progetto per assicurare una chiusura contabile e audit FLC senza ritardi.'
+      }
+    ];
+
+    // Deep-cloned mutable working nodes state
+    let nodesState = JSON.parse(JSON.stringify(BASE_NODES));
+    let selectedNodeId = 'A2.1';
+    let showCriticalOnly = false;
+    let currentZoom = 0.76;
+    let panX = 16;
+    let panY = 12;
+
+    // -------------------------------------------------------------------------
+    // 3. MATHEMATICAL PERT & CPM ENGINE (Forward/Backward Pass, Slack, Z-score)
+    // -------------------------------------------------------------------------
+    function runPertCpmEngine() {
+      const nodeMap = {};
+      nodesState.forEach(n => {
+        n.te = (n.O + 4 * n.M + n.P) / 6.0;
+        n.sigma = (n.P - n.O) / 6.0;
+        n.variance = n.sigma * n.sigma;
+        n.succs = [];
+        nodeMap[n.id] = n;
+      });
+
+      // Build successor adjacency list
+      nodesState.forEach(n => {
+        n.preds.forEach(pId => {
+          if (nodeMap[pId]) nodeMap[pId].succs.push(n.id);
+        });
+      });
+
+      // Topological sort (Kahn's algorithm)
+      const inDegree = {};
+      nodesState.forEach(n => { inDegree[n.id] = n.preds.length; });
+      const queue = nodesState.filter(n => inDegree[n.id] === 0).map(n => n.id);
+      const topoOrder = [];
+
+      while (queue.length > 0) {
+        const currId = queue.shift();
+        topoOrder.push(currId);
+        nodeMap[currId].succs.forEach(sId => {
+          inDegree[sId]--;
+          if (inDegree[sId] === 0) queue.push(sId);
+        });
+      }
+
+      // Forward Pass (ES, EF)
+      topoOrder.forEach(id => {
+        const n = nodeMap[id];
+        if (n.preds.length === 0) {
+          n.ES = 0.0;
+        } else {
+          n.ES = Math.max(...n.preds.map(pId => nodeMap[pId].EF));
+        }
+        n.EF = n.ES + n.te;
+      });
+
+      const projectEF = Math.max(...nodesState.map(n => n.EF));
+
+      // Backward Pass (LS, LF)
+      [...topoOrder].reverse().forEach(id => {
+        const n = nodeMap[id];
+        if (n.succs.length === 0) {
+          n.LF = projectEF;
+        } else {
+          n.LF = Math.min(...n.succs.map(sId => nodeMap[sId].LS));
+        }
+        n.LS = n.LF - n.te;
+        n.totalSlack = Math.max(0, n.LS - n.ES);
+
+        // Free Slack = min(ES of successors) - EF
+        if (n.succs.length === 0) {
+          n.freeSlack = Math.max(0, projectEF - n.EF);
+        } else {
+          const minSuccES = Math.min(...n.succs.map(sId => nodeMap[sId].ES));
+          n.freeSlack = Math.max(0, minSuccES - n.EF);
+        }
+
+        n.isCritical = (n.LS - n.ES) <= 0.05;
+      });
+
+      // Implementation Phase metrics (from end of INIT = M0 to end of A3.4)
+      const initEF = nodeMap['INIT'].EF;
+      const implEF = nodeMap['A3.4'].EF;
+      const implDuration = Math.max(0, implEF - initEF);
+
+      // Critical variance along Implementation critical nodes
+      const implCriticalNodes = topoOrder
+        .map(id => nodeMap[id])
+        .filter(n => n.isCritical && n.id !== 'INIT' && n.id !== 'CLOSURE');
+
+      const implVariance = implCriticalNodes.reduce((sum, n) => sum + n.variance, 0);
+      const implSigma = Math.sqrt(implVariance);
+
+      // Z-score for completing Implementation within 24.0 months
+      const targetImplMonths = 24.0;
+      const zScore = implSigma > 0.0001 ? (targetImplMonths - implDuration) / implSigma : (implDuration <= targetImplMonths ? 3.5 : -3.5);
+      const prob24m = normalCdf(zScore) * 100;
+
+      // Full critical sequence
+      const criticalChain = topoOrder.filter(id => nodeMap[id].isCritical);
+
+      return {
+        nodeMap,
+        topoOrder,
+        projectEF,
+        initEF,
+        implEF,
+        implDuration,
+        implSigma,
+        zScore,
+        prob24m,
+        criticalChain
+      };
+    }
+
+    // Standard Normal Cumulative Distribution Function Phi(z)
+    function normalCdf(z) {
+      if (z < -8) return 0;
+      if (z > 8) return 1;
+      const sign = z < 0 ? -1 : 1;
+      const x = Math.abs(z) / Math.sqrt(2);
+      const t = 1 / (1 + 0.3275911 * x);
+      const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429;
+      const erf = 1 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+      return 0.5 * (1 + sign * erf);
+    }
+
+    // Map continuous month offset t (0 = 01/12/2026) to DD/MM/YYYY
+    function formatProjectDate(tMonths, isEnd = false) {
+      // Exact canonical anchors: t=0 -> 01/12/2026, t=3 -> 28/02/2027 (end) / 01/03/2027 (start), t=27 -> 28/02/2029, t=30 -> 31/05/2029
+      if (Math.abs(tMonths - 0) < 0.02) return '01/12/2026';
+      if (Math.abs(tMonths - 3) < 0.02) return isEnd ? '28/02/2027' : '01/03/2027';
+      if (Math.abs(tMonths - 27) < 0.02) return isEnd ? '28/02/2029' : '01/03/2029';
+      if (Math.abs(tMonths - 30) < 0.02) return isEnd ? '31/05/2029' : '01/06/2029';
+
+      const baseUtc = Date.UTC(2026, 11, 1); // 01 Dec 2026
+      const daysOffset = Math.round(tMonths * 30.4375) - (isEnd ? 1 : 0);
+      const dt = new Date(baseUtc + Math.max(0, daysOffset) * 86400000);
+      const dd = String(dt.getUTCDate()).padStart(2, '0');
+      const mm = String(dt.getUTCMonth() + 1).padStart(2, '0');
+      const yyyy = dt.getUTCFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. UPDATE ALL UI VIEWS (KPIs, SVG PERT Diagram, Inspector, Table)
+    // -------------------------------------------------------------------------
+    function refreshAll() {
+      const results = runPertCpmEngine();
+      updateKpiBar(results);
+      renderPertSvg(results);
+      updateInspectorPanel(results);
+      renderAnalyticalTable(results);
+    }
+
+    function updateKpiBar(res) {
+      document.getElementById('kpiImplDuration').textContent = `${res.implDuration.toFixed(1)} mesi`;
+      document.getElementById('kpiImplEndDate').textContent = formatProjectDate(res.implEF, true);
+      document.getElementById('kpiClosureDate').textContent = formatProjectDate(res.projectEF, true);
+      document.getElementById('kpiTotalDuration').textContent = `(${res.projectEF.toFixed(1)}m tot.)`;
+
+      document.getElementById('kpiCriticalCount').textContent = `${res.criticalChain.length} / ${nodesState.length} nodi`;
+      document.getElementById('kpiCriticalSigma').textContent = `σ_crit = ${res.implSigma.toFixed(2)}m`;
+      const chainText = res.criticalChain.join(' → ');
+      const chainEl = document.getElementById('kpiCriticalChain');
+      chainEl.textContent = chainText;
+      chainEl.title = chainText;
+
+      const probEl = document.getElementById('kpiProbValue');
+      const zEl = document.getElementById('kpiZScore');
+      const badgeEl = document.getElementById('kpiProbBadge');
+      const hintEl = document.getElementById('kpiProbHint');
+
+      probEl.textContent = `${res.prob24m.toFixed(1)}%`;
+      zEl.textContent = `(Z = ${res.zScore >= 0 ? '+' : ''}${res.zScore.toFixed(2)})`;
+
+      if (res.prob24m >= 70) {
+        badgeEl.textContent = 'Affidabile (≥ 70%)';
+        badgeEl.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800';
+        hintEl.innerHTML = 'Elevata probabilità di completamento entro il <strong>28/02/2029</strong>.';
+      } else if (res.prob24m >= 40) {
+        badgeEl.textContent = 'Attenzione (40–69%)';
+        badgeEl.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-800';
+        hintEl.innerHTML = 'Margine ridotto: monitorare attentamente i nodi con <strong>Slack ≤ 0.5m</strong>.';
+      } else {
+        badgeEl.textContent = 'Critico (< 40%)';
+        badgeEl.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-rose-100 text-rose-800';
+        hintEl.innerHTML = 'Rischio slittamento oltre 24m: attiva <strong>Fast-Track MVP</strong> o riduci i ritardi.';
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. RENDER INTERACTIVE SVG PERT DIAGRAM (8 STAGE COLUMNS)
+    // -------------------------------------------------------------------------
+    function renderPertSvg(res) {
+      const stageLayer = document.getElementById('pertStageHeadersLayer');
+      const edgesLayer = document.getElementById('pertEdgesLayer');
+      const nodesLayer = document.getElementById('pertNodesLayer');
+
+      stageLayer.innerHTML = '';
+      edgesLayer.innerHTML = '';
+      nodesLayer.innerHTML = '';
+
+      const colWidth = 290;
+      const cardW = 244;
+      const cardH = 132;
+      const topOffset = 68;
+      const rowSpacing = 156;
+
+      // 1. Render 8 Stage Column Headers
+      STAGE_COLUMNS.forEach(col => {
+        const x = col.idx * colWidth + 12;
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('x', x);
+        rect.setAttribute('y', 6);
+        rect.setAttribute('width', cardW);
+        rect.setAttribute('height', 46);
+        rect.setAttribute('rx', 10);
+        rect.setAttribute('fill', col.idx === 0 || col.idx === 7 ? '#0f172a' : '#064e3b');
+        g.appendChild(rect);
+
+        const t1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        t1.setAttribute('x', x + cardW / 2);
+        t1.setAttribute('y', 25);
+        t1.setAttribute('text-anchor', 'middle');
+        t1.setAttribute('fill', '#ffffff');
+        t1.setAttribute('font-size', '12');
+        t1.setAttribute('font-weight', '800');
+        t1.textContent = col.title;
+        g.appendChild(t1);
+
+        const t2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        t2.setAttribute('x', x + cardW / 2);
+        t2.setAttribute('y', 41);
+        t2.setAttribute('text-anchor', 'middle');
+        t2.setAttribute('fill', '#a7f3d0');
+        t2.setAttribute('font-size', '10');
+        t2.setAttribute('font-family', 'JetBrains Mono, monospace');
+        t2.textContent = col.sub;
+        g.appendChild(t2);
+
+        stageLayer.appendChild(g);
+      });
+
+      // Compute pixel coordinates for each node
+      const coords = {};
+      nodesState.forEach(n => {
+        const x = n.stage * colWidth + 12;
+        const y = topOffset + n.row * rowSpacing;
+        coords[n.id] = { x, y, w: cardW, h: cardH };
+      });
+
+      // 2. Render Directed Edges (Bezier Curves)
+      nodesState.forEach(targetNode => {
+        targetNode.preds.forEach(predId => {
+          const sourceNode = res.nodeMap[predId];
+          if (!sourceNode) return;
+
+          const sPos = coords[sourceNode.id];
+          const tPos = coords[targetNode.id];
+          const isEdgeCritical = sourceNode.isCritical && targetNode.isCritical && Math.abs(sourceNode.EF - targetNode.ES) <= 0.05;
+
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          let d = '';
+
+          if (sourceNode.stage === targetNode.stage) {
+            // Same column vertical connection (A3.4 -> CLOSURE in Col 7)
+            const x1 = sPos.x + sPos.w;
+            const y1 = sPos.y + sPos.h / 2;
+            const x2 = tPos.x + tPos.w;
+            const y2 = tPos.y + tPos.h / 2;
+            d = `M ${x1} ${y1} C ${x1 + 52} ${y1}, ${x2 + 52} ${y2}, ${x2 + 4} ${y2}`;
+          } else {
+            const x1 = sPos.x + sPos.w;
+            const y1 = sPos.y + sPos.h / 2;
+            const x2 = tPos.x - 3;
+            const y2 = tPos.y + tPos.h / 2;
+            const dx = (x2 - x1) * 0.48;
+            d = `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+          }
+
+          path.setAttribute('d', d);
+          path.setAttribute('fill', 'none');
+
+          if (isEdgeCritical) {
+            path.setAttribute('stroke', '#dc2626');
+            path.setAttribute('stroke-width', '3.2');
+            path.setAttribute('marker-end', 'url(#arrow-critical)');
+            path.classList.add('critical-edge-animated');
+          } else if (showCriticalOnly) {
+            path.setAttribute('stroke', '#cbd5e1');
+            path.setAttribute('stroke-width', '1.3');
+            path.setAttribute('opacity', '0.28');
+            path.setAttribute('marker-end', 'url(#arrow-dim)');
+          } else {
+            path.setAttribute('stroke', '#0f766e');
+            path.setAttribute('stroke-width', '1.8');
+            path.setAttribute('opacity', '0.75');
+            path.setAttribute('marker-end', 'url(#arrow-normal)');
+          }
+
+          edgesLayer.appendChild(path);
+        });
+      });
+
+      // 3. Render 18 PERT Node Cards
+      nodesState.forEach(n => {
+        const pos = coords[n.id];
+        const isSelected = n.id === selectedNodeId;
+        const dimmed = showCriticalOnly && !n.isCritical;
+
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.classList.add('pert-node-group');
+        if (dimmed) g.setAttribute('opacity', '0.24');
+        g.onclick = () => {
+          selectedNodeId = n.id;
+          refreshAll();
+        };
+
+        // Main Card Background
+        const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        bg.classList.add('node-card-bg');
+        bg.setAttribute('x', pos.x);
+        bg.setAttribute('y', pos.y);
+        bg.setAttribute('width', pos.w);
+        bg.setAttribute('height', pos.h);
+        bg.setAttribute('rx', 12);
+        bg.setAttribute('fill', isSelected ? (n.isCritical ? '#fff1f2' : '#ecfdf5') : '#ffffff');
+        bg.setAttribute('stroke', isSelected ? '#0f172a' : (n.isCritical ? '#dc2626' : '#cbd5e1'));
+        bg.setAttribute('stroke-width', isSelected ? '3' : (n.isCritical ? '2.4' : '1.4'));
+        g.appendChild(bg);
+
+        // Top Header Strip (Critical = Crimson, Non-critical = Teal/Slate)
+        const headerStrip = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        headerStrip.setAttribute('x', pos.x + 1);
+        headerStrip.setAttribute('y', pos.y + 1);
+        headerStrip.setAttribute('width', pos.w - 2);
+        headerStrip.setAttribute('height', 26);
+        headerStrip.setAttribute('rx', 10);
+        headerStrip.setAttribute('fill', n.isCritical ? '#dc2626' : '#0f766e');
+        g.appendChild(headerStrip);
+
+        // Activity Code (Left of Top Strip)
+        const codeText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        codeText.setAttribute('x', pos.x + 10);
+        codeText.setAttribute('y', pos.y + 18);
+        codeText.setAttribute('fill', '#ffffff');
+        codeText.setAttribute('font-family', 'JetBrains Mono, monospace');
+        codeText.setAttribute('font-size', '11.5');
+        codeText.setAttribute('font-weight', '800');
+        codeText.textContent = `${n.id} • ${n.wp}`;
+        g.appendChild(codeText);
+
+        // Lead Partner + te (Right of Top Strip)
+        const teText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        teText.setAttribute('x', pos.x + pos.w - 10);
+        teText.setAttribute('y', pos.y + 18);
+        teText.setAttribute('text-anchor', 'end');
+        teText.setAttribute('fill', '#fef08a');
+        teText.setAttribute('font-family', 'JetBrains Mono, monospace');
+        teText.setAttribute('font-size', '11');
+        teText.setAttribute('font-weight', '700');
+        teText.textContent = `${n.lead} | te:${n.te.toFixed(1)}m`;
+        g.appendChild(teText);
+
+        // Short Italian Title (wrapped cleanly across 2 lines)
+        const words = n.shortTitle.split(' ');
+        let line1 = '';
+        let line2 = '';
+        words.forEach(w => {
+          if ((line1 + ' ' + w).trim().length <= 29 && !line2) {
+            line1 = (line1 + ' ' + w).trim();
+          } else {
+            line2 = (line2 + ' ' + w).trim();
+          }
+        });
+        if (line2.length > 31) line2 = line2.slice(0, 29) + '…';
+
+        const title1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        title1.setAttribute('x', pos.x + 10);
+        title1.setAttribute('y', pos.y + 46);
+        title1.setAttribute('fill', '#0f172a');
+        title1.setAttribute('font-size', '11.5');
+        title1.setAttribute('font-weight', '700');
+        title1.textContent = line1;
+        g.appendChild(title1);
+
+        if (line2) {
+          const title2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          title2.setAttribute('x', pos.x + 10);
+          title2.setAttribute('y', pos.y + 61);
+          title2.setAttribute('fill', '#334155');
+          title2.setAttribute('font-size', '11');
+          title2.setAttribute('font-weight', '600');
+          title2.textContent = line2;
+          g.appendChild(title2);
+        }
+
+        // Deliverables mini-tag
+        const delivStr = n.deliverables.slice(0, 2).join(', ') + (n.deliverables.length > 2 ? ' +' : '');
+        const delivText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        delivText.setAttribute('x', pos.x + 10);
+        delivText.setAttribute('y', pos.y + 81);
+        delivText.setAttribute('fill', '#64748b');
+        delivText.setAttribute('font-family', 'JetBrains Mono, monospace');
+        delivText.setAttribute('font-size', '9.5');
+        delivText.textContent = `Out: ${delivStr}`;
+        g.appendChild(delivText);
+
+        // Divider Line above Bottom Engineering Metrics
+        const divLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        divLine.setAttribute('x1', pos.x + 8);
+        divLine.setAttribute('y1', pos.y + 92);
+        divLine.setAttribute('x2', pos.x + pos.w - 8);
+        divLine.setAttribute('y2', pos.y + 92);
+        divLine.setAttribute('stroke', '#e2e8f0');
+        divLine.setAttribute('stroke-width', '1');
+        g.appendChild(divLine);
+
+        // Bottom Row 1: ES -> EF & Slack
+        const earlyText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        earlyText.setAttribute('x', pos.x + 10);
+        earlyText.setAttribute('y', pos.y + 107);
+        earlyText.setAttribute('fill', '#1e293b');
+        earlyText.setAttribute('font-family', 'JetBrains Mono, monospace');
+        earlyText.setAttribute('font-size', '10');
+        earlyText.setAttribute('font-weight', '600');
+        earlyText.textContent = `ES:${n.ES.toFixed(1)} → EF:${n.EF.toFixed(1)}`;
+        g.appendChild(earlyText);
+
+        const slackText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        slackText.setAttribute('x', pos.x + pos.w - 10);
+        slackText.setAttribute('y', pos.y + 107);
+        slackText.setAttribute('text-anchor', 'end');
+        slackText.setAttribute('fill', n.isCritical ? '#dc2626' : '#0f766e');
+        slackText.setAttribute('font-family', 'JetBrains Mono, monospace');
+        slackText.setAttribute('font-size', '10.5');
+        slackText.setAttribute('font-weight', '800');
+        slackText.textContent = `S:${n.totalSlack.toFixed(1)}m`;
+        g.appendChild(slackText);
+
+        // Bottom Row 2: LS -> LF & O/M/P
+        const lateText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        lateText.setAttribute('x', pos.x + 10);
+        lateText.setAttribute('y', pos.y + 122);
+        lateText.setAttribute('fill', '#64748b');
+        lateText.setAttribute('font-family', 'JetBrains Mono, monospace');
+        lateText.setAttribute('font-size', '9.5');
+        lateText.textContent = `LS:${n.LS.toFixed(1)} → LF:${n.LF.toFixed(1)}`;
+        g.appendChild(lateText);
+
+        const ompText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        ompText.setAttribute('x', pos.x + pos.w - 10);
+        ompText.setAttribute('y', pos.y + 122);
+        ompText.setAttribute('text-anchor', 'end');
+        ompText.setAttribute('fill', '#64748b');
+        ompText.setAttribute('font-family', 'JetBrains Mono, monospace');
+        ompText.setAttribute('font-size', '9');
+        ompText.textContent = `${n.O}/${n.M}/${n.P}`;
+        g.appendChild(ompText);
+
+        nodesLayer.appendChild(g);
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // 6. SVG PAN / ZOOM / FILTER / LEGEND CONTROLS
+    // -------------------------------------------------------------------------
+    function applySvgTransform() {
+      const layer = document.getElementById('pertPanZoomLayer');
+      if (layer) {
+        layer.setAttribute('transform', `translate(${panX}, ${panY}) scale(${currentZoom})`);
+      }
+    }
+
+    function zoomSvg(delta) {
+      currentZoom = Math.min(1.45, Math.max(0.42, currentZoom + delta));
+      applySvgTransform();
+    }
+
+    function fitSvgToScreen() {
+      const viewport = document.getElementById('pertSvgViewport');
+      if (!viewport) return;
+      const rect = viewport.getBoundingClientRect();
+      const targetScale = Math.min(rect.width / 2360, rect.height / 720);
+      currentZoom = Math.max(0.44, Math.min(1.0, targetScale * 0.96));
+      panX = 12;
+      panY = 12;
+      applySvgTransform();
+    }
+
+    function toggleCriticalOnly() {
+      showCriticalOnly = !showCriticalOnly;
+      const btn = document.getElementById('btnCriticalOnly');
+      if (showCriticalOnly) {
+        btn.classList.add('bg-crimson-600', 'text-white', 'border-crimson-600');
+        btn.classList.remove('bg-white', 'text-slate-700');
+      } else {
+        btn.classList.remove('bg-crimson-600', 'text-white', 'border-crimson-600');
+        btn.classList.add('bg-white', 'text-slate-700');
+      }
+      refreshAll();
+    }
+
+    function togglePertLegend() {
+      const bar = document.getElementById('pertLegendBar');
+      bar.classList.toggle('hidden');
+    }
+
+    function initSvgDragPan() {
+      const viewport = document.getElementById('pertSvgViewport');
+      if (!viewport) return;
+      let isDragging = false;
+      let startX = 0, startY = 0;
+
+      viewport.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.pert-node-group')) return;
+        isDragging = true;
+        startX = e.clientX - panX;
+        startY = e.clientY - panY;
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        panX = e.clientX - startX;
+        panY = e.clientY - startY;
+        applySvgTransform();
+      });
+      window.addEventListener('mouseup', () => { isDragging = false; });
+
+      // Touch support for pan
+      viewport.addEventListener('touchstart', (e) => {
+        if (e.target.closest('.pert-node-group') || e.touches.length !== 1) return;
+        isDragging = true;
+        startX = e.touches[0].clientX - panX;
+        startY = e.touches[0].clientY - panY;
+      }, { passive: true });
+      window.addEventListener('touchmove', (e) => {
+        if (!isDragging || e.touches.length !== 1) return;
+        panX = e.touches[0].clientX - startX;
+        panY = e.touches[0].clientY - startY;
+        applySvgTransform();
+      }, { passive: true });
+      window.addEventListener('touchend', () => { isDragging = false; });
+    }
+
+    // -------------------------------------------------------------------------
+    // 7. INSPECTOR PANEL & INTERACTIVE PERT SLIDERS
+    // -------------------------------------------------------------------------
+    function updateInspectorPanel(res) {
+      const n = res.nodeMap[selectedNodeId] || nodesState[0];
+      document.getElementById('inspNodeCode').textContent = n.id;
+      document.getElementById('inspNodeWp').textContent = n.wp;
+
+      const critBadge = document.getElementById('inspNodeCritBadge');
+      if (n.isCritical) {
+        critBadge.textContent = 'PERCORSO CRITICO';
+        critBadge.className = 'px-2.5 py-0.5 rounded-full bg-crimson-100 text-crimson-800 font-extrabold text-[11px]';
+      } else {
+        critBadge.textContent = `NON CRITICO (Slack +${n.totalSlack.toFixed(1)}m)`;
+        critBadge.className = 'px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 font-bold text-[11px]';
+      }
+
+      document.getElementById('inspNodeTitle').textContent = n.title;
+      document.getElementById('inspNodeLead').textContent = `${n.lead} (${getPartnerFullName(n.lead)})`;
+      document.getElementById('inspNodeBudget').textContent = n.budgetInfo;
+      document.getElementById('inspNodeInvolved').textContent = n.involved;
+      document.getElementById('inspNodePreds').textContent = n.preds.length ? n.preds.join(', ') : 'Nessuno (Nodo Iniziale)';
+
+      const delivContainer = document.getElementById('inspNodeDeliverables');
+      delivContainer.innerHTML = n.deliverables.map(d => {
+        const isInv = d.startsWith('Inv');
+        const isOut = d.startsWith('O');
+        const cls = isInv
+          ? 'bg-amber-100 text-amber-900 border-amber-300'
+          : isOut
+            ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+            : 'bg-slate-100 text-slate-800 border-slate-200';
+        return `<span class="px-2 py-0.5 rounded-md border font-mono font-bold text-[11px] ${cls}">${d}</span>`;
+      }).join('');
+
+      // Sync sliders
+      document.getElementById('sliderO').value = n.O;
+      document.getElementById('sliderM').value = n.M;
+      document.getElementById('sliderP').value = n.P;
+      document.getElementById('sliderValO').textContent = `${n.O.toFixed(1)} mesi`;
+      document.getElementById('sliderValM').textContent = `${n.M.toFixed(1)} mesi`;
+      document.getElementById('sliderValP').textContent = `${n.P.toFixed(1)} mesi`;
+
+      // Sync metrics
+      document.getElementById('inspMetricTe').textContent = `${n.te.toFixed(2)} m`;
+      document.getElementById('inspMetricSigma').textContent = `${n.sigma.toFixed(2)} m`;
+      const slackEl = document.getElementById('inspMetricSlack');
+      slackEl.textContent = `${n.totalSlack.toFixed(2)} m`;
+      slackEl.className = `text-sm font-mono font-extrabold mt-0.5 ${n.isCritical ? 'text-crimson-600' : 'text-teal-700'}`;
+
+      document.getElementById('inspMetricEarly').textContent = `${n.ES.toFixed(1)} → ${n.EF.toFixed(1)}`;
+      document.getElementById('inspMetricLate').textContent = `${n.LS.toFixed(1)} → ${n.LF.toFixed(1)}`;
+      document.getElementById('inspMetricFreeSlack').textContent = `${n.freeSlack.toFixed(2)} m`;
+
+      const startStr = formatProjectDate(n.ES, false);
+      const endStr = formatProjectDate(n.EF, true);
+      document.getElementById('inspCalWindow').textContent = `${startStr} – ${endStr}`;
+      document.getElementById('inspNodeRiskNote').textContent = n.riskNote;
+    }
+
+    function getPartnerFullName(code) {
+      const map = {
+        PP1: 'Comune di Castrovillari',
+        PP2: 'Comune di Cassano all\'Ionio',
+        PP3: 'Cluster Made in Italy',
+        PP4: 'Università della Calabria',
+        PP5: 'GAL Pollino Sviluppo',
+        PP6: 'Regione Calabria'
+      };
+      return map[code] || code;
+    }
+
+    function onPertSliderChange(which, rawVal) {
+      const val = parseFloat(rawVal);
+      const n = nodesState.find(item => item.id === selectedNodeId);
+      if (!n) return;
+
+      if (which === 'O') {
+        n.O = val;
+        if (n.M < n.O) n.M = n.O;
+        if (n.P < n.M) n.P = n.M;
+      } else if (which === 'M') {
+        n.M = val;
+        if (n.O > n.M) n.O = n.M;
+        if (n.P < n.M) n.P = n.M;
+      } else if (which === 'P') {
+        n.P = val;
+        if (n.M > n.P) n.M = n.P;
+        if (n.O > n.M) n.O = n.M;
+      }
+      clearActivePresetHighlight();
+      refreshAll();
+    }
+
+    function nudgeSelectedNode(delta) {
+      const n = nodesState.find(item => item.id === selectedNodeId);
+      if (!n) return;
+      n.O = Math.max(0.5, Math.min(12.0, +(n.O + delta).toFixed(1)));
+      n.M = Math.max(n.O, Math.min(12.0, +(n.M + delta).toFixed(1)));
+      n.P = Math.max(n.M, Math.min(12.0, +(n.P + delta).toFixed(1)));
+      clearActivePresetHighlight();
+      refreshAll();
+      showToast(`Nodo ${n.id} aggiornato (${delta > 0 ? '+' : ''}${delta} mesi)`, delta > 0 ? 'warning' : 'success');
+    }
+
+    function resetSelectedNode() {
+      const base = BASE_NODES.find(item => item.id === selectedNodeId);
+      const curr = nodesState.find(item => item.id === selectedNodeId);
+      if (!base || !curr) return;
+      curr.O = base.O;
+      curr.M = base.M;
+      curr.P = base.P;
+      refreshAll();
+      showToast(`Stime PERT del nodo ${curr.id} ripristinate ai valori nominali`, 'info');
+    }
+
+    // -------------------------------------------------------------------------
+    // 8. EUI RISK SHOCK PRESET SCENARIOS (PART G APPLICATION FORM)
+    // -------------------------------------------------------------------------
+    function clearActivePresetHighlight() {
+      document.querySelectorAll('.preset-btn').forEach(b => {
+        b.classList.remove('active', 'bg-slate-900', 'text-white', 'ring-2', 'ring-offset-1', 'ring-slate-900');
+      });
+    }
+
+    function applyPresetScenario(key) {
+      // Reset to nominal baseline first
+      nodesState = JSON.parse(JSON.stringify(BASE_NODES));
+
+      clearActivePresetHighlight();
+      const activeBtn = document.querySelector(`.preset-btn[data-preset="${key}"]`);
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-slate-900', 'text-white');
+      }
+
+      if (key === 'nominal') {
+        selectedNodeId = 'A2.1';
+        showToast('Scenario Nominale EUI caricato (Stime Baseline)', 'info');
+      } else if (key === 'procurement') {
+        const a21 = nodesState.find(n => n.id === 'A2.1');
+        a21.O += 2.5; a21.M += 2.5; a21.P += 2.5;
+        selectedNodeId = 'A2.1';
+        showToast('Applicato Rischio G.2 Procurement (+2.5m su A2.1 Investimento I1.2.1)', 'danger');
+      } else if (key === 'gdpr') {
+        const a12 = nodesState.find(n => n.id === 'A1.2');
+        a12.O += 2.0; a12.M += 2.0; a12.P += 2.0;
+        selectedNodeId = 'A1.2';
+        showToast('Applicato Rischio G.2 Gap Dati GIS / GDPR (+2.0m su A1.2 Baseline)', 'danger');
+      } else if (key === 'staff') {
+        ['A2.2', 'A2.3'].forEach(id => {
+          const node = nodesState.find(n => n.id === id);
+          node.O += 2.5; node.M += 2.5; node.P += 2.5;
+        });
+        selectedNodeId = 'A2.2';
+        showToast('Applicato Rischio G.2 Sovraccarico Staff Comuni (+2.5m su A2.2 e A2.3): il Percorso Critico si sposta sui Living Labs!', 'warning');
+      } else if (key === 'fasttrack') {
+        ['A2.1', 'A2.4'].forEach(id => {
+          const node = nodesState.find(n => n.id === id);
+          node.O = Math.max(0.5, node.O - 1.5);
+          node.M = Math.max(node.O, node.M - 1.5);
+          node.P = Math.max(node.M, node.P - 1.5);
+        });
+        selectedNodeId = 'A2.4';
+        showToast('Applicato Scenario Ottimizzato Fast-Track (-1.5m su A2.1 e A2.4): completamento entro 24 mesi garantito!', 'success');
+      }
+
+      refreshAll();
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. SECONDARY VIEW: ANALYTICAL PERT TABLE & CSV/JSON EXPORTS
+    // -------------------------------------------------------------------------
+    function renderAnalyticalTable(existingRes) {
+      const res = existingRes || runPertCpmEngine();
+      const tbody = document.getElementById('pertAnalyticalTableBody');
+      if (!tbody) return;
+
+      const q = (document.getElementById('pertTableSearch')?.value || '').toLowerCase().trim();
+      const onlyCrit = document.getElementById('pertTableCritFilter')?.checked || false;
+
+      const filtered = nodesState.filter(n => {
+        if (onlyCrit && !n.isCritical) return false;
+        if (!q) return true;
+        return (
+          n.id.toLowerCase().includes(q) ||
+          n.title.toLowerCase().includes(q) ||
+          n.lead.toLowerCase().includes(q) ||
+          n.wp.toLowerCase().includes(q) ||
+          n.deliverables.join(' ').toLowerCase().includes(q)
+        );
+      });
+
+      tbody.innerHTML = filtered.map(n => {
+        const calWin = `${formatProjectDate(n.ES, false)} – ${formatProjectDate(n.EF, true)}`;
+        const rowBg = n.isCritical ? 'bg-crimson-50/40 hover:bg-crimson-50/80' : 'hover:bg-slate-50';
+        const statusBadge = n.isCritical
+          ? '<span class="px-2 py-0.5 rounded-full bg-crimson-100 text-crimson-800 font-extrabold text-[10px]">CRITICO</span>'
+          : '<span class="px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 font-semibold text-[10px]">Non Critico</span>';
+
+        return `
+          <tr class="${rowBg} cursor-pointer" onclick="selectNodeFromTable('${n.id}')">
+            <td class="p-3 font-mono font-extrabold text-slate-900">${n.id}</td>
+            <td class="p-3">
+              <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[10px] font-bold mr-1">${n.wp}</span>
+              <span class="font-semibold text-slate-900">${n.title}</span>
+            </td>
+            <td class="p-3 font-mono font-bold text-slate-700">${n.lead}</td>
+            <td class="p-3 text-right font-mono">${n.O.toFixed(1)}</td>
+            <td class="p-3 text-right font-mono">${n.M.toFixed(1)}</td>
+            <td class="p-3 text-right font-mono">${n.P.toFixed(1)}</td>
+            <td class="p-3 text-right font-mono font-extrabold text-emerald-700 bg-emerald-50/40">${n.te.toFixed(2)}</td>
+            <td class="p-3 text-right font-mono text-slate-500">${n.sigma.toFixed(2)}</td>
+            <td class="p-3 text-right font-mono">${n.ES.toFixed(2)}</td>
+            <td class="p-3 text-right font-mono">${n.EF.toFixed(2)}</td>
+            <td class="p-3 text-right font-mono">${n.LS.toFixed(2)}</td>
+            <td class="p-3 text-right font-mono">${n.LF.toFixed(2)}</td>
+            <td class="p-3 text-right font-mono font-extrabold ${n.isCritical ? 'text-crimson-600' : 'text-teal-700'} bg-amber-50/40">${n.totalSlack.toFixed(2)}</td>
+            <td class="p-3 text-center">${statusBadge}</td>
+            <td class="p-3 font-mono text-[11px] text-slate-700 whitespace-nowrap">${calWin}</td>
+            <td class="p-3 font-mono text-[11px] text-slate-600">${n.deliverables.join(', ')}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function selectNodeFromTable(id) {
+      selectedNodeId = id;
+      switchView('view-pert');
+      refreshAll();
+      showToast(`Nodo ${id} selezionato nell'ispettore PERT`, 'info');
+    }
+
+    function exportPertCsv() {
+      const headers = ['Codice', 'WP', 'Attivita', 'Lead', 'O', 'M', 'P', 'te', 'Sigma', 'ES', 'EF', 'LS', 'LF', 'Total_Slack', 'Percorso_Critico', 'Inizio_Calendario', 'Fine_Calendario', 'Deliverables'];
+      const rows = nodesState.map(n => [
+        n.id,
+        n.wp,
+        `"${n.title.replace(/"/g, '""')}"`,
+        n.lead,
+        n.O.toFixed(2),
+        n.M.toFixed(2),
+        n.P.toFixed(2),
+        n.te.toFixed(2),
+        n.sigma.toFixed(2),
+        n.ES.toFixed(2),
+        n.EF.toFixed(2),
+        n.LS.toFixed(2),
+        n.LF.toFixed(2),
+        n.totalSlack.toFixed(2),
+        n.isCritical ? 'SI' : 'NO',
+        formatProjectDate(n.ES, false),
+        formatProjectDate(n.EF, true),
+        `"${n.deliverables.join('; ')}"`
+      ]);
+
+      const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Twin4forestLife_EUI04-1006_PERT_CPM.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Tabella PERT esportata in formato CSV', 'success');
+    }
+
+    function exportPertJson() {
+      const res = runPertCpmEngine();
+      const payload = {
+        project: 'Twin4forestLife (EUI04-1006)',
+        exportedAt: new Date().toISOString(),
+        summary: {
+          implementationDurationMonths: +res.implDuration.toFixed(2),
+          implementationEndDate: formatProjectDate(res.implEF, true),
+          projectClosureDate: formatProjectDate(res.projectEF, true),
+          criticalPath: res.criticalChain,
+          probabilityWithin24MonthsPct: +res.prob24m.toFixed(1),
+          zScore: +res.zScore.toFixed(2)
+        },
+        nodes: nodesState.map(n => ({
+          id: n.id,
+          wp: n.wp,
+          title: n.title,
+          lead: n.lead,
+          O: n.O, M: n.M, P: n.P,
+          te: +n.te.toFixed(2),
+          sigma: +n.sigma.toFixed(2),
+          ES: +n.ES.toFixed(2),
+          EF: +n.EF.toFixed(2),
+          LS: +n.LS.toFixed(2),
+          LF: +n.LF.toFixed(2),
+          totalSlack: +n.totalSlack.toFixed(2),
+          isCritical: n.isCritical,
+          deliverables: n.deliverables
+        }))
+      };
+
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Twin4forestLife_EUI04-1006_PERT_CPM.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Simulazione PERT esportata in formato JSON', 'success');
+    }
+
+    // -------------------------------------------------------------------------
+    // 10. VIEW SWITCHER & INITIALIZATION
+    // -------------------------------------------------------------------------
+    function switchView(viewId) {
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
+      const target = document.getElementById(viewId);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.view-tab-btn').forEach(btn => {
+        btn.classList.remove('active', 'bg-emerald-700', 'text-white', 'shadow-sm');
+        btn.classList.add('text-slate-300');
+      });
+      const activeBtn = document.getElementById('btn-' + viewId);
+      if (activeBtn) {
+        activeBtn.classList.add('active', 'bg-emerald-700', 'text-white', 'shadow-sm');
+        activeBtn.classList.remove('text-slate-300');
+      }
+
+      if (viewId === 'view-pert') {
+        fitSvgToScreen();
+      }
+    }
+
+    window.onload = function () {
+      initSvgDragPan();
+      refreshAll();
+      fitSvgToScreen();
+    };
+  </script>
+</body>
+</html>
